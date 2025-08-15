@@ -64,6 +64,3 @@ But if there is interest, more and better Emulator supports, and more platforms 
 EclipZX plugins will be licensed under the usual Eclipse Public License version 2, and any original support libraries will be under a liberal license as possible (likely MIT). 
 
 Binary builds will be available as pay-what-you-want with no minimum. EclipZX is and will always bee free and open source.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
