@@ -35,7 +35,7 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
 *¹ Under development now*
 
 ## Screenshots
-<style>
+<style type="text/css">
 ul{
   list-style: none;
 }
