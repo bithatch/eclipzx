@@ -35,32 +35,18 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
 *¹ Under development now*
 
 ## Screenshots
-<style type="text/css">
-ul{
-  list-style: none;
-}
-li {
-  display: inline;
-}
-li img {
-    vertical-align: middle; 
-    padding-left: 1em; 
-    padding-top: 1em;
-}
-</style>
-<ul>
-<li><img title="The Welcome Page helps you get started and shows setup tasks" src="src/web/screenshot-welcome.png" width="200"/></li>
-<li><img title="Everything is highly configurable" src="src/web/screenshot-prefs.png" width="200"/></li>
-<li><img title="Wizards help you do do stuff" src="src/web/screenshot-new-basic-project.png" width="200"/></li>
-<li><img title="Hello Universe" src="src/web/screenshot-first-program.png" width="200"/></li>
-<li><img title="An AYFX editor for your sound effects" src="src/web/screenshot-ayfx.png" width="200"/></li> 
-<li><img title="JSpeccy runs your stuff" src="src/web/screenshot-emulator.png" width="200"/></li>
-<li><img title="Tape browser for tape file formats" src="src/web/screenshot-tape-browser.png" width="200"/></li>
-<li><img title="Sprite Editor (mostly complete!)" src="src/web/screenshot-sprites.png" width="200"/></li>
-<li><img title="UDG Font Import" src="src/web/screenshot-font-import.png" width="200"/></li>
-<li><img title="UDG Editor" src="src/web/screenshot-udgs.png" width="200"/></li>
-<li><img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/></li>
-</ul>
+
+ * <img title="The Welcome Page helps you get started and shows setup tasks" src="src/web/screenshot-welcome.png" width="200"/>
+ * <img title="Everything is highly configurable" src="src/web/screenshot-prefs.png" width="200"/>
+ * <img title="Wizards help you do do stuff" src="src/web/screenshot-new-basic-project.png" width="200"/>
+ * <img title="Hello Universe" src="src/web/screenshot-first-program.png" width="200"/>
+ * <img title="An AYFX editor for your sound effects" src="src/web/screenshot-ayfx.png" width="200"/>
+ * <img title="JSpeccy runs your stuff" src="src/web/screenshot-emulator.png" width="200"/>
+ * <img title="Tape browser for tape file formats" src="src/web/screenshot-tape-browser.png" width="200"/>
+ * <img title="Sprite Editor (mostly complete!)" src="src/web/screenshot-sprites.png" width="200"/>
+ * <img title="UDG Font Import" src="src/web/screenshot-font-import.png" width="200"/>
+ * <img title="UDG Editor" src="src/web/screenshot-udgs.png" width="200"/>
+ * <img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/>
 
 
 ## Status as of 15/08/2025
