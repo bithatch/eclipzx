@@ -34,6 +34,24 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
  
 *¹ Under development now*
 
+## Screenshots
+ 
+<ul style="list-style: none">
+<li style="display: inline;"><img title="The Welcome Page helps you get started and shows setup tasks" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-welcome.png" width="200"/></li>
+<li style="display: inline;"><img title="Everything is highly configurable" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-prefs.png" width="200"/></li>
+<li style="display: inline;"><img title="Wizards help you do do stuff" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-new-basic-project.png" width="200"/></li>
+<li style="display: inline;"><img title="Hello Universe" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-first-program.png" width="200"/></li>
+<li style="display: inline;"><img title="An AYFX editor for your sound effects" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-ayfx.png" width="200"/></li> 
+<li style="display: inline;"><img title="JSpeccy runs your stuff" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-emulator.png" width="200"/></li>
+<li style="display: inline;"><img title="Tape browser for tape file formats" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-tape-browser.png" width="200"/></li>
+<li style="display: inline;"><img title="Sprite Editor (mostly complete!)" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-sprites.png" width="200"/></li>
+<li style="display: inline;"><img title="UDG Font Import" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-font-import.png" width="200"/></li>
+<li style="display: inline;"><img title="UDG Editor" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-udgs.png" width="200"/></li>
+<li style="display: inline;"><img title="ZX Next Palette Editor" style="vertical-align: middle; padding-left: 1em; padding-top: 1em;" src="src/web/screenshot-palette.png" width="200"/></li>
+</ul>
+
+
+
 ## Status as of 15/08/2025
 
 EclipZX has already undergone heavy private development, and is coming close to be in a state
