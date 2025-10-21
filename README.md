@@ -49,6 +49,12 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
  * <img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/>
 
 
+## Status as of 21/11/2025
+
+Well, I am pretty behind on this. There have been a number of unexpected blockers to this. A lot of it is down to my unfamiliarity with the OSGi and the Eclipse platform when it comes to assembling complete products that work on all operating systems. I am slowly fighting my way through it though, and will hopefully publish at least something before  the year is out.
+
+There were other diversions too, mostly around improving the built-in emulator that I hoped to have made more progress than has actually been made (good Joystick support being a large part, and lots lots more that will become obvious). 
+
 ## Status as of 15/08/2025
 
 EclipZX has already undergone heavy private development, and is coming close to be in a state
