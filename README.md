@@ -49,6 +49,12 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
  * <img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/>
 
 
+## Status as of 25/11/2025
+
+Finallly the sources for EclipZX are published, along with it related dependencies [Zyxy](https://github.com/bithatch/zyxy),  [Bithatch Maven P2](https://github.com/bithatch/bithatch-maven-p2), A fork of [FAT32-Lib](https://github.com/bithatch/fat32-lib) and a fork of [JSpeccy](https://github.com/bithatch/JSpeccy).
+
+Pre-built binaries for Linux (X86_64 and AArch64), Mac OS  (X86_64 and AArch64) and Windows (X86_64) will be available soon.
+
 ## Status as of 21/11/2025
 
 Well, I am pretty behind on this. There have been a number of unexpected blockers to this. A lot of it is down to my unfamiliarity with the OSGi and the Eclipse platform when it comes to assembling complete products that work on all operating systems. I am slowly fighting my way through it though, and will hopefully publish at least something before  the year is out.
