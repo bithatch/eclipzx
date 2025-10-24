@@ -51,7 +51,7 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
 
 ## Status as of 25/11/2025
 
-Finallly the sources for EclipZX are published, along with it related dependencies [Zyxy](https://github.com/bithatch/zyxy),  [Bithatch Maven P2](https://github.com/bithatch/bithatch-maven-p2), A fork of [FAT32-Lib](https://github.com/bithatch/fat32-lib) and a fork of [JSpeccy](https://github.com/bithatch/JSpeccy).
+Finallly the sources for EclipZX are published, along with it related dependencies [Zyxy](https://github.com/bithatch/zyxy),  [Bithatch Maven P2](https://github.com/bithatch/bithatch-maven-p2), A fork of [JInput](https://github.com/bithatch/jinput) A fork of [FAT32-Lib](https://github.com/bithatch/fat32-lib) and a fork of [JSpeccy](https://github.com/bithatch/JSpeccy).
 
 Pre-built binaries for Linux (X86_64 and AArch64), Mac OS  (X86_64 and AArch64) and Windows (X86_64) will be available soon.
 
