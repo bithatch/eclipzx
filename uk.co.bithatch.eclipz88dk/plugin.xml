@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.36"?>
+<plugin>
+   <extension
+         id="uk.co.bithatch.eclipz88dk.toolchain"
+         name="Z88DK Toolchain"
+         point="org.eclipse.cdt.managedbuilder.core.buildDefinitions">
+         
+         <toolChain
+               id="uk.co.bithatch.eclipz88dk.toolChain"
+               isAbstract="true"
+               languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+               name="Z88DK Toolchain"
+               osList="win32,linux,macosx">
+               
+          <!-- <supportedProperties>
+               <property id="org.eclipse.cdt.build.core.buildArtefactType">
+                <value/>
+               </property>
+           </supportedProperties>-->
+  
+           <builder
+                 command="make"
+                 id="uk.co.bithatch.eclipz88dk.builder"
+                 isVariableCaseSensitive="false"
+                 name="Z88DK Builder"
+                  superClass="org.eclipse.cdt.build.core.settings.default.builder">
+           </builder>
+           <tool
+                 command="zcc"
+                 icon="icons/z88dk.png"
+                 id="uk.co.bithatch.eclipz88dk.compiler"  
+                 outputFlag="-o"
+                 commandLineGenerator="uk.co.bithatch.eclipz88dk.toolchain.Z88DKCmdLineGen"
+                 name="Z88DK Compiler">
+              <inputType
+                    dependencyContentType="org.eclipse.cdt.core.cHeader"
+                    id="uk.co.bithatch.eclipz88dk.compiler.inputType"
+                    name="Z88DK C Source"
+                    primaryInput="true"
+                    sources="c"
+                    sourceContentType="org.eclipse.cdt.core.cSource">
+              </inputType> 
+              <outputType
+                    buildVariable="BINS"
+                    id="uk.co.bithatch.eclipz88dk.compiler.outputType"
+                    name="Z88DK Binary"
+                    outputs="bin"
+                    primaryOutput="true"> 
+              </outputType>
+              <optionCategory
+                    id="uk.co.bithatch.eclipz88dk.compiler.options"
+                    name="General"
+                    owner="uk.co.bithatch.eclipz88dk.compiler">
+              </optionCategory>
+              <optionCategory
+                    id="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
+                    name="Include Path"
+                    owner="uk.co.bithatch.eclipz88dk.compiler">
+              </optionCategory>
+              <optionCategory
+                    id="uk.co.bithatch.eclipz88dk.compiler.libs.options"
+                    name="Libraries"
+                    owner="uk.co.bithatch.eclipz88dk.compiler">
+              </optionCategory>
+              <option
+                    category="uk.co.bithatch.eclipz88dk.compiler.options"
+                    defaultValue=""
+                    id="uk.co.bithatch.eclipz88dk.compiler.other"
+                    name="Other Flags"
+                    resourceFilter="all"
+                    valueType="string">
+              </option>
+              <option
+                    category="uk.co.bithatch.eclipz88dk.compiler.options"
+                    command="-v"
+                    id="uk.co.bithatch.eclipz88dk.compiler.verbose"
+                    name="Verbose"
+                    resourceFilter="all"
+                    valueType="boolean">
+              </option>
+              <option
+                    browseType="directory"
+                    category="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
+                    command="-I"
+                    id="uk.co.bithatch.eclipz88dk.compiler.incpath"
+                    name="Include paths"
+                    resourceFilter="all"
+                    valueType="includePath">
+              </option>
+              <option
+                    browseType="none"
+                    category="uk.co.bithatch.eclipz88dk.compiler.libs.options"
+                    command="-l"
+                    id="uk.co.bithatch.eclipz88dk.compiler.libs"
+                    name="Libraries"
+                    resourceFilter="all"
+                    valueType="libs">
+              </option>
+           </tool>
+           
+        </toolChain>
+         
+         <!--
+         TODO all build types
+         org.eclipse.cdt.build.core.buildArtefactType.exe
+org.eclipse.cdt.build.core.buildArtefactType.staticLib
+org.eclipse.cdt.build.core.buildArtefactType.sharedLib
+org.eclipse.cdt.build.core.buildArtefactType.other
+         -->
+         
+      <projectType
+            
+            buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
+            id="uk.co.bithatch.eclipz88dk.executable"
+            isAbstract="false"
+            isTest="false"
+            name="Z88DK Executable"
+            >
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.release.exe"
+               name="Release"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
+               buildProperties="
+                  org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe;
+                  org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               artifactName="${ProjName}"
+               artifactExtension="bin">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.release.exe.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Release Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+            </toolChain>
+         </configuration>
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.debug.exe"
+               name="Debug"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
+                  buildProperties="
+                      org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe;
+                      org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               artifactName="${ProjName}"
+               artifactExtension="bin">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.debug.exe.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Debug Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+            </toolChain>
+         </configuration>
+      </projectType>
+      
+      
+      <projectType
+            
+            buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
+            id="uk.co.bithatch.eclipz88dk.library"
+            isAbstract="false"
+            isTest="false"
+            name="Z88DK Library">
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.release.so"
+               name="Release"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
+               buildProperties="
+                  org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib;
+                  org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               artifactName="${ProjName}"
+               artifactExtension="lib">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.release.so.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Release Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+            </toolChain>
+         </configuration>
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.debug.so"
+               name="Debug"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
+                  buildProperties="
+                      org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib;
+                      org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               artifactName="${ProjName}"
+               artifactExtension="bin">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.debug.so.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Debug Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+            </toolChain>
+         </configuration>
+      </projectType>
+      
+      
+   </extension>
+   <extension
+         point="org.eclipse.cdt.core.LanguageSettingsProvider">
+      <provider
+            class="uk.co.bithatch.eclipz88dk.toolchain.Z88DKLanguageSettingsProvider"
+            id="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+            name="Z88DK Language Settings"
+            prefer-non-shared="true">
+      </provider>
+   </extension>
+
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer class="uk.co.bithatch.eclipz88dk.preferences.PreferenceInitializer" />
+    </extension>
+
+    <extension point="org.eclipse.ui.preferencePages">
+        <page category="org.eclipse.cdt.ui.preferences.CPluginPreferencePage"
+              class="uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencePage" 
+              id="uk.co.bithatch.eclipz88dk.preferences" name="Z88DK">
+            <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Z88DK" />
+        </page>
+        <page category="uk.co.bithatch.eclipz88dk.preferences" 
+              class="uk.co.bithatch.eclipz88dk.preferences.SDKPreferencePage" 
+              id="uk.co.bithatch.eclipz88dk.preferences.sdks" 
+              name="Z88DK Homes">
+            <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_SDKs" />
+        </page>
+        <page category="uk.co.bithatch.eclipz88dk.preferences" 
+              class="uk.co.bithatch.eclipz88dk.preferences.CompilerPreferencePage" 
+              id="uk.co.bithatch.eclipz88dk.preferences.compiler" 
+              name="Compiler">
+            <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Compiler" />
+        </page>
+    </extension>
+    
+    <extension point="org.eclipse.ui.propertyPages">
+    
+        <page category="org.eclipse.cdt.managedbuilder.ui.properties.Page_head_build"
+              class="uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencePage" 
+              id="uk.co.bithatch.eclipz88dk.properties" name="Z88DK">
+            <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Z88DK" />
+        </page>
+        
+        <page category="uk.co.bithatch.eclipz88dk.properties"  
+                class="uk.co.bithatch.eclipz88dk.preferences.CompilerPreferencePage" 
+                id="uk.co.bithatch.eclipz88dk.properties.compiler" name="Compiler">
+            <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Compiler" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="org.eclipse.cdt.core.cnature" />
+        </page>
+    </extension>
+
+    <extension point="org.eclipse.ui.keywords">
+        <keyword id="uk.co.bithatch.eclipz88dk.keyword_Z88DK" label="Z88DK" />
+        <keyword id="uk.co.bithatch.eclipz88dk.keyword_SDKs" label="Homes" />
+        <keyword id="uk.co.bithatch.eclipz88dk.keyword_Compiler" label="Compiler" />
+    </extension>
+ 
+    <extension point="uk.co.bithatch.bitzx.languageSystemProvider">
+        <languageSystemProvider id="uk.co.bithatch.eclipz88dk.langageSystemProvider.z88dk" name="Z88DK C" class="uk.co.bithatch.eclipz88dk.Z88DKLanguageSystemProvider"/> 
+    </extension> 
+    
+    <extension point="org.eclipse.ui.newWizards">
+        <category id="uk.co.bithatch.eclipz88dk.wizard.wizardCategory" name="Z88DK Projects" />
+        <wizard id="uk.co.bithatch.eclipz88dk.wizard.Z88DKNewProjectWizard" name="Z88DK C Project" class="uk.co.bithatch.eclipz88dk.wizard.Z88DKNewProjectWizard" category="uk.co.bithatch.eclipz88dk.wizard.wizardCategory" icon="icons/z88dk.png" project="true">
+            <description>Create a new ZX Spectrum C project</description>
+        </wizard>
+        <wizard id="uk.co.bithatch.eclipz88dk.wizard.Z88DKExamplesWizard" name="Z88DK Examples" class="uk.co.bithatch.eclipz88dk.wizard.Z88DKExamplesWizard" category="uk.co.bithatch.eclipz88dk.wizard.wizardCategory" icon="icons/z88dk.png">
+            <description>Create a new ZX Spectrum C project populated with examples</description>
+        </wizard>
+    </extension>
+
+    <extension point="org.eclipse.cdt.core.language">
+      <language
+          id="language.c"
+          name="Z88DK C"
+          class="uk.co.bithatch.eclipz88dk.lang.Z88DKCLanguage">
+        <!--<contentType id="org.eclipse.cdt.core.cSource"/>
+        <contentType id="org.eclipse.cdt.core.cHeader"/>-->
+      </language>
+    </extension>
+
+
+    
+</plugin>

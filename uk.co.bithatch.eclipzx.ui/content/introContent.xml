@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<introContent>
+
+  <page id="root" style="shared.css" title="Welcome to EclipZX">
+
+    <group id="banner" style-id="container">
+        <img src="images/banner.png" alt="EclipZX Banner" style-id="banner"/>
+        <text>
+	        EclipZX is a complete Eclipse-based development environment for Boriel ZX Basic and Z80 assembler programming for the ZX Spectrum.
+	        Develop on your PC using Linux, Windows or Mac OS, and deploy to any supported ZX Spectrum.
+        </text>
+        <link url="https://bithatch.co.uk/eclipzx" label="EclipZX Project Homepage"/>
+    </group>
+    
+    <group id="setup" style-id="container" computed="true">
+    </group>
+
+    <group id="basic-getting-started" style-id="container">
+       <text style-id="h1">Getting Started with ZX Basic</text>
+       <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateBasicProjectAction" label="Create New ZX Basic Project"/>
+       <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateZXBasicExamplesProjectAction" label="Create ZX Basic Examples Project"></link>
+       <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateNextBuildExamplesProjectAction" label="Create NextBuild Examples Project"></link>
+       
+       <text style-id="h2">More Reading ... </text>
+       <group id="basic-more-reading" style-id="more-reading">
+            <link url="https://zxbasic.readthedocs.io/" label="Boriel ZX Basic Documentation"/>
+            <link url="https://github.com/boriel/zxbasic" label="ZX Basic Compiler on GitHub"/>
+        </group>
+    </group>
+    
+    <group id="c-getting-started" style-id="container">
+       <text style-id="h1">Getting Started with C</text>
+       <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateZ88DKProjectAction" label="Create New C Project"/>
+       <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateZ88DKExamplesProjectAction" label="Create Z88DK Examples Project"></link>
+       
+       <text style-id="h2">More Reading ... </text>
+       <group id="basic-more-reading" style-id="more-reading">
+            <link url="https://z88dk.org/site/" label="Z88DK Home and Documentation"/>
+            <link url="https://github.com/z88dk/z88dkc" label="Z88DK on GitHub"/>
+        </group>
+    </group>
+        
+    <group id="footer" style-id="container"  computed="true">
+    </group>
+
+  </page>
+</introContent>

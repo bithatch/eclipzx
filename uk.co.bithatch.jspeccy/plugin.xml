@@ -1,0 +1,785 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            id="uk.co.bithatch.jspeccy.editor.TapeBrowser"
+            name="Tape Browser"
+            class="uk.co.bithatch.jspeccy.editor.TapeBrowser"
+            icon="icons/tape16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.jspeccy.tzx.contenttype"/>
+            <contentTypeBinding contentTypeId="uk.co.bithatch.jspeccy.tap.contenttype"/>
+            <contentTypeBinding contentTypeId="uk.co.bithatch.jspeccy.csw.contenttype"/>
+        </editor>
+    </extension>
+
+    <extension point="org.eclipse.ui.views">
+        <category id="uk.co.bithatch.jspeccy.category"
+                name="ZX Spectrum Emulator"/>
+        <view category="uk.co.bithatch.jspeccy.category" class="uk.co.bithatch.jspeccy.views.KeyboardView" icon="icons/keys16.png" id="uk.co.bithatch.jspeccy.views.KeyboardView" inject="true"
+            name="ZX Spectrum 16K/48K Keyboard">
+        </view>
+        <view
+            id="uk.co.bithatch.jspeccy.views.EmulatorView"
+            name="ZX Spectrum Emulator"
+            class="uk.co.bithatch.jspeccy.views.EmulatorView"
+            category="uk.co.bithatch.jspeccy.category"
+            icon="icons/jspeccy16.png">
+        </view>
+    </extension>
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type
+            file-extensions="z80"
+            id="uk.co.bithatch.jspeccy.z80.contenttype"
+            name="Z80 Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="sna"
+            id="uk.co.bithatch.jspeccy.sna.contenttype"
+            name="SNA Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="szx"
+            id="uk.co.bithatch.jspeccy.szx.contenttype"
+            name="SZX Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="sp"
+            id="uk.co.bithatch.jspeccy.sp.contenttype"
+            name="SP Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="tap"
+            id="uk.co.bithatch.jspeccy.tap.contenttype"
+            name="TAP Tape Container"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="tzx"
+            id="uk.co.bithatch.jspeccy.tzx.contenttype"
+            name="TZX Tape Container"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="cws"
+            id="uk.co.bithatch.jspeccy.csw.contenttype"
+            name="CSW Tape Container"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="rom"
+            id="uk.co.bithatch.jspeccy.rom.contenttype"
+            name="Spectrum Rom"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="mdv"
+            id="uk.co.bithatch.jspeccy.mdv.contenttype"
+            name="Spectrum Microdrive Cartridge"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="mdr"
+            id="uk.co.bithatch.jspeccy.mdr.contenttype"
+            name="Spectrum Microdrive Cartridge"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="bin"
+            id="uk.co.bithatch.jspeccy.bin.contenttype"
+            name="Spectrum Binary Data"
+            priority="low">
+        </content-type>
+    </extension>
+    
+    <extension
+            point="org.eclipse.ui.preferencePages">
+
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                name="JSpeccy"
+                class="uk.co.bithatch.jspeccy.preferences.JSpeccyPreferencePage" />
+
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.keyboard"
+                name="Keyboard"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.KeyboardPreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.multiface"
+                name="Multiface"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.MultifacePreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.interface1"
+                name="Interface 1"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.Interface1PreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.lec"
+                name="LEC"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.LECPreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.emulator"
+                name="Emulator"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.EmulatorPreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.hardware"
+                name="Hardware"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.HardwarePreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.audio"
+                name="Audio"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.AudioPreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.jspeccy.preferences.tape"
+                name="Tape"
+                category="uk.co.bithatch.jspeccy.preferences.jspeccy"
+                class="uk.co.bithatch.jspeccy.preferences.TapePreferencePage" />
+    </extension>
+    
+
+    <extension point="org.eclipse.ui.commands">
+        <category
+            id="uk.co.bithatch.jspeccy.commands.category"
+            name="JSpeccy Commands" />
+    
+        <command
+            id="uk.co.bithatch.jspeccy.commands.record"
+            name="Record To Tape"
+            categoryId="uk.co.bithatch.jspeccy.commands.category" />
+    
+        <command
+            id="uk.co.bithatch.jspeccy.commands.stop"
+            name="Stop Tape"
+            categoryId="uk.co.bithatch.jspeccy.commands.category" />
+    
+        <command
+            id="uk.co.bithatch.jspeccy.commands.rewind"
+            name="Rewind Tape"
+            categoryId="uk.co.bithatch.jspeccy.commands.category" />
+    
+        <command
+            id="uk.co.bithatch.jspeccy.commands.play"
+            name="Play Tape"
+            categoryId="uk.co.bithatch.jspeccy.commands.category" />
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.openInTapeBrowser"
+            name="Open in Tape Browser"
+            description="Open selected file in the Tape Browser">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.openInEmulator"
+            name="Open in JSpeccy Emulator"
+            description="Open selected file in the JSpeccy Emulator">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.insertROMFromFileSystem"
+            name="Insert ROM from Filesystem"
+            description="Locate, insert and start a .rom file from the local file system">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.insertTapeFromFileSystem"
+            name="Insert Tape from Filesystem"
+            description="Locate, insert and start a .tzx,.tap or .csv file from the local file system">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.ejectROM"
+            name="Eject ROM and Reset"
+            description="Eject the current ROM and reset the emulator">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.screenshot"
+            name="Screenshot"
+            description="Take a screenshot">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.microdrives"
+            name="Microdrives"
+            description="Manage Microdrives">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.nmi"
+            name="Generate NMI"
+            description="Generate NMI">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.poke"
+            name="Poke Address"
+            description="Poke an address with a value">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.jspeccy.commands.ejectTape"
+            name="Eject Tape"
+            description="Eject the current tape">
+        </command>
+    </extension>
+    
+    <extension point="org.eclipse.ui.handlers">
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.record"
+            class="uk.co.bithatch.jspeccy.commands.RecordHandler">
+            
+             <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                      <and>
+                          <test property="uk.co.bithatch.jspeccy.editor.inserted" value="true"/>
+                          <test property="uk.co.bithatch.jspeccy.editor.running" value="false"/>
+                          <test property="uk.co.bithatch.jspeccy.editor.recording" value="false"/>
+                      </and>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                        <and>
+                            <test property="uk.co.bithatch.jspeccy.views.tapeInserted" value="true"/>
+                            <test property="uk.co.bithatch.jspeccy.views.tapeRunning" value="false"/>
+                            <test property="uk.co.bithatch.jspeccy.views.tapeRecording" value="false"/>
+                        </and>
+                    </with>
+                </or>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.stop"
+            class="uk.co.bithatch.jspeccy.commands.StopHandler">
+            
+            <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                      <test property="uk.co.bithatch.jspeccy.editor.running" value="true"/>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                        <test property="uk.co.bithatch.jspeccy.views.tapeRunning" value="true"/>
+                    </with>
+                </or>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.rewind"
+            class="uk.co.bithatch.jspeccy.commands.RewindHandler">
+            
+             <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                      <test property="uk.co.bithatch.jspeccy.editor.inserted" value="true"/>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                        <test property="uk.co.bithatch.jspeccy.views.tapeInserted" value="true"/>
+                    </with>
+                </or>
+            </enabledWhen>
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.play"
+            class="uk.co.bithatch.jspeccy.commands.PlayHandler">
+            
+            <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                      <and>
+                          <test property="uk.co.bithatch.jspeccy.editor.inserted" value="true"/>
+                          <test property="uk.co.bithatch.jspeccy.editor.running" value="false"/>
+                      </and>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                        <and>
+                            <test property="uk.co.bithatch.jspeccy.views.tapeInserted" value="true"/>
+                            <test property="uk.co.bithatch.jspeccy.views.tapeRunning" value="false"/>
+                        </and>
+                    </with>
+                </or>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.ejectTape"
+            class="uk.co.bithatch.jspeccy.commands.EjectTapeHandler">
+              <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                      <and>
+                          <test property="uk.co.bithatch.jspeccy.editor.inserted" value="true"/>
+                          <test property="uk.co.bithatch.jspeccy.editor.running" value="false"/>
+                      </and>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                      <and>
+                        <test property="uk.co.bithatch.jspeccy.views.tapeInserted" value="true"/>
+                        <test property="uk.co.bithatch.jspeccy.views.tapeRunning" value="false"/>
+                        </and>
+                    </with>
+                </or>
+            </enabledWhen>
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.openInEmulator"
+            class="uk.co.bithatch.jspeccy.commands.OpenInEmulatorHandler">
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.openInTapeBrowser"
+            class="uk.co.bithatch.jspeccy.commands.OpenInTapeBrowserHandler">
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.insertROMFromFileSystem"
+            class="uk.co.bithatch.jspeccy.commands.InsertROMFromFileSystemHandler">
+            
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                 <not>
+                   <test property="uk.co.bithatch.jspeccy.views.activeMedia" value="rom"/>
+                 </not>
+              </with>
+            </enabledWhen>
+            
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.insertTapeFromFileSystem"
+            class="uk.co.bithatch.jspeccy.commands.InsertTapeFromFileSystemHandler">
+            
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                 <not>
+                   <test property="uk.co.bithatch.jspeccy.views.activeMedia" value="tape"/>
+                 </not>
+              </with>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.ejectROM"
+            class="uk.co.bithatch.jspeccy.commands.EjectROMHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+              <test property="uk.co.bithatch.jspeccy.views.activeMedia" value="rom"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.microdrives"
+            class="uk.co.bithatch.jspeccy.commands.MicrodrivesHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                <test property="uk.co.bithatch.jspeccy.views.microdrives" value="true"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.nmi"
+            class="uk.co.bithatch.jspeccy.commands.NMIHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.poke"
+            class="uk.co.bithatch.jspeccy.commands.PokeHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.jspeccy.commands.screenshot"
+            class="uk.co.bithatch.jspeccy.commands.ScreenshotHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+              </with>
+            </enabledWhen>
+        </handler>
+    </extension>
+    
+    <extension point="org.eclipse.ui.menus">
+    
+        <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=navigate">
+            <menu
+                id="uk.co.bithatch.jspeccy.editor.menus.tape"
+                label="Tape">
+                <visibleWhen>
+                    <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                        </or>
+                    </with>
+                </visibleWhen>
+            </menu>
+            
+             <menu
+                id="uk.co.bithatch.jspeccy.views.menus.emulator"
+                label="Emulator">
+                <visibleWhen>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.jspeccy.views.EmulatorView"/>
+                        <!--<test property="org.example.myViewPart.inputType" value="type1"/>-->
+                    </with>
+                </visibleWhen>
+            </menu>
+        </menuContribution>
+    
+      <menuContribution locationURI="menu:uk.co.bithatch.jspeccy.views.menus.emulator">
+        
+           <!-- ROMs submenu -->
+           <menu
+                 id="uk.co.bithatch.jspeccy.menus.roms"
+                 label="ROMs"
+                 icon="icons/rom16.png">
+              <command
+                    commandId="uk.co.bithatch.jspeccy.commands.insertROMFromFileSystem"
+                    label="Insert ROM from Filesystem"
+                    tooltip="Locate, insert and start a .rom file from the local file system"
+                    style="push"/>
+              <command
+                    commandId="uk.co.bithatch.jspeccy.commands.ejectROM"
+                    icon="icons/eject16.png"
+                    label="Eject ROM and Reset"
+                    tooltip="Eject the current ROM and reset the emulator"
+                    style="push"/>
+           </menu>
+        
+           <menu
+                 id="uk.co.bithatch.jspeccy.menus.tapes"
+                 label="Tapes"
+                 icon="icons/tape16.png">
+               <command
+                    commandId="uk.co.bithatch.jspeccy.commands.insertTapeFromFileSystem"
+                    label="Insert Tape from Filesystem"
+                    tooltip="Locate, insert and start a .tzx,.tap or .csw file from the local file system"
+                    style="push"/>
+              <command
+                    commandId="uk.co.bithatch.jspeccy.commands.ejectTape" 
+                    icon="icons/eject16.png"
+                    label="Eject Tape"
+                    tooltip="Eject the current tape"
+                    style="push">
+                </command>
+           </menu> 
+        
+           <command
+                 commandId="uk.co.bithatch.jspeccy.commands.microdrives"
+                 icon="icons/microdrive16.png" 
+                 label="Microdrives"
+                 tooltip="Manage currently inserted microdrives"
+                 style="push"/>
+        
+           <separator name="uk.co.bithatch.jspeccy.menus.sep" visible="true"/>
+                 
+           <command
+                 commandId="uk.co.bithatch.jspeccy.commands.nmi"
+                 icon="icons/nmi16.png" 
+                 label="Generate NMI"
+                 tooltip="Geneate a non-maskable interupt"
+                 style="push"/>
+                 
+           <command
+                 commandId="uk.co.bithatch.jspeccy.commands.poke"
+                 icon="icons/poke16.png" 
+                 label="Poke Address"
+                 tooltip="Poke an address with a value"
+                 style="push"/>
+        
+           <command
+                 commandId="uk.co.bithatch.jspeccy.commands.screenshot"
+                 label="Screenshot"
+                 icon="icons/screenshot16.png" 
+                 tooltip="Take a screenshot"
+                 style="push"/>
+                 
+        </menuContribution>
+
+    
+      <menuContribution
+            locationURI="menu:uk.co.bithatch.jspeccy.editor.menus.tape">
+            
+          <command
+                commandId="uk.co.bithatch.jspeccy.commands.record"
+                icon="icons/record16.png"
+                label="Record To Tape"
+                tooltip="Record to tape on SAVE operation"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.stop"
+                icon="icons/stop16.png"
+                label="Stop Tape"
+                tooltip="Stop current Tape LOAD"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.rewind"
+                icon="icons/rew16.png"
+                label="Rewind Tape"
+                tooltip="Rewind current Tape"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.play"
+                icon="icons/play16.png"
+                label="Play Tape"
+                tooltip="Play current Tape"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.ejectTape"
+                icon="icons/eject16.png"
+                label="Eject Tape"
+                tooltip="Eject current Tape"
+                style="push">
+          </command>
+    </menuContribution>
+    
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+        <toolbar id="uk.co.bithatch.jspeccy.tape.toolbar" label="Tape Browser">
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.record"
+                icon="icons/record16.png"
+                label="Record To Tape"
+                tooltip="Record to tape on SAVE operation"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.stop"
+                icon="icons/stop16.png"
+                label="Stop Tape"
+                tooltip="Stop current Tape LOAD"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.rewind"
+                icon="icons/rew16.png"
+                label="Rewind Tape"
+                tooltip="Rewind current Tape"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.play"
+                icon="icons/play16.png"
+                label="Play Tape"
+                tooltip="Play current Tape"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.jspeccy.commands.ejectTape"
+                icon="icons/eject16.png"
+                label="Eject Tape"
+                tooltip="Eject current Tape"
+                style="push">
+               <!-- <visibleWhen checkEnabled="false">
+                    <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.jspeccy.editor.TapeBrowser"/>
+                      <test property="uk.co.bithatch.jspeccy.editor.inserted" value="true"/>
+                    </with>
+                </visibleWhen>-->
+          </command>
+        </toolbar>
+      </menuContribution>
+    
+     <menuContribution locationURI="toolbar:org.eclipse.ui.trim.status">
+        <toolbar
+           id="uk.co.bithatch.jspeccy.statusbar"
+           label="JSpeccy Status Bar">
+          <control
+                id="uk.co.bithatch.jspeccy.views.EmulatorStatusControl"
+                class="uk.co.bithatch.jspeccy.views.EmulatorStatusControl">
+                    <!-- <visibleWhen>
+                <with
+                      variable="activePartId">
+                   <equals
+                         value="uk.co.bithatch.zxbasic.ui.views.EmulatorView"/>
+                </with>
+             </visibleWhen>-->
+          </control>
+          </toolbar>
+       </menuContribution>
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.open">
+        <command
+          commandId="uk.co.bithatch.jspeccy.commands.openInEmulator"
+          label="Open in JSpeccy Emulator"
+          icon="icons/jspeccy16.png"
+          style="push">
+          
+           <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                           <or>
+                              <test property="org.eclipse.core.resources.extension" value="z80"/>
+                              <test property="org.eclipse.core.resources.extension" value="sna"/>
+                              <test property="org.eclipse.core.resources.extension" value="tap"/>
+                              <test property="org.eclipse.core.resources.extension" value="tzx"/>
+                              <test property="org.eclipse.core.resources.extension" value="rom"/>
+                              <test property="org.eclipse.core.resources.extension" value="mdr"/>
+                              <test property="org.eclipse.core.resources.extension" value="mdv"/>
+                              <test property="org.eclipse.core.resources.extension" value="bin"/>
+                            </or>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+        </command> 
+        <command
+          commandId="uk.co.bithatch.jspeccy.commands.openInTapeBrowser"
+          label="Open in Tape Browser"
+          icon="icons/tape16.png"
+          style="push">
+          
+           <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                           <or>
+                              <test property="org.eclipse.core.resources.extension" value="csw"/>
+                              <test property="org.eclipse.core.resources.extension" value="tap"/>
+                              <test property="org.eclipse.core.resources.extension" value="tzx"/>
+                            </or>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+        </command>
+      </menuContribution>
+    </extension>
+
+   <extension point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+          id="uk.co.bithatch.jspeccy.navigatorContent"
+          name="JSpeccy File Label Provider"
+          activeByDefault="true"
+          contentProvider="uk.co.bithatch.jspeccy.navigator.EmulatorFilesContentProvider"
+          labelProvider="uk.co.bithatch.jspeccy.navigator.EmulatorFilesLabelProvider"
+          priority="highest">
+        <triggerPoints>
+          <instanceof value="org.eclipse.core.resources.IFile"/>
+        </triggerPoints>
+      </navigatorContent>
+    </extension>
+
+    <extension point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding
+          viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+        <includes>
+          <contentExtension
+              pattern="uk.co.bithatch.jspeccy.navigatorContent"/>
+        </includes>
+      </viewerContentBinding>
+    </extension>
+
+<extension point="org.eclipse.core.expressions.propertyTesters">
+  <propertyTester
+        id="uk.co.bithatch.jspeccy.views.EmulatorViewPropertyTester"
+        type="uk.co.bithatch.jspeccy.views.EmulatorView"
+        namespace="uk.co.bithatch.jspeccy.views"
+        properties="activeMedia,microdrives,tapeInserted,tapeRunning,tapePlaying,tapeRecording,tapeReady"
+        class="uk.co.bithatch.jspeccy.views.EmulatorViewPropertyTester"/>
+        
+   <propertyTester
+        id="uk.co.bithatch.jspeccy.editor.TapeBrowserPropertyTester"
+        type="uk.co.bithatch.jspeccy.editor.TapeBrowser"
+        namespace="uk.co.bithatch.jspeccy.editor"
+        properties="inserted,running,playing,recording,ready"
+        class="uk.co.bithatch.jspeccy.editor.TapeBrowserPropertyTester"/>
+</extension>
+
+    
+    <extension point="org.eclipse.ui.exportWizards">
+        <category
+            id="uk.co.bithatch.jspeccy.category"
+            name="ZX Spectrum Emulator"/>
+        <wizard
+            id="uk.co.bithatch.jspeccy.wizards.screenshot"
+            name="Screenshot"
+            class="uk.co.bithatch.jspeccy.wizards.ExportScreenshotWizard"
+            category="uk.co.bithatch.jspeccy.category"
+            icon="icons/screenshot16.png">
+            <description>Export a PNG or SCR format screenshot.</description>
+        </wizard>
+    </extension>
+
+</plugin>

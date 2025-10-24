@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.ui.editors">
+        <editor
+            id="uk.co.bithatch.ayzxfx.editor.AFXEditor"
+            name="AY Sound Effects Editor"
+            class="uk.co.bithatch.ayzxfx.editor.AFXEditor"
+            icon="icons/afx16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.ayzxfx.afx.contenttype"/>
+        </editor>
+         <editor
+            id="uk.co.bithatch.ayzxfx.editor.AFBEditor"
+            name="AFB Sound Effects Bank Editor"
+            class="uk.co.bithatch.ayzxfx.editor.AFBEditor"
+            icon="icons/afb16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.ayzxfx.afb.contenttype"/>
+        </editor>
+    </extension>
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="afb"
+            id="uk.co.bithatch.ayzxfx.afb.contenttype"
+            name="AY Sound Effects Bank"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="afx"
+            id="uk.co.bithatch.ayzxfx.afx.contenttype"
+            name="AY Sound Effect"
+            priority="normal">
+        </content-type>
+    </extension>
+    
+    <extension point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+          id="uk.co.bithatch.ayzxfx.afxContent"
+          name="Effects"
+          icon="icons/afx16.png"
+          contentProvider="uk.co.bithatch.ayzxfx.navigator.AFBContentProvider"
+          labelProvider="uk.co.bithatch.ayzxfx.navigator.AFXLabelProvider"
+          priority="normal"
+          activeByDefault="true">
+        <triggerPoints>
+            <instanceof
+                  value="org.eclipse.core.resources.IFile">
+            </instanceof>
+        </triggerPoints>
+        <possibleChildren>
+            <or>
+                <instanceof value="uk.co.bithatch.ayzxfx.navigator.AFXNode"/>
+            </or>
+        </possibleChildren>
+      </navigatorContent>
+      <actionProvider
+         id="uk.co.bithatch.ayzxfx.navigator.actions"
+         class="uk.co.bithatch.ayzxfx.navigator.AFXActionProvider">
+          <enablement>
+             <instanceof value="uk.co.bithatch.ayzxfx.navigator.AFXNode"/>
+          </enablement>
+       </actionProvider>
+    </extension>
+    
+    <extension point="org.eclipse.ui.navigator.viewer">
+        <viewerContentBinding
+            viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+            <includes>
+                <contentExtension pattern="uk.co.bithatch.ayzxfx.afxContent"/>
+            </includes>
+        </viewerContentBinding>
+        <viewerActionBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+          <includes>
+             <actionExtension pattern="uk.co.bithatch.ayzxfx.navigator.actions"/>
+          </includes>
+       </viewerActionBinding>
+    </extension>
+    
+    
+    <extension point="org.eclipse.ui.newWizards">
+      <category
+            id="uk.co.bithatch.drawzx.category"
+            name="AYFX Sound Effects"/>
+      
+      <wizard
+            id="uk.co.bithatch.ayzxfx.wizards.newAFB"
+            name="AFB File"
+            class="uk.co.bithatch.ayzxfx.wizards.NewAFBFileWizard"
+            category="uk.co.bithatch.ayzxfx.category"
+            icon="icons/afb16.png">
+        <description>Create a new AYFX bank file.</description>
+      </wizard>
+    </extension>
+    
+    <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+        <newWizardShortcut id="uk.co.bithatch.ayzxfx.wizards.newAFB"/>
+      </perspectiveExtension>
+    </extension>
+    
+    
+
+    <extension point="org.eclipse.ui.commands">
+      <category
+            id="uk.co.bithatch.ayzxfx.editor.commands.category"
+            name="AYFX Editor Tools" />
+            
+      <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.add"
+            name="Add Effect Frame"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
+            
+      <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.remove"
+            name="Remove Effect Frame"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
+            
+      <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.addEffect"
+            name="Add Effect"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
+            
+      <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.removeEffect"
+            name="Remove Effect"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
+            
+      <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.play"
+            name="Play Effect"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.stop"
+            name="Stop Playing"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
+            
+        <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.freestyleMode"
+            name="Freestyle Mode"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category">
+        </command>
+            
+        <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.snapToNote"
+            name="Snap To Note"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category">
+        </command>
+            
+        <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.scaleLog"
+            name="Logarithmic Scaling"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category">
+        </command>
+            
+        <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.autoAdd"
+            name="Auto-add Frames"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category">
+        </command>
+            
+    </extension>
+    
+    
+    <extension point="org.eclipse.ui.handlers">
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.AddFrameHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.add"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.RemoveFrameHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.remove"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.AddEffectHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.addEffect"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.RemoveEffectHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.removeEffect"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.PlayHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.play"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.StopHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.stop"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.SnapToNoteHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.snapToNote"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.ScaleLogHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.scaleLog"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.FreestyleModeHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.freestyleMode"/>
+          <handler
+            class="uk.co.bithatch.ayzxfx.editor.AutoAddHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.autoAdd">
+                <enabledWhen>
+                    <with variable="uk.co.bithatch.ayzxfx.editor.freestyleActive">
+                      <equals value="true"/>
+                    </with>
+                </enabledWhen>
+            </handler>
+    </extension>
+    
+   <extension point="org.eclipse.ui.services">
+      <sourceProvider
+          provider="uk.co.bithatch.ayzxfx.editor.FreestyleStateSourceProvider">
+        <variable name="uk.co.bithatch.ayzxfx.editor.freestyleActive" priorityLevel="workbench"/>
+      </sourceProvider>
+    </extension>
+    
+    <extension point="org.eclipse.ui.menus">
+      
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+        <toolbar id="uk.co.bithatch.ayzxfx.editor.toolbar" label="AYFX Editor">
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.add"
+                icon="icons/add16.png"
+                label="Add Frame"
+                tooltip="Add Effect Frame"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.remove"
+                icon="icons/remove16.png"
+                label="Remove Frame"
+                tooltip="Remove Effect Frame"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                      <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                      <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.addEffect"
+                icon="icons/addEffect16.png"
+                label="Add Effect"
+                tooltip="Add Effect"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.removeEffect"
+                icon="icons/minusEffect16.png"
+                label="Remove Effect"
+                tooltip="Remove Effect"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                      <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.play"
+                icon="icons/play16.png"
+                label="Play"
+                tooltip="Start Playing Effect"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                      <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                      <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.stop"
+                icon="icons/stop16.png"
+                label="Stop"
+                tooltip="Stop Playing Effect"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                    <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                    <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.freestyleMode"
+                icon="icons/freestyle16.png"
+                label="Freestyle"
+                tooltip="Toggle Freestyle Mode"
+                style="toggle">
+                <visibleWhen checkEnabled="false">
+                    <with variable="activeEditorId">
+                        <or>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                        </or>
+                    </with>
+                </visibleWhen>
+            </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.autoAdd"
+                icon="icons/autoAdd16.png"
+                label="Auto-add"
+                tooltip="Auto-add frames in freestyle mode"
+                style="toggle">
+                <visibleWhen checkEnabled="false">
+                    <with variable="activeEditorId">
+                      <or>
+                      <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                      <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                      </or>
+                    </with>
+                  </visibleWhen>
+            </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.snapToNote"
+                icon="icons/noteClamp16.png"
+                label="Snap To Note"
+                tooltip="Snap to closest note frequency"
+                style="toggle">
+                <visibleWhen checkEnabled="false">
+                    <with variable="activeEditorId">
+                        <or>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                        </or>
+                    </with>
+                </visibleWhen>
+            </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.scaleLog"
+                icon="icons/log16.png"
+                label="Logarithmic Scaling "
+                tooltip="Logarithmic scaling of period display"
+                style="toggle">
+                <visibleWhen checkEnabled="false">
+                    <with variable="activeEditorId">
+                        <or>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                        </or>
+                    </with>
+                </visibleWhen>
+            </command>
+                      
+        </toolbar>
+      </menuContribution>
+      
+      
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.new">
+        <command
+          commandId="uk.co.bithatch.ayzxfx.editor.commands.addEffect"
+          label="Add Effect"
+          icon="icons/addEffect16.png"
+          style="push">
+           <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                           <or>
+                              <test property="org.eclipse.core.resources.extension" value="afb"/>
+                            </or>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+        </command>
+      </menuContribution>
+      
+      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=navigate">
+        <menu
+            id="uk.co.bithatch.ayzxfx.editor.menus.effects"
+            label="Effects">
+            <visibleWhen>
+                <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                </with>
+            </visibleWhen>
+        </menu>
+    </menuContribution>
+
+      
+      <menuContribution
+            locationURI="menu:uk.co.bithatch.ayzxfx.editor.menus.effects">
+          <command 
+              commandId="uk.co.bithatch.ayzxfx.editor.commands.freestyleMode"
+              label="Freestyle Mode"
+              icon="icons/freestyle16.png"
+              style="toggle" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.autoAdd"
+                label="Auto Add"
+                icon="icons/autoAdd16.png"
+                style="toggle" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.snapToNote"
+                label="Snap To Node"
+                icon="icons/noteClamp16.png"
+                style="toggle" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.scaleLog"
+                label="Logarithmic Period Scacle"
+                icon="icons/log16.png"
+                style="toggle" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.add"
+                label="Add Frame"
+                icon="icons/add16.png"
+                style="push" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.remove"
+                label="Remove Frames"
+                icon="icons/remove16.png"
+                style="push" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.addEffect"
+                label="Add Effect"
+                icon="icons/addEffect16.png"
+                style="push" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.removeEffect"
+                label="Remove Effects"
+                icon="icons/minusEffect16.png"
+                style="push" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.play"
+                label="Play Effect"
+                icon="icons/play16.png"
+                style="push" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.stop"
+                label="Stop Effect Play"
+                icon="icons/stop16.png"
+                style="push" />
+        </menuContribution>
+    </extension>
+    
+</plugin>

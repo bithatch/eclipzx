@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>
+    <extension-point id="uk.co.bithatch.zxbasic.library" name="ZX Basic Library" schema="schema/uk.co.bithatch.zxbasic.library.exsd" />
+    <extension-point id="uk.co.bithatch.zxbasic.sdk" name="ZX Basic SDK" schema="schema/uk.co.bithatch.zxbasic.sdk.exsd" />
+    <extension-point id="uk.co.bithatch.zxbasic.preparationTarget" name="External Emulator Preparation Target" schema="schema/uk.co.bithatch.zxbasic.preparationTarget.exsd" />
+    <extension-point id="uk.co.bithatch.zxbasic.preparationSource" name="External Emulator Preparation Source" schema="schema/uk.co.bithatch.zxbasic.preparationSource.exsd" />
+    <extension-point id="uk.co.bithatch.zxbasic.nexConfigurer" name="NEX Configuration Contribution" schema="schema/uk.co.bithatch.zxbasic.nexConfigurer.exsd" />
+    <extension-point id="uk.co.bithatch.zxbasic.programBuildsOptionsFactory" name="Program Build Options Factory Contribution" schema="schema/uk.co.bithatch.zxbasic.programBuildsOptionsFactory.exsd" />
+    <extension point="org.eclipse.ui.editors">
+        <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" default="true" extensions="bas" icon="icons/bas16.png" id="uk.co.bithatch.zxbasic.Basic" name="ZX Basic Editor" />
+        <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" extensions="asm" icon="icons/asm16.png" id="uk.co.bithatch.zxbasic.Asm" name="Z80 Assembler Editor" />
+        <editor name="ZX Storage Viewer" icon="icons/bas16.png" extensions="bas" class="org.eclipse.ui.editors.text.TextEditor" id="uk.co.bithatch.zxbasic.ui.storageEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor">
+            <contentTypeBinding contentTypeId="org.eclipse.core.runtime.text" />
+        </editor>
+    </extension>
+    <extension point="org.eclipse.ui.handlers">
+        <handler commandId="uk.co.bithatch.zxbasic.ui.debug.toggleBreakpoint" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.debug.ToggleBreakpointHandler">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.editor.OpenGeneratedFileHandler" commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler" commandId="org.eclipse.xtext.ui.editor.FindReferences">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler" commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler" commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler" commandId="org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclaration">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler" commandId="uk.co.bithatch.zxbasic.Basic.validate">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <!-- copy qualified name -->
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler" commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName">
+            <activeWhen>
+                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+            </activeWhen>
+        </handler>
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler" commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedName">
+            <activeWhen>
+                <and>
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.XtextEditor.opened" />
+                    <iterate>
+                        <adapt type="org.eclipse.xtext.ui.editor.outline.IOutlineNode" />
+                    </iterate>
+                </and>
+            </activeWhen>
+        </handler>
+    </extension>
+    <extension point="org.eclipse.core.expressions.definitions">
+        <definition id="uk.co.bithatch.zxbasic.Basic.Editor.opened">
+            <and>
+                <reference definitionId="isActiveEditorAnInstanceOfXtextEditor" />
+                <with variable="activeEditor">
+                    <test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName" value="uk.co.bithatch.zxbasic.Basic" forcePluginActivation="true" />
+                </with>
+            </and>
+        </definition>
+        <definition id="uk.co.bithatch.zxbasic.Basic.XtextEditor.opened">
+            <and>
+                <reference definitionId="isXtextEditorActive" />
+                <with variable="activeEditor">
+                    <test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName" value="uk.co.bithatch.zxbasic.Basic" forcePluginActivation="true" />
+                </with>
+            </and>
+        </definition>
+    </extension>
+    <extension point="org.eclipse.ui.propertyPages">
+        <page class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage" id="uk.co.bithatch.zxbasic.Basic" name="ZXBasic">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature" />
+        </page>
+        <page id="uk.co.bithatch.zxbasic.ui.builder.programBuildOptions" name="ZX Basic Compiler" class="uk.co.bithatch.zxbasic.ui.preferences.WorkspaceFileProgramBuildOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile">
+                    <or>
+                        <test property="org.eclipse.core.resources.extension" value="asm" />
+                        <test property="org.eclipse.core.resources.extension" value="bas" />
+                    </or>
+                </adapt>
+            </enabledWhen>
+        </page>
+        <page id="uk.co.bithatch.zxbasic.ui.builder.diskImagePreparationOptions" name="Disk Image Preparation" class="uk.co.bithatch.zxbasic.ui.preferences.DiskImagePreparationOptionsPage">
+            <enabledWhen>
+                <or>
+                    <adapt type="org.eclipse.core.resources.IFile" />
+                    <adapt type="org.eclipse.core.resources.IFolder" />
+                </or>
+            </enabledWhen>
+        </page>
+        <page id="uk.co.bithatch.zxbasic.ui.builder.nexBundlingOptions" name="NEX Bundling" class="uk.co.bithatch.zxbasic.ui.preferences.NEXBundlingOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile" />
+            </enabledWhen>
+        </page>
+        <page id="uk.co.bithatch.zxbasic.ui.builder.nexBuildOptions" name="NEX Build" class="uk.co.bithatch.zxbasic.ui.preferences.NEXBuildOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile">
+                    <or>
+                        <test property="org.eclipse.core.resources.extension" value="asm" />
+                        <test property="org.eclipse.core.resources.extension" value="bas" />
+                    </or>
+                </adapt>
+            </enabledWhen>
+        </page>
+        <page id="uk.co.bithatch.zxbasic.ui.builder.nexBundlingTriggerOptions" name="Triggers" category="uk.co.bithatch.zxbasic.ui.builder.nexBundlingOptions" class="uk.co.bithatch.zxbasic.ui.preferences.NEXBundlingTriggerOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile" />
+            </enabledWhen>
+        </page>
+    </extension>
+    <extension point="org.eclipse.ui.keywords">
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_Basic" label="ZX Basic" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_NEX" label="NEX" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_Defines" label="Defines" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_UserLibraries" label="User Libraries" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_ContributedLibraries" label="Contributed Libraries" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_SDK" label="ZX Basic SDKs" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_Compliance" label="Compliance" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_Debug" label="Debug" />
+        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_ErrorsWarnings" label="Errors/Warnings" />
+    </extension>
+    <extension point="org.eclipse.ui.commands">
+        <command description="Trigger expensive validation" id="uk.co.bithatch.zxbasic.Basic.validate" name="Validate" />
+        <!-- copy qualified name -->
+        <command id="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName" categoryId="org.eclipse.ui.category.edit" description="Copy the qualified name for the selected element" name="Copy Qualified Name" />
+        <command id="org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedName" categoryId="org.eclipse.ui.category.edit" description="Copy the qualified name for the selected element" name="Copy Qualified Name" />
+        <command id="uk.co.bithatch.zxbasic.ui.debug.toggleBreakpoint" name="Toggle Breakpoint" />
+        <category id="uk.co.bithatch.zxbasic.ZXBasicNature.category" name="ZX Basic Nature commands" />
+        <command categoryId="uk.co.bithatch.zxbasic.ZXBasicNature.category" defaultHandler="uk.co.bithatch.zxbasic.ui.builder.AddRemoveZXBasicNatureHandler" id="uk.co.bithatch.zxbasic.ui.addRemoveZXBasicNature" name="Add/RemoveZX Basic Nature" />
+    </extension>
+    <extension point="org.eclipse.ui.menus">
+        <menuContribution 
+        locationURI="popup:#TextRulerContext">
+            <command commandId="uk.co.bithatch.zxbasic.ui.debug.toggleBreakpoint" label="Toggle Breakpoint" style="push">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:#TextEditorContext?after=group.edit">
+            <command commandId="org.eclipse.xtext.ui.refactoring.RenameElement" style="push">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:#TextEditorContext?endof=group.find">
+            <command commandId="org.eclipse.xtext.ui.editor.FindReferences">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
+            <command commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand" id="uk.co.bithatch.zxbasic.Basic.OpenGeneratedCode" style="push">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:#TextEditorContext?after=group.open">
+            <command commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline" style="push" tooltip="Open Quick Outline">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:#TextEditorContext?after=group.edit">
+            <command commandId="uk.co.bithatch.zxbasic.Basic.validate" style="push" tooltip="Trigger expensive validation">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:#TextEditorContext?after=copy">
+            <command commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName" style="push" tooltip="Copy Qualified Name">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="menu:edit?after=copy">
+            <command commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName" style="push" tooltip="Copy Qualified Name">
+                <visibleWhen checkEnabled="false">
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:org.eclipse.xtext.ui.outline?after=additions">
+            <command commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedName" style="push" tooltip="Copy Qualified Name">
+                <visibleWhen checkEnabled="false">
+                    <and>
+                        <reference definitionId="uk.co.bithatch.zxbasic.Basic.XtextEditor.opened" />
+                        <iterate>
+                            <adapt type="org.eclipse.xtext.ui.editor.outline.IOutlineNode" />
+                        </iterate>
+                    </and>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+            <command commandId="uk.co.bithatch.zxbasic.ui.addRemoveZXBasicNature" label="Disable ZX Basic Nature" style="push">
+                <visibleWhen checkEnabled="false">
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IProject">
+                                <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+                            </adapt>
+                        </iterate>
+                    </with>
+                </visibleWhen>
+            </command>
+            <command commandId="uk.co.bithatch.zxbasic.ui.addRemoveZXBasicNature" label="Enable ZX Basic Nature" style="push">
+                <visibleWhen checkEnabled="false">
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IProject">
+                                <not>
+                                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+                                </not>
+                            </adapt>
+                        </iterate>
+                    </with>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+    </extension>
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text" file-extensions="bas" id="uk.co.bithatch.zxbasic.Basic.contenttype" name="ZXBasic File" priority="normal" />
+        <content-type base-type="org.eclipse.core.runtime.text" file-extensions="asm" id="uk.co.bithatch.zxbasic.Asm.contenttype" name="Z80 Assembler File" priority="normal" />
+    </extension>
+    <!-- adding resource factories -->
+    <extension point="org.eclipse.emf.ecore.extension_parser">
+        <parser class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory" type="bas" />
+    </extension>
+    <extension point="org.eclipse.xtext.extension_resourceServiceProvider">
+        <resourceServiceProvider class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider" uriExtension="bas" />
+    </extension>
+    <extension point="org.eclipse.core.resources.markers" id="uk.co.bithatch.zxbasic.ui.debug.lineBreakpointMarker" name="ZXBasic Line Breakpoint">
+        <persistent value="true" />
+        <!-- You can extend more than one type -->
+        <super type="org.eclipse.debug.core.lineBreakpointMarker" />
+        <!-- Optional attributes you want associated with the marker -->
+        <attribute name="lineNumber" />
+        <attribute name="enabled" />
+    </extension>
+    <extension id="zxbasic.check.fast" name="ZXBasic Problem" point="org.eclipse.core.resources.markers">
+        <super type="org.eclipse.xtext.ui.check.fast" />
+        <persistent value="true" />
+    </extension>
+    <extension id="zxbasic.check.normal" name="ZXBasic Problem" point="org.eclipse.core.resources.markers">
+        <super type="org.eclipse.xtext.ui.check.normal" />
+        <persistent value="true" />
+    </extension>
+    <extension id="zxbasic.check.expensive" name="ZXBasic Problem" point="org.eclipse.core.resources.markers">
+        <super type="org.eclipse.xtext.ui.check.expensive" />
+        <persistent value="true" />
+    </extension>
+    <extension point="org.eclipse.xtext.builder.participant">
+        <participant class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant" fileExtensions="bas" />
+    </extension>
+    <extension point="org.eclipse.ui.preferencePages">
+        <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage" id="uk.co.bithatch.zxbasic.Basic.refactoring" name="Refactoring">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+        </page>
+        <page class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage" id="uk.co.bithatch.zxbasic.Basic" name="ZXBasic">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage" id="uk.co.bithatch.zxbasic.Basic.coloring" name="Syntax Coloring">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage" id="uk.co.bithatch.zxbasic.Basic.templates" name="Templates">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.validation.ValidatorPreferencePage" id="uk.co.bithatch.zxbasic.Basic.validator.preferencePage" name="Errors/Warnings">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.CompilerPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.preferencePage" name="Compiler">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.preferencePage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.PreprocessorPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.defines.preferencePage" name="Pre-processor">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Defines" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.preferencePage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.UserLibrariesPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.userLibraries.preferencePage" name="User Libraries">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_UserLibraries" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.preferencePage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.ContributedLibrariesPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.contributedLibraries.preferencePage" name="Contributed Libraries">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_ContributedLibraries" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.SDKPreferencePage" id="uk.co.bithatch.zxbasic.Basic.sdk.preferencePage" name="SDKs">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_SDK" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.preferencePage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.CompliancePreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.compliance.preferencePage" name="Compliance">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Compliance" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.preferencePage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.DebugPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.debug.preferencePage" name="Debug">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Debug" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.preferencePage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.ErrorsAndWarningsPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.errorsAndWarnings.preferencePage" name="Errors/Warnings">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_ErrorsWarnings" />
+        </page>
+    </extension>
+    <extension point="org.eclipse.ui.propertyPages">
+        <page class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.NEXBuildProjectPropertiesPage" id="uk.co.bithatch.zxbasic.Basic.nex.propertyPage" name="NEX Build">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_NEX" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.CompilerPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" name="Compiler">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.PreprocessorPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.defines.propertyPage" name="Defines">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Defines" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.UserLibrariesPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.userLibraries.propertyPage" name="User Libraries">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_UserLibraries" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.ContributedLibrariesPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.contributedLibraries.propertyPage" name="Contributed Libraries">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_ContributedLibraries" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.CompliancePreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.compliance.propertyPage" name="Compliance">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Compliance" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.DebugPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.debug.propertyPage" name="Debug">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Debug" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page category="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.ErrorsAndWarningsPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.errosAndWarnings.propertyPage" name="Errors/Warnings">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_ErrorsWarnings" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+    </extension>
+    <!-- Quick Outline -->
+    <extension point="org.eclipse.ui.commands">
+        <command description="Open the quick outline." id="org.eclipse.xtext.ui.editor.outline.QuickOutline" name="Quick Outline" />
+    </extension>
+    <!-- quickfix marker resolution generator for uk.co.bithatch.zxbasic.Basic -->
+    <extension point="org.eclipse.ui.ide.markerResolution">
+        <markerResolutionGenerator class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator" markerType="zxbasic.check.fast">
+            <attribute name="FIXABLE_KEY" value="true" />
+        </markerResolutionGenerator>
+        <markerResolutionGenerator class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator" markerType="zxbasic.check.normal">
+            <attribute name="FIXABLE_KEY" value="true" />
+        </markerResolutionGenerator>
+        <markerResolutionGenerator class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator" markerType="zxbasic.check.expensive">
+            <attribute name="FIXABLE_KEY" value="true" />
+        </markerResolutionGenerator>
+    </extension>
+    <!-- Rename Refactoring -->
+    <extension point="org.eclipse.compare.contentViewers">
+        <viewer id="uk.co.bithatch.zxbasic.Basic.compare.contentViewers" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="bas" />
+        <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Basic.contenttype" contentViewerId="uk.co.bithatch.zxbasic.Basic.compare.contentViewers" />
+    </extension>
+    <extension point="org.eclipse.compare.contentViewers">
+        <viewer id="uk.co.bithatch.zxbasic.Asm.compare.contentViewers" class="uk.co.bithatch.zxbasic.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="bas" />
+        <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Asm.contenttype" contentViewerId="uk.co.bithatch.zxbasic.Asm.compare.contentViewers" />
+    </extension>
+    <extension point="org.eclipse.compare.contentMergeViewers">
+        <viewer id="uk.co.bithatch.zxbasic.Basic.compare.contentMergeViewers" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="bas" label="ZX Basic Compare" />
+        <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Basic.contenttype" contentMergeViewerId="uk.co.bithatch.zxbasic.Basic.compare.contentMergeViewers" />
+    </extension>
+    <extension point="org.eclipse.compare.contentMergeViewers">
+        <viewer id="uk.co.bithatch.zxbasic.Asm.compare.contentMergeViewers" class="uk.co.bithatch.zxbasic.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="asm" label="ASM Compare" />
+        <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Asm.contenttype" contentMergeViewerId="uk.co.bithatch.zxbasic.Asm.compare.contentMergeViewers" />
+    </extension>
+    <extension point="org.eclipse.ui.editors.documentProviders">
+        <provider id="uk.co.bithatch.zxbasic.Basic.editors.documentProviders" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider" extensions="bas" />
+        <provider id="uk.co.bithatch.zxbasic.Basic.editors.documentProviders" class="uk.co.bithatch.zxbasic.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider" extensions="asm" />
+    </extension>
+    <extension point="org.eclipse.team.core.fileTypes">
+        <fileTypes extension="bas" type="text" />
+        <fileTypes extension="asm" type="text" />
+    </extension>
+    <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+        <launchConfigurationType name="External Emulator" delegate="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchConfiguration" modes="run,debug" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" />
+        <launchConfigurationType name="ZX BASIC Interpreter (Experimental)" delegate="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchConfiguration" modes="run,debug" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+        <launchConfigurationTypeImage configTypeID="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" icon="icons/cspect16.png" id="uk.co.bithatch.zxbasic.launch.externalEmulatorLaunch.image" />
+        <launchConfigurationTypeImage configTypeID="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" icon="icons/interpreter16.png" id="uk.co.bithatch.zxbasic.launch.interpreterLaunch.image" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+        <launchConfigurationTabGroup class="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchConfigurationTabGroup" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunchConfigurationTabGroup" type="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" />
+        <launchConfigurationTabGroup class="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchConfigurationTabGroup" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunchConfigurationTabGroup" type="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchShortcuts">
+        <shortcut class="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchShortcut" icon="icons/cspect16.png" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" label="Run In External Emulator" modes="run,debug">
+            <contextualLaunch>
+                <enablement>
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IResource" />
+                        </iterate>
+                    </with>
+                </enablement>
+            </contextualLaunch>
+        </shortcut>
+        <shortcut class="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchShortcut" icon="icons/interpreter16.png" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" label="Run In ZX Basic Interpreter" modes="run">
+            <contextualLaunch>
+                <enablement>
+                    <with variable="selection">
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IFile">
+                                <test property="org.eclipse.core.resources.name" value="*.bas" />
+                            </adapt>
+                        </iterate>
+                    </with>
+                </enablement>
+            </contextualLaunch>
+        </shortcut>
+    </extension>
+    <extension point="org.eclipse.ui.ide.projectNatureImages">
+        <image id="uk.co.bithatch.zxbasic.ZXBasicNature.image" natureId="uk.co.bithatch.zxbasic.ZXBasicNature" icon="icons/nature8.png" />
+    </extension>
+    <extension id="uk.co.bithatch.zxbasic.ZXBasicBuilder" name="ZX Basic Builder" point="org.eclipse.core.resources.builders">
+        <builder hasNature="true">
+            <run class="uk.co.bithatch.zxbasic.ui.builder.ZXBasicBuilder" />
+        </builder>
+    </extension>
+    <extension id="uk.co.bithatch.zxbasic.ZXBasicNature" name="ZX Basic Nature" point="org.eclipse.core.resources.natures">
+        <runtime>
+            <run class="uk.co.bithatch.zxbasic.ui.builder.ZXBasicNature" />
+        </runtime>
+        <builder id="uk.co.bithatch.zxbasic.ZXBasicBuilder" />
+    </extension>
+    <extension point="org.eclipse.ui.newWizards">
+        <category id="uk.co.bithatch.zxbasic.wizardCategory" name="ZX Basic Projects" />
+        <wizard id="uk.co.bithatch.zxbasic.BasicProjectWizard" name="ZX BASIC Project" class="uk.co.bithatch.zxbasic.ui.wizard.BasicProjectWizard" category="uk.co.bithatch.zxbasic.wizardCategory" icon="icons/bas16.png" project="true">
+            <description>Create a new ZX BASIC project with .bas file support</description>
+        </wizard>
+        <wizard id="uk.co.bithatch.zxbasic.ZXBasicExamplesWizard" name="ZX BASIC Examples" class="uk.co.bithatch.zxbasic.ui.wizard.ZXBasicExamplesWizard" category="uk.co.bithatch.zxbasic.wizardCategory" icon="icons/bas16.png">
+            <description>Create a new ZX BASIC project populated with examples</description>
+        </wizard>
+    </extension>
+    <extension point="org.eclipse.ui.views">
+        <category id="uk.co.bithatch.zxbasic.ui.category" name="ZX Spectrum Tools" />
+        <view name="Memory Map" icon="icons/memmap16.png" class="uk.co.bithatch.zxbasic.ui.views.MemoryMapView" category="uk.co.bithatch.zxbasic.ui.category" id="uk.co.bithatch.zxbasic.ui.views.MemoryMapView" />
+    </extension>
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer class="uk.co.bithatch.zxbasic.ui.preferences.PreferenceInitializer" />
+    </extension>
+    <extension point="org.eclipse.ui.decorators">
+        <decorator id="uk.co.bithatch.zxbasic.decorator.libraryFolder" label="ZX Basic Library Decorator" lightweight="true" class="uk.co.bithatch.zxbasic.ui.decorators.LibraryFolderDecorator" adaptable="true" state="true" icon="icons/library8.png">
+            <enablement>
+                <objectClass name="org.eclipse.core.resources.IFolder" />
+            </enablement>
+        </decorator>
+    </extension>
+    <extension point="org.eclipse.ui.navigator.navigatorContent">
+        <navigatorContent id="uk.co.bithatch.zxbasic.libraryContent" name="ZX Basic Libraries" icon="icons/library16.png" contentProvider="uk.co.bithatch.zxbasic.ui.navigator.LibrariesContentProvider" labelProvider="uk.co.bithatch.zxbasic.ui.navigator.LibrariesLabelProvider" priority="normal" activeByDefault="true">
+            <triggerPoints>
+                <and>
+                    <instanceof value="org.eclipse.core.resources.IProject" />
+                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+                </and>
+            </triggerPoints>
+            <possibleChildren>
+                <or>
+                    <instanceof value="uk.co.bithatch.zxbasic.ui.navigator.LibrariesNode" />
+                    <instanceof value="uk.co.bithatch.zxbasic.ui.navigator.LibraryNode" />
+                    <instanceof value="uk.co.bithatch.zxbasic.ui.navigator.LibraryFileNode" />
+                </or>
+            </possibleChildren>
+        </navigatorContent>
+        <navigatorContent id="uk.co.bithatch.zxbasic.projectReferencesContent" name="ZX Basic Project References" icon="icons/ref16.png" contentProvider="uk.co.bithatch.zxbasic.ui.navigator.ProjectReferencesContentProvider" labelProvider="uk.co.bithatch.zxbasic.ui.navigator.ProjectReferencesLabelProvider" priority="normal" activeByDefault="true">
+            <triggerPoints>
+                <and>
+                    <instanceof value="org.eclipse.core.resources.IProject" />
+                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+                </and>
+            </triggerPoints>
+            <possibleChildren>
+                <or>
+                    <instanceof value="uk.co.bithatch.zxbasic.ui.navigator.ProjectReferencesNode" />
+                    <instanceof value="org.eclipse.core.resources.IFolder" />
+                    <instanceof value="org.eclipse.core.resources.IProject" />
+                </or>
+            </possibleChildren>
+        </navigatorContent>
+        <commonFilter id="uk.co.bithatch.zxbasic.navigator.hideOutputFolder" name="Hide ZX Basic Output Folder" activeByDefault="true" class="uk.co.bithatch.zxbasic.ui.navigator.HideOutputFolderFilter" />
+        <commonFilter id="uk.co.bithatch.zxbasic.navigator.hideLibraries" name="Hide ZX Basic Libraries" activeByDefault="false" class="uk.co.bithatch.zxbasic.ui.navigator.HideLibrariesFilter" />
+        <commonFilter id="uk.co.bithatch.zxbasic.navigator.hideProjectReferences" name="Hide ZX Basic Project References" activeByDefault="false" class="uk.co.bithatch.zxbasic.ui.navigator.HideProjectReferencesFilter" />
+        <actionProvider id="uk.co.bithatch.zxbasic.navigator.actions" class="uk.co.bithatch.zxbasic.ui.navigator.LibraryActionProvider">
+            <enablement>
+                <instanceof value="uk.co.bithatch.zxbasic.ui.navigator.LibraryFileNode" />
+            </enablement>
+        </actionProvider>
+    </extension>
+    <extension point="org.eclipse.ui.navigator.viewer">
+        <viewerContentBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+            <includes>
+                <contentExtension pattern="uk.co.bithatch.zxbasic.libraryContent" />
+                <contentExtension pattern="uk.co.bithatch.zxbasic.projectReferencesContent" />
+                <contentExtension pattern="uk.co.bithatch.zxbasic.navigator.hideOutputFolder" />
+                <contentExtension pattern="uk.co.bithatch.zxbasic.navigator.hideLibraries" />
+                <contentExtension pattern="uk.co.bithatch.zxbasic.navigator.hideProjectReferences" />
+            </includes>
+        </viewerContentBinding>
+        <viewerActionBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+            <includes>
+                <actionExtension pattern="uk.co.bithatch.zxbasic.navigator.actions" />
+            </includes>
+        </viewerActionBinding>
+    </extension>
+    <extension point="org.eclipse.ui.perspectives">
+        <perspective name="ZX Basic" icon="icons/library16.png" class="uk.co.bithatch.zxbasic.ui.perspective.ZXBasicPerspective" id="uk.co.bithatch.zxbasic.perspective" />
+    </extension>
+    <extension point="org.eclipse.ui.perspectiveExtensions">
+        <perspectiveExtension targetID="uk.co.bithatch.zxbasic.perspective">
+            <!-- Show the Run/Debug actions -->
+            <actionSet id="org.eclipse.debug.ui.launchActionSet" />
+            <actionSet id="org.eclipse.debug.ui.profileActionSet" />
+            <!-- Optional: add New Project shortcut -->
+            <newWizardShortcut id="uk.co.bithatch.zxbasic.BasicProjectWizard" />
+        </perspectiveExtension>
+        <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+            <perspectiveShortcut id="uk.co.bithatch.zxbasic.perspective" />
+        </perspectiveExtension>
+        <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+            <perspectiveShortcut id="uk.co.bithatch.zxbasic.perspective" />
+        </perspectiveExtension>
+    </extension>
+    <extension point="org.eclipse.core.runtime.adapters">
+        <factory adaptableType="uk.co.bithatch.zxbasic.ui.navigator.LibraryFileNode" class="uk.co.bithatch.zxbasic.ui.navigator.LibraryFileStorageAdapterFactory">
+            <adapter type="org.eclipse.core.resources.IStorage" />
+            <adapter type="org.eclipse.ui.IEditorInput" />
+        </factory>
+    </extension>
+    <extension point="org.eclipse.core.variables.dynamicVariables">
+        <variable name="zxbasic_program_path" supportsArgument="false" description="Workspace relative path to current source program (.bas or .asm)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_program_loc" supportsArgument="false" description="Absolute path to current source program (.bas or .asm)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_program_name" supportsArgument="false" description="The base name of current source program without any extension." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_program_ext" supportsArgument="false" description="The file extension of the current source program." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_output_path" supportsArgument="false" description="Workspace relative path to the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_output_loc" supportsArgument="false" description="Absolute path to the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_output_name" supportsArgument="false" description="The base name of the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+    </extension>
+    <extension point="uk.co.bithatch.zxbasic.preparationTarget">
+        <preparationTarget id="uk.co.bithatch.zxbasic.ui.launch.localPreparationTarget" name="Local File System Folder" uiClass="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTargetUI" class="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTarget" />
+    </extension>
+    
+    <extension
+          point="uk.co.bithatch.zxbasic.preparationSource">
+       <preparationSource
+             id="uk.co.bithatch.nextbuild.compilerOutputPreparationSource"
+             name="Compiler Output"
+             order="100"
+             selected="true"
+             class="uk.co.bithatch.zxbasic.ui.preparation.CompilerOutputPreparationSource">
+       </preparationSource>
+       <preparationSource
+             id="uk.co.bithatch.nextbuild.associatedResourcesPreparationSource"
+             name="Associated Resources"
+             order="200"
+             selected="true"
+             class="uk.co.bithatch.zxbasic.ui.preparation.AssociatedResourcesPreparationSource">
+       </preparationSource>
+       <preparationSource
+             id="uk.co.bithatch.nextbuild.otherResourcesPreparationSource"
+             name="Other Resources"
+             order="300"
+             uiClass="uk.co.bithatch.zxbasic.ui.preparation.OtherResourcesPreparationTargetUI"
+             class="uk.co.bithatch.zxbasic.ui.preparation.OtherResourcesPreparationSource">
+       </preparationSource>
+       <preparationSource
+             id="uk.co.bithatch.nextbuild.autoexecBasPreparationSource"
+             name="Generate Autoexec.bas to autostart"
+             selected="true"
+             order="400"
+             class="uk.co.bithatch.zxbasic.ui.preparation.AutoexecBasPreparationSource">
+       </preparationSource>
+    </extension>
+
+    <extension point="uk.co.bithatch.bitzx.languageSystemProvider">
+        <languageSystemProvider id="uk.co.bithatch.zxbasic.ui.langageSystemProvider.zxbasic" name="Boriels ZX Basic" class="uk.co.bithatch.zxbasic.ui.language.BorielZXBasicLanguageSystemProvider"/> 
+    </extension>     
+</plugin>

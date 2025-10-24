@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="uk.co.bithatch.zxbasic"
+    xmlns="http://www.w3.org/2001/XMLSchema">
+    
+    <annotation>
+        <appInfo>
+            <meta.schema plugin="uk.co.bithatch.zxbasic" id="sdk" name="ZX Basic SDK Contribution"/>
+        </appInfo>
+        <documentation>
+            Used to contribute one or more ZX Basic SDK, i.e. the ZXBC compile and ancillary files. 
+            An SDK can and should also contribute libraries too. 
+        </documentation>
+    </annotation>
+
+    <element name="extension">
+        <complexType>
+            <sequence>
+                <element ref="sdk" minOccurs="1" maxOccurs="unbounded"/>
+            </sequence>>
+             <attribute name="point" type="string" use="required">
+                <annotation>
+                   <documentation>
+                      A fully qualified identifier of the target extension point.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="id" type="string">
+                <annotation>
+                   <documentation>
+                      An optional identifier of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="name" type="string">
+                <annotation>
+                   <documentation>
+                      An optional name of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+        </complexType>
+    </element>
+    
+    <element name="library">
+        <complexType>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Name of the library.</documentation></annotation>
+            </attribute>
+            <attribute name="path" type="string" use="required">
+                <annotation><documentation>Relative path to the root of the SDK (e.g., /src/lib/arch). The architecture name (e.g. zx48k or zxnext) will then be appended.</documentation></annotation>
+            </attribute>
+            <attribute name="icon" type="string" use="optional">
+                <annotation><documentation>Optional icon resource.</documentation></annotation>
+            </attribute>
+            <attribute name="architecture" type="string" use="optional">
+                <annotation><documentation>The architecture. Currently either zxnext or legacy (default).</documentation></annotation>
+            </attribute>
+        </complexType>
+    </element>
+    
+
+    <element name="sdk">
+        <complexType>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Name of the SDK</documentation></annotation>
+            </attribute>
+            <attribute name="path" type="string" use="required">
+                <annotation><documentation>Relative path to the root of the SDK (e.g., /resources/sdk).</documentation></annotation>
+            </attribute>
+            <attribute name="plugin" type="string" use="optional">
+                <annotation><documentation>Plugin ID. Defaults to declaring plugin.</documentation></annotation>
+            </attribute>
+            
+            <sequence>
+                <element ref="library" minOccurs="0" maxOccurs="unbounded"/>
+            </sequence>
+        </complexType>
+    </element>
+
+</schema>

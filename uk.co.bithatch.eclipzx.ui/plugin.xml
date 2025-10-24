@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.36"?>
+<plugin>
+    <extension point="org.eclipse.ui.commands">
+        <command
+            id="uk.co.bithatch.eclipzx.ui.openHEXEditor"
+            name="Open in HEX Editor"
+            defaultHandler="uk.co.bithatch.eclipzx.ui.OpenInHEXEditorHandler"
+            description="Open the selected file with the BinEd HEX editor.">
+        </command>
+    </extension>
+    
+   <extension
+         point="org.eclipse.ui.intro">
+      <intro
+            class="org.eclipse.ui.intro.config.CustomizableIntroPart"
+            id="uk.co.bithatch.eclipzx.ui.intro">
+      </intro>
+      <introProductBinding
+            introId="uk.co.bithatch.eclipzx.ui.intro"
+            productId="uk.co.bithatch.eclipzx.eclipzx">
+      </introProductBinding>
+   </extension>
+   <extension
+         point="org.eclipse.ui.intro.config">
+      <config configurer="uk.co.bithatch.eclipzx.ui.intro.EclipZXIntroConfigurer" 
+            content="content/introContent.xml"
+            id="uk.co.bithatch.eclipzx.ui.introConfigId"
+            introId="uk.co.bithatch.eclipzx.ui.intro">
+         <presentation
+               home-page-id="root">
+            <implementation
+                  kind="html"
+                  os="win32,linux,macosx"
+                  style="content/shared.css">
+            </implementation>
+         </presentation>
+      </config>
+   </extension>
+   
+    <extension point="org.eclipse.ui.menus">
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.open">
+        <command
+          commandId="uk.co.bithatch.eclipzx.ui.openHEXEditor"
+          label="Open with Hex Editor"
+          icon="content/icons/hex16.png"
+          style="push">
+           <visibleWhen checkEnabled="false">
+           <with variable="selection">
+              <count value="1">
+              </count>
+              <iterate>
+                 <instanceof value="org.eclipse.core.resources.IFile"/>
+              </iterate>
+           </with>
+        </visibleWhen>
+        </command>
+      </menuContribution>
+    </extension>
+    
+    <extension point="org.eclipse.ui.cheatsheets.cheatSheetContent">
+        <category
+              name="EclipsZX"
+              id="uk.co.bithatch.eclipzx.ui.cheatSheets.category.eclipzx">
+        </category>
+       <cheatsheet
+             category="uk.co.bithatch.eclipzx.ui.cheatSheets.category.eclipzx"
+             contentFile="cheatsheets/filetypes_cheatsheet.xml"
+             id="uk.co.bithatch.eclipzx.ui.cheatsheet.filetypes"
+             name="Supported File Types">
+       </cheatsheet>
+    </extension>
+    <extension
+          point="uk.co.bithatch.zxbasic.preparationTarget">
+       <preparationTarget
+             id="uk.co.bithatch.eclipzx.ui.glue.automaticFATPreparationTarget"
+             name="Automatic FAT Disk Image"
+             class="uk.co.bithatch.eclipzx.ui.glue.AutomaticFATPreparationTarget">
+       </preparationTarget>
+       <preparationTarget
+             id="uk.co.bithatch.eclipzx.ui.glue.configuredFATPreparationTarget"
+             name="Configured FAT Disk Image"
+             class="uk.co.bithatch.eclipzx.ui.glue.ConfiguredFATPreparationTarget"
+             uiClass="uk.co.bithatch.eclipzx.ui.glue.ConfiguredFATPreparationTargetUI">
+       </preparationTarget>
+    </extension>
+    
+   
+</plugin>

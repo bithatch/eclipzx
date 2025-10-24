@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="uk.co.bithatch.zxbasic"
+    xmlns="http://www.w3.org/2001/XMLSchema">
+    
+    <annotation>
+        <appInfo>
+            <meta.schema plugin="uk.co.bithatch.zxbasic" id="preparationTarget" name="External Emulation Launch Preparation Target"/>
+        </appInfo>
+        <documentation>
+            Used to contribute a service that provides a preparation area for an emulator launch. The initial 
+            use of this is to make use of the FAT Explorer plugin and use its FAT file system support to create
+            a disk image.  
+        </documentation>
+    </annotation>
+
+    <element name="extension">
+        <complexType>
+            <sequence>
+                <element ref="preparationTarget" minOccurs="1" maxOccurs="unbounded"/>
+            </sequence>>
+             <attribute name="point" type="string" use="required">
+                <annotation>
+                   <documentation>
+                      A fully qualified identifier of the target extension point.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="id" type="string">
+                <annotation>
+                   <documentation>
+                      An optional identifier of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="name" type="string">
+                <annotation>
+                   <documentation>
+                      An optional name of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+        </complexType>
+    </element>
+    
+    <element name="preparationTarget">
+        <complexType>
+            <attribute name="id" type="string" use="required">
+                <annotation><documentation>ID of the preparation area provider.</documentation></annotation>
+            </attribute>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Name of the preparation area provider.</documentation></annotation>
+            </attribute>
+            <attribute name="class" type="string" use="required">
+                <annotation><documentation>Class of object that implements IPreparationTarget.</documentation></annotation>
+            </attribute>
+            <attribute name="uiClass" type="string" use="optional">
+                <annotation><documentation>Class of object that implements IPreparationTargetUI.</documentation></annotation>
+            </attribute>
+            <attribute name="plugin" type="string" use="optional">
+                <annotation><documentation>Plugin ID. Defaults to declaring plugin.</documentation></annotation>
+            </attribute>
+            <attribute name="icon" type="string" use="optional">
+                <annotation><documentation>Optional icon resource.</documentation></annotation>
+            </attribute>
+        </complexType>
+    </element>
+
+</schema>

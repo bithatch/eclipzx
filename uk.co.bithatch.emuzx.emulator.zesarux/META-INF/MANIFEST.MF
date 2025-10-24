@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Zesarux
+Bundle-SymbolicName: uk.co.bithatch.emuzx.emulator.zesarux;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: uk.co.bithatch.emuzx.emulator.zesarux.Activator
+Bundle-Vendor: Bithatch
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ uk.co.bithatch.zxbasic.ui;bundle-version="1.0.0",
+ uk.co.bithatch.emuzx;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.zxbasic.emulator.zesarux
+Bundle-ActivationPolicy: lazy

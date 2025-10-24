@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?pde version="3.5"?>
+
+<product name="EclipZX" uid="eclipzx" id="uk.co.bithatch.eclipzx.eclipzx" application="org.eclipse.ui.ide.workbench" version="1.0.0.qualifier" type="features" includeLaunchers="true" includeJRE="true" autoIncludeRequirements="true">
+
+   <aboutInfo>
+      <image path="/uk.co.bithatch.eclipzx/content/images/about.png"/>
+      <text>
+         EclipZX is a complete environment for developing BASIC or Z80
+Assembler programs for the ZX Spectrum and its family. Based
+on the Boriel ZX Basic compiler and runtime library, EclipZX makes
+it an absolute breeze to get FAST games, utilties and whatever
+else you fancy running in no time at all.
+      </text>
+   </aboutInfo>
+
+   <configIni use="default">
+      <linux>/uk.co.bithatch.eclipzx.repository/config.ini</linux>
+      <macosx>/uk.co.bithatch.eclipzx.repository/config.ini</macosx>
+      <win32>/uk.co.bithatch.eclipzx.repository/config.ini</win32>
+   </configIni>
+
+   <launcherArgs>
+      <programArgs>-consoleLog
+      </programArgs>
+      <vmArgs>-Dorg.eclipse.swt.graphics.Resource.reportNonDisposed=true
+ -Dorg.eclipse.e4.ui.css.theme=org.eclipse.e4.ui.css.theme.e4_dark
+      </vmArgs>
+      <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
+      </vmArgsMac>
+   </launcherArgs>
+
+   <windowImages i16="/uk.co.bithatch.eclipzx/content/icons/eclipzx16.png" i32="/uk.co.bithatch.eclipzx/content/icons/eclipzx32.png" i48="/uk.co.bithatch.eclipzx/content/icons/eclipzx48.png" i64="/uk.co.bithatch.eclipzx/content/icons/eclipzx64.png" i128="/uk.co.bithatch.eclipzx/content/icons/eclipzx128.png" i256="/uk.co.bithatch.eclipzx/content/icons/eclipzx256.png"/>
+
+   <splash
+      location="uk.co.bithatch.eclipzx"
+      startupProgressRect="86,367,460,16"
+      startupMessageRect="30,430,580,25"
+      startupForegroundColor="F800FF" />
+   <launcher name="eclipzx">
+      <linux icon="/uk.co.bithatch.eclipzx/content/icons/eclipzx16.xpm"/>
+      <win useIco="false">
+         <bmp
+            winSmallHigh="/uk.co.bithatch.eclipzx/content/icons/eclipzx16.bmp"
+            winSmallLow="/uk.co.bithatch.eclipzx/content/icons/eclipzx16-8.bmp"
+            winMediumHigh="/uk.co.bithatch.eclipzx/content/icons/eclipzx32.bmp"
+            winMediumLow="/uk.co.bithatch.eclipzx/content/icons/eclipzx32-8.bmp"
+            winLargeHigh="/uk.co.bithatch.eclipzx/content/icons/eclipzx48.bmp"
+            winLargeLow="/uk.co.bithatch.eclipzx/content/icons/eclipzx48-8.bmp"
+            winExtraLargeHigh="/uk.co.bithatch.eclipzx/content/icons/eclipzx256.bmp"/>
+      </win>
+   </launcher>
+
+   <intro introId="uk.co.bithatch.eclipzx.ui.intro"/>
+
+   <vm>
+      <linux include="true">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21</linux>
+      <macos include="true">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21</macos>
+      <windows include="true">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21</windows>
+   </vm>
+
+   <plugins>
+      <plugin id="com.sun.jna"/>
+      <plugin id="com.sun.jna.platform"/>
+      <plugin id="uk.co.bithatch.eclipzx"/>
+   </plugins>
+
+   <features>
+      <feature id="uk.co.bithatch.eclipzx.feature" installMode="root"/>
+      <feature id="org.eclipse.cdt.platform" installMode="root"/>
+      <feature id="org.eclipse.cdt.native" installMode="root"/>
+      <feature id="org.eclipse.e4.rcp" installMode="root"/>
+      <feature id="org.eclipse.equinox.p2.core.feature" installMode="root"/>
+      <feature id="org.eclipse.equinox.p2.extras.feature" installMode="root"/>
+      <feature id="org.eclipse.equinox.p2.rcp.feature" installMode="root"/>
+      <feature id="org.eclipse.equinox.p2.user.ui" installMode="root"/>
+      <feature id="org.eclipse.help" installMode="root"/>
+      <feature id="org.eclipse.jdt" installMode="root"/>
+      <feature id="org.eclipse.platform" installMode="root"/>
+      <feature id="org.eclipse.rcp" installMode="root"/>
+      <feature id="org.eclipse.xtext.runtime" installMode="root"/>
+      <feature id="org.eclipse.xtext.ui" installMode="root"/>
+      <feature id="org.exbin.bined.eclipse.feature" installMode="root"/>
+      <feature id="org.eclipse.cdt.gnu.debug" installMode="root"/>
+      <feature id="org.eclipse.cdt.gdb" installMode="root"/>
+      <feature id="org.eclipse.tm.terminal.control.feature" installMode="root"/>
+      <feature id="org.eclipse.xtext.xbase" installMode="root"/>
+      <feature id="org.eclipse.xtext.xbase.lib" installMode="root"/>
+      <feature id="org.eclipse.xtext.xtext.ui" installMode="root"/>
+      <feature id="org.eclipse.xtext.xtext.ui.graph" installMode="root"/>
+      <feature id="org.eclipse.emf.common" installMode="root"/>
+      <feature id="org.eclipse.emf.ecore" installMode="root"/>
+      <feature id="org.eclipse.ecf.core.feature" installMode="root"/>
+   </features>
+
+   <configurations>
+      <plugin id="org.apache.felix.scr" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="0" />
+      <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
+      <plugin id="uk.co.bithatch.ayzxfx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.bitzx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.drawzx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.eclipz88dk" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.eclipzx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.eclipzx.ui" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.emuzx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.emuzx.emulator.cspect" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.emuzx.emulator.jspeccy" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.emuzx.emulator.zesarux" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.emuzx.ui" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.fat32-lib" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.fatexplorer" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.jspeccy" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.nextbuild" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.nextlib" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.squashzx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.widgetzx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zxbasic" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zxbasic.borielsdk" autoStart="true" startLevel="3" />
+      <plugin id="uk.co.bithatch.zxbasic.ide" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zxbasic.ui" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zyxy-compress" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zyxy-dezog" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zyxy-graphics" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zyxy-lib" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.zyxy-mmc" autoStart="true" startLevel="0" />
+      <property name="pluginCustomization" value="plugin_customization.ini" />
+      <property name="org.eclipse.e4.ui.css.theme" value="eclipse.org/dark" />
+   </configurations>
+
+   <repositories>
+      <repository location="https://download.eclipse.org/releases/2025-09" name="2025-09" enabled="true" />
+      <repository location="https://download.eclipse.org/tools/cdt/releases/12.1" name="CDT" enabled="true" />
+      <repository location="https://download.eclipse.org/modeling/tmf/xtext/updates/composite/marketplace/" name="Xtext All In One (Releases)" enabled="true" />
+      <repository location="https://download.eclipse.org/eclipse/updates/4.37" name="The Eclipse Project Updates" enabled="true" />
+      <repository location="https://bithatch.co.uk/repositories/p2" name="Bithatch Maven P2" enabled="true" />
+      <repository location="https://bithatch.co.uk/repositories/eclipzx" name="EclipZX" enabled="true" />
+   </repositories>
+
+   <preferencesInfo>
+      <sourcefile path="eclipzx.epf"/>
+      <targetfile overwrite="false" path="/uk.co.bithatch.eclipzx/plugin_customization.ini"/>
+   </preferencesInfo>
+
+   <cssInfo>
+   </cssInfo>
+
+</product>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="uk.co.bithatch.zxbasic"
+    xmlns="http://www.w3.org/2001/XMLSchema">
+    
+    <annotation>
+        <appInfo>
+            <meta.schema plugin="uk.co.bithatch.zxbasic" id="library" name="ZX Basic Library Contribution"/>
+        </appInfo>
+        <documentation>
+            Used to contribute one or more ZX Basic libraries (e.g., .bas or .asm files) from a plugin.
+        </documentation>
+    </annotation>
+    
+     <element name="extension">
+      <complexType>
+        <sequence>
+            <element ref="library" minOccurs="1" maxOccurs="unbounded"/>
+        </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A fully qualified identifier of the target extension point.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  An optional identifier of the extension instance.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  An optional name of the extension instance.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+    <element name="library">
+        <complexType>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Name of the library.</documentation></annotation>
+            </attribute>
+            <attribute name="path" type="string" use="required">
+                <annotation><documentation>Relative path to the root of the library (e.g., /resources/lib).</documentation></annotation>
+            </attribute>
+            <attribute name="icon" type="string" use="optional">
+                <annotation><documentation>Optional icon resource.</documentation></annotation>
+            </attribute>
+            <attribute name="plugin" type="string" use="optional">
+                <annotation><documentation>Plugin ID. Defaults to declaring plugin.</documentation></annotation>
+            </attribute>
+            <attribute name="architecture" type="string" use="optional">
+                <annotation><documentation>The architecture. Currently either zxnext or legacy (default).</documentation></annotation>
+            </attribute>
+        </complexType>
+    </element>
+
+</schema>

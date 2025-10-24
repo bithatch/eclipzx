@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Bitzx
+Bundle-SymbolicName: uk.co.bithatch.bitzx;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Export-Package: uk.co.bithatch.bitzx
+Bundle-Activator: uk.co.bithatch.bitzx.Activator
+Bundle-Vendor: Bithatch
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.debug.core
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.bitzx
+Bundle-ActivationPolicy: lazy

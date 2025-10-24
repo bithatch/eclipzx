@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+
+<plugin>
+   <extension
+         point="org.eclipse.core.filesystem.filesystems">
+      <filesystem 
+            scheme="fatimg">
+         <run 
+               class="uk.co.bithatch.fatexplorer.vfs.FATImageFileSystem">
+         </run>
+      </filesystem>
+   </extension>
+    <extension point="org.eclipse.ui.preferencePages">
+        <page
+            class="uk.co.bithatch.fatexplorer.preferences.DiskImagesPreferencePage"
+            id="uk.co.bithatch.fatexplorer.preferences.diskImagesPreferences"
+            name="Disk Images">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_DiskImages"/>
+        </page>
+    </extension>
+    <extension
+        point="org.eclipse.ui.keywords">
+        <keyword
+            id="uk.co.bithatch.zxbasic.ui.keyword_DiskImages"
+            label="Disk Images"/>
+    </extension>
+    
+    <extension point="org.eclipse.ui.views">
+        <view
+              class="uk.co.bithatch.fatexplorer.views.FATExplorerView"
+              icon="icons/diskImage16.png"
+              id="uk.co.bithatch.fatexplorer.views.fatExplorerView"
+              inject="true"
+              name="FAT16 / FAT32 Explorer">
+        </view>
+    </extension>
+    
+    
+     <extension point="org.eclipse.ui.commands">
+        <command
+            id="uk.co.bithatch.fatexplorer.commands.openInFATExplorer"
+            name="Open Disk Image"
+            description="Open disk image In Fat16/Fat32 Explorer">
+        </command>
+    </extension>
+    
+    <extension point="org.eclipse.ui.handlers">
+        <handler
+            commandId="uk.co.bithatch.fatexplorer.commands.openInFATExplorer"
+            class="uk.co.bithatch.fatexplorer.handlers.OpenInFATExplorerHandler">
+        </handler>
+    </extension>
+    
+    <extension point="org.eclipse.ui.menus">
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.open">
+        <command
+          commandId="uk.co.bithatch.fatexplorer.commands.openInFATExplorer"
+          label="Open Disk Image"
+          icon="icons/diskImage16.png"
+          style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                          <test property="org.eclipse.core.resources.extension" value="img"/>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+
+        </command> 
+      </menuContribution>
+    </extension>
+
+   <extension point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+          id="uk.co.bithatch.fatexplorer.navigatorContent"
+          name="FAT32 Label Provider"
+          activeByDefault="true"
+          contentProvider="uk.co.bithatch.fatexplorer.navigator.DiskImagesFilesContentProvider"
+          labelProvider="uk.co.bithatch.fatexplorer.navigator.DiskImageFilesLabelProvider"
+          priority="highest">
+        <triggerPoints>
+          <instanceof value="org.eclipse.core.resources.IFile"/>
+        </triggerPoints>
+        
+        <dropAssistant
+          class="uk.co.bithatch.fatexplorer.vfs.FileStoreDropAdapter"
+          id="uk.co.bithatch.fatexplorer.vfs.fileStoreDropAdapter">
+            <possibleDropTargets>
+                  <adapt type="org.eclipse.core.resources.IContainer"/>
+           </possibleDropTargets>
+        </dropAssistant>
+    
+        
+      </navigatorContent>
+  
+    </extension>
+
+    
+    
+    <extension point="org.eclipse.ui.newWizards">
+      <category
+            id="uk.co.bithatch.fatexplorer.category"
+            name="FAT16/FAT32"/>
+      
+      <wizard
+            id="uk.co.bithatch.fatexplorer.wizards.newDiskImage"
+            name="Disk Image File"
+            class="uk.co.bithatch.fatexplorer.wizards.NewDiskImageWizard"
+            category="uk.co.bithatch.fatexplorer.category"
+            icon="icons/diskImage16.png">
+        <description>Create a new FAT16 / FAT32 disk image</description>
+      </wizard>
+    </extension>
+    
+    <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+        <newWizardShortcut id="uk.co.bithatch.fatexplorer.wizards.newDiskImage"/>
+      </perspectiveExtension>
+    </extension>
+    
+    <extension point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding
+          viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+        <includes>
+          <contentExtension
+              pattern="uk.co.bithatch.fatexplorer.navigatorContent"/>
+        </includes>
+      </viewerContentBinding>
+    </extension>
+    
+    <extension point="org.eclipse.core.variables.dynamicVariables">
+       <variable
+             name="fat_image"
+             supportsArgument="true"
+             description="Path to current FAT disk image in use or expanded path of a workspace relative image."
+             resolver="uk.co.bithatch.fatexplorer.variables.FATImagePathVariableResolver">
+       </variable>
+       <variable
+             name="fat_default"
+             supportsArgument="false"
+             description="The default folder to copy resources to based on context. E.g. the project name or the executable name of a launcher."
+             resolver="uk.co.bithatch.fatexplorer.variables.FATImagePathVariableResolver">
+       </variable>
+       <variable
+             name="fat_folder"
+             supportsArgument="false"
+             description="The folder path resources will be copied to."
+             resolver="uk.co.bithatch.fatexplorer.variables.FATImagePathVariableResolver">
+       </variable>
+    </extension>
+    
+    
+</plugin>

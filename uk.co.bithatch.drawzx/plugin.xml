@@ -1,0 +1,882 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.36"?>
+<plugin>
+   <extension point="org.eclipse.ui.editors">
+        <editor
+            id="uk.co.bithatch.drawzx.editor.SCREditor"
+            name="ZX Image Canvas"
+            class="uk.co.bithatch.drawzx.editor.SCREditor"
+            icon="icons/drawzx16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.scr.contenttype"/>
+        </editor>
+        <editor
+            id="uk.co.bithatch.drawzx.editor.PaletteEditor"
+            name="Palette Editor"
+            class="uk.co.bithatch.drawzx.editor.PaletteEditor"
+            icon="icons/pal16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.pal.contenttype"/>
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.npl.contenttype"/>
+        </editor>
+        <editor
+            id="uk.co.bithatch.drawzx.editor.UDGEditor"
+            name="ZX Spectrum UDG Editor (1 bit)"
+            class="uk.co.bithatch.drawzx.editor.UDGEditor"
+            icon="icons/udg16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.udg.contenttype"/>
+        </editor>
+        <editor
+            id="uk.co.bithatch.drawzx.editor.CH8Editor"
+            name="ZX Spectrum Bitmap Font Editor"
+            class="uk.co.bithatch.drawzx.editor.CH8Editor"
+            icon="icons/char16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.ch8.contenttype"/>
+        </editor>
+        <editor
+            id="uk.co.bithatch.drawzx.editor.SPREditor"
+            name="ZX Next Sprite Editor (8 bit)"
+            class="uk.co.bithatch.drawzx.editor.SPREditor"
+            icon="icons/sprite16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.spr.contenttype"/>
+        </editor>
+        <editor
+            id="uk.co.bithatch.drawzx.editor.SP4Editor"
+            name="ZX Next Sprite Editor (4 bit)"
+            class="uk.co.bithatch.drawzx.editor.SP4Editor"
+            icon="icons/lowColorSprite16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.sp4.contenttype"/>
+        </editor>
+    </extension>
+    <extension point="org.eclipse.core.contenttype.contentTypes"> 
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="scr"
+            id="uk.co.bithatch.drawzx.scr.contenttype"
+            name="SCR Screen File"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="spr"
+            id="uk.co.bithatch.drawzx.spr.contenttype"
+            name="SPR Sprite File (8 bit)"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="sp4"
+            id="uk.co.bithatch.drawzx.sp4.contenttype"
+            name="SP4 Sprite File (4 bit)"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="udg"
+            id="uk.co.bithatch.drawzx.udg.contenttype"
+            name="UDG Sprite File (1 bit)"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="ch8"
+            id="uk.co.bithatch.drawzx.ch8.contenttype"
+            name="8-Bit Character Set"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="pal"
+            id="uk.co.bithatch.drawzx.pal.contenttype"
+            name="Palette File"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="npl"
+            id="uk.co.bithatch.drawzx.npl.contenttype"
+            name="Palette File (with transparency)"
+            priority="normal">
+        </content-type>
+    </extension>
+    <extension point="org.eclipse.ui.importWizards">
+        <category
+            id="uk.co.bithatch.drawzx.category"
+            name="ZX and ZX Next"/>
+        <wizard
+            id="uk.co.bithatch.drawzx.wizards.paletteImport"
+            name="Palette File Import"
+            class="uk.co.bithatch.drawzx.wizards.PaletteImportWizard"
+            category="uk.co.bithatch.drawzx.category"
+            icon="icons/pal16.png">
+            <description>Import other palette formats including Paint.NET, JASC, GIMP and Photoshop and
+                         edit them as a ZX Next .pal or .npl palette.</description>
+        </wizard>
+        <wizard
+            id="uk.co.bithatch.drawzx.wizards.fontImport"
+            name="Font Import"
+            class="uk.co.bithatch.drawzx.wizards.FontImportWizard"
+            category="uk.co.bithatch.drawzx.category"
+            icon="icons/udg16.png">
+            <description>Import from a selection of 8 bit monochrome character sets.</description>
+        </wizard>
+    </extension>
+
+    <extension point="org.eclipse.ui.commands">
+      <category
+            id="uk.co.bithatch.drawzx.sprites.commands.category"
+            name="Sprite and UDG Tools" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.mirrorH"
+            name="Flip Horizontally"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+            
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.mirrorV"
+            name="Flip Vertically"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+            
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.invert"
+            name="Invert Sprite"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.shiftLeft"
+            name="Shift Left"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.shiftRight"
+            name="Shift Right"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.shiftUp"
+            name="Shift Up"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.shiftDown"
+            name="Shift Down"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.rotateClockwise"
+            name="Rotate Clockwise"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.rotateAnticlockwise"
+            name="Rotate Anticlockwise"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+    
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.clear"
+            name="Shift Down"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" />
+            
+            
+      <command
+            id="uk.co.bithatch.drawzx.sprites.commands.mode"
+            name="Mode"
+            categoryId="uk.co.bithatch.drawzx.sprites.commands.category" >
+            <commandParameter
+                id="uk.co.bithatch.drawzx.sprites.mode"
+                name="Paint Mode"
+                values="uk.co.bithatch.drawzx.screens.ScreenPaintModeValues"
+                optional="false" />
+        </command>
+        
+      <category
+            id="uk.co.bithatch.drawzx.screens.commands.category"
+            name="Screen Tools" />
+            
+        <command
+            id="uk.co.bithatch.drawzx.screens.commands.zoomIn"
+            name="Zoom-In"
+            categoryId="uk.co.bithatch.drawzx.screens.commands.category" />
+            
+        <command
+            id="uk.co.bithatch.drawzx.screens.commands.zoomOut"
+            name="Zoom-Out"
+            categoryId="uk.co.bithatch.drawzx.screens.commands.category" />
+        
+        <command
+            id="uk.co.bithatch.drawzx.screens.commands.mode"
+            name="Mode"
+            categoryId="uk.co.bithatch.drawzx.screens.commands.category">
+            <commandParameter
+                id="uk.co.bithatch.drawzx.screens.mode"
+                name="Paint Mode"
+                optional="false" />
+        </command>                        
+            
+    </extension>
+    
+    
+    <extension point="org.eclipse.ui.handlers">
+      
+      <handler
+            class="uk.co.bithatch.drawzx.screens.ModeHandler"
+            commandId="uk.co.bithatch.drawzx.screens.commands.mode"/>
+            
+      <handler
+            class="uk.co.bithatch.drawzx.screens.ZoomInHandler"
+            commandId="uk.co.bithatch.drawzx.screens.commands.zoomIn"/>
+            
+      <handler
+            class="uk.co.bithatch.drawzx.screens.ZoomOutHandler"
+            commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"/>
+      
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.ModeHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.mode"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.MirrorHHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.mirrorH"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.MirrorVHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.mirrorV"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.InvertHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.invert"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.ShiftLeftHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.shiftLeft"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.ShiftRightHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.shiftRight"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.ShiftUpHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.shiftUp"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.ShiftDownHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.shiftDown"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.RotateClockwiseHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.rotateClockwise"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.RotateAnticlockwiseHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.rotateAnticlockwise"/>
+      <handler
+            class="uk.co.bithatch.drawzx.sprites.ClearHandler"
+            commandId="uk.co.bithatch.drawzx.sprites.commands.clear"/>
+            
+     <handler
+          class="uk.co.bithatch.drawzx.sprites.CopyHandler"
+          commandId="org.eclipse.ui.edit.copy">
+        <activeWhen>
+          <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+          </with>
+        </activeWhen>
+      </handler>
+    
+      <handler
+          class="uk.co.bithatch.drawzx.sprites.CutHandler"
+           commandId="org.eclipse.ui.edit.cut">
+        <activeWhen>
+          <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+          </with>
+        </activeWhen>
+      </handler>
+    
+      <handler
+          class="uk.co.bithatch.drawzx.sprites.PasteHandler"
+          commandId="org.eclipse.ui.edit.paste">
+        <activeWhen>
+          <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+          </with>
+        </activeWhen>
+      </handler>
+  
+    </extension>
+    
+    <extension point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+            
+            
+        <toolbar id="uk.co.bithatch.drawzx.screens.toolbar" label="Screen Editor">
+        
+            <command
+                    commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+                    icon="icons/select16.png"
+                    label="Select Mode"
+                    tooltip="Use mouse to select pixel areas"
+                    style="radio">
+                    <parameter
+                        name="uk.co.bithatch.drawzx.screens.mode"
+                        value="SELECT"/>
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                        </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+               <command
+                    commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+                    icon="icons/brush16.png"
+                    label="Brush Mode"
+                    tooltip="Paints with the current brush"
+                    style="radio">
+                    <parameter
+                        name="uk.co.bithatch.drawzx.screens.mode"
+                        value="BRUSH"/>
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                        </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+               <command
+                    commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+                    icon="icons/fill16.png"
+                    label="Fill Mode"
+                    tooltip="Flood fill empty areas with selected colors"
+                    style="radio">
+                    <parameter
+                        name="uk.co.bithatch.drawzx.screens.mode"
+                        value="FILL"/>
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                        </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+               <command
+                    commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+                    icon="icons/erase16.png"
+                    label="Erase Mode"
+                    tooltip="A brush that erases areas instead of painting"
+                    style="radio">
+                    <parameter
+                        name="uk.co.bithatch.drawzx.screens.mode"
+                        value="ERASE"/>
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                        </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+        
+              <command
+                    commandId="uk.co.bithatch.drawzx.screens.commands.zoomIn"
+                    icon="icons/zoomIn16.png"
+                    label="Zoom-In"
+                    tooltip="Zoom-In in to the drawing area"
+                    style="push">
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                        </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+              <command
+                    commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"
+                    icon="icons/zoomOut16.png"
+                    label="Zoom-Out"
+                    tooltip="Zoom-Out off the drawing area"
+                    style="push">
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                        </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+        </toolbar>
+            
+        <toolbar id="uk.co.bithatch.drawzx.sprites.toolbar" label="Sprite and UDG Editor">
+            <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.mode"
+                icon="icons/select16.png"
+                label="Select Mode"
+                tooltip="Use mouse to select pixel areas"
+                style="radio">
+                <parameter
+                    name="uk.co.bithatch.drawzx.sprites.mode"
+                    value="SELECT"/>
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.mode"
+                icon="icons/draw16.png"
+                label="Draw Mode"
+                tooltip="Use mouse to draw pixel in the current colour"
+                style="radio">
+                <parameter
+                    name="uk.co.bithatch.drawzx.sprites.mode"
+                    value="DRAW"/>
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.mirrorH"
+                icon="icons/mirrorH16.png"
+                label="Flip Horizontal"
+                tooltip="Flip Horizontal"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.mirrorV"
+                icon="icons/mirrorV16.png"
+                label="Flip Vertically"
+                tooltip="Flip Vertically"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.invert"
+                icon="icons/invert16.png"
+                label="Invert"
+                tooltip="Invert Sprite"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftLeft"
+                icon="icons/shiftLeft16.png"
+                label="Shift Left"
+                tooltip="Shift Left"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftRight"
+                icon="icons/shiftRight16.png"
+                label="Shift Right"
+                tooltip="Shift Right"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftUp"
+                icon="icons/shiftUp16.png"
+                label="Shift Up"
+                tooltip="Shift Up"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftDown"
+                icon="icons/shiftDown16.png"
+                label="Shift Down"
+                tooltip="Shift Down"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.rotateClockwise"
+                icon="icons/rotateClockwise16.png"
+                label="Rotate Clockwise"
+                tooltip="Rotate 90o clockwise"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.rotateAnticlockwise"
+                icon="icons/rotateAnticlockwise16.png"
+                label="Rotate Anticlockwise"
+                tooltip="Rotate 90o anticlockwise"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.clear"
+                icon="icons/clear16.png"
+                label="Clear"
+                tooltip="Clear Sprite"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+        </toolbar>
+      </menuContribution>
+      
+       <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=navigate">
+            <menu
+                id="uk.co.bithatch.drawzx.editor.menus.sprite"
+                label="Palette">
+                <visibleWhen>
+                    <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                        </or>
+                    </with>
+                </visibleWhen>
+            </menu>
+        </menuContribution>
+      
+       <menuContribution
+            locationURI="menu:uk.co.bithatch.drawzx.editor.menus.screen">
+            
+         <command
+            commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+            icon="icons/select16.png"
+            label="Select Mode"
+            style="radio">
+            <parameter
+                name="uk.co.bithatch.drawzx.screens.mode"
+                value="SELECT"/>
+          </command>
+            
+         <command
+            commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+            icon="icons/brush16.png"
+            label="Brush Mode"
+            style="radio">
+            <parameter
+                name="uk.co.bithatch.drawzx.screens.mode"
+                value="BRUSH"/>
+          </command>
+            
+         <command
+            commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+            icon="icons/fill16.png"
+            label="Fill Mode"
+            style="radio">
+            <parameter
+                name="uk.co.bithatch.drawzx.screens.mode"
+                value="FILL"/>
+          </command>
+            
+         <command
+            commandId="uk.co.bithatch.drawzx.screens.commands.mode"
+            icon="icons/erase16.png"
+            label="Erase Mode"
+            style="radio">
+            <parameter
+                name="uk.co.bithatch.drawzx.screens.mode"
+                value="ERASE"/>
+          </command>
+            
+          <command
+                commandId="uk.co.bithatch.drawzx.screens.commands.zoomIn"
+                icon="icons/zoomIn16.png"
+                label="Zoom-In"
+                tooltip="Zoom-In"
+                style="push">
+          </command>
+            
+          <command
+                commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"
+                icon="icons/zoomOut16.png"
+                label="Zoom-Out"
+                tooltip="Zoom-Out"
+                style="push">
+          </command>
+          
+          
+       </menuContribution>
+      
+       <menuContribution
+            locationURI="menu:uk.co.bithatch.drawzx.editor.menus.sprite">
+            
+            
+         <command
+            commandId="uk.co.bithatch.drawzx.sprites.commands.mode"
+            icon="icons/select16.png"
+            label="Select Mode"
+            style="radio">
+            <parameter
+                name="uk.co.bithatch.drawzx.sprites.mode"
+                value="SELECT"/>
+          </command>
+            
+         <command
+            commandId="uk.co.bithatch.drawzx.sprites.commands.mode"
+            icon="icons/draw16.png"
+            label="Draw Mode"
+            style="radio">
+            <parameter
+                name="uk.co.bithatch.drawzx.sprites.mode"
+                value="DRAW"/>
+          </command>
+            
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.mirrorH"
+                icon="icons/mirrorH16.png"
+                label="Flip Horizontal"
+                tooltip="Flip Horizontal"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.mirrorV"
+                icon="icons/mirrorV16.png"
+                label="Flip Vertically"
+                tooltip="Flip Vertically"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.invert"
+                icon="icons/invert16.png"
+                label="Invert"
+                tooltip="Invert Sprite"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftLeft"
+                icon="icons/shiftLeft16.png"
+                label="Shift Left"
+                tooltip="Shift Left"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftRight"
+                icon="icons/shiftRight16.png"
+                label="Shift Right"
+                tooltip="Shift Right"
+                style="push">
+          </command>          
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftUp"
+                icon="icons/shiftUp16.png"
+                label="Shift Up"
+                tooltip="Shift Up"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.shiftDown"
+                icon="icons/shiftDown16.png"
+                label="Shift Down"
+                tooltip="Shift Down"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.rotateClockwise"
+                icon="icons/rotateClockwise16.png"
+                label="Rotate Clockwise"
+                tooltip="Rotate 90o clockwise"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.rotateAnticlockwise"
+                icon="icons/rotateAnticlockwise16.png"
+                label="Rotate Anticlockwise"
+                tooltip="Rotate 90o anticlockwise"
+                style="push">
+          </command>
+          
+          <command
+                commandId="uk.co.bithatch.drawzx.sprites.commands.clear"
+                icon="icons/clear16.png"
+                label="Clear"
+                tooltip="Clear Sprite"
+                style="push">
+          </command>
+        </menuContribution>
+    </extension>
+
+    <extension point="org.eclipse.ui.propertyPages">
+        <page
+            id="uk.co.bithatch.drawzx.editor.properties.palette"
+            name="Palette"
+            class="uk.co.bithatch.drawzx.editor.SpritePropertyPage">
+            
+             <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile">
+                    <or>
+                    <test
+                        property="org.eclipse.core.resources.extension"
+                        value="spr" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="sp4" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="ch8" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="udg" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="scr" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="slr" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="shr" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="shc" />
+                    </or>
+                </adapt>
+            </enabledWhen>
+            
+            <!--<enabledWhen>
+                <with variable="selection">
+                    <count
+                        value="1">
+                    </count>
+                    <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                            <test
+                                property="org.eclipse.core.resources.extension"
+                                value="spr" />
+                        </adapt>
+                    </iterate>
+                </with>
+            </enabledWhen>-->
+        </page>
+    </extension>
+    
+    <extension point="org.eclipse.ui.views">
+        <category id="uk.co.bithatch.drawzx.category" name="ZX Draw Views" />
+        <view name="Colour Picker" icon="icons/choose16.png" class="uk.co.bithatch.drawzx.views.ColourPickerView" category="uk.co.bithatch.drawzx.category" id="uk.co.bithatch.drawzx.views.colourPickerView" />
+    </extension>
+</plugin>

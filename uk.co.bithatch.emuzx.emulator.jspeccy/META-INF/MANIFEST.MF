@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EmuZX JSpeccy Emulator Support
+Bundle-SymbolicName: uk.co.bithatch.emuzx.emulator.jspeccy;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Export-Package: uk.co.bithatch.emuzx.emulator.jspeccy
+Bundle-Activator: uk.co.bithatch.emuzx.emulator.jspeccy.Activator
+Bundle-Vendor: Bithatch
+Require-Bundle: uk.co.bithatch.emuzx;bundle-version="1.0.0",
+ uk.co.bithatch.emuzx.ui;bundle-version="1.0.0",
+ uk.co.bithatch.jspeccy;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.emuzx.emulator.jspeccy
+Bundle-ActivationPolicy: lazy

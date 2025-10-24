@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin> 
+    <extension point="org.eclipse.ui.keywords">
+        <keyword id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" label="External Emulators" />
+    </extension>   
+    <extension point="org.eclipse.ui.preferencePages">
+        <page class="uk.co.bithatch.emuzx.ui.ExternalEmulatorsPreferencePage" 
+            id="uk.co.bithatch.emuzx.ui.preferencePage" name="External Emulators">
+            <keywordReference id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" />
+        </page>
+    </extension>  
+</plugin>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>   
+    <extension point="uk.co.bithatch.zxbasic.sdk">
+        <sdk name="Boriels ZX Basic 1.18.1" path="META-INF/zxbasic-1.18.1">
+            <library name="ZXBC Stdlib for ZX 48k and family" path="src/lib/arch/zx48k/stdlib" architecture="legacy" icon="icons/stdlib16.png" />
+            <library name="ZXBC Runtime for ZX 48k and family" path="src/lib/arch/zx48k/runtime" architecture="legacy" icon="icons/runtime16.png" />
+            <library name="ZXBC Stdlib for ZX Next and family" path="src/lib/arch/zxnext/stdlib" architecture="zxnext" icon="icons/stdlib16.png" />
+            <library name="ZXBC Runtime for ZX Next and family" path="src/lib/arch/zxnext/runtime" architecture="zxnext" icon="icons/runtime16.png" />
+        </sdk>
+    </extension> 
+</plugin> 

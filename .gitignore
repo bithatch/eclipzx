@@ -1,0 +1,15 @@
+**/bin
+**/.project
+**/.classpath
+**/.settings
+**/*-gen
+**/*_gen
+**/generated
+**/.launch
+/uk.co.bithatch.zxbasic/.antlr-generator-3.2.0-patch.jar
+/uk.co.bithatch.zxbasic/plugin.xml_gen
+/uk.co.bithatch.zxbasic.repository/features/
+/uk.co.bithatch.zxbasic.repository/plugins/
+*.jar
+test-workspaces/**
+**/target

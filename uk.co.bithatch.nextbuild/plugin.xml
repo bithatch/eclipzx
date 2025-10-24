@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>   
+    <extension point="uk.co.bithatch.zxbasic.nexConfigurer">
+        <nexConfigurer class="uk.co.bithatch.nextbuild.FileContentNEXConfigurer"/>
+    </extension>
+     <extension point="uk.co.bithatch.zxbasic.programBuildsOptionsFactory">
+        <programBuildsOptionsFactory class="uk.co.bithatch.nextbuild.FileHeaderProgramBuildOptionsFactory"/>
+    </extension>
+    <extension point="org.eclipse.ui.newWizards">
+        <category id="uk.co.bithatch.zxbasic.wizardCategory" name="ZX Basic Projects" />
+        <wizard id="uk.co.bithatch.zxbasic.NextBuildExamplesWizard" name="ZX BASIC NextBuild Examples" 
+            class="uk.co.bithatch.nextbuild.NextBuildExamplesWizard" 
+            category="uk.co.bithatch.zxbasic.wizardCategory" 
+            icon="icons/nextbuild16.png">
+            <description>Create a new ZX BASIC project populated with NextBuild examples</description>
+        </wizard>
+    </extension>
+    
+    <extension point="org.eclipse.ui.commands">
+        <category id="uk.co.bithatch.nextbuild.nature.category" name="NextBuild Nature commands" />
+        <command categoryId="uk.co.bithatch.nextbuild.nature.category" 
+            defaultHandler="uk.co.bithatch.nextbuild.AddRemoveNextBuildNatureHandler" 
+            id="uk.co.bithatch.nextbuild.addRemoveNextBuildNature" name="Add/Remove NextBuild Nature" />
+    </extension>
+    
+    <extension point="org.eclipse.ui.ide.projectNatureImages"> 
+        <image id="uk.co.bithatch.nextbuild.nature.image" natureId="uk.co.bithatch.nextbuild.NextBuildNature" icon="icons/nextbuild8.png" />
+    </extension>
+    
+    <extension id="uk.co.bithatch.nextbuild.NextBuildNature" name="NextBuild Nature" point="org.eclipse.core.resources.natures">
+        <runtime>
+            <run class="uk.co.bithatch.nextbuild.NextBuildNature" />
+        </runtime>
+    </extension>
+    
+    <extension point="org.eclipse.ui.menus">
+        <menuContribution locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+            <command commandId="uk.co.bithatch.nextbuild.addRemoveNextBuildNature" label="Disable NextBuild Nature" style="push">
+                <visibleWhen checkEnabled="false">
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IProject">
+                                <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.nextbuild.NextBuildNature" />
+                            </adapt>
+                        </iterate>
+                    </with>
+                </visibleWhen>
+            </command>
+            <command commandId="uk.co.bithatch.nextbuild.addRemoveNextBuildNature" label="Enable NextBuild Nature" style="push">
+                <visibleWhen checkEnabled="false">
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IProject">
+                                <not>
+                                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.next.NextBuildNature" />
+                                </not>
+                            </adapt>
+                        </iterate>
+                    </with>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+    </extension>
+    
+    <extension
+          point="uk.co.bithatch.zxbasic.preparationSource">
+       <preparationSource
+             id="uk.co.bithatch.nextbuild.fileContentPreparationSource"
+             name="NextBuild Compatible Program Scan"
+             selected="true"
+             order="500"
+             description="Scans for 'LoadSD' and adds file found in data directory"
+             class="uk.co.bithatch.nextbuild.FileContentPreparationSource">
+       </preparationSource>
+    </extension>
+</plugin> 

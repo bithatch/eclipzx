@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EclipZX
+Bundle-SymbolicName: uk.co.bithatch.eclipzx;singleton:=true
+Bundle-Vendor: Bithatch
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: uk.co.bithatch.eclipzx.product.Activator
+Require-Bundle: org.eclipse.equinox.app;visibility:=reexport,
+ org.eclipse.swt;visibility:=reexport,
+ org.eclipse.ui.workbench;visibility:=reexport,
+ org.eclipse.osgi;visibility:=reexport,
+ org.eclipse.e4.ui.workbench.addons.swt;bundle-version="1.5.700";visibility:=reexport,
+ org.eclipse.equinox.event;bundle-version="1.7.300";visibility:=reexport,
+ org.eclipse.help;bundle-version="3.10.500"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.eclipzx.product

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="uk.co.bithatch.eclipzx.product.Application">
+         </run>
+      </application>
+   </extension>
+
+   <extension
+         id="eclipzx"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="org.eclipse.ui.ide.workbench"
+            name="EclipZX">
+         <property
+               name="windowImages"
+               value="content/icons/eclipzx16.png,content/icons/eclipzx32.png,content/icons/eclipzx48.png,content/icons/eclipzx64.png,content/icons/eclipzx128.png,content/icons/eclipzx256.png">
+         </property>
+         <property
+               name="aboutText"
+               value="EclipZX is a complete environment for developing BASIC or Z80&#x0A;Assembler programs for the ZX Spectrum and its family. Based&#x0A;on the Boriel ZX Basic compiler and runtime library, EclipZX makes&#x0A;it an absolute breeze to get FAST games, utilties and whatever&#x0A;else you fancy running in no time at all.">
+         </property>
+         <property
+               name="aboutImage"
+               value="content/images/about.png">
+         </property>
+         <property
+               name="startupForegroundColor"
+               value="F800FF">
+         </property>
+         <property
+               name="startupProgressRect"
+               value="86,367,460,16">
+         </property>
+         <property
+               name="startupMessageRect"
+               value="30,430,580,25">
+         </property>
+         <property
+               name="appName"
+               value="EclipZX">
+         </property>
+         <property
+               name="preferenceCustomization"
+               value="plugin_customization.ini">
+         </property>
+      </product>
+   </extension>
+</plugin>

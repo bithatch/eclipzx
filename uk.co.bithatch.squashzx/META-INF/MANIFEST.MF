@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Squashzx
+Bundle-SymbolicName: uk.co.bithatch.squashzx;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Import-Package: uk.co.bithatch.zyxy.compress
+Bundle-Activator: uk.co.bithatch.squashzx.Activator
+Bundle-Vendor: Bithatch
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.ui.ide;bundle-version="3.22.600",
+ org.eclipse.ui.forms;bundle-version="3.13.500"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.squashzx
+Bundle-ActivationPolicy: lazy

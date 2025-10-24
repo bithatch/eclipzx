@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="uk.co.bithatch.zxbasic"
+    xmlns="http://www.w3.org/2001/XMLSchema">
+    
+    <annotation>
+        <appInfo>
+            <meta.schema plugin="uk.co.bithatch.zxbasic" id="preparationSource" name="External Emulation Launch Preparation Source"/>
+        </appInfo>
+        <documentation>
+            Used to contribute additional files to prepare (e.g. copy to a disk image).
+        </documentation>
+    </annotation>
+
+    <element name="extension">
+        <complexType>
+            <sequence>
+                <element ref="preparationSource" minOccurs="1" maxOccurs="unbounded"/>
+            </sequence>>
+             <attribute name="point" type="string" use="required">
+                <annotation>
+                   <documentation>
+                      A fully qualified identifier of the target extension point.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="id" type="string">
+                <annotation>
+                   <documentation>
+                      An optional identifier of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="name" type="string">
+                <annotation>
+                   <documentation>
+                      An optional name of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+        </complexType>
+    </element>
+    
+    <element name="preparationSource">
+        <complexType>
+            <attribute name="id" type="string" use="required">
+                <annotation><documentation>ID of the preparation source provider.</documentation></annotation>
+            </attribute>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Name of the preparation source provider.</documentation></annotation>
+            </attribute>
+            <attribute name="description" type="string" use="optional">
+                <annotation><documentation>A more complete description of the provider (e.g. used in tooltip).</documentation></annotation>
+            </attribute>
+            <attribute name="order" type="integer" use="optional">
+                <annotation><documentation>An ordering number, the lower the number the earlier the preparation in relative to other ordering numbers.</documentation></annotation>
+            </attribute>
+            <attribute name="class" type="string" use="required">
+                <annotation><documentation>Class of object that implements IPreparationSource.</documentation></annotation>
+            </attribute>
+            <attribute name="uiClass" type="string" use="optional">
+                <annotation><documentation>Class of object that implements IPreparationTargetUI.</documentation></annotation>
+            </attribute>
+            <attribute name="plugin" type="string" use="optional">
+                <annotation><documentation>Plugin ID. Defaults to declaring plugin.</documentation></annotation>
+            </attribute>
+            <attribute name="selected" type="boolean" use="optional">
+                <annotation><documentation>Whether the source is selected by default.</documentation></annotation>
+            </attribute>
+        </complexType>
+    </element>
+
+</schema>

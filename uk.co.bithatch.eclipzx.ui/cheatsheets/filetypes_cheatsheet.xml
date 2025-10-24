@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Supported File Types">
+   <intro>
+      <description>
+         This cheat sheet lists all the file types supported by EclipseZX, and describes what each is used for.
+      </description>
+   </intro>
+
+   <item title="BAS - Boriels ZX Basic Program (*.bas)">
+      <description>
+         Source code written in Boriels ZX Basic, compiled or interpreted in the IDE.
+      </description>
+   </item>
+
+   <item title="ASM - Boriels ZX Assembler (*.asn)">
+      <description>
+         Source code written in Boriels ZX Assemble, compiled or interpreted in the IDE.
+      </description>
+   </item>
+
+   <item title="PAL - ZX Next 256 Color Palette (*.pal)">
+      <description>
+         Used with sprites (*.spr, *.sp4 etc) and tilemaps. This palette type does not support
+         transparency.
+      </description>
+   </item>
+
+   <item title="NPL - ZX Next 256+1 Color Palette (*.npl)">
+      <description>
+         Used with sprites (*.spr, *.sp4 etc) and tilemaps. This palette type supports a single
+         transparency index or mask.
+      </description>
+   </item>
+
+   <item title="AFB - AY Effects Bank (*.afb)">
+      <description>
+         Container file holding a collection of AFX sound effects.
+      </description>
+   </item>
+
+   <item title="AFX - AY Sound Effect (*.afx)">
+      <description>
+         Individual sound effect data, typically edited in the AY Sound Editor.
+      </description>
+   </item>
+
+   <item title="SPR - 8-bit Sprite File (*.spr)">
+      <description>
+         For 8-Bit 16x16 sprites compatible with the ZX Next.
+      </description>
+   </item>
+
+   <item title="SP4 - 4-bit Sprite File (*.sp4)">
+      <description>
+         For 4-Bit 16x16 sprites compatible with the ZX Next.
+      </description>
+   </item>
+
+   <item title="UDG - 1-bit Sprite File (*.udg)">
+      <description>
+         For 1-Bit 8x8 sprites compatible with all ZX Spectrums.
+      </description>
+   </item>
+
+   <item title="CH - 1-bit Character Set File (*.udg)">
+      <description>
+         For 1-Bit 8x8 characters compatible with all ZX Spectrums.
+      </description>
+   </item>
+
+   <item title="TIL - Tile Map (*.til)">
+      <description>
+         Tile layout used for level or background definition.
+      </description>
+   </item>
+
+   <item title="CHR - Character Set (*.chr)">
+      <description>
+         Custom character definitions for UDGs or fonts.
+      </description>
+   </item>
+
+</cheatsheet>

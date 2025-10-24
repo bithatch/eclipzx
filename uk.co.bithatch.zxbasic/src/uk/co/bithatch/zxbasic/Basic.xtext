@@ -1,0 +1,930 @@
+grammar uk.co.bithatch.zxbasic.Basic with org.eclipse.xtext.common.Terminals
+
+hidden(WS)
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+generate basic "http://bithatch.co.uk/Basic"
+
+// ─────────────── PROGRAM STRUCTURE ───────────────
+
+Program:
+    program=CodeBlock
+;
+
+CodeBlock:
+     {CodeBlock} ( groups+=Group LINEBREAK)*;
+     
+Group:
+    => PPDirective
+    |
+    => IfLine
+    |
+    BasicLine
+;
+
+IfLine returns Group:
+     name=LineLabelDef? => (preStatements+=Statement  => ( => (SEP preStatements+=Statement))* SEP)? 'IF' condition=Expr 'THEN'?     
+        statements+=Statement  => ( => (SEP statements+=Statement))* => ( SEP EndIf (SEP  statements+=Statement)*)?   
+;
+
+BasicLine returns Group:
+    {BasicLine} name=LineLabelDef? (statements+=Statement  => ( => (SEP statements+=Statement) | => (statements += CommentStmt))*)?    
+;
+
+// ─────────────── Preprocessor ───────────────
+
+PPDirective:
+    PPInclude | PPDefine | PPLine | PPPragma | PPUndef |  PPElse |  PPWarning |  PPError |  PPEndIf | PPIfdef | PPIfndef | PPElif | PPIf | PPRequire | PPExclude
+;
+
+PPInclude:
+    {PPInclude} '#include' once=PPOnce? importURI=PPIncludeSpec
+;
+
+    
+PPIncludeSpec returns ecore::EString:
+    STRING | PPModuleSpec;
+
+PPModuleSpec returns ecore::EString:
+    '<' ValidID ( ('/' | '\\') ValidID )* '.' ValidID '>'
+;
+
+// Accept plain identifiers or keywords that may appear in names/paths
+ValidID returns ecore::EString:
+     ID |
+     'AND' | 'AS' | 'AT' | 'BEEP' | 'BORDER' | 'BRIGHT' | 'BYREF' | 'BYTE' | 'BYVAL' | 'CIRCLE' | 'CLS' |
+    'CODE' | 'CONST' | 'CONTINUE' | 'DATA' | 'DIM' | 'DO' | 'DRAW' | 'ELSE' | 'ELSEIF' | 'END' |
+    'EXIT' | 'FASTCALL' | 'FIXED' | 'FLASH' | 'FLOAT' | 'FOR' | 'FUNCTION' | 'GO' | 'GOSUB' | 'GOTO' |
+    'IF' | 'IN' | 'INK' | 'INTEGER' | 'INVERSE' | 'LET' | 'LOAD' | 'LONG' | 'LOOP' | 'MOD' | 'NEXT' |
+    'NOT' | 'ON' | 'ONCE' | 'OR' | 'OUT' | 'OVER' | 'PAPER' | 'PAUSE' | 'PLOT' | 'POKE' | 'PRINT' |
+    'RANDOMIZE' | 'READ' | 'REM' | 'RETURN' | 'RND' | 'SAVE' | 'SCREEN$' | 'SHL' | 'SHR' | 'STEP' |
+    'STOP' | 'STRING' | 'SUB' | 'THEN' | 'TO' | 'UBYTE' | 'UINTEGER' | 'ULONG' | 'UNTIL' | 'VERIFY' |
+    'WEND' | 'WHILE' | 'XOR' 
+;
+
+
+PPExclude:
+    {PPExclude} '#exclude' characters=INT
+;
+
+PPRequire:
+    {PPRequire} '#require' importURI=PPIncludeSpec
+;
+
+PPIf:
+    expr = PP_IF
+;
+    
+PPOnce:
+    {PPOnce} 'ONCE'
+;
+
+PPUndef:
+    {PPUndef} '#undef' name=ID;
+
+PPDefine:
+    define = PP_DEFINE
+;
+
+PPLine:
+    linemkr = PP_LINE
+;
+
+PPElse:
+   {PPElse} '#else'
+;
+
+PPElif:
+   {PPElse} '#elif'
+;
+
+PPEndIf:
+   {PPEndIf} '#endif'
+;
+
+PPIfdef:
+   {PPIfdef} '#ifdef' name=ID
+;
+
+PPIfndef:
+   {PPIfndef} '#ifndef' name=ID
+;
+
+PPPragma:
+    pragma = PP_PRAGMA
+;
+
+PPError:
+    error = PP_ERROR
+;
+
+PPWarning:
+    warning = PP_WARNING
+;
+
+// ─────────────── STATEMENTS ───────────────
+
+Statement:
+    (
+        
+       => AsmBlock
+    |  => LetStmt
+    |  => ReferableCall
+    |  => CommentStmt
+    |  FunctionBlock 
+    |  SubBlock
+    |  IfStmt
+    |  ForBlock
+    |  WhileBlock
+    |  DoLoopBlock
+    |  PrintStmt
+    |  PlotStmt
+    |  DrawStmt
+    |  BorderStmt
+    |  BeepStmt
+    |  CircleStmt
+    |  ClsStmt
+    |  ExitStmt
+    |  GoOrSubStmt
+    |  GotoStmt
+    |  GosubStmt
+    |  PokeStmt
+    |  PauseStmt
+    |  RandomizeStmt
+    |  StopStmt
+    |  DimStmt
+    |  ConstStmt
+    |  ContinueStmt
+    |  DataStmt
+    |  ReadStmt
+    |  InStmt
+    |  RndStmt
+    |  NotExpr
+    |  OutStmt
+    |  OverMod
+    |  InverseMod
+    |  PaperMod
+    |  BrightMod
+    |  FlashMod
+    |  InkMod
+    |  SaveStmt
+    |  LoadStmt
+    |  VerifyStmt
+    |  OnStmt
+    |  ReturnStmt
+    |  EndStmt
+    ) 
+    ;
+
+// ───── Basic Statements ─────
+
+AsmBlock:
+    asm = ASM
+;
+
+AbstractDeclaration:
+        DimStmt | ConstStmt;
+
+ConstStmt:
+    'CONST'
+        ( decls+=DimDeclaration (',' decls+=DimDeclaration)* ) 
+        ('AS' type=VarType)?  
+        '=' expr=Expr
+;
+
+DimStmt:
+    'DIM'
+        ( decls+=DimDeclaration (',' decls+=DimDeclaration)* )
+        ( 
+            ('AS' type=VarType)?
+            (initializer=DimInitializer)?
+            ('AT' address=Expr)?
+        ) 
+        
+;
+
+DimInitializer:
+    DimValueInitialize
+    |
+    DimArrayInitializer
+;
+
+DimValueInitialize:    
+    '=' expr+=Expr
+;
+
+DimArrayInitializer:
+    ('=>'|'=')? {DimArrayInitializer}
+     => '{' 
+    (
+        (
+            => (initializer+=DimArrayInitializer ( "," initializer+=DimArrayInitializer)*)?
+        |
+            expr+=Expr (',' expr+=Expr)*
+        )
+    ) 
+    '}'
+;
+
+DimDeclaration:
+    {DimDeclaration} name=ID arrayIndex=Dimensions?;
+    
+Dimensions:
+    '(' indices+=DimBound (',' indices+=DimBound)* ')';
+
+DimBound:
+    (=>lower=Expr ('TO' upper=Expr)?)
+  | upper=Expr;
+  
+CircleStmt:
+    'CIRCLE' (modifiers+=AttributeModifier ';')* x=Expr ',' y=Expr ',' radius=Expr;
+    
+BeepStmt:
+    'BEEP' duration=Expr ',' pitch=Expr;
+    
+PokeStmt:
+    => (
+    'POKE' address=Expr ',' value=Expr
+    )
+    |
+    => (
+    'POKE' type=VarType address=Expr ',' value=Expr
+    )
+;
+    
+BorderStmt:
+    'BORDER' expr=Expr
+;
+  
+PauseStmt:
+    'PAUSE' expr=Expr
+;
+  
+RandomizeStmt:
+    => ( 
+        'RANDOMIZE' expr=Expr
+    )
+    |
+    => (
+        {RandomizeStmt} 'RANDOMIZE'
+    )
+;
+  
+InStmt:
+    'IN' expr=Expr
+;
+  
+RndStmt:
+    {RndStmt} 'RND'
+;
+  
+OutStmt:
+    'OUT' address=Expr ',' value=Expr
+;
+  
+ClsStmt:
+    {ClsStmt} 'CLS'
+;
+
+enum ExitType:
+    FOR | WHILE | DO
+;
+  
+ExitStmt:
+    {ExitStmt} 'EXIT' type=ExitType
+;
+    
+DataStmt:
+    'DATA' data+=Expr (',' data+=Expr)*
+;
+    
+ReadStmt:
+    'READ' variables+=ReferableVar ("," variables+=ReferableVar)*
+;
+
+SaveStmt:
+     => (
+     'SAVE' name=StringLiteral type = CodeResource start=Expr ',' length=Expr
+     )
+     |
+     => (
+     'SAVE' name=StringLiteral type =  ScreenResource
+     )
+     |
+     => (
+     'SAVE' name=StringLiteral type = DataResource var=ReferableVar
+     )  
+//     |
+//     => (
+//     'SAVE' name=StringLiteral 'DATA'
+//     )
+;
+
+LoadStmt:
+     => (
+     'LOAD' name=StringLiteral type = ( CodeResource | ScreenResource )
+     )
+     |
+     => (
+     'LOAD' name=StringLiteral type = CodeResource start=Expr
+     )
+     |
+     => (
+     'LOAD' name=StringLiteral type = CodeResource start=Expr ',' length=Expr
+     )
+     |
+     => (
+     'LOAD' name=StringLiteral type = DataResource var=ReferableVar
+     ) 
+;
+
+ResourceType:
+    CodeResource | ScreenResource | DataResource
+;
+
+CodeResource:
+    {CodeResource} 'CODE'
+;
+
+ScreenResource:
+    {ScreenResource} 'SCREEN$'
+;
+
+DataResource:
+    {DataResource} 'DATA'
+;
+
+VerifyStmt:
+     => (
+     'VERIFY' name=StringLiteral type = ( CodeResource | ScreenResource )
+     )
+     |
+     => (
+     'VERIFY' name=StringLiteral type = DataResource var=ReferableVar
+     )
+;
+
+PrintStmt:
+    => 'PRINT' => (parts+=PrintPart) (';' parts+=PrintPart)* ';'?
+    |
+    {PrintStmt} 'PRINT'
+;
+
+PlotStmt:
+    'PLOT' (attributes += AttributeModifier ';')* x=Expr ',' y=Expr
+;
+
+DrawStmt:
+    'DRAW' (attributes += AttributeModifier ';')* x=Expr ',' y=Expr (',' arc=Expr)?
+;
+    
+    
+PrintPart:
+   ( at = AtModifier ) 
+   |
+   ( attributes = AttributeModifier ) 
+   | 
+   ( expr=Expr ) 
+;
+
+OnStmt:
+    'ON' expression=Expr (('GO' 'TO') | 'GOTO') labels+=LineRef (',' labels+=LineRef)*
+;
+
+LetStmt:
+    {LetStmt} 'LET'? assignment=Assignment;
+    
+
+GoOrSubStmt:
+    'GO' (=>ToStmt | =>SubStmt);
+    
+ContinueStmt:
+    'CONTINUE' (=>ContinueDoStmt | =>ContinueWhileStmt | =>ContinueForStmt);
+    
+ContinueDoStmt:
+    {ContinueDoStmt} 'DO';
+
+ContinueWhileStmt:
+    {ContinueWhileStmt} 'WHILE';
+
+ContinueForStmt:
+    {ContinueFormStmt} 'FOR';
+    
+ToStmt:
+    {Goto} 'TO' line=LineRef;
+    
+EndStmt:
+    {End} 'END';
+
+SubStmt:
+    {Gosub} 'SUB' line=LineRef;
+
+GotoStmt:
+    {Goto} 'GOTO' line=LineRef;
+
+GosubStmt:
+    {Gosub} 'GOSUB' line=LineRef;
+
+StopStmt:
+    {StopStmt} 'STOP';
+
+ReturnStmt:
+    =>
+    ( 
+        => 'RETURN' expr=Expr
+    )
+    |
+    (
+        {ReturnStmt} => 'RETURN'
+    )
+;
+
+CommentStmt:
+    {CommentStmt} => comment=('REM' | REM_LINE | '\'' | SL_COMMENT | ML_COMMENT);
+    
+
+// ────────────────────────────────────────
+// ───── Modifiers ─────
+// ────────────────────────────────────────
+
+
+enum Modifier:
+    BYREF | BYVAL
+;
+
+enum SubModifier:
+    FASTCALL
+;
+
+  
+AtModifier:
+    'AT' addresses+=Expr (',' addresses+=Expr)*
+;
+
+// ───── Attribute Modifiers ─────
+
+AttributeModifier:
+    modifier = OverMod | InverseMod | InkMod | PaperMod | BrightMod | FlashMod
+;
+
+OverMod:
+    'OVER' value=Expr
+;
+
+InverseMod:
+    'INVERSE' value=Expr
+;
+
+InkMod:
+    'INK' value=Expr;
+  
+PaperMod:
+    'PAPER' value=Expr;
+  
+BrightMod:
+    'BRIGHT' value=Expr;
+  
+FlashMod:
+    'FLASH' value=Expr;
+
+
+// ────────────────────────────────────────
+// ───── Block Statements ─────s
+// ────────────────────────────────────────
+
+Referable:
+  FunctionBlock | SubBlock | DimDeclaration | Assignment | ArgSpec
+;
+
+// ───── Sub ─────
+
+SubBlock:
+    {SubBlock} 'SUB' 
+    modifier=SubModifier? 
+    name=ID
+    ('(' (args+=ArgSpec (',' args+=ArgSpec)*)? ')')?  
+    block = CodeBlock
+    end = EndSubStmt
+;
+    
+EndSub:
+    'END' 'SUB'
+;
+
+EndSubStmt returns Group:
+    EndSubLabelOnlyLine | EndSubLine;
+    
+EndSubLabelOnlyLine:
+    name=LineLabelDef EndSub;
+    
+EndSubLine:
+    {EndSubLine} EndSub;
+
+// ───── Function ─────
+
+FunctionBlock:
+    {FunctionBlock} => 'FUNCTION' 
+    modifier=SubModifier? 
+    name=ID 
+    ('('( args+=ArgSpec (',' args+=ArgSpec)*)? ')')?  
+    ('AS' returnType=VarType)?
+    block = CodeBlock
+    end = EndFunctionStmt
+;
+    
+EndFunction:
+    'END' 'FUNCTION'
+;
+
+EndFunctionStmt returns Group:
+    EndFunctionLabelOnlyLine | EndFunctionLine;
+    
+EndFunctionLabelOnlyLine:
+    name=LineLabelDef EndFunction;
+    
+EndFunctionLine:
+    {EndFunctionLine} EndFunction;
+
+// ───── If ─────
+
+IfStmt:
+    'IF' condition=Expr 'THEN'? 
+    (
+        => ( then=CodeBlock )
+        ( 
+            => end = EndIfStmt 
+        |
+            =>  (
+                elseIf+=ElseIfStmt*
+                (
+                    else = ElseStmt
+                  | end = EndIfStmt
+                )
+            )
+        )
+    )
+;
+
+EndIfStmt returns Group:
+    EndIfLine;
+    
+EndIf:
+    'END' 'IF'
+;
+    
+EndIfLine returns Group:
+   {EndIfLine} ( name=LineLabelDef)? EndIf;
+    
+ElseStmt returns Group:
+    line = ( ElseLabelOnlyLine | ElseLine ) block=CodeBlock end = EndIfStmt;
+    
+ElseLabelOnlyLine returns Group:
+    name=LineLabelDef 'ELSE';
+    
+ElseLine returns Group:
+    {ElseLine} 'ELSE';
+
+ElseIfStmt returns Group:
+    (
+        => ( ElseIfLine ) 
+        |
+        ( ElseIfNumberedLine )
+    ) 
+    block = CodeBlock;
+    
+ElseIfNumberedLine returns Group:
+    name=LineLabelDef? 'ELSEIF' condition=Expr ('THEN')?;
+
+ElseIfLine:
+    'ELSEIF'  condition=Expr ('THEN')?;
+    
+// ───── For ─────
+
+ForBlock:
+    'FOR' 
+        assignment=Assignment 'TO' end=Expr ('STEP' step=Expr)? 
+    (
+        => ( 
+             SEP? block=CodeBlock
+            loop = ForNextLine
+        )
+    |
+        => ( 
+            ( SEP statements+=Statement (SEP statements+=Statement)*)?
+            SEP loop = ForNextSingleLine 
+        )
+    )
+;
+
+ForNextSingleLine returns Group:
+    statements += ForNext
+;
+
+ForNextLine returns Group:
+   {ForNextLine} ( name=LineLabelDef)? statements += ForNext
+;
+
+ForNext returns Statement:
+    {ForNext} 'NEXT' var2=ReferableVar?
+;
+
+
+WhileBlock:
+    (
+        'WHILE' condition=Expr
+        block=CodeBlock
+        end=WhileBlockEnd
+    )
+;
+    
+WhileEnd:
+    ('WEND' ) | ( 'END' 'WHILE' )
+;
+
+WhileBlockEnd returns Group:
+    WhileEndLabelOnlyLine | WhileEndLine;
+
+WhileEndLabelOnlyLine returns Group:
+    name=LineLabelDef WhileEnd;
+    
+WhileEndLine returns Group:
+    {WhileEndLine} WhileEnd;
+    
+
+// ───── Do Loop ─────
+
+DoLoopBlock:
+    => DoLoopWhile
+    |
+    => DoLoopUntil
+;
+
+DoLoopWhile:
+    'DO'
+        block=CodeBlock
+        end = DoLoopEndStmt (condition=DoCondition | SEP)
+;
+
+DoLoopUntil:
+    'DO' condition=DoCondition
+        block=CodeBlock
+        end = DoLoopEndStmt
+;
+
+DoCondition:
+    ( type = DoWhileCondition | DoUntilCondition ) condition=Expr
+;
+
+DoLoopEndStmt returns Group:
+    => DoLoopEndLabelOnlyLine 
+    | 
+    => DoLoopEndLine;
+    
+DoLoopEndLabelOnlyLine:
+    name=LineLabelDef 'LOOP';
+    
+DoLoopEndLine:
+    {EndFunctionLine} 'LOOP';
+
+DoWhileCondition:
+    {DoWhileCondition} 'WHILE'
+;
+
+DoUntilCondition:
+    {DoUntilCondition} 'UNTIL'
+;
+
+
+// ─────────────── EXPRESSIONS ───────────────
+
+// TODO check precedence .. it is right associative (sinclair basic is left)
+// TODO xtext moans about this, but ANTLRWorks does not. 
+
+Expr:
+    AddExpr;
+
+AddExpr returns Expr:
+    SubtractExpr => ({BinaryExpr.left=current} => op='+' right=AddExpr)?;
+    
+SubtractExpr returns Expr:
+    MulExpr  => ({BinaryExpr.left=current} => op='-' right=SubtractExpr)?;
+
+MulExpr returns Expr:
+    DivExpr  => ({BinaryExpr.left=current} => op='*' right=MulExpr)?;
+
+DivExpr returns Expr:
+    ModExpr  => ({BinaryExpr.left=current} => op='/' right=DivExpr)?;
+
+ModExpr returns Expr:
+    ShrExpr  => ({BinaryExpr.left=current} => op='MOD' right=ModExpr)?;
+
+ShrExpr returns Expr:
+    RRExpr  => ({BinaryExpr.left=current} => op='SHR' right=ShrExpr)?;
+
+RRExpr returns Expr:
+    ShlExpr  => ({BinaryExpr.left=current} => op='>>' right=RRExpr)?;
+
+ShlExpr returns Expr:
+    LLExpr  => ({BinaryExpr.left=current} => op='SHL' right=ShlExpr)?;
+    
+LLExpr returns Expr:
+    GtExpr  => ({BinaryExpr.left=current} => op='<<' right=LLExpr)?;
+
+GtExpr returns Expr:
+    LtExpr  => ({BinaryExpr.left=current} => op='>' right=GtExpr)?;
+
+LtExpr returns Expr:
+    GtEqExpr  => ({BinaryExpr.left=current} => op='<' right=LtExpr)?;
+
+GtEqExpr returns Expr:
+    LtEqExpr  => ({BinaryExpr.left=current} => op='>=' right=GtEqExpr)?;
+
+LtEqExpr returns Expr:
+    EqualityExpr  => ({BinaryExpr.left=current} => op='<=' right=LtEqExpr)?;
+
+EqualityExpr returns Expr:
+    InequalityExpr  => ({BinaryExpr.left=current} => op='=' right=EqualityExpr)?;
+    
+InequalityExpr returns Expr:
+    AndExpr  => ({BinaryExpr.left=current} => op='<>' right=InequalityExpr)?;
+    
+AndExpr returns Expr:
+    OrExpr  => ({BinaryExpr.left=current} => op='AND' right=AndExpr)?;
+    
+OrExpr returns Expr:
+    XorExpr => ({BinaryExpr.left=current} => op='OR' right=OrExpr)?;
+    
+XorExpr returns Expr:
+    Primary  => ({BinaryExpr.left=current} => op='XOR' right=XorExpr)?;
+
+NotExpr:
+    'NOT' expr=Expr
+;
+
+Primary returns Expr:
+    =>  '(' Expr ')'
+    |
+    =>  ReferableVar
+    |
+    =>  StringLiteral
+    |
+    =>  DecimalLiteral
+    |
+    =>  IntegralLiteral
+    |
+    =>  ( InStmt | RndStmt | NotExpr)
+;
+
+// ─────────────── MODEL ELEMENTS ───────────────
+
+
+ArgSpec:
+    modifier=Modifier? name=ID 'AS' type=VarType ('=' initial=Expr)?
+;
+
+enum VarType:
+    BYTE | UBYTE | INTEGER | UINTEGER | LONG | ULONG | STRING | FLOAT | FIXED
+;
+
+IntegralLiteral:
+    value=INT | litvalue=HEX_LITERAL | litvalue=BIN_LITERAL;
+    
+DecimalLiteral:
+    value=FLOAT;
+
+StringLiteral:
+    value=STRING;
+
+Assignment:
+    name=ID ('(' args+=Expr (',' args+=Expr)* ')')? '=' expr=Expr
+;
+    
+// ─────────────── REFERENCES AND REFERABLES ───────────────
+LineLabelDef:
+    ID SEP | INT
+;
+
+LineLabel returns ecore::EString:
+   => ID
+   |
+   INT
+;
+
+ReferableRef:
+    ReferableCall | ReferableVar
+;
+
+ReferableCall returns ReferableRef:
+    (at=AtAddr)? ( => ref=[Referable|ID] | => ref=[LineRef|LineLabelDef]) '(' (args+=Expr (',' args+=Expr)*)? ')'
+;
+
+ReferableVar returns ReferableRef:
+    (at=AtAddr)? ( => ref=[Referable|ID] | => ref=[LineRef|ID]) 
+    (
+    => 
+        (
+            '(' from=Expr? 'TO' to=Expr? ')'
+        )
+    |
+    => 
+        (
+            '(' (args+=Expr (',' args+=Expr)*)? ')'
+        )
+    |
+        (
+        args+=Expr (=> ',' args+=Expr)*
+        )
+    )?
+;
+
+AtAddr:
+    '@'
+;
+
+LineRef:
+    ref=[Group|LineLabel]
+;
+
+// ─────────────── TERMINALS ───────────────
+
+terminal ASM:
+    ("A" | "a") ("s" | "S") ("M" | "m") -> ("E" | "e") ("N" | "n") ("D" | "d") (" " | "\t")+ ("A" | "a") ("s" | "S") ("M" | "m");
+
+terminal HEX_LITERAL:
+    ('$' ('0'..'9' | 'a'..'f' | 'A'..'F')+)
+  | (('0'..'9' | 'a'..'f' | 'A'..'F')+ ('h' | 'H'));
+
+terminal BIN_LITERAL:
+    ('%' ('0' | '1')+)
+  | (('0' | '1')+ ('b' | 'B'));
+
+@Override
+terminal SL_COMMENT: "'" !('\n' | '\r')*;
+
+@Override
+terminal ML_COMMENT: "/'" -> "'/";
+
+@Override
+terminal STRING: '"' ( '\\' . | !('\\' | '"') )* '"';
+
+terminal FLOAT returns ecore::EDouble:   ('-')? ('0'..'9')* '.' ('0'..'9')* (('e' | 'E') ('+' | '-')? ('0'..'9')+)?;
+
+@Override
+terminal INT returns ecore::EInt:  ('-')? ('0'..'9')+;
+
+@Override
+//terminal ID: ('A'..'Z' | 'a'..'z') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_')* ('$')?;
+terminal ID: ('A'..'Z' | 'a'..'z' | '_')? ('A'..'Z' | 'a'..'z' | '0'..'9' | '_')* ('$')?;
+
+terminal SPLIT:
+    '_' ((' ' | '\t')* SL_COMMENT)?
+;
+             
+@Override
+terminal WS:
+    ' ' | '\t'  | SPLIT '\r'? '\n';
+
+terminal LINEBREAK: ('\r'? '\n');
+
+terminal REM_LINE: 'REM' (!('\r' | '\n'))*;
+
+//terminal ASM_COMMENT_LINE: ';' (!('\r' | '\n'))*;
+
+/* #pragma, #define, #ifdef, #ifndef, #undef, #else, #error, #require, #warning
+ * #elif, #emdif, #line 
+ * 
+ */
+ 
+ 
+terminal PP_DEFINE: '#' 
+    ('d' | 'D') ('e' | 'E') ('f' | 'F' ) ('i' | 'I') ('n' | 'N') ('e' | 'E') 
+    (('\\' '\r'? '\n') | !('\r' | '\n'))*
+;
+
+terminal PP_PRAGMA: '#' 
+    ('p' |'P') ('r' | 'R') ('a' | 'A' ) ('g' | 'G') ( 'm' | 'M' ) ( 'a' | 'A') 
+    (!('\r' | '\n'))*
+;
+
+terminal PP_LINE: '#' 
+    ('l' |'L') ('i' | 'I') ('n' | 'N' ) ('e' | 'E')  
+    (!('\r' | '\n'))*
+;
+
+terminal PP_ERROR: '#' 
+    ('e' |'E') ('r' | 'R') ('r' | 'R' ) ('o' | 'O') ('r' | 'R')  
+    (!('\r' | '\n'))*
+;
+
+terminal PP_IF: '#' 
+    ('i' | 'I') ('f' | 'F') (' ' | '\t' )  
+    (!('\r' | '\n'))*
+;
+
+terminal PP_WARNING: '#' 
+    ('w' |'W') ('a' | 'A') ('r' | 'R' ) ('n' | 'N') ('i' | 'I') ('n' | 'N') ('g' | 'G')  
+    (!('\r' | '\n'))*
+;
+
+terminal SEP: ':';

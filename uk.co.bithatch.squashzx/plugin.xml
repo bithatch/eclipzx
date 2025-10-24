@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>
+    
+    <extension point="org.eclipse.ui.commands">
+        <command
+            id="uk.co.bithatch.squashzx.commands.zx0Compress"
+            name="Compress with ZX0"
+            description="Compress the selected file with ZX0">
+        </command>
+        <command
+            id="uk.co.bithatch.squashzx.commands.zx0Decompress"
+            name="Decompress with ZX0"
+            description="Decompress the selected file with ZX0">
+        </command>
+    </extension>
+    
+    <extension point="org.eclipse.ui.handlers">
+        <handler
+            commandId="uk.co.bithatch.squashzx.commands.zx0Compress"
+            class="uk.co.bithatch.squashzx.ZX0CompressHandler">
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.squashzx.commands.zx0Decompress"
+            class="uk.co.bithatch.squashzx.ZX0DecompressHandler">
+        </handler>
+    </extension>
+    
+    <extension point="org.eclipse.ui.menus">
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.open">
+        <command
+          commandId="uk.co.bithatch.squashzx.commands.zx0Compress"
+          label="Compress with ZX0"
+          icon="icons/squash16.png"
+          style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                          <not>
+                              <test property="org.eclipse.core.resources.extension" value="zx0"/>
+                          </not>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+
+        </command> 
+        <command
+          commandId="uk.co.bithatch.squashzx.commands.zx0Decompress"
+          label="Decompress with ZX0"
+          icon="icons/unsquash16.png"
+          style="push">
+        <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                          <test property="org.eclipse.core.resources.extension" value="zx0"/>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+
+        </command>
+      </menuContribution>
+    </extension>
+
+   <extension point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+          id="uk.co.bithatch.squashzx.navigatorContent"
+          name="Compressed  File Label Provider"
+          activeByDefault="true"
+          contentProvider="uk.co.bithatch.squashzx.CompressedFilesContentProvider"
+          labelProvider="uk.co.bithatch.squashzx.CompressedFilesLabelProvider"
+          priority="highest">
+        <triggerPoints>
+          <instanceof value="org.eclipse.core.resources.IFile"/>
+        </triggerPoints>
+      </navigatorContent>
+    </extension>
+
+    <extension point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding
+          viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+        <includes>
+          <contentExtension
+              pattern="uk.co.bithatch.squashzx.navigatorContent"/>
+        </includes>
+      </viewerContentBinding>
+    </extension>
+    
+    <extension point="org.eclipse.ui.exportWizards">
+        <category
+            id="uk.co.bithatch.squashzx.category"
+            name="Compression"/>
+        <wizard
+            id="uk.co.bithatch.squashzx.wizards.compress"
+            name="Compress with ZX0"
+            class="uk.co.bithatch.squashzx.wizards.CompressFileWizard"
+            category="uk.co.bithatch.squashzx.category"
+            icon="icons/squash16.png">
+            <description>Compress the selected file with ZX0.</description>
+        </wizard>
+        <wizard
+            id="uk.co.bithatch.squashzx.wizards.decompress"
+            name="Decompress with ZX0"
+            class="uk.co.bithatch.squashzx.wizards.DecompressFileWizard"
+            category="uk.co.bithatch.squashzx.category"
+            icon="icons/unsquash16.png">
+            <description>Decompress the selected file with ZX0.</description>
+        </wizard>
+    </extension>
+
+</plugin>

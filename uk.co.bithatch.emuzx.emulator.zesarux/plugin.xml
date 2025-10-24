@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>   
+    <extension point="uk.co.bithatch.emuzx.emulator">
+        <emulator
+            id="uk.co.bithatch.emuzx.emulator.zesarux"
+            icon="icons/zesarux16.png"
+            name="Zesarux"
+            executable="zesarux"
+            pattern="(.*)/(zesarux\.exe)(.*)"
+            website="https://github.com/chernandezba/zesarux"
+            author="Cesar Hernandez Baño"
+            class="uk.co.bithatch.emuzx.emulator.zesarux.Zesarux"/>
+    </extension>
+</plugin> 

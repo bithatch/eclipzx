@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="uk.co.bithatch.emuzx"
+    xmlns="http://www.w3.org/2001/XMLSchema">
+    
+    <annotation>
+        <appInfo>
+            <meta.schema plugin="uk.co.bithatch.emuzx" id="emulator" name="External Emulator Contribution"/>
+        </appInfo>
+        <documentation>
+            Used to an contribute an emulator type that may be used for for external emulator launch.
+            The implementation provides its name, icon and some methods to aid locating or matching
+            an emulator path. 
+        </documentation>
+    </annotation>
+
+    <element name="extension">
+        <complexType>
+            <sequence>
+                <element ref="emulator" minOccurs="1" maxOccurs="unbounded"/>
+            </sequence>>
+             <attribute name="point" type="string" use="required">
+                <annotation>
+                   <documentation>
+                      A fully qualified identifier of the target extension point.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="id" type="string">
+                <annotation>
+                   <documentation>
+                      An optional identifier of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="name" type="string">
+                <annotation>
+                   <documentation>
+                      An optional name of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+        </complexType>
+    </element>
+    
+    <element name="emulator">
+        <complexType>
+            <attribute name="id" type="string" use="required">
+                <annotation><documentation>ID of the emulator</documentation></annotation>
+            </attribute>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Name of the emulator</documentation></annotation>
+            </attribute>
+            <attribute name="executable" type="string" use="optional">
+                <annotation><documentation>The usual executable name (without any OS specific extension such as .exe).</documentation></annotation>
+            </attribute>
+            <attribute name="pattern" type="string" use="optional">
+                <annotation><documentation>A regular expression that matches against the emulators executable name. The path to the emulator emulator home is extracted in the first expression group, with the path from this to the executable extracted in the second group, and the optional third group is used to capture the file extension.</documentation></annotation>
+            </attribute>
+            <attribute name="icon" type="string" use="optional">
+                <annotation><documentation>Optional icon resource.</documentation></annotation>
+            </attribute>
+            <attribute name="locations" type="string" use="optional">
+                <annotation><documentation>A comma separated list of possible locations to search for this emulator. Each location will be visited, and then every file inside that checked to see if matches the pattern.</documentation></annotation>
+            </attribute>
+            <attribute name="plugin" type="string" use="optional">
+                <annotation><documentation>Plugin ID. Defaults to declaring plugin.</documentation></annotation>
+            </attribute>
+            <attribute name="website" type="string" use="optional">
+                <annotation><documentation>A URL for this emulators home page.</documentation></annotation>
+            </attribute>
+            <attribute name="author" type="string" use="optional">
+                <annotation><documentation>The author of the emulator.</documentation></annotation>
+            </attribute>
+            <attribute name="class" type="string" use="optional">
+                <annotation><documentation>Class of object that implements IEmualtor</documentation></annotation>
+            </attribute>
+        </complexType>
+    </element>
+    
+</schema>

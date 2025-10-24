@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+	<extension point="org.eclipse.emf.ecore.generated_package">
+		<package
+			uri = "http://bithatch.co.uk/Basic"
+			class = "uk.co.bithatch.zxbasic.basic.BasicPackage"
+			genModel = "model/generated/Basic.genmodel" />
+			
+        <package
+            uri = "http://bithatch.co.uk/Asm"
+            class = "uk.co.bithatch.zxbasic.asm.AsmPackage"
+            genModel = "model/generated/Asm.genmodel" />
+            
+        <package
+            uri = "http://bithatch.co.uk/Asm"
+            class = "uk.co.bithatch.zxbasic.preprocessor.PreprocessorPackage"
+            genModel = "model/generated/Preprocessor.genmodel" />
+	</extension>
+</plugin>

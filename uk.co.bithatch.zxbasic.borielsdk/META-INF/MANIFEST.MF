@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Boriels ZX Basic dk
+Bundle-SymbolicName: uk.co.bithatch.zxbasic.borielsdk;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: uk.co.bithatch.zxbasic.borielsdk.Activator
+Bundle-Vendor: Bithatch
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ uk.co.bithatch.zxbasic.ui;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.zxbasic.borielsdk
+Bundle-ActivationPolicy: lazy

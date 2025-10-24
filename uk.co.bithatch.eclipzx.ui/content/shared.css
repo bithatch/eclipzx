@@ -1,0 +1,53 @@
+body {
+  font-family: sans-serif; 
+  background-color: #000000;
+  margin: 2em;
+  color: #ccc;
+} 
+
+.h1, .h2 {
+	font-size: 2.4em;
+	font-weight: bold;
+    color: #fff;
+}
+
+.h1 {
+    font-size: 2.4em;
+    margin: 0;
+}
+
+.h2 {
+    font-size: 1.4em;
+    margin: 0;
+    line-height: 1em;
+}
+a {
+	color: #f0f;
+    margin: 0;
+}
+
+.container {
+  color: #ddd;
+}
+
+.banner {
+  margin-bottom: 1em;
+}
+
+.external {
+	color: #f0f;
+}
+
+.footer {
+	font-size: small; 
+	margin-top: 2em;
+}
+
+.more-reading * {
+	display: inline;
+    font-size: 0.9em;
+}
+
+.more-reading a {
+    color: #0f0;
+}

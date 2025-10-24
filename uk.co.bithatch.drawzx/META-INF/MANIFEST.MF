@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Drawzx
+Bundle-SymbolicName: uk.co.bithatch.drawzx;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Import-Package: uk.co.bithatch.zyxy.graphics,
+ uk.co.bithatch.zyxy.lib
+Bundle-Activator: uk.co.bithatch.drawzx.Activator
+Bundle-Vendor: Bithatch
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources;bundle-version="3.22.200",
+ org.eclipse.ui.ide;bundle-version="3.22.600"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.drawzx
+Bundle-ActivationPolicy: lazy

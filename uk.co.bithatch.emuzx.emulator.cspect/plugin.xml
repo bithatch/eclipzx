@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>   
+    <extension point="uk.co.bithatch.emuzx.emulator">
+        <emulator
+            id="uk.co.bithatch.emuzx.emulator.cspect"
+            icon="icons/cspect16.png"
+            executable="CSpect.exe"
+            name="CSpect3"
+            pattern="(.*)/(cspect\.exe)(.*)"
+            website="https://mdf200.itch.io/cspect"
+            author="Mike Dailly"
+            class="uk.co.bithatch.emuzx.emulator.cspect.CSpect"/>
+    </extension>
+</plugin> 

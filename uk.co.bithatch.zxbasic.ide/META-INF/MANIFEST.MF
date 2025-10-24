@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: uk.co.bithatch.zxbasic.ide
+Bundle-ManifestVersion: 2
+Bundle-Name: ZXBasic Editor IDE
+Bundle-Vendor: Bithatch
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: uk.co.bithatch.zxbasic.ide; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: uk.co.bithatch.zxbasic,
+ org.eclipse.xtext.ide,
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Export-Package: uk.co.bithatch.zxbasic.ide.contentassist.antlr,
+ uk.co.bithatch.zxbasic.ide.contentassist.antlr.internal,
+ uk.co.bithatch.zxbasic.ide.contentassist.antlr.lexer 

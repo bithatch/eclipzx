@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Cspect
+Bundle-SymbolicName: uk.co.bithatch.emuzx.emulator.cspect;singleton:=true
+Bundle-Vendor: Bithatch
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: uk.co.bithatch.emuzx.emulator.cspect.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ uk.co.bithatch.zxbasic.ui;bundle-version="1.0.0",
+ uk.co.bithatch.emuzx;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.zxbasic.emulator.cspect
+Bundle-ActivationPolicy: lazy

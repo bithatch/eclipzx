@@ -1,0 +1,9 @@
+10 FUNCTION FUNC2()  
+11 DIM B AS String
+20	LET A = 1
+label: LET B = STR(1)
+30 	RETURN 1
+40 END FUNCTION  
+   
+   
+      

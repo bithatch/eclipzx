@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="uk.co.bithatch.bitzx"
+    xmlns="http://www.w3.org/2001/XMLSchema">
+    
+    <annotation>
+        <appInfo>
+            <meta.schema plugin="uk.co.bithatch.bitzx" id="languageSystemProvider" name="Language System Provider"/>
+        </appInfo>
+        <documentation>
+            EclipZX can support multiple languages (2 at time of writing, C and ZX Base). Each of
+            these provides an implementation of this that helps bridge compilers and emulators and
+            other components such as export wizards etc.
+        </documentation>
+    </annotation>
+
+    <element name="extension">
+        <complexType>
+            <sequence>
+                <element ref="languageSystemProvider" minOccurs="1" maxOccurs="unbounded"/>
+            </sequence>>
+             <attribute name="point" type="string" use="required">
+                <annotation>
+                   <documentation>
+                      A fully qualified identifier of the target extension point.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="id" type="string">
+                <annotation>
+                   <documentation>
+                      An optional identifier of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="name" type="string">
+                <annotation>
+                   <documentation>
+                      An optional name of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+        </complexType>
+    </element>
+    
+    <element name="languageSystemProvider">
+        <complexType>
+            <attribute name="id" type="string" use="required">
+                <annotation><documentation>ID of the language system</documentation></annotation>
+            </attribute>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Short name of the language system</documentation></annotation>
+            </attribute>
+            <attribute name="class" type="string" use="optional">
+                <annotation><documentation>Class of object that implements ILanguageSystemProvider</documentation></annotation>
+            </attribute>
+        </complexType>
+    </element>
+    
+</schema>
