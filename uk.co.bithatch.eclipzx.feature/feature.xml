@@ -397,8 +397,4 @@ version(s), and exceptions or additional permissions here}.&quot;
          id="uk.co.bithatch.zyxy-mmc"
          version="0.0.0"/>
 
-   <plugin
-         id="uk.co.bithatch.fat32-lib"
-         version="0.0.0"/>
-
 </feature>
