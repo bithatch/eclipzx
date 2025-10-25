@@ -12,9 +12,9 @@
             class = "uk.co.bithatch.zxbasic.asm.AsmPackage"
             genModel = "model/generated/Asm.genmodel" />
             
-        <package
+       <!-- <package
             uri = "http://bithatch.co.uk/Asm"
             class = "uk.co.bithatch.zxbasic.preprocessor.PreprocessorPackage"
-            genModel = "model/generated/Preprocessor.genmodel" />
+            genModel = "model/generated/Preprocessor.genmodel" />-->
 	</extension>
 </plugin>

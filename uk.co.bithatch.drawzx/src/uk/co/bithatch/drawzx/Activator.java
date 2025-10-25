@@ -40,7 +40,6 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		
-		colorCache = new ColorCache(PlatformUI.getWorkbench().getDisplay());
 		plugin = this;
 	}
 
@@ -52,7 +51,12 @@ public class Activator extends AbstractUIPlugin {
 	}
 
 	public ColorCache getColorCache() {
-		return colorCache;
+		synchronized(this) {
+			if(colorCache == null) {
+				colorCache = new ColorCache(PlatformUI.getWorkbench().getDisplay());	
+			}
+			return colorCache;
+		}
 	}
 
 	/**

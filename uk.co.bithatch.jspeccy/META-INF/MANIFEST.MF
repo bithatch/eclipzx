@@ -31,7 +31,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.e4.ui.ide;bundle-version="3.17.200",
  org.eclipse.ui.ide,
  org.eclipse.core.expressions,
- uk.co.bithatch.jspeccy.engine;bundle-version="1.0.2"
+ uk.co.bithatch.jspeccy.engine;bundle-version="1.0.2",
+ org.glassfish.jaxb.core;bundle-version="4.0.6",
+ org.glassfish.jaxb.runtime;bundle-version="4.0.6"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.jspeccy
 Bundle-ActivationPolicy: lazy
