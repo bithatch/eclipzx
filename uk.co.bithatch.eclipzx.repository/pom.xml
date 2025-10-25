@@ -40,6 +40,55 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-p2-repo</id>
+                        <phase>deploy</phase>
+                        <configuration>
+                            <target>
+                                <ftp action="del"
+                                     server="${build.uploadHostname}"
+                                     remotedir="${build.uploadPath}"
+                                     userid="${build.uploadUsername}"
+                                     password="${build.uploadPassword}"
+                                     ignoreNoncriticalErrors="true"
+                                     skipFailedTransfers="true">
+                                    <fileset>
+                                        <include name="**/"/>
+                                    </fileset>
+                                </ftp>
+                                <ftp action="mkdir"
+                                     server="${build.uploadHostname}"
+                                     remotedir="${build.uploadPath}"
+                                     userid="${build.uploadUsername}"
+                                     password="${build.uploadPassword}"
+                                     ignoreNoncriticalErrors="true"
+                                     skipFailedTransfers="true">
+                                </ftp>
+                                <ftp server="${build.uploadHostname}"
+                                     remotedir="${build.uploadPath}"
+                                     userid="${build.uploadUsername}"
+                                     password="${build.uploadPassword}"
+                                     binary="yes"
+                                     passive="yes"
+                                     depends="yes">
+                                    <fileset dir="target/repository"/>
+                                </ftp>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>

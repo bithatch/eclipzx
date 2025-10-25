@@ -24,6 +24,11 @@
 		
         <build.projectProperties>${project.basedir}/bithatch.build.properties</build.projectProperties>
         <build.userProperties>${user.home}/.bithatch.build.properties</build.userProperties>
+        
+        <build.uploadHostname>bithatch.co.uk</build.uploadHostname>
+        <build.uploadPath>/httpdocs/repositories/eclipzx</build.uploadPath>
+        <build.uploadUsername>bithatch</build.uploadUsername>
+        <build.uploadPassword>__YOUR_PASSWORD__</build.uploadPassword>
 	</properties>
 	<modules>
 		<module>uk.co.bithatch.bitzx</module>
@@ -230,6 +235,28 @@
 						<useUIHarness>false</useUIHarness>
 					</configuration>
 				</plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.ant</groupId>
+                            <artifactId>ant-commons-net</artifactId>
+                            <version>1.10.15</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.4</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
