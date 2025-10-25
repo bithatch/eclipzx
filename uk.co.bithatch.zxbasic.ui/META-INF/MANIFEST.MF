@@ -169,7 +169,4 @@ Export-Package: uk.co.bithatch.zxbasic.ui;
    uk.co.bithatch.zxbasic.ui.library",
  uk.co.bithatch.zxbasic.validation;uses:="org.eclipse.jface.dialogs,org.eclipse.swt.widgets,org.eclipse.xtext.ui.validation"
 Bundle-Activator: uk.co.bithatch.zxbasic.ui.ZXBasicUiActivator
-Bundle-ClassPath: lib/jspeccy.jar,
- lib/jaxb-impl-4.0.5.jar,
- lib/jaxb-core-4.0.5.jar,
- .
+Bundle-ClassPath: .
