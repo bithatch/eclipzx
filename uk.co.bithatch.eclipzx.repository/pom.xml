@@ -39,7 +39,7 @@
                                      ignoreNoncriticalErrors="true"
                                      skipFailedTransfers="true">
                                     <fileset>
-                                        <include name="**/"/>
+                                        <include name="**/*"/>
                                     </fileset>
                                 </ftp>
                                 <ftp action="mkdir"
@@ -56,7 +56,7 @@
                                      password="${build.uploadPassword}"
                                      binary="yes"
                                      passive="yes"
-                                     depends="yes">
+                                     depends="no">
                                     <fileset dir="target/repository"/>
                                 </ftp>
                             </target>

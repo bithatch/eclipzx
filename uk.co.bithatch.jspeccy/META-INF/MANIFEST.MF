@@ -3,36 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Jspeccy
 Bundle-SymbolicName: uk.co.bithatch.jspeccy;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Export-Package: configuration,
- gui;
-  uses:="jspeccy,
-   configuration,
-   machine,
-   javax.swing.table,
-   javax.swing.filechooser,
-   javax.swing",
- joystickinput,
- jspeccy;
-  uses:="org.springframework.boot,
-   configuration,
-   picocli,
-   org.springframework.core.env,
-   gui",
- machine;
-  uses:="configuration,
-   z80core,
-   utilities,
-   snapshots,
-   joystickinput,
-   gui,
-   javax.swing",
- snapshots;uses:="machine,z80core",
- tv.porst.jhexview;uses:="javax.swing",
- tv.porst.splib.convert,
- tv.porst.splib.gui,
- tv.porst.splib.gui.caret,
- tv.porst.splib.gui.tree;uses:="javax.swing.tree,javax.swing",
- uk.co.bithatch.jspeccy;
+Export-Package: uk.co.bithatch.jspeccy;
   uses:="org.osgi.framework,
    configuration,
    org.eclipse.jface.resource,
@@ -46,14 +17,9 @@ Export-Package: configuration,
    org.eclipse.ui.menus,
    org.eclipse.swt.widgets,
    org.eclipse.ui.part",
- uk.co.bithatch.jspeccy.wizards,
- utilities;uses:="configuration,machine,z80core",
- z80core;uses:="snapshots"
+ uk.co.bithatch.jspeccy.wizards
 Bundle-Activator: uk.co.bithatch.jspeccy.Activator
-Bundle-ClassPath: lib/jspeccy.jar,
- lib/jaxb-core-4.0.5.jar,
- lib/jaxb-impl-4.0.5.jar,
- .
+Bundle-ClassPath: .
 Bundle-Vendor: Bithatch
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -64,7 +30,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.resources;bundle-version="3.22.200",
  org.eclipse.e4.ui.ide;bundle-version="3.17.200",
  org.eclipse.ui.ide,
- org.eclipse.core.expressions
+ org.eclipse.core.expressions,
+ uk.co.bithatch.jspeccy.engine;bundle-version="1.0.2"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.jspeccy
 Bundle-ActivationPolicy: lazy
