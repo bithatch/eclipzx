@@ -46,7 +46,9 @@ public class Activator extends AbstractUIPlugin {
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
-		colorCache.dispose();
+		if(colorCache != null) {
+			colorCache.dispose();
+		}
 		super.stop(context);
 	}
 

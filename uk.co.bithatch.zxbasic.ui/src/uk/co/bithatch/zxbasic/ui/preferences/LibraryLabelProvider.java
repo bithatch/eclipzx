@@ -43,6 +43,9 @@ public final class LibraryLabelProvider extends LabelProvider {
 	@Override
 	public void dispose() {
 		super.dispose();
-		images.values().forEach(Image::dispose);
+		images.values().forEach(img -> {
+			if(img != null)
+				img.dispose();
+		});
 	}
 }
