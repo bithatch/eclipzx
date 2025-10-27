@@ -6,6 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
+
+import org.eclipse.core.runtime.Platform;
 
 public class FileNames {
 
@@ -81,8 +84,8 @@ public class FileNames {
 
 	public static Path findCommand(String... cmd) throws IOException {
 		for(var c : cmd) {
-			for(var path : System.getenv("PATH").split(File.pathSeparator)) {
-				if(System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+			for(var path : systemPaths()) {
+				if (Platform.getOS().equals(Platform.OS_WIN32) && !c.toLowerCase().endsWith(".exe")) {
 					c += ".exe";
 				}
 				var fullPath = Paths.get(path).resolve(c);
@@ -92,5 +95,9 @@ public class FileNames {
 			}
 		}
 		throw new IOException("Could not find command " +cmd + " on the PATH");
+	}
+
+	public static List<String> systemPaths() {
+		return Arrays.asList(System.getenv("PATH").split(File.pathSeparator));
 	}
 }

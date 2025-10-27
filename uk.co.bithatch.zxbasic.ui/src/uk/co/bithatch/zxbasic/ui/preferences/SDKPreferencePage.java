@@ -31,16 +31,26 @@ public class SDKPreferencePage extends AbstractProjectSpecificPreferencePage {
 		python = new FileFieldEditor(ZXBasicPreferenceConstants.SDK_PYTHON_LOCATION, "Python Interpreter", true,
 				StringButtonFieldEditor.VALIDATE_ON_KEY_STROKE, getFieldEditorParent()
 
-		);
+		) {
+			@Override
+			protected String changePressed() {
+				var c = super.changePressed();
+				SDKPreferencePage.this.checkState();
+				return c;
+			}
+		};
 		python.setErrorMessage("Python interpreter path specified does not exist.");
 		if (Platform.getOS().equals(Platform.OS_WIN32)) {
-			python.setFileExtensions(new String[] { "exe" });
+			python.setFileExtensions(new String[] { "*.exe" });
 		}
 		addField(python);
 
 		sdks = new LibraryFolderListEditor(ZXBasicPreferenceConstants.SDK_PATHS, "User SDK Folders:",
-				getFieldEditorParent(), getWorkbench().getAdapter(IWorkspace.class).getRoot());
+				getFieldEditorParent(), getWorkbench().getAdapter(IWorkspace.class).getRoot()) {
+			
+		};
 		addField(sdks);
+		
 
 	}
 
