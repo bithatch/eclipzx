@@ -62,7 +62,7 @@
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
             <repository location="https://bithatch.co.uk/repositories/p2"/>
             <unit id="uk.co.bithatch.fat32" version="0.6.6"/>
-            <unit id="uk.co.bithatch.jspeccy.engine" version="1.0.2.bithatch2-20251027184145"/>
+            <unit id="uk.co.bithatch.jspeccy.engine" version="'1.0.2.bithatch2-20251027191220"/>
             <unit id="uk.co.bithatch.zyxy-compress" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-dezog" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-graphics" version="0.0.4"/>
