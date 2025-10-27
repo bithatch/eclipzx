@@ -12,7 +12,6 @@ import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -42,16 +41,6 @@ import uk.co.bithatch.emuzx.PreferenceConstants;
 import uk.co.bithatch.emuzx.PreferencesAccess;
 
 public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfigurationTab {
-
-	public interface LaunchConfigurationContext {
-
-		IPath resolveProjectPath();
-
-		IFile resolveProgram();
-
-		void initializeFrom(ILaunchConfigurationWorkingCopy cfg);
-
-	}
 
 	private Text argsText;
 	private Button variablesButton;

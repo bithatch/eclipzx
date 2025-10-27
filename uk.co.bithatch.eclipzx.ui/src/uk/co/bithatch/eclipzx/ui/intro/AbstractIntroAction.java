@@ -19,7 +19,7 @@ public abstract class AbstractIntroAction implements IIntroAction {
         var workbench = PlatformUI.getWorkbench();
         Shell shell = workbench.getActiveWorkbenchWindow().getShell();
         
-        /* Get off the webkit thread or it acts weird when the wizard finishes */
+        /* Get off the webkit thread (Linux) or it acts weird when the wizard finishes */
         shell.getDisplay().asyncExec(() -> {
         	var wizard = createWizard(workbench);
 

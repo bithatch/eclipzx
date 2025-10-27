@@ -1,11 +1,14 @@
 package uk.co.bithatch.zxbasic.ui.launch;
 
+import java.io.File;
+
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.variables.IDynamicVariable;
 import org.eclipse.core.variables.IDynamicVariableResolver;
 import org.eclipse.ui.PlatformUI;
 
+import uk.co.bithatch.bitzx.LaunchContext;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
@@ -15,10 +18,11 @@ public class ZXBasicVariableResolver implements IDynamicVariableResolver {
 
 	@Override
 	public String resolveValue(IDynamicVariable variable, String argument) throws CoreException {
-		var ctx = ZXBasicLaunchContext.get();
+		var ctx = LaunchContext.get();
 		if (ctx != null) {
-			var projectName = ctx.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, "");
-			var programName = ctx.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROGRAM, "");
+			var cfg = ctx.config();
+			var projectName = cfg.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, "");
+			var programName = cfg.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROGRAM, "");
 
 			if (variable.getName().equals("zxbasic_program_path")) {
 				return programName;
@@ -33,16 +37,27 @@ public class ZXBasicVariableResolver implements IDynamicVariableResolver {
 					if (variable.getName().equals("zxbasic_program_loc")) {
 						return srcfile.getLocation().toString();
 					} else {
-						var outputFormat = (BorielZXBasicOutputFormat)ZXBasicPreferencesAccess.get().getOutputFormat(project);
-						var outputFolder = ZXBasicPreferencesAccess.get().getOutputFolder(project).getRawLocation().toFile();
+						var outputFormat = (BorielZXBasicOutputFormat) ZXBasicPreferencesAccess.get()
+								.getOutputFormat(project);
+						var outputFolder = ZXBasicPreferencesAccess.get().getOutputFolder(project).getRawLocation()
+								.toFile();
 						var binfile = ZXBC.targetFile(srcfile.getRawLocation().toFile(), outputFolder, outputFormat);
 						if (variable.getName().equals("zxbasic_output_path")) {
-							return project.getRawLocation().toPath().relativize(binfile.toPath()).toString();	
+							return project.getRawLocation().toPath().relativize(binfile.toPath()).toString();
 						} else if (variable.getName().equals("zxbasic_output_loc")) {
 							return binfile.getAbsolutePath();
 						} else if (variable.getName().equals("zxbasic_output_name")) {
 							return binfile.getName();
 						}
+					}
+
+					var binfile = (File) ctx.attr(LaunchContext.BINARY_FILE);
+					if (variable.getName().equals("zxbasic_launch_path")) {
+						return project.getRawLocation().toPath().relativize(binfile.toPath()).toString();
+					} else if (variable.getName().equals("zxbasic_launch_loc")) {
+						return binfile.getAbsolutePath();
+					} else if (variable.getName().equals("zxbasic_launch_name")) {
+						return binfile.getName();
 					}
 				}
 			}

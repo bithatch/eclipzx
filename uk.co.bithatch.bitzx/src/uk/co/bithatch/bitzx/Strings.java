@@ -10,7 +10,7 @@ public class Strings {
 	}
 
 	public static List<String> separatedList(String str, String pattern) {
-		return Arrays.asList(str == null || str.length() == 0 ? new String[0] : str.split(pattern)); 
+		return Arrays.asList(str == null || str.length() == 0 ? new String[0] : str.split(pattern)).stream().map(s -> s.trim()).toList(); 
 	}
 
 	public static String limit(String txt, int len) {

@@ -2,4 +2,13 @@
 <?eclipse version="4.35"?>
 <plugin>
     <extension-point id="uk.co.bithatch.emuzx.emulator" name="External Emulator" schema="schema/uk.co.bithatch.emuzx.emulator.exsd" />
+    
+    <extension point="org.eclipse.core.variables.dynamicVariables">
+       <variable
+             name="emulator_config_file"
+             supportsArgument="true"
+             description="Path to current optional emulator launch configuration file."
+             resolver="uk.co.bithatch.emuzx.EmulatorVariableResolver">
+       </variable>
+    </extension>
 </plugin>

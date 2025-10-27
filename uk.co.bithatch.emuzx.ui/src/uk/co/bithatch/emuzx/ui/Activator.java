@@ -9,6 +9,7 @@ import org.osgi.framework.BundleContext;
  */
 public class Activator extends AbstractUIPlugin {
     public static final String CHIP_PATH = "icons/chip16.png";
+    public static final String CONFIG_FILE_PATH = "icons/config16.png";
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "uk.co.bithatch.emuzx.ui"; //$NON-NLS-1$
@@ -46,5 +47,6 @@ public class Activator extends AbstractUIPlugin {
 	@Override
 	protected void initializeImageRegistry(ImageRegistry reg) {
 		reg.put(CHIP_PATH, imageDescriptorFromPlugin(PLUGIN_ID, CHIP_PATH));
+		reg.put(CONFIG_FILE_PATH, imageDescriptorFromPlugin(PLUGIN_ID, CONFIG_FILE_PATH));
 	}
 }

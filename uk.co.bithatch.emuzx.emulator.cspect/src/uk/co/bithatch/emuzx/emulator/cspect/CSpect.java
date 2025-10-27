@@ -2,6 +2,8 @@ package uk.co.bithatch.emuzx.emulator.cspect;
 
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_FILE;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CUSTOM_WORKING_DIRECTORY;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
@@ -48,6 +50,8 @@ public class CSpect implements IEmulator {
 		}
         configuration.setAttribute(CUSTOM_WORKING_DIRECTORY, true);
 		configuration.setAttribute(WORKING_DIRECTORY_LOCATION, home.toString());
+        configuration.setAttribute(CONFIGURATION_FILE, "");
+        configuration.setAttribute(CONFIGURATION_CONTENT, "");
 
         configuration.setAttribute(PORT, 11000);
         configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Arrays.asList("-remote"));

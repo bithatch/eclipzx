@@ -30,6 +30,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 
 import uk.co.bithatch.bitzx.LanguageSystem;
+import uk.co.bithatch.bitzx.LaunchContext;
 import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
 import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
@@ -62,7 +63,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 		if (preparationTarget.isPresent()) {
 			prepCtx.preparedBinaryFilePath(preparationTarget.get().init(prepCtx));
 		}
-		ZXBasicLaunchContext.set(configuration);
+		var launchCtx = LaunchContext.set(configuration);
 		try {
 
 			/* Pick the best format to use */
@@ -74,6 +75,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 
 			/* Compile to the chosen format for the launch. */
 			compileForLaunch(prepCtx, mode, ZXBasicBuilder.DEFAULT_REPORTER);
+			launchCtx.attr(LaunchContext.BINARY_FILE, prepCtx.binaryFile());
 
 			/* If there is preparation to do, do it now */
 			if (preparationTarget.isPresent()) {
@@ -209,7 +211,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 					preparationTarget.get().cleanUp();
 				}
 			} finally {
-				ZXBasicLaunchContext.clear();
+				LaunchContext.clear();
 			}
 		}
 	}

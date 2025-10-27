@@ -68,7 +68,8 @@ public class FileNames {
 	
 	public static File targetFile(File srcfile, File outdir, File workingdir, String newFilename) {
 		if(outdir != null) {
-			var rel = (workingdir == null ? outdir: workingdir).toPath().relativize(srcfile.toPath()).getParent();
+			var dir = (workingdir == null ? outdir: workingdir).toPath();
+			var rel = dir.getParent().relativize(srcfile.toPath()).getParent();
 			if(rel != null) {
 				outdir = new File(outdir, rel.toString());
 			}

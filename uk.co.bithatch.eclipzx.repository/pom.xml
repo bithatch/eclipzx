@@ -31,12 +31,14 @@
                         <phase>deploy</phase>
                         <configuration>
                             <target>
+                            
                                 <ftp action="del"
                                      server="${build.uploadHostname}"
                                      remotedir="${build.uploadPath}"
                                      userid="${build.uploadUsername}"
                                      password="${build.uploadPassword}"
                                      ignoreNoncriticalErrors="true"
+                                     passive="yes"
                                      skipFailedTransfers="true">
                                     <fileset>
                                         <include name="**/*"/>

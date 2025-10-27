@@ -4,6 +4,8 @@ public interface ExternalEmulatorLaunchConfigurationAttributes {
     public static final String ID = "uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch";
 
     public static final String EMULATOR_EXECUTABLE = ID + ".emulator";
+    public static final String CONFIGURATION_FILE = ID + ".configurationFile";
+    public static final String CONFIGURATION_CONTENT = ID + ".configurationContent";
     public static final String EMULATOR_ARGS = ID + ".emulatorArguments";
     public static final String PROGRAM = ID + ".program";
     public static final String OUTPUT_FORMAT = ID + ".outputFormat";

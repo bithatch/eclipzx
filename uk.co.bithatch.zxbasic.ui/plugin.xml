@@ -589,6 +589,9 @@
         <variable name="zxbasic_output_path" supportsArgument="false" description="Workspace relative path to the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
         <variable name="zxbasic_output_loc" supportsArgument="false" description="Absolute path to the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
         <variable name="zxbasic_output_name" supportsArgument="false" description="The base name of the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_launch_path" supportsArgument="false" description="Workspace relative path to the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_launch_loc" supportsArgument="false" description="Absolute path to the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
+        <variable name="zxbasic_launch_name" supportsArgument="false" description="The base name of the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
     </extension>
     <extension point="uk.co.bithatch.zxbasic.preparationTarget">
         <preparationTarget id="uk.co.bithatch.zxbasic.ui.launch.localPreparationTarget" name="Local File System Folder" uiClass="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTargetUI" class="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTarget" />

@@ -79,7 +79,7 @@ public class EmulatorSelectorDialog extends ListDialog implements ISelectionChan
 		lbl.setText("Emulator Executable:");
 
 		emulatorExecutable = new Text(details, SWT.NONE);
-		emulatorExecutable.setLayoutData(fillDefaults().grab(true, false).create());
+		emulatorExecutable.setLayoutData(fillDefaults().grab(true, false).hint(300, SWT.DEFAULT).create());
 		emulatorExecutable.setToolTipText("The full path to the emulator executable.");
 		emulatorExecutable.addModifyListener(new ModifyListener() {
 			@Override
@@ -108,7 +108,7 @@ public class EmulatorSelectorDialog extends ListDialog implements ISelectionChan
 		lbl.setText("Emulator Home:");
 
 		emulatorHome = new Text(details, SWT.NONE);
-		emulatorHome.setLayoutData(fillDefaults().grab(true, false).create());
+		emulatorHome.setLayoutData(fillDefaults().grab(true, false).hint(300, SWT.DEFAULT).create());
 		emulatorHome.setToolTipText("The full path to the emulator home, i.e. the root of where\n"
 				+ " other data files it uses are. Depending on the emulator or\n"
 				+ "how it was installed, this might be in the same directory\n"

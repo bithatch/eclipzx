@@ -196,7 +196,7 @@ public abstract class AbstracLaunchProgramConfigurationTab extends AbstractLaunc
 	}
 	
 	protected ILanguageSystemProvider resolveLanguage() {
-		return LanguageSystem.languageSystemByName(languageCombo.getText()).orElse(null);
+		return languageCombo == null ? null : LanguageSystem.languageSystemByName(languageCombo.getText()).orElse(null);
 	}
 
 	protected IProject resolveProject() {

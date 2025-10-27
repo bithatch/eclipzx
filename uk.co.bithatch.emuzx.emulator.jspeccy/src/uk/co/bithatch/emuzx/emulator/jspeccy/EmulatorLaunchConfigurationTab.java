@@ -2,6 +2,8 @@ package uk.co.bithatch.emuzx.emulator.jspeccy;
 
 import static uk.co.bithatch.emuzx.emulator.jspeccy.EmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
 
+import java.util.List;
+
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -12,6 +14,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 import uk.co.bithatch.widgetzx.AbstracLaunchProgramConfigurationTab;
 import uk.co.bithatch.widgetzx.LanguageSystemUI;
@@ -66,6 +69,12 @@ public class EmulatorLaunchConfigurationTab extends AbstracLaunchProgramConfigur
 	}
 
 	@Override
+	protected void languageChanged() {
+		super.languageChanged();
+		updateOutputFormats();
+	}
+
+	@Override
 	protected void projectChanged() {
 		super.projectChanged();
 		updateOutputFormats();
@@ -77,12 +86,20 @@ public class EmulatorLaunchConfigurationTab extends AbstracLaunchProgramConfigur
 	}
 
 	protected void updateOutputFormats() {
+		if(outputFormatCombo == null)
+			return;
+		
 		var  lang = resolveLanguage();
 		if(lang == null)
 			outputFormatCombo.setItems();
-		else
-			outputFormatCombo.setItems(LanguageSystemUI.describedNames(lang.outputFormats(resolveProject()).stream()
-				.filter(f -> Activator.JSPECCY_RUNNABLE_FORMATS.contains(f.extension())).toList()));
+		else {
+			var formats = lang.outputFormats(resolveProject()).stream()
+				.filter(f -> Activator.JSPECCY_RUNNABLE_FORMATS.contains(f.extension())).toList();
+			outputFormatCombo.setItems(LanguageSystemUI.describedNames(formats));
+			if(outputFormatCombo.getSelectionIndex() == -1 && formats.size() > 0) {
+				outputFormatCombo.select(0);
+			}
+		}
 	}
 
 	@Override

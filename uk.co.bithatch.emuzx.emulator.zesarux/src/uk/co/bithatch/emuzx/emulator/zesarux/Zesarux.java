@@ -1,8 +1,11 @@
 package uk.co.bithatch.emuzx.emulator.zesarux;
 
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_FILE;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CUSTOM_WORKING_DIRECTORY;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_TARGET;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.WORKING_DIRECTORY_LOCATION;
 
 import java.io.File;
@@ -56,19 +59,37 @@ public class Zesarux implements IEmulator {
 		var arch = ZXBasicPreferencesAccess.get().getArchitecture(proj);
 
 		if(WellKnownArchitecture.ZXNEXT.equals(arch.wellKnown().orElse(null))) {
+			/* TODO check this actually exists as its in a separate plugin */
+			configuration.setAttribute(PREPARATION_TARGET, "uk.co.bithatch.eclipzx.ui.glue.automaticFATPreparationTarget");
+			
 			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.NEX).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""
-					-machine
-					 P2A40
-					-mmcfile=${fat_image}
+					--machine
+					 TBBlue
+					--configfile
+					${emulator_config_file}
+					--snap
+					${zxbasic_launch_loc}
 					""", System.lineSeparator()));
+	        configuration.setAttribute(CONFIGURATION_CONTENT, """
+					--enable-mmc
+					--mmc-file=${fat_image}
+	        		""");
 		}
 		else {
-			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.BIN).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
+			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.SNA).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""
-					TODO
+					--machine
+					P2A41
+					--configfile
+					${emulator_config_file}
+					--snap
+					${zxbasic_launch_loc}
 					""", System.lineSeparator()));
+	        configuration.setAttribute(CONFIGURATION_CONTENT, """
+	        		""");
 		}
+        configuration.setAttribute(CONFIGURATION_FILE, "");
         configuration.setAttribute(CUSTOM_WORKING_DIRECTORY, true);
 		configuration.setAttribute(WORKING_DIRECTORY_LOCATION, home.toString());
 	}
