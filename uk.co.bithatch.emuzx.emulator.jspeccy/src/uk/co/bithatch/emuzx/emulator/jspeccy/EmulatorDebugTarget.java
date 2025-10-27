@@ -15,20 +15,25 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamsProxy;
 import org.eclipse.debug.core.model.IThread;
 
-import uk.co.bithatch.jspeccy.views.EmulatorView;
+import uk.co.bithatch.jspeccy.views.EmulatorInstance;
 
 public class EmulatorDebugTarget extends DebugElement implements IDebugTarget {
 
-	private final EmulatorView emulator;
+	private final EmulatorInstance emulator;
 	private final ILaunch launch;
 	private boolean terminated;
 	private final IProcess emprocess;
 
-	public EmulatorDebugTarget(ILaunch launch, EmulatorView emulator) {
+	public EmulatorDebugTarget(ILaunch launch, EmulatorInstance emulator) {
 		super(null);
 		this.emulator = emulator;
 		this.launch = launch;
 
+		emulator.addCloseListener(() -> {
+			terminated = true;
+			fireTerminateEvent();
+		});
+		
 		emprocess = new IProcess() {
 
 			private Map<String, String> attrs = new HashMap<>();
@@ -116,10 +121,8 @@ public class EmulatorDebugTarget extends DebugElement implements IDebugTarget {
 		if (terminated)
 			return;
 		else {
-			terminated = true;
 //			emulator.stopEmulation();
-			emulator.reset();
-			fireTerminateEvent();
+			emulator.close();
 		}
 	}
 

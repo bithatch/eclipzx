@@ -34,7 +34,7 @@ public class OpenInEmulatorAction implements IObjectActionDelegate {
 			try {
 				var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				var	 view = (EmulatorView) page.showView(EmulatorView.ID);
-				view.load(selectedFile.getLocation().toFile());
+				view.getEmulator().load(selectedFile.getLocation().toFile());
 			} catch (PartInitException e) {
 				throw new IllegalStateException(e);
 			} catch(IOException ioe) {

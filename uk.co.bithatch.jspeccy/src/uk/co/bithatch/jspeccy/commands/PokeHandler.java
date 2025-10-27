@@ -8,7 +8,7 @@ public class PokeHandler extends AbstractEmulatorHandler {
 
 	@Override
 	protected Object onHandle(ExecutionEvent event, EmulatorView emulator) {
-		emulator.poke();
+		emulator.getEmulator().poke();
 		return null;
 	}
 

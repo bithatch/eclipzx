@@ -64,7 +64,7 @@ public class EmulatorStatusControl extends WorkbenchWindowControlContribution
 		tapeButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 			try {
 				IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
-						getCurrentEmulator().getTapeFile().toURI(), TapeBrowser.ID, true);
+						getCurrentEmulator().getSelectedEmulator().getTapeFile().toURI(), TapeBrowser.ID, true);
 			} catch (PartInitException e1) {
 				LOG.error("Failed to open tape browser.", e1);
 			}
@@ -80,7 +80,7 @@ public class EmulatorStatusControl extends WorkbenchWindowControlContribution
 //			afx(afb.get(afb.indexOf(model.afx()) - 1));
 			var em = getCurrentEmulator();
 			if (em != null) {
-				em.microdrives();
+				em.getSelectedEmulator().microdrives();
 			}
 		}));
 
@@ -90,15 +90,15 @@ public class EmulatorStatusControl extends WorkbenchWindowControlContribution
 		romButton.setLayoutData(romLayoutData);
 		romButton.setToolTipText("Click to eject ROM.");
 		romButton.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-			getCurrentEmulator().ejectROM();
+			getCurrentEmulator().getSelectedEmulator().ejectROM();
 		}));
 
 		var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		var viewRef = page.findViewReference(EmulatorView.ID);
 		if (viewRef != null) {
 			currentEmulatorPartRef = viewRef;
-			var pt = (EmulatorView)currentEmulatorPartRef.getPart(false);
-			if(pt != null) {
+			var pt = (EmulatorView) currentEmulatorPartRef.getPart(false);
+			if (pt != null) {
 				pt.setStatusControl(this);
 			}
 		}
@@ -158,13 +158,13 @@ public class EmulatorStatusControl extends WorkbenchWindowControlContribution
 			doUpdateState();
 			doUpdateStatus();
 		});
-		
+
 	}
-	
+
 	protected void doUpdateStatus() {
 		var emPart = getCurrentEmulator();
-		String stext = emPart.getStatusText();
-		if(!stext.equals(statusLabel.getText()))
+		String stext = emPart.getSelectedEmulator().getStatusText();
+		if (!stext.equals(statusLabel.getText()))
 			statusLabel.setText(stext);
 	}
 
@@ -173,18 +173,23 @@ public class EmulatorStatusControl extends WorkbenchWindowControlContribution
 		if (emPart == null) {
 			container.setVisible(false);
 		} else {
-			container.setVisible(true);
-			tapeButton.setEnabled(emPart.getTapeFile() != null);
-			romButton.setEnabled(emPart.getRomFile() != null);
-
-			if (Activator.getDefault().settings().jspeccy().getInterface1Settings().isConnectedIF1()) {
-				microdriveButton.setVisible(true);
-				microdriveLayoutData.exclude = false;
+			var selectedEmulator = emPart.getSelectedEmulator();
+			if (selectedEmulator == null) {
+				container.setVisible(false);
 			} else {
-				microdriveButton.setVisible(false);
-				microdriveLayoutData.exclude = true;
+				container.setVisible(true);
+				tapeButton.setEnabled(selectedEmulator.getTapeFile() != null);
+				romButton.setEnabled(selectedEmulator.getRomFile() != null);
+
+				if (Activator.getDefault().settings().jspeccy().getInterface1Settings().isConnectedIF1()) {
+					microdriveButton.setVisible(true);
+					microdriveLayoutData.exclude = false;
+				} else {
+					microdriveButton.setVisible(false);
+					microdriveLayoutData.exclude = true;
+				}
+				container.layout();
 			}
-			container.layout();
 		}
 	}
 

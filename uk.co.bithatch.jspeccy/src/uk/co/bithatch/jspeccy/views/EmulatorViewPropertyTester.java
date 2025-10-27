@@ -13,26 +13,29 @@ public class EmulatorViewPropertyTester extends PropertyTester {
 			return false;
 
 		var expectedStr = expectedValue == null ? "true" : String.valueOf(expectedValue);
+		var emulator = view.getSelectedEmulator();
 
 		if ("microdrives".equals(property)) {
 			return String.valueOf(Activator.getDefault().settings().jspeccy().getInterface1Settings().isConnectedIF1())
 					.equals(expectedStr);
-		} else if ("activeMedia".equals(property)) {
-			var media = view.getActiveMedia();
-			if (expectedStr.equals("true")) {
-				return media != null;
+		} else if(emulator != null) {
+			if ("activeMedia".equals(property)) {
+				var media = emulator.getActiveMedia();
+				if (expectedStr.equals("true")) {
+					return media != null;
+				}
+				return expectedStr.equals(media);
+			} else if ("tapeRunning".equals(property)) {
+				return valueOf(emulator.isTapeRunning()).equals(expectedStr);
+			} else if ("tapeInserted".equals(property)) {
+				return valueOf(emulator.isTapeInserted()).equals(expectedStr);
+			} else if ("tapePlaying".equals(property)) {
+				return valueOf(emulator.isTapePlaying()).equals(expectedStr);
+			} else if ("tapeRecording".equals(property)) {
+				return valueOf(emulator.isTapeRecording()).equals(expectedStr);
+			} else if ("tapeReady".equals(property)) {
+				return valueOf(emulator.isTapeReady()).equals(expectedStr);
 			}
-			return expectedStr.equals(media);
-		} else if ("tapeRunning".equals(property)) {
-			return valueOf(view.isTapeRunning()).equals(expectedStr);
-		} else if ("tapeInserted".equals(property)) {
-			return valueOf(view.isTapeInserted()).equals(expectedStr);
-		} else if ("tapePlaying".equals(property)) {
-			return valueOf(view.isTapePlaying()).equals(expectedStr);
-		} else if ("tapeRecording".equals(property)) {
-			return valueOf(view.isTapeRecording()).equals(expectedStr);
-		} else if ("tapeReady".equals(property)) {
-			return valueOf(view.isTapeReady()).equals(expectedStr);
 		}
 		return false;
 	}

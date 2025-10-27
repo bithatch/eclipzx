@@ -25,7 +25,7 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 
-import uk.co.bithatch.jspeccy.views.EmulatorView;
+import uk.co.bithatch.jspeccy.views.EmulatorInstance;
 
 public class ExportScreenshotWizardPage extends WizardPage {
 
@@ -37,9 +37,9 @@ public class ExportScreenshotWizardPage extends WizardPage {
 	private Button overrite;
 
 	private final IContainer container;
-	private final EmulatorView emulator;
+	private final EmulatorInstance emulator;
 
-	public ExportScreenshotWizardPage(EmulatorView emulator, IContainer container) {
+	public ExportScreenshotWizardPage(EmulatorInstance emulator, IContainer container) {
 		super("Export Screenshot");
 		this.emulator = emulator;
 		this.container = container;

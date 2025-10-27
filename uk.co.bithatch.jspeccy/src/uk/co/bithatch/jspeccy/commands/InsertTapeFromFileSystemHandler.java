@@ -12,7 +12,7 @@ public class InsertTapeFromFileSystemHandler extends AbstractEmulatorHandler {
 	@Override
 	protected Object onHandle(ExecutionEvent event, EmulatorView emulator) {
 		try {
-			emulator.insertTapeFromFileSystem();
+			emulator.getEmulator().insertTapeFromFileSystem();
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}

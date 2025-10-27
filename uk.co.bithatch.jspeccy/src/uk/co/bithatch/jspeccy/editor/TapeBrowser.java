@@ -29,6 +29,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
 import uk.co.bithatch.jspeccy.Activator;
+import uk.co.bithatch.jspeccy.views.EmulatorInstance;
 import uk.co.bithatch.jspeccy.views.EmulatorView;
 import utilities.Tape;
 import utilities.TapeBlockListener;
@@ -41,7 +42,7 @@ public class TapeBrowser extends EditorPart /* implements SelectionListener */ i
 	public static final String ID = "uk.co.bithatch.jspeccy.editor.TapeBrowser";
 
 	protected Composite container;
-	private EmulatorView emulator;
+	private EmulatorInstance emulator;
 	private File nativeFile;
 	private ProgressBar progress;
 	private Composite status;
@@ -104,8 +105,12 @@ public class TapeBrowser extends EditorPart /* implements SelectionListener */ i
 		for (var viewRef : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences()) {
 			if (viewRef.getId().equals(EmulatorView.ID)) {
 				var em = viewRef.getPart(false);
-				if (em instanceof EmulatorView eview && nativeFile.equals(eview.getTapeFile())) {
-					setEmulator(eview);
+				if (em instanceof EmulatorView eview) {
+					for(var emulator : eview.getEmulators()) {
+						if(nativeFile.equals(emulator.getTapeFile())) {
+							setEmulator(emulator);
+						}
+					}
 					break;
 				}
 			}
@@ -128,7 +133,7 @@ public class TapeBrowser extends EditorPart /* implements SelectionListener */ i
 		// Optional
 	}
 
-	public EmulatorView getEmulator() {
+	public EmulatorInstance getEmulator() {
 		return emulator;
 	}
 
@@ -170,7 +175,7 @@ public class TapeBrowser extends EditorPart /* implements SelectionListener */ i
 		return false;
 	}
 
-	public void setEmulator(EmulatorView emulator) {
+	public void setEmulator(EmulatorInstance emulator) {
 		if (!Objects.equals(emulator, this.emulator)) {
 			if (this.emulator != null) {
 				this.emulator.getTape().removeTapeBlockListener(this);

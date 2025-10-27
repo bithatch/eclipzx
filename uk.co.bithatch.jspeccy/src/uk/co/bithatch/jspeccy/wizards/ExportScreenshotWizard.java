@@ -12,13 +12,14 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IExportWizard;
 import org.eclipse.ui.IWorkbench;
 
+import uk.co.bithatch.jspeccy.views.EmulatorInstance;
 import uk.co.bithatch.jspeccy.views.EmulatorView;
 
 public class ExportScreenshotWizard extends Wizard implements IExportWizard {
 	public final static String ID = "uk.co.bithatch.jspeccy.wizards.screenshot";
 
 	private IContainer container;
-	private EmulatorView emulator;
+	private EmulatorInstance emulator;
 	private boolean wasRunning;
 	private ExportScreenshotWizardPage page;
 

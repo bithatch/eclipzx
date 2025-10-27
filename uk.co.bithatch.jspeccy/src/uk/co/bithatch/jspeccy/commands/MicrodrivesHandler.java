@@ -8,7 +8,7 @@ public class MicrodrivesHandler extends AbstractEmulatorHandler {
 
 	@Override
 	protected Object onHandle(ExecutionEvent event, EmulatorView emulator) {
-		emulator.microdrives();
+		emulator.getEmulator().microdrives();
 		return null;
 	}
 

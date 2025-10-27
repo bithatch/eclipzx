@@ -12,7 +12,7 @@ public class InsertROMFromFileSystemHandler extends AbstractEmulatorHandler {
 	@Override
 	protected Object onHandle(ExecutionEvent event, EmulatorView emulator) {
 		try {
-			emulator.insertROMFromFileSystem();
+			emulator.getEmulator().insertROMFromFileSystem();
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}

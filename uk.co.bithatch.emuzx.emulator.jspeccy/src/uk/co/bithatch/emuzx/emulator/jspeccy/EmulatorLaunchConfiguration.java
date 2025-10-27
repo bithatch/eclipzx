@@ -16,6 +16,7 @@ import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
+import uk.co.bithatch.jspeccy.views.EmulatorInstance;
 import uk.co.bithatch.jspeccy.views.EmulatorView;
 
 public class EmulatorLaunchConfiguration extends AbstractConfigurationDelegate {
@@ -41,7 +42,7 @@ public class EmulatorLaunchConfiguration extends AbstractConfigurationDelegate {
 			// TODO make this better wrt threads
 
 			try {
-				var eview = openEmulatorView(PlatformUI.getWorkbench());
+				var eview = openEmulatorView(configuration, PlatformUI.getWorkbench());
 				launch.addDebugTarget(new EmulatorDebugTarget(launch, eview));
 				eview.load(binaryFile);
 			} catch (Exception e) {
@@ -50,7 +51,7 @@ public class EmulatorLaunchConfiguration extends AbstractConfigurationDelegate {
 		});
 	}
 
-	private EmulatorView openEmulatorView(IWorkbench bench) {
+	private EmulatorInstance openEmulatorView(ILaunchConfiguration configuration, IWorkbench bench) {
 
 		var window = bench.getActiveWorkbenchWindow();
 		if (window == null) {
@@ -63,7 +64,7 @@ public class EmulatorLaunchConfiguration extends AbstractConfigurationDelegate {
 				try {
 					var view = page.showView(EmulatorView.ID);
 					page.bringToTop(view);
-					return (EmulatorView) view;
+					return ((EmulatorView) view).showEmulator(configuration.getName());
 				} catch (PartInitException e) {
 					throw new IllegalStateException("Failed to open emulator view.");
 				}

@@ -2,8 +2,6 @@ package uk.co.bithatch.emuzx.emulator.jspeccy;
 
 import static uk.co.bithatch.emuzx.emulator.jspeccy.EmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
 
-import java.util.List;
-
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -14,7 +12,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 import uk.co.bithatch.widgetzx.AbstracLaunchProgramConfigurationTab;
 import uk.co.bithatch.widgetzx.LanguageSystemUI;

@@ -8,7 +8,7 @@ public class NMIHandler extends AbstractEmulatorHandler {
 
 	@Override
 	protected Object onHandle(ExecutionEvent event, EmulatorView emulator) {
-		emulator.nmi();
+		emulator.getEmulator().nmi();
 		return null;
 	}
 
