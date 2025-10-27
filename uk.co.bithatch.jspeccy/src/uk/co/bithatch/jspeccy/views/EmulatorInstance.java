@@ -581,7 +581,7 @@ public class EmulatorInstance extends Composite implements SettingsListener, Tap
 
 		spectrum.loadConfigVars();
 
-		tape = new Tape(settings.getTapeSettings());
+		tape = new Tape(settings.getTapeSettings(), spectrum.getClock());
 		tape.addTapeBlockListener(this);
 		tape.addTapeChangedListener(this);
 		spectrum.setTape(tape);

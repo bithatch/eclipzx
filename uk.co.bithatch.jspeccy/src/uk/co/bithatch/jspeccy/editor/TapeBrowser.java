@@ -158,7 +158,7 @@ public class TapeBrowser extends EditorPart /* implements SelectionListener */ i
 		 * display. We send events to and listen for events from the tape in the
 		 * emulator, not this one.
 		 */
-		tape = new Tape(Activator.getDefault().settings().jspeccy().getTapeSettings());
+		tape = new Tape(Activator.getDefault().settings().jspeccy().getTapeSettings(), null);
 		tape.insert(this.nativeFile);
 
 		onInit();
