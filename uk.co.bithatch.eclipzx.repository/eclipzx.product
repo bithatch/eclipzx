@@ -21,8 +21,10 @@ else you fancy running in no time at all.
    </configIni>
 
    <launcherArgs>
-      <programArgs>-consoleLog
-      </programArgs>
+      <programArgsLin>-consoleLog
+      </programArgsLin>
+      <programArgsMac>-consoleLog
+      </programArgsMac>
       <vmArgs>-Dorg.eclipse.swt.graphics.Resource.reportNonDisposed=true
  -Dorg.eclipse.e4.ui.css.theme=org.eclipse.e4.ui.css.theme.e4_dark
       </vmArgs>

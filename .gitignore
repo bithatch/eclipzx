@@ -13,3 +13,7 @@
 *.jar
 test-workspaces/**
 **/target
+/flatpak/.flatpak-builder/
+/flatpak/workspace/
+/packages/.flatpak-builder/
+/packages/workspace/
