@@ -55,6 +55,7 @@
 		<module>uk.co.bithatch.eclipzx.feature</module>
 		<module>uk.co.bithatch.eclipzx.target</module>
 		<module>uk.co.bithatch.eclipzx.repository</module>
+		<module>packages</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>
@@ -67,6 +68,13 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+    <licenses>
+        <license>
+            <name>EPL-2.0</name>
+            <url>https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 	<build>
 		<plugins>
             <plugin>
