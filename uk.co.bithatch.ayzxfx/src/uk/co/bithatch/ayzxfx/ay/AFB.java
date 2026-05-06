@@ -62,45 +62,30 @@ public interface AFB {
 					return;
 				}
 
-				var len = buf.limit();
+				var size = buf.limit();
+				var allEffect = Byte.toUnsignedInt(buf.get(0));
+				int off, len;
+				for (var aa = 0; aa < allEffect; aa++) {
+					off = Short.toUnsignedInt(buf.getShort(1 + aa * 2)) + 2 + aa * 2;
+					if (aa < allEffect - 1) {
+						len = Short.toUnsignedInt(buf.getShort(3 + aa * 2)) + 4 + aa * 2 - off;
+					} else {
+						len = size - off;
+					}
 
-				var offsetCount = buf.get();
-				var offsets = new int[offsetCount == 0 ? 256 : offsetCount];
+					var slice = buf.slice(off, len).order(ByteOrder.LITTLE_ENDIAN);
+					var effect = new AFX.Impl.AFXImpl(slice);
+					var rlen = slice.position();
 
-				for (var i = 0; i < offsets.length; i++) {
-					offsets[i] = Short.toUnsignedInt(buf.getShort());
-					System.out.format("Effect: %d   Offset : %04x%n", i, offsets[i]);
-				}
-
-				var dataStartCheck = buf.position();
-				System.out.format("Start of data %04x%n", dataStartCheck);
-				if (dataStartCheck != offsets[0] + 2)
-					throw new IOException("Doesn't appear to be an AFB file.");
-
-				for (var i = 0; i < offsets.length; i++) {
-					var limit = i == offsets.length - 1 ? len : 2 + offsets[i + 1];
-					System.out.format("Reading Effect: %d at  Offset : %04x (%04x) to %04x (%04x)%n", i, offsets[i],
-							buf.position(), limit, limit - 2);
-					var effect = new AFX.Impl.AFXImpl(buf);
-					if (buf.position() < limit) {
-						var name = AYFXUtil.cString(buf);
-						System.out.println("named " + name);
+					if (rlen != len) {
+						var name = AYFXUtil.cString(slice);
 						var namedEffect = effect.named();
 						namedEffect.name(name);
 						add(namedEffect);
 					} else {
-						System.out.println("unnamed");
 						add(effect);
 					}
-					if (i < offsets.length - 1) {
-						buf.position(offsets[i + 1] + 2);
-					}
 				}
-
-				System.out.println("Final order");
-				effects.forEach(fix -> {
-					System.out.println(fix);
-				});
 
 			}
 
@@ -116,12 +101,13 @@ public interface AFB {
 				var buf = ByteBuffer.allocate(65536);
 				buf.order(ByteOrder.LITTLE_ENDIAN);
 
-				var dataStartOffset = (size() * 2) + 1;
-				for (var effect : effects) {
-					hdrbuf.putShort((short) dataStartOffset);
-					dataStartOffset += effect.write(buf);
+				var actualOffset = (size() * 2) + 1;
+				for (var aa = 0; aa < effects.size(); aa++) {
+					var effect = effects.get(aa);
+					hdrbuf.putShort((short) (actualOffset - 2 - aa * 2));
+					actualOffset += effect.write(buf);
 					if (effect instanceof NamedAFX nafx) {
-						dataStartOffset += AYFXUtil.cString(nafx.name(), buf);
+						actualOffset += AYFXUtil.cString(nafx.name(), buf);
 					}
 				}
 
@@ -217,4 +203,13 @@ public interface AFB {
 	boolean contains(AFX afx);
 
 	List<AFX> effects();
+
+	default void move(int fromIndex, int toIndex) {
+		var effect = get(fromIndex);
+		remove(effect);
+		if (toIndex > fromIndex) {
+			toIndex--;
+		}
+		add(toIndex, effect);
+	}
 }

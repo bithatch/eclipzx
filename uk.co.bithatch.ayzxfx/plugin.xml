@@ -55,6 +55,16 @@
                 <instanceof value="uk.co.bithatch.ayzxfx.navigator.AFXNode"/>
             </or>
         </possibleChildren>
+        <dropAssistant
+              id="uk.co.bithatch.ayzxfx.navigator.dropAssistant"
+              class="uk.co.bithatch.ayzxfx.navigator.AFXDropAdapterAssistant">
+            <possibleDropTargets>
+                <or>
+                    <instanceof value="uk.co.bithatch.ayzxfx.navigator.AFXNode"/>
+                    <instanceof value="org.eclipse.core.resources.IFile"/>
+                </or>
+            </possibleDropTargets>
+        </dropAssistant>
       </navigatorContent>
       <actionProvider
          id="uk.co.bithatch.ayzxfx.navigator.actions"
@@ -77,6 +87,10 @@
              <actionExtension pattern="uk.co.bithatch.ayzxfx.navigator.actions"/>
           </includes>
        </viewerActionBinding>
+        <dragAssistant
+            viewerId="org.eclipse.ui.navigator.ProjectExplorer"
+            class="uk.co.bithatch.ayzxfx.navigator.AFXDragAdapterAssistant">
+        </dragAssistant>
     </extension>
     
     

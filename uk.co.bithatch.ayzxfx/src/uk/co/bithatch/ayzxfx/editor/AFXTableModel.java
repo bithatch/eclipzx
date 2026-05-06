@@ -28,7 +28,6 @@ public class AFXTableModel extends AbstractTableModel {
 	private boolean adjusting;
 	private boolean snapToNote;
 	private final Supplier<int[]> selectionSupplier;
-	private boolean actOnAll;
 
 	public AFXTableModel(AFX afx, UndoableChangeSupport undoableChangeSupport, Supplier<int[]> selectionSupplier) {
 		this.afx = afx;
@@ -192,16 +191,8 @@ public class AFXTableModel extends AbstractTableModel {
 		}
 	}
 
-	public boolean isActOnAll() {
-		return actOnAll;
-	}
-
-	public void setActOnAll(boolean actOnAll) {
-		this.actOnAll = actOnAll;
-	}
-
 	private boolean isActOnAllSelection() {
-		return !freestyleMode && actOnAll;
+		return !freestyleMode && ValueBar.isCtrlDown();
 	}
 
 	public void add(AFXFrame frame) {

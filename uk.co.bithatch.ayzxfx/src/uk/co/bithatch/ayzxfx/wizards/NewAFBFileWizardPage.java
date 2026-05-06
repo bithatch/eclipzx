@@ -1,17 +1,7 @@
 package uk.co.bithatch.ayzxfx.wizards;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.nio.channels.Channels;
-
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.dialogs.WizardNewFileCreationPage;
-
-import uk.co.bithatch.ayzxfx.ay.AFB;
-import uk.co.bithatch.ayzxfx.ay.AFX; 
+import org.eclipse.ui.dialogs.WizardNewFileCreationPage; 
 
 public class NewAFBFileWizardPage extends WizardNewFileCreationPage {
 
@@ -26,16 +16,17 @@ public class NewAFBFileWizardPage extends WizardNewFileCreationPage {
         setFileName("effects." + ext);
     }
 
-    @Override
-    protected InputStream getInitialContents() {
-    	var afb = AFB.create();
-    	afb.add(AFX.named("Effect 1"));
-    	var out = new ByteArrayOutputStream();
-    	try {
-			afb.save(Channels.newChannel(out));
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-        return new ByteArrayInputStream(out.toByteArray());
-    }
+//    @Override
+//    protected InputStream getInitialContents() {
+//    	var afb = AFB.create();
+//    	afb.add(AFX.named("Effect 1"));
+//    	var out = new ByteArrayOutputStream();
+//    	try {
+//			afb.save(Channels.newChannel(out));
+//		} catch (IOException e) {
+//			throw new UncheckedIOException(e);
+//		}
+//        return new ByteArrayInputStream(out.toByteArray());
+//    }
+    
 }

@@ -3,7 +3,7 @@ package uk.co.bithatch.zxbasic.ui.preferences;
 import static org.eclipse.jface.layout.GridDataFactory.fillDefaults;
 import static org.eclipse.jface.layout.GridDataFactory.swtDefaults;
 import static org.eclipse.jface.resource.JFaceResources.getFontRegistry;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.setProperty;
+import static uk.co.bithatch.bitzx.AbstractResourceProperties.setProperty;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,8 +28,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ui.dialogs.ResourceSelectionDialog;
 
+import uk.co.bithatch.bitzx.AbstractResourceProperties.Listener;
 import uk.co.bithatch.zxbasic.ui.builder.ResourceProperties;
-import uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.Listener;
 
 
 public class NEXBundlingTriggerOptionsPage extends PropertyPage implements Listener {

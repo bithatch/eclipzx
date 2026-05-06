@@ -43,7 +43,7 @@ public class AFXLabelProvider extends LabelProvider implements IStyledLabelProvi
 		if (element instanceof AFXNode afx) {
 			var editor = AFBEditor.findOpenAFBEditorFor(afx.getFile());
 	        var str = new StyledString(getNameText(afx));
-			if(!editor.afx().equals(afx.getAfx())) {
+			if(editor != null && !editor.afx().equals(afx.getAfx())) {
 				str.setStyle(0, str.length(), StyledString.DECORATIONS_STYLER);
 			}
 			return str;

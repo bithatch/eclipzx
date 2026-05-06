@@ -8,8 +8,11 @@ import java.util.Objects;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.BorderData;
@@ -23,6 +26,7 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
 
 import uk.co.bithatch.ayzxfx.AYFXUtil;
 import uk.co.bithatch.ayzxfx.ay.AFB;
@@ -75,8 +79,16 @@ public class AFBEditor extends AFXEditor {
 		execute(new AddEffectOperation(this, AFX.create()));
 	}
 
+	public void addEffect(AFX effect) {
+		execute(new AddEffectOperation(this, effect));
+	}
+
 	public void removeEffects(AFX... effects) {
 		execute(new RemoveEffectsOperation(this, effects));
+	}
+
+	public void renameEffect(AFX effect, String newName) {
+		execute(new UpdateEffectNameOperation(this, effect, newName));
 	}
 
 	public void afx(AFX afx) {
@@ -106,7 +118,59 @@ public class AFBEditor extends AFXEditor {
 	
 	@Override
 	protected void onPartControl() {
-			AYFXUtil.refreshFileInExplorer(getFile());
+		AYFXUtil.refreshFileInExplorer(getFile());
+		
+		var bars = getEditorSite().getActionBars();
+
+		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), new Action("Copy Effect") {
+			@Override
+			public void run() {
+				var afx = model != null ? model.afx() : null;
+				if (afx != null) {
+					var clipboard = new Clipboard(PlatformUI.getWorkbench().getDisplay());
+					try {
+						clipboard.setContents(
+							new Object[] { afx },
+							new Transfer[] { AFXTransfer.getInstance() }
+						);
+					} finally {
+						clipboard.dispose();
+					}
+				}
+			}
+		});
+
+		bars.setGlobalActionHandler(ActionFactory.PASTE.getId(), new Action("Paste Effect") {
+			@Override
+			public void run() {
+				var activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+						.getActivePage().getActiveEditor();
+				if (!(activeEditor instanceof AFBEditor target))
+					return;
+				var clipboard = new Clipboard(PlatformUI.getWorkbench().getDisplay());
+				try {
+					var contents = clipboard.getContents(AFXTransfer.getInstance());
+					if (contents instanceof AFX afx) {
+						var copy = AFX.create();
+						copy.remove(0);
+						for (var frame : afx.frames()) {
+							copy.add(frame.copy());
+						}
+						if (afx instanceof NamedAFX nafx && nafx.name() != null) {
+							var named = copy.named();
+							named.name(nafx.name() + " (Copy)");
+							target.addEffect(named);
+						} else {
+							target.addEffect(copy);
+						}
+					}
+				} finally {
+					clipboard.dispose();
+				}
+			}
+		});
+
+		bars.updateActionBars();
 	}
 
 	@Override
@@ -148,13 +212,32 @@ public class AFBEditor extends AFXEditor {
 		}));
 
 		updateAvailable();
+
+		if(afb != null && afb.size() > 0) {
+			afx(afb.get(0));
+		}
 	}
 
 	String setName(AFX effect, String newName) {
-		var namedAfx = effect.named();
+		// Ensure we have a NamedAFX, replacing in the AFB if needed
+		NamedAFX namedAfx;
+		if (effect instanceof NamedAFX nafx) {
+			namedAfx = nafx;
+		} else {
+			namedAfx = effect.named();
+			var idx = afb.indexOf(effect);
+			if (idx >= 0) {
+				afb.remove(effect);
+				afb.add(idx, namedAfx);
+			}
+		}
 		var was = namedAfx.name();
 		if (!Objects.equals(was, newName)) {
-			effectName.setText(newName == null ? "" : newName);
+			namedAfx.name(newName);
+			// Only update the UI text field if this is the currently displayed effect
+			if (model.afx() == effect || model.afx() == namedAfx) {
+				effectName.setText(newName == null ? "" : newName);
+			}
 			markDirty();
 			AYFXUtil.refreshFileInExplorer(getFile());
 		}
@@ -185,6 +268,18 @@ public class AFBEditor extends AFXEditor {
 	void doAddEffect(int index, AFX effect) {
 		afb.add(index, effect);
 		afx(effect);
+		markDirty();
+		AYFXUtil.refreshFileInExplorer(getFile());
+	}
+
+	public void moveEffect(int fromIndex, int toIndex) {
+		if (fromIndex != toIndex) {
+			execute(new MoveEffectOperation(this, fromIndex, toIndex));
+		}
+	}
+
+	void doMoveEffect(int fromIndex, int toIndex) {
+		afb.move(fromIndex, toIndex);
 		markDirty();
 		AYFXUtil.refreshFileInExplorer(getFile());
 	}

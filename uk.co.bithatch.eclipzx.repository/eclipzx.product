@@ -118,6 +118,7 @@ else you fancy running in no time at all.
       <plugin id="uk.co.bithatch.nextbuild" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.nextlib" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.squashzx" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.tnfs.eclipse" autoStart="true" startLevel="4" />
       <plugin id="uk.co.bithatch.widgetzx" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.zxbasic" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.zxbasic.borielsdk" autoStart="true" startLevel="3" />

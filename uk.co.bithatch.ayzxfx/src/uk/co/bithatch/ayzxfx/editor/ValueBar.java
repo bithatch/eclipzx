@@ -17,6 +17,8 @@ public class ValueBar extends JComponent {
 	private MouseAdapter mouse;
 	private boolean cancelOnOutOfBoundsRelease;
 	private boolean logarithmic;
+	
+	private final static ThreadLocal<Boolean> ctrlDown = new ThreadLocal<Boolean>();
 
 	public ValueBar(int max, int initialValue) {
 		this.max = Math.max(1, max);
@@ -41,6 +43,7 @@ public class ValueBar extends JComponent {
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
+				ctrlDown.set(e.isControlDown());
 				if(getBounds().contains(e.getPoint()) || !cancelOnOutOfBoundsRelease) {
 					updateValueFromMouse(e.getX());
 					var was = selection;
@@ -62,6 +65,10 @@ public class ValueBar extends JComponent {
 		addMouseMotionListener(mouse);
 		setFocusable(true);
 		setOpaque(true);
+	}
+	
+	public static boolean isCtrlDown() {
+		return ctrlDown.get() != null && ctrlDown.get();
 	}
 
 	public boolean isLogarithmic() {

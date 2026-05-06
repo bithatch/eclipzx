@@ -22,6 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
@@ -59,6 +60,14 @@ import uk.co.bithatch.ayzxfx.ay.AFXFrame;
 import uk.co.bithatch.ayzxfx.ay.AYPlayer;
 
 public class AFXEditor extends EditorPart /* implements SelectionListener */ {
+	
+	static {
+		try {
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	@SuppressWarnings("serial")
 	class ValuePanel extends JPanel {
@@ -470,7 +479,6 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 	}
 
 	protected void execute(IUndoableOperation op) {
-		System.out.println("UNDOABLE OP: " + op);
 		op.addContext(getUndoContext());
 		try {
 			history.execute(op, null, null);

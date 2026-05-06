@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>
+
+    <extension point="org.eclipse.ui.propertyPages">
+        <page id="uk.co.bithatch.tnfs.eclipse.propertyPage"
+            name="TNFS"
+            class="uk.co.bithatch.tnfs.eclipse.TNFSSharePropertiesPage"
+            objectClass="org.eclipse.core.resources.IResource">
+        </page>
+    </extension>
+
+    <extension point="org.eclipse.ui.preferencePages">
+        <page class="uk.co.bithatch.tnfs.eclipse.TNFSPreferencePage" id="uk.co.bithatch.tnfs.eclipse.tnfs" name="TNFS">
+            <keywordReference id="uk.co.bithatch.tnfs.eclipse.keyword_TNFS" />
+        </page>
+    </extension>
+
+    <extension point="org.eclipse.ui.keywords">
+        <keyword id="uk.co.bithatch.tnfs.eclipse.keyword_TNFS" label="TNFS" />
+    </extension>
+    
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer class="uk.co.bithatch.tnfs.eclipse.TNFSPreferenceInitializer" />
+    </extension>
+
+</plugin>

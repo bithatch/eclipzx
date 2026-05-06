@@ -43,8 +43,12 @@ public class NewAFBFileWizard extends Wizard implements INewWizard {
 
 		try {
 
-			var afb = AFB.create(config.getNumberOfEffects(), config.getNumberOfFrames());
-			try (var out = Files.newByteChannel(file.getLocation().toPath(), StandardOpenOption.WRITE,
+			var afb = AFB.create(
+				config.getNumberOfEffects(), 
+				config.getNumberOfFrames()
+			);
+			var path = file.getLocation().toPath();
+			try (var out = Files.newByteChannel(path, StandardOpenOption.WRITE,
 					StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 				afb.save(out);
 			}

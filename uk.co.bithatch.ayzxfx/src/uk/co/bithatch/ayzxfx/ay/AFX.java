@@ -78,6 +78,11 @@ public interface AFX  {
 				this.name = name;
 				return was;
 			}
+
+			@Override
+			public String toString() {
+				return name == null ? "AFX" : name;
+			}
 			
 		}
 
@@ -88,9 +93,12 @@ public interface AFX  {
 			AFXImpl() { }
 			
 			AFXImpl(ByteBuffer buf) throws IOException {
+				if(buf.order() != ByteOrder.LITTLE_ENDIAN) {
+					throw new IllegalArgumentException("ByteBuffer must be in little-endian order.");
+				}
+				
 				var tone = 0;
 				var noise = 0;
-				var maybeEnd = false;
 				
 				if(!buf.hasRemaining()) {
 					add(AFB.defaultFrame());
@@ -98,33 +106,26 @@ public interface AFX  {
 				}
 				
 				while(buf.hasRemaining()) {
-					var flags = Byte.toUnsignedInt(buf.get());
-					if(!maybeEnd && flags == 0xd0) {
-						maybeEnd = true;
-						continue;
-					}
-					else if(maybeEnd && flags == 0x20) {
-						break;
-					}
-					else if(maybeEnd) {
-						maybeEnd = false;
-						flags = 0xd0;
-					}
-					var vol = flags & 0xF;
-					var noTone = (flags & 0x10) != 0;
-					var changeTone = (flags & 0x20 ) != 0;
-					var changeNoise = (flags & 0x40) != 0;
-					var noNoise = (flags & 0x80) != 0;
-					if(changeTone) {
-						tone = Short.toUnsignedInt(buf.getShort());
-					}
-					if(changeNoise) {
-						noise = Byte.toUnsignedInt(buf.get());
+					
+					var it = Byte.toUnsignedInt(buf.get());
+					
+					if((it&(1<<5)) != 0) {
+						tone = Short.toUnsignedInt(buf.getShort()) & 0xfff;
 					}
 					
-					var effect = new AFXFrame(!noTone, !noNoise, tone,  noise, vol);
-//					System.out.println("Adding effect frame: " + effect);
-					add(effect);
+					if((it&(1<<6)) != 0) {
+						noise=Byte.toUnsignedInt(buf.get());
+						if(it==0xd0&&noise>=0x20) break;
+						noise&=0x1f;
+					}
+					
+					add(new AFXFrame(
+						(it&(1<<4)) != 0 ? false : true,
+						(it&(1<<7)) != 0 ? false : true,
+						tone,  
+						noise, 
+						it & 0x0f
+					));
 				}
 				
 			}
@@ -165,7 +166,8 @@ public interface AFX  {
 					lastTone = frame.period();
 					lastNoise = frame.noise();
 				}
-				buffer.putShort((short)(0xd020));
+				buffer.put((byte)0xd0);
+				buffer.put((byte)0x20);
 				return buffer.position() - w;
 			}
 
@@ -267,6 +269,8 @@ public interface AFX  {
 	}
 
 	public static NamedAFX named(String string) {
-		return new Impl.NamedAFXImpl(new Impl.AFXImpl());
+		var nfx = new Impl.NamedAFXImpl(new Impl.AFXImpl());
+		nfx.name(string);
+		return nfx;
 	}
 }

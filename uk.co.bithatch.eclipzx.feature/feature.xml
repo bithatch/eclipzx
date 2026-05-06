@@ -401,4 +401,8 @@ version(s), and exceptions or additional permissions here}.&quot;
          id="org.eclipse.ui.browser"
          version="0.0.0"/>
 
+   <plugin
+         id="uk.co.bithatch.tnfs.eclipse"
+         version="0.0.0"/>
+
 </feature>
