@@ -31,7 +31,14 @@
                         <phase>deploy</phase>
                         <configuration>
                             <target>
-                            
+                                <ftp action="mkdir"
+                                     server="${build.uploadHostname}"
+                                     remotedir="${build.uploadPath}"
+                                     userid="${build.uploadUsername}"
+                                     password="${build.uploadPassword}"
+                                     ignoreNoncriticalErrors="true"
+                                     skipFailedTransfers="true">
+                                </ftp>
                                 <ftp action="del"
                                      server="${build.uploadHostname}"
                                      remotedir="${build.uploadPath}"
@@ -43,14 +50,6 @@
                                     <fileset>
                                         <include name="**/*"/>
                                     </fileset>
-                                </ftp>
-                                <ftp action="mkdir"
-                                     server="${build.uploadHostname}"
-                                     remotedir="${build.uploadPath}"
-                                     userid="${build.uploadUsername}"
-                                     password="${build.uploadPassword}"
-                                     ignoreNoncriticalErrors="true"
-                                     skipFailedTransfers="true">
                                 </ftp>
                                 <ftp server="${build.uploadHostname}"
                                      remotedir="${build.uploadPath}"
@@ -106,7 +105,14 @@
                                 <phase>deploy</phase>
                                 <configuration>
                                     <target>
-                                    
+                                        <ftp action="mkdir"
+                                             server="${build.uploadHostname}"
+                                             remotedir="${build.packageUploadPath}"
+                                             userid="${build.uploadUsername}"
+                                             password="${build.uploadPassword}"
+                                             ignoreNoncriticalErrors="true"
+                                             skipFailedTransfers="true">
+                                        </ftp>
                                         <ftp action="del"
                                              server="${build.uploadHostname}"
                                              remotedir="${build.packageUploadPath}"
@@ -119,14 +125,6 @@
                                                 <include name="*.zip"/>
                                                 <include name="*.tar.gz"/>
                                             </fileset>
-                                        </ftp>
-                                        <ftp action="mkdir"
-                                             server="${build.uploadHostname}"
-                                             remotedir="${build.packageUploadPath}"
-                                             userid="${build.uploadUsername}"
-                                             password="${build.uploadPassword}"
-                                             ignoreNoncriticalErrors="true"
-                                             skipFailedTransfers="true">
                                         </ftp>
                                         <ftp server="${build.uploadHostname}"
                                              remotedir="${build.packageUploadPath}"
