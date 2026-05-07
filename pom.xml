@@ -27,6 +27,7 @@
         
         <build.uploadHostname>bithatch.co.uk</build.uploadHostname>
         <build.uploadPath>/httpdocs/repositories/eclipzx</build.uploadPath>
+        <build.packageUploadPath>/httpdocs/downloads/eclipzx</build.packageUploadPath>
         <build.uploadUsername>bithatch</build.uploadUsername>
         <build.uploadPassword>__YOUR_PASSWORD__</build.uploadPassword>
 	</properties>

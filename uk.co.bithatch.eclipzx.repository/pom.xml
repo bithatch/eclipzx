@@ -34,7 +34,7 @@
                             
                                 <ftp action="del"
                                      server="${build.uploadHostname}"
-                                     remotedir="${build.uploadPath}"
+                                     remotedir="${build.packageUploadPath}"
                                      userid="${build.uploadUsername}"
                                      password="${build.uploadPassword}"
                                      ignoreNoncriticalErrors="true"
@@ -46,14 +46,14 @@
                                 </ftp>
                                 <ftp action="mkdir"
                                      server="${build.uploadHostname}"
-                                     remotedir="${build.uploadPath}"
+                                     remotedir="${build.packageUploadPath}"
                                      userid="${build.uploadUsername}"
                                      password="${build.uploadPassword}"
                                      ignoreNoncriticalErrors="true"
                                      skipFailedTransfers="true">
                                 </ftp>
                                 <ftp server="${build.uploadHostname}"
-                                     remotedir="${build.uploadPath}"
+                                     remotedir="${build.packageUploadPath}"
                                      userid="${build.uploadUsername}"
                                      password="${build.uploadPassword}"
                                      binary="yes"
