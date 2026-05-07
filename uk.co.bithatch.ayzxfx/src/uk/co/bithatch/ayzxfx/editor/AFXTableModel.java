@@ -47,7 +47,12 @@ public class AFXTableModel extends AbstractTableModel {
 	public void setFreestyleMode(boolean freestyleMode) {
 		if (this.freestyleMode != freestyleMode) {
 			this.freestyleMode = freestyleMode;
-			fireTableDataChanged();
+			adjusting = true;
+			try {
+				fireTableDataChanged();
+			} finally {
+				adjusting = false;
+			}
 		}
 	}
 

@@ -136,7 +136,6 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 			});
 			setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 			add(slider);
-			configureSwingForeground(slider);
 		}
 
 		public ValueBar getValueBar() {
@@ -370,7 +369,7 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 
 		createAccessory(root);
 
-		frame = configureSwingComponent(SWT_AWT.new_Frame(embed));
+		frame = SWT_AWT.new_Frame(embed);
 		frame.setLayout(new BorderLayout());
 
 		widgetBackground = toColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -381,7 +380,7 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		selectionBackground = toColor(SWT.COLOR_LIST_SELECTION);
 		selectionForeground = toColor(SWT.COLOR_LIST_SELECTION_TEXT);
 
-		var panel = configureSwingComponent(new Panel());
+		var panel = new Panel();
 		panel.setLayout(new BorderLayout());
 		panel.setBackground(widgetBackground);
 
@@ -389,11 +388,10 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 
 		progress.setMaximum(model.getRowCount());
 
-		scrollpane = configureSwingComponent(new JScrollPane(viewer));
+		scrollpane = new JScrollPane(viewer);
 		scrollpane.setBackground(widgetBackground);
 		panel.add(scrollpane, BorderLayout.CENTER);
 		frame.add(panel, BorderLayout.CENTER);
-		configureSwingComponent(scrollpane.getVerticalScrollBar());
 		
 		registerThemeListener();
 		
@@ -589,21 +587,6 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		}
 	}
 
-	private <J extends Component> J configureSwingComponent(J jc) {
-		if (Platform.getOS().equals("linux") && MATCH_COLOURS) {
-			jc.setBackground(widgetBackground);
-			jc.setForeground(widgetForeground);
-		}
-		return jc;
-	}
-
-	private <J extends Component> J configureSwingForeground(J jc) {
-		if (Platform.getOS().equals("linux") && MATCH_COLOURS) {
-			jc.setForeground(widgetForeground);
-		}
-		return jc;
-	}
-
 	private void createTable() {
 
 		model.addTableModelListener(new TableModelListener() {
@@ -653,10 +636,6 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 					removeItem.setEnabled(viewer.getSelectedRowCount() > 0);
 					removeItem.addActionListener(a -> removeSelection());
 					popup.add(removeItem);
-					configureSwingComponent(popup);
-					configureSwingComponent(addItem);
-					configureSwingComponent(addAboveItem);
-					configureSwingComponent(removeItem);
 					popup.show(viewer, e.getX(), e.getY());
 				}
 			}
@@ -700,7 +679,7 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 
 		freestyleMode = FreestyleStateSourceProvider.isFreestyleModeEnabled();
 
-		viewer = configureSwingComponent(new JTable());
+		viewer = new JTable();
 		viewer.setColumnSelectionAllowed(false);
 		viewer.setCellSelectionEnabled(false);
 		viewer.setFillsViewportHeight(true);
@@ -716,7 +695,6 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		viewer.setModel(model);
 		setFreestyleMode(freestyleMode);
 		setupTableSelection();
-		configureSwingComponent(viewer.getTableHeader());
 
 		setFixedColWidth(0, 64);
 		setFixedColWidth(1, 40);
