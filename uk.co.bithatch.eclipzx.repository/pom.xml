@@ -59,7 +59,7 @@
                                      binary="yes"
                                      passive="yes"
                                      depends="no">
-                                    <fileset dir="target/repository"/>
+                                    <fileset dir="target/extraArtifacts"/>
                                 </ftp>
                             </target>
                         </configuration>
