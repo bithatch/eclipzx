@@ -683,13 +683,15 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 						}
 					}
 					var col = viewer.columnAtPoint(e.getPoint());
-					var cr = viewer.getCellRenderer(row, col);
-					if (cr instanceof ValuePanel rndr) {
-						var vbar = rndr.getValueBar();
-						var rect = viewer.getCellRect(row, col, true);
-						var relX = e.getX() - rect.x;
-						var val = ValueBar.calcNewValue(relX, col == 4 && AFXEditor.this.logarithmicScaling, vbar.getMax(), rect.width);
-						model.setValueAt(val, row, col);
+					if(col < viewer.getColumnCount() && row < viewer.getRowCount()) {
+						var cr = viewer.getCellRenderer(row, col);
+						if (cr instanceof ValuePanel rndr) {
+							var vbar = rndr.getValueBar();
+							var rect = viewer.getCellRect(row, col, true);
+							var relX = e.getX() - rect.x;
+							var val = ValueBar.calcNewValue(relX, col == 4 && AFXEditor.this.logarithmicScaling, vbar.getMax(), rect.width);
+							model.setValueAt(val, row, col);
+						}
 					}
 				}
 			}
