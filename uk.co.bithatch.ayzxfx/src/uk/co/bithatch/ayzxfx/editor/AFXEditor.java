@@ -17,7 +17,9 @@ import java.util.EventObject;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -93,6 +95,7 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 			});
 			setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 			add(slider);
+			configureSwingForeground(slider);
 		}
 
 		public ValueBar getValueBar() {
@@ -264,16 +267,47 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 	private Color widgetForeground;
 
 	public void addFrame() {
-		if (viewer.getRowCount() == 0)
-			addFrame(new AFXFrame());
-		else {
+		AFXFrame newFrame;
+		int insertIndex;
+		var selected = viewer.getSelectedRows();
+		if (viewer.getRowCount() == 0) {
+			newFrame = new AFXFrame();
+			insertIndex = -1;
+		} else if (selected.length > 0) {
+			var lastSelected = selected[selected.length - 1];
+			newFrame = model.afx().frames().get(lastSelected).copy();
+			insertIndex = lastSelected + 1;
+		} else {
 			var lastRow = model.afx().frames().get(viewer.getRowCount() - 1);
-			addFrame(lastRow.copy());
+			newFrame = lastRow.copy();
+			insertIndex = -1;
 		}
+		addFrame(insertIndex, newFrame);
+	}
+
+	public void addFrameAbove() {
+		var selected = viewer.getSelectedRows();
+		int insertIndex;
+		if (selected.length > 0) {
+			insertIndex = selected[0];
+		} else {
+			insertIndex = 0;
+		}
+		AFXFrame newFrame;
+		if (insertIndex < model.getRowCount()) {
+			newFrame = model.afx().frames().get(insertIndex).copy();
+		} else {
+			newFrame = new AFXFrame();
+		}
+		addFrame(insertIndex, newFrame);
 	}
 
 	public void addFrame(AFXFrame newFrame) {
-		var op = new AddFrameOperation(model, newFrame);
+		addFrame(-1, newFrame);
+	}
+
+	public void addFrame(int index, AFXFrame newFrame) {
+		var op = new AddFrameOperation(model, index, newFrame);
 		execute(op);
 	}
 
@@ -514,6 +548,13 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		return jc;
 	}
 
+	private <J extends Component> J configureSwingForeground(J jc) {
+		if (Platform.getOS().equals("linux")) {
+			jc.setForeground(widgetForeground);
+		}
+		return jc;
+	}
+
 	private void createTable() {
 
 		model.addTableModelListener(new TableModelListener() {
@@ -533,6 +574,42 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				updateForMousePoint(e);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				showPopupIfTriggered(e);
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				showPopupIfTriggered(e);
+			}
+
+			private void showPopupIfTriggered(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					var row = viewer.rowAtPoint(e.getPoint());
+					if (row >= 0 && !viewer.isRowSelected(row)) {
+						viewer.setRowSelectionInterval(row, row);
+					}
+					var popup = new JPopupMenu();
+					var addItem = new JMenuItem("Add Frame Below");
+					addItem.addActionListener(a -> addFrame());
+					popup.add(addItem);
+					var addAboveItem = new JMenuItem("Add Frame Above");
+					addAboveItem.addActionListener(a -> addFrameAbove());
+					popup.add(addAboveItem);
+					popup.addSeparator();
+					var removeItem = new JMenuItem("Remove Frame");
+					removeItem.setEnabled(viewer.getSelectedRowCount() > 0);
+					removeItem.addActionListener(a -> removeSelection());
+					popup.add(removeItem);
+					configureSwingComponent(popup);
+					configureSwingComponent(addItem);
+					configureSwingComponent(addAboveItem);
+					configureSwingComponent(removeItem);
+					popup.show(viewer, e.getX(), e.getY());
+				}
 			}
 
 			@Override

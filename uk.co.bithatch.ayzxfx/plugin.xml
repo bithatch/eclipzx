@@ -128,6 +128,11 @@
             categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
             
       <command
+            id="uk.co.bithatch.ayzxfx.editor.commands.addAbove"
+            name="Add Effect Frame Above"
+            categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
+            
+      <command
             id="uk.co.bithatch.ayzxfx.editor.commands.remove"
             name="Remove Effect Frame"
             categoryId="uk.co.bithatch.ayzxfx.editor.commands.category" />
@@ -187,6 +192,9 @@
             class="uk.co.bithatch.ayzxfx.editor.RemoveFrameHandler"
             commandId="uk.co.bithatch.ayzxfx.editor.commands.remove"/>
           <handler
+            class="uk.co.bithatch.ayzxfx.editor.AddFrameAboveHandler"
+            commandId="uk.co.bithatch.ayzxfx.editor.commands.addAbove"/>
+          <handler
             class="uk.co.bithatch.ayzxfx.editor.AddEffectHandler"
             commandId="uk.co.bithatch.ayzxfx.editor.commands.addEffect"/>
           <handler
@@ -233,8 +241,23 @@
           <command
                 commandId="uk.co.bithatch.ayzxfx.editor.commands.add"
                 icon="icons/add16.png"
-                label="Add Frame"
-                tooltip="Add Effect Frame"
+                label="Add Frame Below"
+                tooltip="Add Effect Frame Below Selection"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFXEditor"/>
+                        <equals value="uk.co.bithatch.ayzxfx.editor.AFBEditor"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.addAbove"
+                icon="icons/addAbove16.png"
+                label="Add Frame Above"
+                tooltip="Add Effect Frame Above Selection"
                 style="push">
                 <visibleWhen checkEnabled="false">
                   <with variable="activeEditorId">
@@ -449,6 +472,11 @@
           <command
                 commandId="uk.co.bithatch.ayzxfx.editor.commands.add"
                 label="Add Frame"
+                icon="icons/add16.png"
+                style="push" />
+          <command
+                commandId="uk.co.bithatch.ayzxfx.editor.commands.addAbove"
+                label="Add Frame Above"
                 icon="icons/add16.png"
                 style="push" />
           <command

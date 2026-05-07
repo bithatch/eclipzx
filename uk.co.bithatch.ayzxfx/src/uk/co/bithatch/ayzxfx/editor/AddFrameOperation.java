@@ -12,16 +12,26 @@ public class AddFrameOperation extends AbstractOperation {
 
     private final AFXFrame frame;
 	private final AFXTableModel model;
+	private final int index;
 
     public AddFrameOperation(AFXTableModel model, AFXFrame frame) {
+        this(model, -1, frame);
+    }
+
+    public AddFrameOperation(AFXTableModel model, int index, AFXFrame frame) {
         super("Add Frame");
         this.frame = frame;
         this.model = model;
+        this.index = index;
     }
 
     @Override
     public IStatus execute(IProgressMonitor monitor, IAdaptable info) {
-        model.add(frame);
+        if (index >= 0 && index < model.getRowCount()) {
+            model.add(index, frame);
+        } else {
+            model.add(frame);
+        }
         return Status.OK_STATUS;
     }
 
