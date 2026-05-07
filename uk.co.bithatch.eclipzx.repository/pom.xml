@@ -135,7 +135,10 @@
                                              binary="yes"
                                              passive="yes"
                                              depends="no">
-                                            <fileset dir="target/repository"/>
+                                            <fileset dir="target/products">
+                                                <include name="*.zip"/>
+                                                <include name="*.tar.gz"/>
+                                            </fileset>
                                         </ftp>
                                     </target>
                                 </configuration>
