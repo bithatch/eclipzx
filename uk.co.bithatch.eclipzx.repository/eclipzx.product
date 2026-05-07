@@ -85,7 +85,6 @@ else you fancy running in no time at all.
       <feature id="org.exbin.bined.eclipse.feature" installMode="root"/>
       <feature id="org.eclipse.cdt.gnu.debug" installMode="root"/>
       <feature id="org.eclipse.cdt.gdb" installMode="root"/>
-      <feature id="org.eclipse.tm.terminal.control.feature" installMode="root"/>
       <feature id="org.eclipse.xtext.xbase" installMode="root"/>
       <feature id="org.eclipse.xtext.xbase.lib" installMode="root"/>
       <feature id="org.eclipse.xtext.xtext.ui" installMode="root"/>

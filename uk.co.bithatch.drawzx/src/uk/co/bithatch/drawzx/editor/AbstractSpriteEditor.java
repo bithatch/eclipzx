@@ -181,7 +181,9 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().removePartListener(this);
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
 		clipboard.dispose();
-		propertyWatcher.dispose();
+		if(propertyWatcher != null) {
+			propertyWatcher.dispose();
+		}
 	}
 
 	@Override
