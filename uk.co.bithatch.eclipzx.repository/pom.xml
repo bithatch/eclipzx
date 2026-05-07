@@ -41,7 +41,7 @@
                                      passive="yes"
                                      skipFailedTransfers="true">
                                     <fileset>
-                                        <include name="**/*"/>
+                                        <include name="*.zip"/>
                                     </fileset>
                                 </ftp>
                                 <ftp action="mkdir"
