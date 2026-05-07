@@ -34,7 +34,7 @@
     </build>    
     <profiles>
         <profile>
-            <id>products</id>
+            <id>packages</id>
             <build>
                 <plugins>
                     <plugin>

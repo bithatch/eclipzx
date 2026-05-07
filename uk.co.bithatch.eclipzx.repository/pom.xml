@@ -34,32 +34,32 @@
                             
                                 <ftp action="del"
                                      server="${build.uploadHostname}"
-                                     remotedir="${build.packageUploadPath}"
+                                     remotedir="${build.uploadPath}"
                                      userid="${build.uploadUsername}"
                                      password="${build.uploadPassword}"
                                      ignoreNoncriticalErrors="true"
                                      passive="yes"
                                      skipFailedTransfers="true">
                                     <fileset>
-                                        <include name="*.zip"/>
+                                        <include name="**/*"/>
                                     </fileset>
                                 </ftp>
                                 <ftp action="mkdir"
                                      server="${build.uploadHostname}"
-                                     remotedir="${build.packageUploadPath}"
+                                     remotedir="${build.uploadPath}"
                                      userid="${build.uploadUsername}"
                                      password="${build.uploadPassword}"
                                      ignoreNoncriticalErrors="true"
                                      skipFailedTransfers="true">
                                 </ftp>
                                 <ftp server="${build.uploadHostname}"
-                                     remotedir="${build.packageUploadPath}"
+                                     remotedir="${build.uploadPath}"
                                      userid="${build.uploadUsername}"
                                      password="${build.uploadPassword}"
                                      binary="yes"
                                      passive="yes"
                                      depends="no">
-                                    <fileset dir="target/extraArtifacts"/>
+                                    <fileset dir="target/repository"/>
                                 </ftp>
                             </target>
                         </configuration>
@@ -92,6 +92,55 @@
                                 <id>archive-products</id>
                                 <goals>
                                     <goal>archive-products</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-product-archives</id>
+                                <phase>deploy</phase>
+                                <configuration>
+                                    <target>
+                                    
+                                        <ftp action="del"
+                                             server="${build.uploadHostname}"
+                                             remotedir="${build.packageUploadPath}"
+                                             userid="${build.uploadUsername}"
+                                             password="${build.uploadPassword}"
+                                             ignoreNoncriticalErrors="true"
+                                             passive="yes"
+                                             skipFailedTransfers="true">
+                                            <fileset>
+                                                <include name="*.zip"/>
+                                                <include name="*.tar.gz"/>
+                                            </fileset>
+                                        </ftp>
+                                        <ftp action="mkdir"
+                                             server="${build.uploadHostname}"
+                                             remotedir="${build.packageUploadPath}"
+                                             userid="${build.uploadUsername}"
+                                             password="${build.uploadPassword}"
+                                             ignoreNoncriticalErrors="true"
+                                             skipFailedTransfers="true">
+                                        </ftp>
+                                        <ftp server="${build.uploadHostname}"
+                                             remotedir="${build.packageUploadPath}"
+                                             userid="${build.uploadUsername}"
+                                             password="${build.uploadPassword}"
+                                             binary="yes"
+                                             passive="yes"
+                                             depends="no">
+                                            <fileset dir="target/repository"/>
+                                        </ftp>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
                                 </goals>
                             </execution>
                         </executions>
