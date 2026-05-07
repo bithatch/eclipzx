@@ -43,6 +43,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.layout.BorderData;
@@ -52,10 +53,15 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.operations.RedoActionHandler;
 import org.eclipse.ui.operations.UndoActionHandler;
 import org.eclipse.ui.part.EditorPart;
+
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import uk.co.bithatch.ayzxfx.ay.AFX;
 import uk.co.bithatch.ayzxfx.ay.AFXFrame;
@@ -63,9 +69,44 @@ import uk.co.bithatch.ayzxfx.ay.AYPlayer;
 
 public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 	
+	private static final boolean MATCH_COLOURS = false;
+	private static final boolean IS_MAC = Platform.getOS().equals(Platform.OS_MACOSX);
+
 	static {
+		applyFlatLaf();
+	}
+
+	private static boolean isEclipseDarkTheme() {
 		try {
-			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			@SuppressWarnings("restriction")
+			var engine = PlatformUI.getWorkbench().getService(IThemeEngine.class);
+			if (engine != null) {
+				var theme = engine.getActiveTheme();
+				if (theme != null) {
+					var id = theme.getId().toLowerCase();
+					return id.contains("dark");
+				}
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+		return false;
+	}
+
+	static void applyFlatLaf() {
+		try {
+			boolean dark = isEclipseDarkTheme();
+			FlatLaf laf;
+			if (IS_MAC) {
+				if (dark) {
+					laf = (FlatLaf) Class.forName("com.formdev.flatlaf.themes.FlatMacDarkLaf").getDeclaredConstructor().newInstance();
+				} else {
+					laf = (FlatLaf) Class.forName("com.formdev.flatlaf.themes.FlatMacLightLaf").getDeclaredConstructor().newInstance();
+				}
+			} else {
+				laf = dark ? new FlatDarkLaf() : new FlatLightLaf();
+			}
+			UIManager.setLookAndFeel(laf);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -261,6 +302,8 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 	private JScrollPane scrollpane;
 	private Color selectionBackground;
 	private Color selectionForeground;
+	private org.osgi.service.event.EventHandler themeListener;
+	private org.osgi.framework.ServiceRegistration<?> themeListenerRegistration;
 	private final IUndoContext undoContext = new ObjectUndoContext(this);
 	private JTable viewer;
 	private Color widgetBackground;
@@ -352,11 +395,17 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		frame.add(panel, BorderLayout.CENTER);
 		configureSwingComponent(scrollpane.getVerticalScrollBar());
 		
+		registerThemeListener();
+		
 		onPartControl();
 	}
 
 	@Override
 	public void dispose() {
+		if (themeListenerRegistration != null) {
+			themeListenerRegistration.unregister();
+			themeListenerRegistration = null;
+		}
 		history.dispose(undoContext, dirty, dirty, dirty);
 		super.dispose();
 	}
@@ -541,7 +590,7 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 	}
 
 	private <J extends Component> J configureSwingComponent(J jc) {
-		if (Platform.getOS().equals("linux")) {
+		if (Platform.getOS().equals("linux") && MATCH_COLOURS) {
 			jc.setBackground(widgetBackground);
 			jc.setForeground(widgetForeground);
 		}
@@ -549,7 +598,7 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 	}
 
 	private <J extends Component> J configureSwingForeground(J jc) {
-		if (Platform.getOS().equals("linux")) {
+		if (Platform.getOS().equals("linux") && MATCH_COLOURS) {
 			jc.setForeground(widgetForeground);
 		}
 		return jc;
@@ -655,7 +704,7 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		viewer.setFillsViewportHeight(true);
 		viewer.addMouseListener(mouseAdapter);
 		viewer.addMouseMotionListener(mouseAdapter);
-		if (Platform.getOS().equals("linux")) {
+		if (Platform.getOS().equals("linux") && MATCH_COLOURS) {
 			viewer.setBackground(listBackground);
 			viewer.setForeground(listForeground);
 			viewer.setSelectionBackground(selectionBackground);
@@ -721,6 +770,21 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		bars.setGlobalActionHandler(ActionFactory.UNDO.getId(), undoHandler);
 		bars.setGlobalActionHandler(ActionFactory.REDO.getId(), redoHandler);
 		bars.updateActionBars();
+	}
+
+	private void registerThemeListener() {
+		var context = org.osgi.framework.FrameworkUtil.getBundle(getClass()).getBundleContext();
+		themeListener = event -> {
+			applyFlatLaf();
+			invokeLater(() -> {
+				com.formdev.flatlaf.FlatLaf.updateUI();
+			});
+		};
+		var props = new java.util.Hashtable<String, Object>();
+		props.put(org.osgi.service.event.EventConstants.EVENT_TOPIC,
+				"org/eclipse/e4/ui/css/swt/theme/ThemeManager/*");
+		themeListenerRegistration = context.registerService(
+				org.osgi.service.event.EventHandler.class, themeListener, props);
 	}
 
 }

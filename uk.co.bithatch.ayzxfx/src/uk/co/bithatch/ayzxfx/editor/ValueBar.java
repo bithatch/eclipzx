@@ -65,6 +65,7 @@ public class ValueBar extends JComponent {
 		addMouseMotionListener(mouse);
 		setFocusable(true);
 		setOpaque(true);
+		setForeground(UIManager.getColor("ProgressBar.foreground"));
 	}
 	
 	public static boolean isCtrlDown() {

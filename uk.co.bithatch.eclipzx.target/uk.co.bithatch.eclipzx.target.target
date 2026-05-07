@@ -61,8 +61,9 @@
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
             <repository location="https://bithatch.co.uk/repositories/p2"/>
+            <unit id="com.formdev.flatlaf" version="3.7.1"/>
             <unit id="uk.co.bithatch.fat32" version="0.6.6"/>
-            <unit id="uk.co.bithatch.jspeccy.engine" version="1.0.2.bithatch2-20251209230334"/>
+            <unit id="uk.co.bithatch.jspeccy.engine" version="1.0.2.bithatch2-20260507093606"/>
             <unit id="uk.co.bithatch.zyxy-compress" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-dezog" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-graphics" version="0.0.4"/>
@@ -70,13 +71,13 @@
             <unit id="uk.co.bithatch.zyxy-mmc" version="0.0.4"/>
             <unit id="org.glassfish.jaxb.core" version="4.0.6"/>
             <unit id="org.glassfish.jaxb.runtime" version="4.0.6"/>
-            <unit id="uk.co.bithatch.tnfs-java-client" version="0.9.0.20251124_101251-244"/>
-            <unit id="uk.co.bithatch.tnfs-java-client-extensions" version="0.9.0.20251124_101251-244"/>
-            <unit id="uk.co.bithatch.tnfs-java-server" version="0.9.0.20251124_101251-245"/>
-            <unit id="uk.co.bithatch.tnfs-java-server-extensions" version="0.9.0.20251124_101251-243"/>
-            <unit id="uk.co.bithatch.tnfs-java-nio" version="0.9.0.20251124_101251-226"/>
-            <unit id="uk.co.bithatch.tnfs-java-lib" version="0.9.0.20251124_101251-246"/>
-            <unit id="uk.co.bithatch.tnfs-java-lib-extensions" version="0.9.0.20251124_101251-246"/>
+            <unit id="uk.co.bithatch.tnfs-java-client" version="0.9.0.20260507093606"/>
+            <unit id="uk.co.bithatch.tnfs-java-client-extensions" version="0.9.0.20260507093606"/>
+            <unit id="uk.co.bithatch.tnfs-java-server" version="0.9.0.20260507093606"/>
+            <unit id="uk.co.bithatch.tnfs-java-server-extensions" version="0.9.0.20260507093606"/>
+            <unit id="uk.co.bithatch.tnfs-java-nio" version="0.9.0.20260507093606"/>
+            <unit id="uk.co.bithatch.tnfs-java-lib" version="0.9.0.20260507093606"/>
+            <unit id="uk.co.bithatch.tnfs-java-lib-extensions" version="0.9.0.20260507093606"/>
         </location>
     </locations>
 </target>
