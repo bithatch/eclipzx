@@ -52,25 +52,37 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		var apath = outf.getFullPath().toString().substring(1);
 		var sizeMb = 64;
 		var type = FatType.FAT16;
+		var resetImageState = configuration
+				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_RESET_IMAGE_STATE, false);
+		var baseOnNextZXOS = configuration
+				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_BASE_ON_NEXT_ZXOS, true);
 			
-		if(!Files.exists(imgfile)) {
-			LOG.info(String.format("Formatting disk image  at %s for type %s with a size of %d MiB", imgfile, type, sizeMb));
-			try {
-				new SDCard.Builder().
-					withCreate().
-					withFile(imgfile.toFile()).
-					withMBR(true).
-					withReadOnly(false).
-					withSize(MemoryUnit.MEBIBYTE, 64).
-					withFormatter(new SDCard.Formatter.Builder().
-						withType(type).
-						withOEMName("EclipZX").
-						withLabel("V" + Integer.toUnsignedLong(imgfile.hashCode())).
-						build()).
-					build().close();
-			} catch (IOException e) {
-				throw new CoreException(Status.error("Failed to create disk image.", e));
-			};
+		if(!Files.exists(imgfile) || resetImageState) {
+			
+			if(baseOnNextZXOS) {
+				// TODO - this should be a copy of the image in the emulator resources, not the
+				// image itself, otherwise we will be modifying the image in place and thus
+				// breaking Next ZXOS support for other users of that image
+			}
+			else {
+				LOG.info(String.format("Formatting disk image  at %s for type %s with a size of %d MiB", imgfile, type, sizeMb));
+				try {
+					new SDCard.Builder().
+						withCreate().
+						withFile(imgfile.toFile()).
+						withMBR(true).
+						withReadOnly(false).
+						withSize(MemoryUnit.MEBIBYTE, 64).
+						withFormatter(new SDCard.Formatter.Builder().
+							withType(type).
+							withOEMName("EclipZX").
+							withLabel("V" + Integer.toUnsignedLong(imgfile.hashCode())).
+							build()).
+						build().close();
+				} catch (IOException e) {
+					throw new CoreException(Status.error("Failed to create disk image.", e));
+				}
+			}
 		}
 		else {
 			LOG.info(String.format("Disk image  at %s already exists, using t hat", imgfile));

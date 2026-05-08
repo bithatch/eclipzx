@@ -53,19 +53,19 @@ public class TapePreferencePage extends PreferencePage implements IWorkbenchPref
 
         flashload = new Button(container, SWT.CHECK);
         flashload.setText("Flashload Standard Speed Tape Blocks");
-        flashload.setLayoutData(GridDataFactory.defaultsFor(loadTraps).span(3, 0).create());
+        flashload.setLayoutData(GridDataFactory.defaultsFor(flashload).span(3, 0).create());
 
         accelerated = new Button(container, SWT.CHECK);
         accelerated.setText("Accelerated Loading");
-        accelerated.setLayoutData(GridDataFactory.defaultsFor(loadTraps).span(3, 0).create());
+        accelerated.setLayoutData(GridDataFactory.defaultsFor(accelerated).span(3, 0).create());
 
         autoload = new Button(container, SWT.CHECK);
         autoload.setText("Autoload on tape insertion");
-        autoload.setLayoutData(GridDataFactory.defaultsFor(loadTraps).span(3, 0).create());
+        autoload.setLayoutData(GridDataFactory.defaultsFor(autoload).span(3, 0).create());
 
         invertedEAR = new Button(container, SWT.CHECK);
         invertedEAR.setText("Inverted EAR state for TZX states");
-        invertedEAR.setLayoutData(GridDataFactory.defaultsFor(loadTraps).span(3, 0).create());
+        invertedEAR.setLayoutData(GridDataFactory.defaultsFor(invertedEAR).span(3, 0).create());
 
 		info = new Label(container, SWT.NONE);
         info.setFont(JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT));

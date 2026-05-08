@@ -3,11 +3,16 @@
 <plugin> 
     <extension point="org.eclipse.ui.keywords">
         <keyword id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" label="External Emulators" />
+        <keyword id="uk.co.bithatch.emuzx.ui.keyword_EmulatorResources" label="Emulator Resources" />
     </extension>   
     <extension point="org.eclipse.ui.preferencePages">
         <page class="uk.co.bithatch.emuzx.ui.ExternalEmulatorsPreferencePage" 
             id="uk.co.bithatch.emuzx.ui.preferencePage" name="External Emulators">
             <keywordReference id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" />
+        </page>
+        <page class="uk.co.bithatch.emuzx.ui.EmulatorResourcesPreferencePage" 
+            id="uk.co.bithatch.emuzx.ui.preferencePage" name="Emulator Resources">
+            <keywordReference id="uk.co.bithatch.emuzx.ui.keyword_EmulatorResources" />
         </page>
     </extension>  
 </plugin>

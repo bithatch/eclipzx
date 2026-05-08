@@ -9,4 +9,7 @@ public interface PreferenceConstants extends IPreferenceConstants {
 	String EXTERNAL_EMULATOR_EXECUTABLE = "externalEmulator.executable";
 	String EXTERNAL_EMULATOR_LEADING_OPTIONS = "externalEmulator.leadingOptions";
 	String EXTERNAL_EMULATOR_TRAILING_OPTIONS = "externalEmulator.trailingOptions";
+	
+	String NEXT_ZXOS = "nextZXOS";
+
 }

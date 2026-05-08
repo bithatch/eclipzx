@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>   
+    <extension point="uk.co.bithatch.emuzx.emulator">
+        <emulator
+            id="uk.co.bithatch.emuzx.emulator.mame"
+            icon="icons/mame16.png"
+            executable="mame.exe"
+            name="MAME"
+            pattern="(.*)/(mame\.exe)(.*)"
+            website="https://wiki.specnext.dev/MAME:Installing"
+            author="holub and others"
+            class="uk.co.bithatch.emuzx.emulator.mame.MAME"/>
+    </extension>
+</plugin> 

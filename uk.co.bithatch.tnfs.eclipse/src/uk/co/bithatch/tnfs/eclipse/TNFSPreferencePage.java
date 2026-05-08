@@ -9,7 +9,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 
-import uk.co.bithatch.tnfs.lib.TNFS;
 import uk.co.bithatch.widgetzx.SpinnerFieldEditor;
 
 public class TNFSPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {

@@ -17,7 +17,9 @@ public interface ExternalEmulatorLaunchConfigurationAttributes {
     public static final String PREPARATION_TARGET = PREPARATION + ".target";
     public static final String PREPARATION_TARGET_LOCATION = PREPARATION + ".targetLocation";
     public static final String PREPARATION_CLEAR_BEFORE_USE = PREPARATION + ".clearBeforeUse";
+    public static final String PREPARATION_RESET_IMAGE_STATE = PREPARATION + ".resetImageState";
     public static final String AUTOCONFIGURED = PREPARATION + ".autoConfigured";
     public static final String PREPARATION_SOURCE_IDS = PREPARATION + ".sourceIds";
+    public static final String PREPARATION_BASE_ON_NEXT_ZXOS = PREPARATION + ".baseOnNextZXOS";
     
 }
