@@ -120,7 +120,7 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 					build());
 		}
 		else {
-			LOG.info(String.format("Disk image  at %s already exists, using t hat", imgfile));
+			LOG.info(String.format("Disk image  at %s already exists, using that", imgfile));
 		}
 	}
 	

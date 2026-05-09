@@ -84,15 +84,25 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 
 				var externalFiles = new ArrayList<FileSet>();
 
-				/* Plugins that can find more resources to contribute */
-				for (var desc : PreparationSourceRegistry.descriptors()) {
-					desc.createSource().contribute(prepCtx, externalFiles, monitor);
-				}
-
 				/* Do the prep */
-				var status = preparationTarget.get().prepare(monitor, externalFiles);
-				if (!status.isOK()) {
-					throw new CoreException(status);
+				try {
+					/* Plugins that can find more resources to contribute */
+					for (var desc : PreparationSourceRegistry.descriptors()) {
+						desc.createSource().contribute(prepCtx, externalFiles, monitor);
+					}
+					
+					var status = preparationTarget.get().prepare(monitor, externalFiles);
+					if (!status.isOK()) {
+						throw new CoreException(status);
+					}
+				}
+				catch (CoreException ce) {
+					closePrepCtx(prepCtx);
+					throw ce;
+				}
+				catch(Exception e) {
+					closePrepCtx(prepCtx);
+					throw new CoreException(Status.error("Failed to prepare for launch.", e));
 				}
 			}
 
@@ -167,6 +177,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 			try {
 				process = pb.start();
 			} catch (IOException e) {
+				closePrepCtx(prepCtx);
 				throw new CoreException(
 						new Status(IStatus.ERROR, "uk.co.bithatch.zxbasic", "Failed to start emulator", e));
 			}
@@ -181,11 +192,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 					for (var event : events) {
 						if (event.getKind() == DebugEvent.TERMINATE && event.getSource() == eclipseProcess) {
 							DebugPlugin.getDefault().removeDebugEventListener(this);
-							try {
-								prepCtx.close();
-							} catch (Exception e) {
-								LOG.error("Failed to close preparation context", e);
-							}
+							closePrepCtx(prepCtx);
 						}
 					}
 				}
@@ -236,5 +243,12 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 		}
 	}
 
+	protected void closePrepCtx(DefaultPreparationContext prepCtx) {
+		try {
+			prepCtx.close();
+		} catch (Exception e) {
+			LOG.error("Failed to close preparation context", e);
+		}
+	}
 
 }
