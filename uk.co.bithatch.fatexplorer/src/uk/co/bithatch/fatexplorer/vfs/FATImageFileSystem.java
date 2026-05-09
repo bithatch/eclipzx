@@ -17,15 +17,18 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChang
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.eclipse.ui.PlatformUI;
 
+import uk.co.bithatch.fatexplorer.preferences.FATLock;
+import uk.co.bithatch.fatexplorer.preferences.FATLock.LockListener;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.zyxy.mmc.SDCard;
 
-public class FATImageFileSystem extends FileSystem implements IPreferenceChangeListener {
+public class FATImageFileSystem extends FileSystem implements IPreferenceChangeListener, LockListener {
 
 	private final Map<String, FATImageFileStore> storeCache = new HashMap<>();
 	
 	public FATImageFileSystem() {
 		FATPreferencesAccess.getPreferences().addPreferenceChangeListener(this);
+		FATLock.addListener(this);
 	}
 
 	@Override
@@ -93,6 +96,10 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 
 	@Override
 	public void preferenceChange(PreferenceChangeEvent event) {
+		resetStoreCache();
+	}
+
+	protected void resetStoreCache() {
 		synchronized(storeCache) {
 			storeCache.values().forEach(v -> {
 				try {
@@ -102,6 +109,11 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 			});
 			storeCache.clear();
 		}
+	}
+
+	@Override
+	public void lockStateChanged(String uri, boolean locked) {
+		resetStoreCache();
 	}
 
 }

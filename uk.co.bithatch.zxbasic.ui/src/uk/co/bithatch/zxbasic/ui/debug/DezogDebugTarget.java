@@ -21,6 +21,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
+import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
 import uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorDebugTarget;
 import uk.co.bithatch.zyxy.dezog.Command.PauseNotification;
 import uk.co.bithatch.zyxy.dezog.DezogClient;
@@ -30,8 +31,8 @@ public class DezogDebugTarget extends ExternalEmulatorDebugTarget {
 	private final DezogClient dezog;
 	private final IThread z80thread;
 
-	public DezogDebugTarget(ILaunch launch, ILaunchConfiguration configuration, IProcess process) throws CoreException {
-		super(launch, process);
+	public DezogDebugTarget(IPreparationContext preparationContext, ILaunch launch, ILaunchConfiguration configuration, IProcess process) throws CoreException {
+		super(preparationContext, launch, process);
 
 		dezog = new DezogClient.Builder()
 				.withPort(configuration.getAttribute(PORT, DezogClient.DEFAULT_PORT))

@@ -3,8 +3,6 @@ package uk.co.bithatch.fatexplorer.vfs;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
-import uk.co.bithatch.fatexplorer.vfs.FileOverwritePolicy.Decision;
-
 public class UIOverwritePolicy implements FileOverwritePolicy {
 
     @Override

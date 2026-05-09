@@ -15,6 +15,7 @@ public class FATImageContext {
 	public final static String IMAGE = "fat_image";
 	public final static String DEFAULT = "fat_default";
 	public final static String FOLDER = "fat_folder";
+	public final static String OWNER = "fat_owner";
 
 	public static void set(Map<String, String> config) {
 		currentConfig.set(config);

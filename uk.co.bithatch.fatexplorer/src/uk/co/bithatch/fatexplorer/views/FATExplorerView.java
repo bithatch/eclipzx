@@ -2,13 +2,16 @@ package uk.co.bithatch.fatexplorer.views;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
 import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
@@ -63,6 +66,8 @@ import org.eclipse.ui.part.ViewPart;
 import de.waldheinz.fs.ReadOnlyException;
 import uk.co.bithatch.fatexplorer.Activator;
 import uk.co.bithatch.fatexplorer.preferences.DiskImageListEditor;
+import uk.co.bithatch.fatexplorer.preferences.FATLock;
+import uk.co.bithatch.fatexplorer.preferences.FATLock.LockListener;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.preferences.PreferenceConstants;
 import uk.co.bithatch.fatexplorer.util.FileNames;
@@ -72,7 +77,7 @@ import uk.co.bithatch.fatexplorer.vfs.FileStoreTransfer;
 import uk.co.bithatch.fatexplorer.vfs.UIOverwritePolicyWithApplyToAll;
 import uk.co.bithatch.zyxy.lib.MemoryUnit;
 
-public class FATExplorerView extends ViewPart implements ISelectionChangedListener, IPreferenceChangeListener {
+public class FATExplorerView extends ViewPart implements ISelectionChangedListener, IPreferenceChangeListener, LockListener {
 
 	private static class FatFileContentProvider implements ITreeContentProvider {
 		@Override
@@ -82,7 +87,7 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 					IFileStore store = EFS.getStore(uri);
 					/* TODO where to get a better progress monitor */
 					return store.childStores(EFS.NONE, new NullProgressMonitor());
-				} else if (parentElement instanceof IFileStore fs) {
+				} else if (parentElement instanceof FATImageFileStore fs) {
 					/* TODO where to get a better progress monitor */
 					return fs.childStores(EFS.NONE, new NullProgressMonitor());
 				} else {
@@ -212,6 +217,7 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 		hookContextMenu();
 		
 		FATPreferencesAccess.getPreferences().addPreferenceChangeListener(this);
+		FATLock.addListener(this);
 	}
 
 	protected void resetInput() {
@@ -228,6 +234,7 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 
 	@Override
 	public void dispose() {
+		FATLock.removeListener(this);
 		FATPreferencesAccess.getPreferences().removePreferenceChangeListener(this);
 		clipboard.dispose();
 		super.dispose();
@@ -252,9 +259,48 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 
 	protected IFileStore openUri(URI uri) {
 		try {
+			if(FATLock.isImageLocked(uri.toString())) {
+				throw new IOException("Disk image is locked.");
+			}
 			return EFS.getStore(uri);
-		} catch (CoreException e) {
-			return null;
+		} catch (Exception e) {
+			return new FileStore() {
+				
+				@Override
+				public URI toURI() {
+					return uri;
+				}
+				
+				@Override
+				public InputStream openInputStream(int options, IProgressMonitor monitor) throws CoreException {
+					throw new CoreException(Status.error("Unsupported."));
+				}
+				
+				@Override
+				public IFileStore getParent() {
+					return null;
+				}
+				
+				@Override
+				public String getName() {
+					return "Error: " + e.getMessage();
+				}
+				
+				@Override
+				public IFileStore getChild(String name) {
+					return null;
+				}
+				
+				@Override
+				public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
+					return null;
+				}
+				
+				@Override
+				public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
+					return new String[0];
+				}
+			};
 		}
 	}
 	
@@ -893,6 +939,21 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 				display.execute(() -> viewer.refresh(targetDir));
 				return Status.OK_STATUS;
 
+			} catch (Exception e) {
+				return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Failed to move files.", e);
+			} finally {
+				monitor.done();
+			}
+		});
+	}
+
+	@Override
+	public void lockStateChanged(String uri, boolean locked) {
+		fileJob("Image lock status changed", monitor -> {
+			monitor.beginTask("Refreshing", 1);
+			try {
+				display.execute(() -> resetInput());
+				return Status.OK_STATUS;
 			} catch (Exception e) {
 				return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Failed to move files.", e);
 			} finally {

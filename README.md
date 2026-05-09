@@ -16,11 +16,12 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
  * Define multiple SDKs for both ZX Basic and Z88DK and select the one to use with your project. E.g. A recent version of Boriels SDK will be bundled, but you can always download your own.
  * Adds concept of User Libraries to ZX Basic that you can share with others to use in their EclipZX projects. Comes with one example implementation, the great NextLib.
  * Deploy to any number of common formats such as NEX, TGZ, TAP, SNA and more.
- * Fully featured built in emulator based on JSpeccy.
+ * Fully featured built in emulator based on JSpeccy (Original ZX Spectrum family only)
  * Click+Run your source file, it will be built and deployed to your chosen emulator.
- * Comes with emulator launch templates for CSpect and Zesarux. 
+ * Comes with emulator launch templates for MAME, CSpect and Zesarux. 
  * Create, Format and Manage FAT16/FAT32 disk images, for deploying your games on SD 
-   cards for the next. The same system is used for launching emulators that support SD card images.
+   cards for the next. The same system is used for launching emulators that support SD card images. 
+ * For ZX Next support, generated disk images can be based on Next ZXOS. 
  * ZX Next Sprite editor, and UDG / Character set Editors for original Spectrums.
  * ZX Next palette editors.
  * A screen editor supporting .SCR for original video modes, and all new ZX Next modes¹ .
@@ -48,6 +49,9 @@ It consists of a suite of Eclipse plugins, all packaged up together in an an eas
  * <img title="UDG Editor" src="src/web/screenshot-udgs.png" width="200"/>
  * <img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/>
 
+## Status as of 09/05/2026
+
+Development is slower than I'd like, but slowly things are getting polished. The AYFX editor is much improved, and there is now an emulator launch template for MAME. The base Eclipse version has been refreshed (now based on 4.39).
 
 ## Status as of 25/11/2025
 

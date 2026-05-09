@@ -11,16 +11,19 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
 import uk.co.bithatch.zxbasic.ui.ZXBasicUiActivator;
+import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
 
 public class ExternalEmulatorDebugTarget extends DebugElement implements IDebugTarget {
 
     private final IProcess process;
     private final ILaunch launch;
+    private final IPreparationContext preparationContext;
 
-    public ExternalEmulatorDebugTarget(ILaunch launch, IProcess process) {
+    public ExternalEmulatorDebugTarget(IPreparationContext preparationContext, ILaunch launch, IProcess process) {
         super(null);
         this.process = process;
         this.launch = launch;
+        this.preparationContext = preparationContext;
     }
 
     @Override

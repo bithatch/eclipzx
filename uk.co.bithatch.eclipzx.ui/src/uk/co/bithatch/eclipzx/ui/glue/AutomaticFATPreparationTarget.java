@@ -20,6 +20,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 
 import de.waldheinz.fs.fat.FatType;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
+import uk.co.bithatch.fatexplorer.preferences.FATLock;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
 import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
@@ -66,23 +67,40 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		var outf = out.getFile(Integer.toUnsignedLong(configuration.getName().hashCode()) + ".img");
 		var imgfile = outf.getLocation().toPath();
 		var imgFullPath = imgfile.toString();
-		var apath = outf.getFullPath().toString().substring(1);
 		var sizeMb = 64;
 		var type = FatType.FAT16;
-		checkForImage(configuration, imgfile, sizeMb, type);
-		
-		outf.getParent().refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
-		FATPreferencesAccess.addImagePath(apath);
-		
-		FATImageContext.set(FATImageContext.DEFAULT, "/" + pprj.getName());
-		FATImageContext.set(FATImageContext.IMAGE, imgFullPath);
-		FATImageContext.set(FATImageContext.FOLDER, strmgr.performStringSubstitution(
-				configuration.getAttribute(ConfiguredFATPreparationTargetUI.FAT_FOLDER, "${fat_default}")));
-		
+
+		var apath = outf.getFullPath().toString().substring(1);
 		uri = FATPreferencesAccess.encodeToURI(apath);
+		FATLock.lockImage(uri.toString());
 		
-		return super.init(prepCtx);
+		try {
+			checkForImage(configuration, imgfile, sizeMb, type);
 		
+			outf.getParent().refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
+			FATPreferencesAccess.addImagePath(apath);
+			
+			FATImageContext.set(FATImageContext.DEFAULT, "/" + pprj.getName());
+			FATImageContext.set(FATImageContext.IMAGE, imgFullPath);
+			FATImageContext.set(FATImageContext.FOLDER, strmgr.performStringSubstitution(
+					configuration.getAttribute(ConfiguredFATPreparationTargetUI.FAT_FOLDER, "${fat_default}")));
+			
+			
+			
+			prepCtx.addCleanUpTask(() -> {
+				FATLock.unlockImage(uri.toString());
+			});
+			
+			return super.init(prepCtx);
+		}
+		catch(CoreException e) {
+			FATLock.unlockImage(uri.toString());
+			throw e;
+		}
+		catch(RuntimeException e) {
+			FATLock.unlockImage(uri.toString());
+			throw e;
+		}
 	}
 
 	protected void checkForImage(ILaunchConfiguration configuration, Path imgfile, int sizeMb, FatType type)

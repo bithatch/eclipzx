@@ -4,8 +4,6 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.swt.widgets.Display;
 
-import uk.co.bithatch.fatexplorer.vfs.FileOverwritePolicy.Decision;
-
 public class UIOverwritePolicyWithApplyToAll implements FileOverwritePolicy {
 
 	private Decision globalDecision = null;

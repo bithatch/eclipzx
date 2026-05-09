@@ -1,6 +1,8 @@
 package uk.co.bithatch.zxbasic.ui.preparation;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.core.resources.IFile;
@@ -18,6 +20,7 @@ public class DefaultPreparationContext implements IWritablePreparationContext {
 	private IOutputFormat outputFormat;
 	private String preparedBinaryFilePath;
 	private ILaunchConfiguration configuration;
+	private List<Runnable> cleanUpTasks = new ArrayList<>();
 	
 	public DefaultPreparationContext(ILaunchConfiguration configuration, IFile programFile) {
 		this.programFile = programFile;
@@ -81,5 +84,15 @@ public class DefaultPreparationContext implements IWritablePreparationContext {
 	@Override
 	public ILaunchConfiguration launchConfiguration() {
 		return configuration;
+	}
+
+	@Override
+	public void addCleanUpTask(Runnable task) {
+		cleanUpTasks.add(task);		
+	}
+
+	@Override
+	public void close() {
+		cleanUpTasks.forEach(Runnable::run);
 	}
 }

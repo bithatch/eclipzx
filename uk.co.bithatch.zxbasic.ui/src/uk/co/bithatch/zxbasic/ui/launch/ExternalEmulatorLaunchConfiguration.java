@@ -41,6 +41,8 @@ import uk.co.bithatch.zxbasic.ui.preparation.DefaultPreparationContext;
 import uk.co.bithatch.zxbasic.ui.preparation.PreparationSourceRegistry;
 import uk.co.bithatch.zxbasic.ui.preparation.PreparationTargetRegistry;
 import uk.co.bithatch.zxbasic.ui.util.FileSet;
+import org.eclipse.debug.core.DebugEvent;
+import org.eclipse.debug.core.IDebugEventSetListener;
 
 public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDelegate {
 	private final static ILog LOG = ILog.of(ExternalEmulatorLaunchConfiguration.class);
@@ -172,12 +174,29 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 			/* Wrap it as an IProcess so Eclipse can manage it */
 			var eclipseProcess = DebugPlugin.newProcess(launch, process, "External Emulator");
 
+			/* Listen for process termination to clean up preparation context */
+			DebugPlugin.getDefault().addDebugEventListener(new IDebugEventSetListener() {
+				@Override
+				public void handleDebugEvents(DebugEvent[] events) {
+					for (var event : events) {
+						if (event.getKind() == DebugEvent.TERMINATE && event.getSource() == eclipseProcess) {
+							DebugPlugin.getDefault().removeDebugEventListener(this);
+							try {
+								prepCtx.close();
+							} catch (Exception e) {
+								LOG.error("Failed to close preparation context", e);
+							}
+						}
+					}
+				}
+			});
+
 			/* Register a debug target */
 			if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 				/* TODO configurable timeout */
 				for (int i = 0; i < 60; i++) {
 					try {
-						launch.addDebugTarget(new DezogDebugTarget(launch, configuration, eclipseProcess));
+						launch.addDebugTarget(new DezogDebugTarget(prepCtx, launch, configuration, eclipseProcess));
 					} catch (UncheckedIOException ce) {
 						if (ce.getCause() instanceof ConnectException) {
 							try {
@@ -193,8 +212,9 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 				if (launch.getDebugTargets().length == 0)
 					throw new CoreException(Status.error("Failed to launch debugger."));
 			} else {
-				launch.addDebugTarget(new ExternalEmulatorDebugTarget(launch, eclipseProcess));
+				launch.addDebugTarget(new ExternalEmulatorDebugTarget(prepCtx, launch, eclipseProcess));
 			}
+			
 		} catch (IllegalStateException ise) {
 			if (ise.getCause() instanceof CoreException ce) {
 				throw ce;
