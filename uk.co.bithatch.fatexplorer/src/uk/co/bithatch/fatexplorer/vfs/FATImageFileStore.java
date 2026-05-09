@@ -39,8 +39,6 @@ public class FATImageFileStore extends FileStore {
 	private final FsObject dir;
 	private final FATImageFileStore parent;
 	private final String uuid;
-	
-	private Object lockOwner;
 
 	public FATImageFileStore(String uuid, FATImageFileSystem fileSystem, String path, FatFileSystem fatFileSystem) {
 		this.fileSystem = fileSystem;
