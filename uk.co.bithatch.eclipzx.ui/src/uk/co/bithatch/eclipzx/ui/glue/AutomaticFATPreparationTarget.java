@@ -3,6 +3,7 @@ package uk.co.bithatch.eclipzx.ui.glue;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -26,21 +27,37 @@ import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 import uk.co.bithatch.zxbasic.ui.util.FileSet;
 import uk.co.bithatch.zyxy.lib.MemoryUnit;
 import uk.co.bithatch.zyxy.mmc.SDCard;
+import uk.co.bithatch.zyxy.mmc.SDCard.Builder;
 
 public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget {
 	private final static ILog LOG = ILog.of(AutomaticFATPreparationTarget.class);
 
-	private URI uri;
+	protected URI uri;
+	protected Builder formatter;
 	
 	@Override
-	public IStatus prepare(IProgressMonitor monitor, List<FileSet> files) throws CoreException {
+	public final IStatus prepare(IProgressMonitor monitor, List<FileSet> files) throws CoreException {
+		beforePrepare(monitor, files);
+		
+		if(formatter != null) {
+			try {
+				formatter.build().close();
+			} catch (IOException e) {
+				throw new CoreException(Status.error("Failed to format disk image.", e));
+			}
+		}
+		
 		var efs = getEFSDir(monitor, uri);
 		copy(false, monitor, files, uri, efs);
 		return Status.OK_STATUS;
 	}
 
+	protected void beforePrepare(IProgressMonitor monitor, List<FileSet> files) throws CoreException {
+		//
+	}
+
 	@Override
-	public String init(IPreparationContext prepCtx) throws CoreException {
+	public final String init(IPreparationContext prepCtx) throws CoreException {
 		
 		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
 		var configuration = prepCtx.launchConfiguration();
@@ -52,41 +69,7 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		var apath = outf.getFullPath().toString().substring(1);
 		var sizeMb = 64;
 		var type = FatType.FAT16;
-		var resetImageState = configuration
-				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_RESET_IMAGE_STATE, false);
-		var baseOnNextZXOS = configuration
-				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_BASE_ON_NEXT_ZXOS, true);
-			
-		if(!Files.exists(imgfile) || resetImageState) {
-			
-			if(baseOnNextZXOS) {
-				// TODO - this should be a copy of the image in the emulator resources, not the
-				// image itself, otherwise we will be modifying the image in place and thus
-				// breaking Next ZXOS support for other users of that image
-			}
-			else {
-				LOG.info(String.format("Formatting disk image  at %s for type %s with a size of %d MiB", imgfile, type, sizeMb));
-				try {
-					new SDCard.Builder().
-						withCreate().
-						withFile(imgfile.toFile()).
-						withMBR(true).
-						withReadOnly(false).
-						withSize(MemoryUnit.MEBIBYTE, 64).
-						withFormatter(new SDCard.Formatter.Builder().
-							withType(type).
-							withOEMName("EclipZX").
-							withLabel("V" + Integer.toUnsignedLong(imgfile.hashCode())).
-							build()).
-						build().close();
-				} catch (IOException e) {
-					throw new CoreException(Status.error("Failed to create disk image.", e));
-				}
-			}
-		}
-		else {
-			LOG.info(String.format("Disk image  at %s already exists, using t hat", imgfile));
-		}
+		checkForImage(configuration, imgfile, sizeMb, type);
 		
 		outf.getParent().refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
 		FATPreferencesAccess.addImagePath(apath);
@@ -101,8 +84,29 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		return super.init(prepCtx);
 		
 	}
+
+	protected void checkForImage(ILaunchConfiguration configuration, Path imgfile, int sizeMb, FatType type)
+			throws CoreException {
+		if(!Files.exists(imgfile)) {
+			LOG.info(String.format("Will Format disk image  at %s for type %s with a size of %d MiB", imgfile, type, sizeMb));
+			formatter = new SDCard.Builder().
+				withCreate().
+				withFile(imgfile.toFile()).
+				withMBR(true).
+				withReadOnly(false).
+				withSize(MemoryUnit.MEBIBYTE, 64).
+				withFormatter(new SDCard.Formatter.Builder().
+					withType(type).
+					withOEMName("EclipZX").
+					withLabel("V" + Integer.toUnsignedLong(imgfile.hashCode())).
+					build());
+		}
+		else {
+			LOG.info(String.format("Disk image  at %s already exists, using t hat", imgfile));
+		}
+	}
 	
-	protected IProject resolveProject(ILaunchConfiguration configuration) throws CoreException {
+	protected final IProject resolveProject(ILaunchConfiguration configuration) throws CoreException {
 		return ResourcesPlugin.getWorkspace().getRoot().getProject(configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, ""));
 	}
 			

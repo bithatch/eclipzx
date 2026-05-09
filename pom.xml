@@ -39,6 +39,7 @@
 		<module>uk.co.bithatch.zxbasic.ui</module>
 		<module>uk.co.bithatch.emuzx</module>
 		<module>uk.co.bithatch.emuzx.ui</module>
+        <module>uk.co.bithatch.nextzxos</module>
 		<module>uk.co.bithatch.zxbasic.borielsdk</module>
 		<module>uk.co.bithatch.emuzx.emulator.cspect</module>
 		<module>uk.co.bithatch.emuzx.emulator.jspeccy</module>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.36"?>
+<plugin>
+    <extension
+          point="uk.co.bithatch.zxbasic.preparationTarget">
+       <preparationTarget
+             id="uk.co.bithatch.nextzxos.nextzxosFATPreparationTarget"
+             name="NextZXOS FAT Disk Image"
+             class="uk.co.bithatch.nextzxos.NextZXOSFATPreparationTarget"
+             uiClass="uk.co.bithatch.nextzxos.NextZXOSFATPreparationTargetUI">
+       </preparationTarget>
+    </extension>
+    
+    <extension point="org.eclipse.ui.keywords">
+        <keyword id="uk.co.bithatch.nextzxos.keyword_NextZXOS" label="Next ZXOS" />
+    </extension>   
+    
+    <extension point="org.eclipse.ui.preferencePages">
+        <page class="uk.co.bithatch.nextzxos.NextZXOSPreferencePage" 
+            id="uk.co.bithatch.nextzxos.preferencePage" name="Next ZXOS">
+            <keywordReference id="uk.co.bithatch.nextzxos.keyword_NextZXOS" />
+        </page>
+    </extension>  
+    
+    <extension point="org.eclipse.core.variables.dynamicVariables">
+       <variable
+             name="next_zxos_image"
+             supportsArgument="false"
+             description="Path to current Next ZXOS image file."
+             resolver="uk.co.bithatch.nextzxos.NextZXOSVariableResolver">
+       </variable>
+    </extension>
+</plugin>

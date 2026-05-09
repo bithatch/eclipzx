@@ -76,8 +76,7 @@
        <preparationTarget
              id="uk.co.bithatch.eclipzx.ui.glue.automaticFATPreparationTarget"
              name="Automatic FAT Disk Image"
-             class="uk.co.bithatch.eclipzx.ui.glue.AutomaticFATPreparationTarget"
-             uiClass="uk.co.bithatch.eclipzx.ui.glue.AutomaticFATPreparationTargetUI">
+             class="uk.co.bithatch.eclipzx.ui.glue.AutomaticFATPreparationTarget">
        </preparationTarget>
        <preparationTarget
              id="uk.co.bithatch.eclipzx.ui.glue.configuredFATPreparationTarget"

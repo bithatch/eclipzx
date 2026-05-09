@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Eclpzx NextZXOS Support
+Bundle-SymbolicName: uk.co.bithatch.nextzxos;singleton:=true
+Bundle-Vendor: Bithatch
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: uk.co.bithatch.nextzxos.Activator
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.nextzxos
+Bundle-ActivationPolicy: lazy
+Export-Package: uk.co.bithatch.nextzxos
+Require-Bundle: uk.co.bithatch.zyxy-mmc;bundle-version="[0.0.0,1.0.0)",
+ uk.co.bithatch.zyxy-lib;bundle-version="[0.0.0,1.0.0)",
+ uk.co.bithatch.zxbasic.ui;bundle-version="[1.0.0,2.0.0)",
+ org.eclipse.core.variables;bundle-version="[3.6.0,4.0.0)",
+ uk.co.bithatch.emuzx;bundle-version="[1.0.0,2.0.0)",
+ uk.co.bithatch.fatexplorer;bundle-version="[1.0.0,2.0.0)",
+ uk.co.bithatch.fat32;bundle-version="[0.6.0,1.0.0)",
+ uk.co.bithatch.eclipzx.ui;bundle-version="[1.0.0,2.0.0)"

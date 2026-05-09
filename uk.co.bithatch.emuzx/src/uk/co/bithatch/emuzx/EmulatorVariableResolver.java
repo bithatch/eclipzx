@@ -14,7 +14,6 @@ import uk.co.bithatch.bitzx.LaunchContext;
 public class EmulatorVariableResolver implements IDynamicVariableResolver {
 	
 	public final static String EMULATOR_CONFIG_FILE = "emulator_config_file";
-	public final static String NEXT_ZXOS_IMAGE = "next_zxos_image";
 	
 	@Override
 	public String resolveValue(IDynamicVariable variable, String argument) throws CoreException {
@@ -43,10 +42,6 @@ public class EmulatorVariableResolver implements IDynamicVariableResolver {
 				return cfgfile.toAbsolutePath().toString();
 				
 			}
-		}
-		else if(variable.getName().equals(NEXT_ZXOS_IMAGE)) {
-			
-			var lc = LaunchContext.get();
 		}
 		return "";
 	}
