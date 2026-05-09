@@ -36,8 +36,7 @@ public final class ToolMessage {
 			return new ToolMessage(parts[0], Integer.parseInt(parts[1]), ToolMessageLevel.valueOf(parts[2].trim().toUpperCase()), parts[3].trim());
 		}
 		catch(Exception e) {
-			return new ToolMessage("/", 0, ToolMessageLevel.ERROR, "Failed toArgs: /usr/bin/python3 /home/SOUTHPARK/tanktarta/.eclipzx/zxb/zxbasic-1.18.1/zxbc.py -d -d -d -f z80 /home/SOUTHPARK/tanktarta/Desktop/Eclipsz/test/dimtest.bas\n"
-					+ " parse output. " + e.getMessage());
+			return new ToolMessage("/", 0, ToolMessageLevel.ERROR, "Failed to parse tool output. `" + output + "`. " + e.getMessage());
 		}
 	}
 	

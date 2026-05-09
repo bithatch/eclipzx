@@ -31,8 +31,8 @@ public class MemoryMapView extends ViewPart {
     @Override
     public void createPartControl(Composite parent) {
         this.parent = parent;
-        loadMemoryMap(new File("/home/SOUTHPARK/tanktarta/Desktop/Eclipsz/test-basic/bin/main.map")); // Load on start
-        drawMemoryMap();
+//        loadMemoryMap(new File("test-basic/bin/main.map")); // Load on start
+//        drawMemoryMap();
     }
 
     @Override
