@@ -1,10 +1,14 @@
 package uk.co.bithatch.zxbasic.ui.preferences;
 
+import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.CONTRIBUTED_SDKS;
+
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.StringButtonFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 
 import uk.co.bithatch.widgetzx.preferences.AbstractProjectSpecificPreferencePage;
 import uk.co.bithatch.zxbasic.ui.library.ContributedSDKRegistry;
@@ -19,8 +23,8 @@ public class SDKPreferencePage extends AbstractProjectSpecificPreferencePage {
 		super(ZXBasicPreferencesAccess.get(), ZXBasicPreferenceConstants.SDKS, GRID);
 		setDescription("""
 				The ZX Basic SDK provides the compilers, runtime libraries and other
-				tools. EclipZX has one built-in, but if you want to use your own
-				particular version, you can choose one here. Each project can select
+				tools. You can choose one of the default SDKs contributed by an EclipZX
+				plugin, or choose your  own if you required a particular version.Each project can select
 				the SDK it uses. This SDK also requires that Python is available, install
 				it or manually select the location if it is not on your PATH.
 				""");
@@ -44,6 +48,13 @@ public class SDKPreferencePage extends AbstractProjectSpecificPreferencePage {
 			python.setFileExtensions(new String[] { "*.exe" });
 		}
 		addField(python);
+		
+
+		var contributedParent = getFieldEditorParent();
+		contributedParent.setLayout(new GridLayout(1, true));
+		contributedParent.setLayoutData(new GridData(GridData.FILL_BOTH));
+		var contributedSdksEditor = new ContributedSDKFieldEditor(CONTRIBUTED_SDKS, "Contributed", contributedParent);
+		addField(contributedSdksEditor);
 
 		sdks = new LibraryFolderListEditor(ZXBasicPreferenceConstants.SDK_PATHS, "User SDK Folders:",
 				getFieldEditorParent(), getWorkbench().getAdapter(IWorkspace.class).getRoot()) {

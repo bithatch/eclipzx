@@ -1,6 +1,7 @@
 package uk.co.bithatch.zxbasic.ui.preferences;
 
 import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.ARCHITECTURE;
+import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.BUILT_IN;
 import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.DEPENDENCIES;
 import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.SDK;
 import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.SDK_PATHS;
@@ -37,7 +38,7 @@ public class ContributedLibrariesPreferencePage extends AbstractProjectSpecificP
 		var builtInsParent = getFieldEditorParent();
 		builtInsParent.setLayout(new GridLayout(1, true));
 		builtInsParent.setLayoutData(new GridData(GridData.FILL_BOTH));
-		builtIns = new BuiltInLibrariesField(DEPENDENCIES, "Built-Ins", builtInsParent, project);
+		builtIns = new BuiltInLibrariesField(BUILT_IN, "Built-Ins", builtInsParent, project);
 		addField(builtIns);
 
 		var contributedParent = getFieldEditorParent();

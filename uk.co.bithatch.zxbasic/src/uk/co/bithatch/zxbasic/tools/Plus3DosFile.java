@@ -1,8 +1,6 @@
 package uk.co.bithatch.zxbasic.tools;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class Plus3DosFile {
     private final String name;
@@ -27,30 +25,51 @@ public class Plus3DosFile {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] header = new byte[128];
 
-        // File name (1–10 chars, space padded)
-        byte[] nameBytes = name.getBytes();
-        int nameLen = Math.min(nameBytes.length, 10);
-        System.arraycopy(nameBytes, 0, header, 0, nameLen);
-        for (int i = nameLen; i < 10; i++) {
-            header[i] = 0x20;
+        // Bytes 0-7: Signature "PLUS3DOS"
+        byte[] sig = "PLUS3DOS".getBytes();
+        System.arraycopy(sig, 0, header, 0, 8);
+
+        // Byte 8: Soft EOF (0x1A)
+        header[8] = 0x1A;
+
+        // Byte 9: Issue number
+        header[9] = 1;
+
+        // Byte 10: Version number
+        header[10] = 0;
+
+        // Bytes 11-14: File length (header 128 + data length), 32-bit LE
+        int fileLength = 128 + data.length;
+        header[11] = (byte) (fileLength & 0xFF);
+        header[12] = (byte) ((fileLength >> 8) & 0xFF);
+        header[13] = (byte) ((fileLength >> 16) & 0xFF);
+        header[14] = (byte) ((fileLength >> 24) & 0xFF);
+
+        // Bytes 15-22: +3 BASIC header
+        // Byte 15: File type (0=BASIC, 3=CODE)
+        header[15] = (byte) type;
+
+        // Bytes 16-17: Data length (LE)
+        writeLE(header, 16, data.length);
+
+        // Bytes 18-19: Param 1 (autostart line for BASIC, load addr for CODE) (LE)
+        writeLE(header, 18, param1);
+
+        // Bytes 20-21: Param 2 (start of variable area offset for BASIC, 0 for CODE) (LE)
+        writeLE(header, 20, param2);
+
+        // Bytes 22-127: Reserved (already zero)
+
+        // Byte 127: Checksum (sum of bytes 0-126, mod 256)
+        int checksum = 0;
+        for (int i = 0; i < 127; i++) {
+            checksum = (checksum + (header[i] & 0xFF)) & 0xFF;
         }
+        header[127] = (byte) checksum;
 
-        header[10] = (byte) type;
-        writeLE(header, 11, startAddress);
-        writeLE(header, 13, length);
-        writeLE(header, 15, param1);
-        writeLE(header, 17, param2);
-
-        // The 128-byte header is followed by the actual data block and then a checksum
         out.writeBytes(header);
         out.writeBytes(data);
 
-        // Calculate checksum (XOR of all bytes including header + data)
-        int checksum = 0;
-        for (byte b : header) checksum ^= b;
-        for (byte b : data) checksum ^= b;
-
-        out.write(checksum);
         return out.toByteArray();
     }
 
@@ -59,8 +78,12 @@ public class Plus3DosFile {
         buffer[offset + 1] = (byte) ((value >> 8) & 0xFF);
     }
 
-    public static Plus3DosFile fromBasic(String name, byte[] basicData, int loadAddr, int autoStartLine) {
-        return new Plus3DosFile(name, 0, loadAddr, basicData.length, autoStartLine, 0, basicData);
+    public static Plus3DosFile fromBasic(String name, byte[] basicData) {
+        return fromBasic(name, basicData, 0x8000);
+    }
+
+    public static Plus3DosFile fromBasic(String name, byte[] basicData, int autoStartLine) {
+        return new Plus3DosFile(name, 0, 0, basicData.length, autoStartLine, basicData.length, basicData);
     }
 
     public static Plus3DosFile fromBinary(String name, byte[] binData, int loadAddr, int execAddr) {

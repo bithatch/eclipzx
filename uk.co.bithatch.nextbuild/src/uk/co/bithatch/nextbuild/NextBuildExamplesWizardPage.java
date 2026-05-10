@@ -2,6 +2,8 @@ package uk.co.bithatch.nextbuild;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
@@ -22,7 +24,10 @@ import uk.co.bithatch.zxbasic.ui.wizard.AbstractBasicProjectWizardPage;
 
 public class NextBuildExamplesWizardPage extends AbstractBasicProjectWizardPage {
 
-    Combo sdk;
+    static final String ALL_EXAMPLES = "All Examples";
+    
+	Combo sdk;
+	Combo example;
 
 	public NextBuildExamplesWizardPage() {
         super("ZX BASIC NextBuild Examples Project");
@@ -51,6 +56,22 @@ public class NextBuildExamplesWizardPage extends AbstractBasicProjectWizardPage 
         sdk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         sdk.setItems(ContributedSDKRegistry.getAllSDKs().stream().map(ZXSDK::name).toList().toArray(new String[0]));
 		sdk.select(0);
+		
+		
+        label = new Label(container, SWT.NONE);
+        label.setText("Example:");
+
+        example = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+        example.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        var items = new ArrayList<String>();
+        try(var in = getClass().getResourceAsStream("/META-INF/next-build.dat")) {
+			items.addAll(Arrays.asList(new String(in.readAllBytes()).split("\n")));
+		} catch (Exception e) {
+		}
+        items.add(ALL_EXAMPLES);
+        example.setItems(items.toArray(new String[0]));
+        example.select(0);
 		
 		var info = new Label(container, SWT.WRAP);
 		info.setImage(PlatformUI.getWorkbench()

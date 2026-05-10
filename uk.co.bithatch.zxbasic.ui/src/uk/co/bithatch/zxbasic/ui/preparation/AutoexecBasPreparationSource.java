@@ -47,15 +47,21 @@ public class AutoexecBasPreparationSource implements IPreparationSource {
 				
 			}
 			
-			var plus3dos = Plus3DosFile.fromBasic("autoexec.bas", basicProg, 10, 0);
+ 			var plus3dos = Plus3DosFile.fromBasic("autoexec.bas", basicProg, 0);
 			var tf = Files.createTempFile("eclipzx", ".bas");
 			try(var wtr = Files.newOutputStream(tf)) {
 				wtr.write(plus3dos.toBytes());
 			}
-			
+			ctx.addCleanUpTask(() -> {
+				try {
+					Files.deleteIfExists(tf);
+				} catch (IOException e) {
+					LOG.warn("Failed to delete temporary autoexec.bas file.", e);
+				}
+			});
 			LOG.info("Adding autoexec.bas to disk image");
 			
-			fileSets.add(new FileSet(Purpose.BOOT, "/", false, new FileItem(tf.toFile(), "autoexec.bas")));
+			fileSets.add(new FileSet(Purpose.BOOT, "/NextZXOS", false, new FileItem(tf.toFile(), "autoexec.bas")));
 		}
 		catch(IOException ioe) {
 			throw new CoreException(Status.error("Failed to generate autoexec.bas.", ioe));

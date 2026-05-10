@@ -209,7 +209,8 @@ public class EmulatorSelectorDialog extends ListDialog implements ISelectionChan
 	}
 
 	private void pathsChanged() {
-		emulatorExecutableFile = new File(emulatorExecutable.getText());
+		var emulatorExecutableStr = emulatorExecutable.getText().trim();
+		emulatorExecutableFile = new File(emulatorExecutableStr);
 		var exeOk = emulatorExecutableFile.exists() && emulatorExecutableFile.isFile();
 		if (exeOk) {
 			emulatorPathDecoration.hide();
@@ -217,7 +218,12 @@ public class EmulatorSelectorDialog extends ListDialog implements ISelectionChan
 			emulatorPathDecoration.show();
 		}
 
-		emulatorHomeFile = new File(emulatorHome.getText());
+		var emulatorHomeStr = emulatorHome.getText().trim();
+		if(emulatorHomeStr.equals("") & !emulatorExecutableStr.equals("")) {
+			emulatorHomeStr = emulatorExecutableFile.getParentFile().getAbsolutePath();
+			emulatorHome.setText(emulatorHomeStr);
+		}
+		emulatorHomeFile = new File(emulatorHomeStr);
 		var homeOk = emulatorHomeFile.exists() && emulatorHomeFile.isDirectory();
 		if (homeOk) {
 			if(systemPaths.stream().map(File::toString).toList().contains(emulatorHomeFile.toString())) {

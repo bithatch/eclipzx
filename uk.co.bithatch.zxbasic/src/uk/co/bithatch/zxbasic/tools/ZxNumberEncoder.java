@@ -15,11 +15,20 @@ public class ZxNumberEncoder {
 
         try {
             if (value instanceof Integer intVal && intVal >= 0 && intVal <= 0xFFFF) {
-                out.write(0x0E); // marker for 16-bit int
+                // ASCII representation first
+                out.write(String.valueOf(intVal).getBytes());
+                // 0x0E marker followed by 5-byte integer encoding: 00 00 LOW HIGH 00
+                out.write(0x0E);
+                out.write(0x00);
+                out.write(0x00);
                 out.write(intVal & 0xFF);
                 out.write((intVal >> 8) & 0xFF);
+                out.write(0x00);
             } else if (value instanceof Double doubleVal) {
-                out.write(0x0F); // marker for 5-byte float
+                // ASCII representation first
+                out.write(String.valueOf(doubleVal).getBytes());
+                // 0x0E marker followed by 5-byte float encoding
+                out.write(0x0E);
                 out.write(SinclairFloat.encode(doubleVal));
             } else if (value instanceof String str) {
                 if (str.matches("\\d+")) {

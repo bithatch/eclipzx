@@ -309,15 +309,21 @@ public class ExternalEmulatorsPreferencePage extends PreferencePage implements I
 	}
 
 	private void pathsChanged() {
-		emulatorExecutableFile = new File(emulatorExecutable.getText());
-		var exeOk = emulatorExecutable.getText().equals("") || ( emulatorExecutableFile.exists() && emulatorExecutableFile.isFile() );
+		var emulatorExecutableStr = emulatorExecutable.getText();
+		emulatorExecutableFile = new File(emulatorExecutableStr);
+		var exeOk = emulatorExecutableStr.equals("") || ( emulatorExecutableFile.exists() && emulatorExecutableFile.isFile() );
 		if (exeOk) {
 			emulatorPathDecoration.hide();
 		} else {
 			emulatorPathDecoration.show();
 		}
 
-		emulatorHomeFile = new File(emulatorHome.getText());
+		var emulatorHomeStr = emulatorHome.getText().trim();
+		if(emulatorHomeStr.equals("") & !emulatorExecutableStr.equals("")) {
+			emulatorHomeStr = emulatorExecutableFile.getParentFile().getAbsolutePath();
+			emulatorHome.setText(emulatorHomeStr);
+		}
+		emulatorHomeFile = new File(emulatorHomeStr);
 		var homeOk = emulatorHome.getText().equals("") || ( emulatorHomeFile.exists() && emulatorHomeFile.isDirectory() );
 		if (homeOk) {
 			if(EmulatorSelectorDialog.systemPaths.stream().map(File::toString).toList().contains(emulatorHomeFile.toString())) {

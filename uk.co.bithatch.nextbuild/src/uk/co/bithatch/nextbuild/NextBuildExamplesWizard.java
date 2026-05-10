@@ -56,12 +56,19 @@ public class NextBuildExamplesWizard extends AbstractBasicProjectWizard<NextBuil
 	        var bundle = Platform.getBundle(Activator.PLUGIN_ID);
 	        var entry = FileLocator.find(bundle, new Path("META-INF/next-build-sources"), null);
 	        var file = new File(FileLocator.toFileURL(entry).toURI()).getCanonicalFile();
+	        var example = page.example.getItems()[page.example.getSelectionIndex()];
+	        var all = example.equals(NextBuildExamplesWizardPage.ALL_EXAMPLES);
 			
 			getContainer().run(true, true, new WorkspaceModifyOperation() {
 				@Override
 				protected void execute(IProgressMonitor monitor) throws CoreException {
 					try {
-						FileCopyUtil.copyDirectoryToProject(file, project, monitor);
+						if(all) {
+							FileCopyUtil.copyDirectoryToProject(file, project, monitor);
+						}
+						else {
+							FileCopyUtil.copyDirectoryToProject(new File(file, example), project, monitor);
+						}
 					} catch (IOException e) {
 						throw new CoreException(new Status(IStatus.ERROR, ZXBasicUiActivator.PLUGIN_ID, "Failed to copy templates", e));
 					}
