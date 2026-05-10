@@ -3,6 +3,7 @@ package uk.co.bithatch.zxbasic.tools;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
@@ -150,7 +151,7 @@ public class Txt2NextBasicConverter {
 
     public static byte[] encodeProgram(String lines) throws IOException {
     	System.out.println("Encoding program ... " + lines);
-    	return encodeProgram(Arrays.asList(lines.split(System.lineSeparator())));
+    	return encodeProgram(Arrays.asList(lines.split("\\R")));
     }
 
     public static byte[] encodeProgram(Iterable<String> lines) throws IOException {
@@ -226,7 +227,7 @@ public class Txt2NextBasicConverter {
                 }
 
                 case QUOTE -> {
-                    out.write(token.getBytes());
+                    out.write(token.getBytes(StandardCharsets.ISO_8859_1));
                     if (token.equals("\"")) {
                         state = ParseState.NORMAL;
                     }

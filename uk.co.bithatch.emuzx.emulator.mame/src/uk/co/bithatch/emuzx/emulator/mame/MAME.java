@@ -36,7 +36,7 @@ public class MAME implements IEmulator {
 		if(WellKnownArchitecture.ZXNEXT.equals(arch.wellKnown().orElse(null))) {
 
 			/* TODO check this actually exists as its in a separate plugin */
-			configuration.setAttribute(PREPARATION_TARGET, "uk.co.bithatch.eclipzx.ui.glue.automaticFATPreparationTarget");
+			configuration.setAttribute(PREPARATION_TARGET, "uk.co.bithatch.nextzxos.nextzxosFATPreparationTarget");
 			
 			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.NEX).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""

@@ -173,12 +173,17 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 
 		protected String getFsText(FATImageFileStore str) {
 			var fs = str.nativeFileSystem();
-			return String.format("%s (%d of %d MiB)", 
-					fs.getVolumeLabel() == null || fs.getVolumeLabel().equals("") 
-						? FileNames.getPathFileName(FATPreferencesAccess.getPathForUUID(str.getUuid()))
-						: fs.getVolumeLabel(), 
-					MemoryUnit.MEBIBYTE.fromBytes(fs.getUsableSpace() - fs.getFreeSpace()),
-					MemoryUnit.MEBIBYTE.fromBytes(fs.getUsableSpace()));
+			try {
+				return String.format("%s (%d of %d MiB)", 
+						fs.getVolumeLabel() == null || fs.getVolumeLabel().equals("") 
+							? FileNames.getPathFileName(FATPreferencesAccess.getPathForUUID(str.getUuid()))
+							: fs.getVolumeLabel(), 
+						MemoryUnit.MEBIBYTE.fromBytes(fs.getUsableSpace() - fs.getFreeSpace()),
+						MemoryUnit.MEBIBYTE.fromBytes(fs.getUsableSpace()));
+			}
+			catch(Exception e) {
+				return "Error: " + e.getMessage();
+			}
 		}
 	}
 

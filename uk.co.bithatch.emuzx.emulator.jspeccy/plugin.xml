@@ -25,7 +25,9 @@
             class="uk.co.bithatch.emuzx.emulator.jspeccy.EmulatorLaunchShortcut" 
             icon="icons/jspeccy16.png"
             id="uk.co.bithatch.emuzx.emulator.jspeccy.launch.emulatorLaunch" 
-            label="Run In Internal Emulator (JSpeccy)" modes="run,debug">
+            label="Run In Internal Emulator (JSpeccy)" modes="run,debug"
+            description="Only currently for legacy programs (48K, 128, +2, 3), runs directly inside an Eclipse view"
+            >
             <contextualLaunch>
                 <enablement>
                     <with variable="selection">

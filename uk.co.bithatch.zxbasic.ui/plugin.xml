@@ -438,7 +438,7 @@
         <launchConfigurationTabGroup class="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchConfigurationTabGroup" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunchConfigurationTabGroup" type="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" />
     </extension>
     <extension point="org.eclipse.debug.ui.launchShortcuts">
-        <shortcut class="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchShortcut" icon="icons/cspect16.png" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" label="Run In External Emulator" modes="run,debug">
+        <shortcut class="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchShortcut" icon="icons/cspect16.png" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" label="Run In External Emulator" modes="run,debug" description="An external emulator should be configured in the preferences for this to work. If the emulator  does not support direct launching of the output format, a FAT image should be prepared. See Launch Configuration for details.">
             <contextualLaunch>
                 <enablement>
                     <with variable="selection">
@@ -450,7 +450,7 @@
                 </enablement>
             </contextualLaunch>
         </shortcut>
-        <shortcut class="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchShortcut" icon="icons/interpreter16.png" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" label="Run In ZX Basic Interpreter" modes="run">
+        <shortcut class="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchShortcut" icon="icons/interpreter16.png" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" label="Run In ZX Basic Interpreter" modes="run" description="Run the current file in the ZX Basic Interpreter. This is an experimental feature and may not work in all cases. It is intended for quick testing of code snippets and small programs. For larger projects, it is recommended to use the External Emulator launch configuration.">
             <contextualLaunch>
                 <enablement>
                     <with variable="selection">

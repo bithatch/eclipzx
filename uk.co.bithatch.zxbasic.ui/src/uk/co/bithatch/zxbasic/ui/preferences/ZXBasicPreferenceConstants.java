@@ -15,7 +15,6 @@ public interface ZXBasicPreferenceConstants extends LanguageSystemPreferenceCons
 //	String EXTERNAL_EMULATORS = "externalEmulators";
 	
 	String DEPENDENCIES = "contributed.dependencies";
-	String BUILT_IN = "contributed.builtIn";
 	String CONTRIBUTED_SDKS = "contributed.sdks";
 
     String DEFINES = "preprocessor.defines";
