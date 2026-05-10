@@ -24,6 +24,7 @@ import uk.co.bithatch.zyxy.mmc.SDCard;
 
 public class FATImageFileSystem extends FileSystem implements IPreferenceChangeListener, LockListener {
 
+	private final Map<String, SDCard> deviceCache = new HashMap<>();
 	private final Map<String, FATImageFileStore> storeCache = new HashMap<>();
 	
 	public FATImageFileSystem() {
@@ -44,19 +45,17 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 			return null;
 		}
 
-		System.out.println(uri + " - ");
 		var diskImg = FATPreferencesAccess.getPathForURI(uri);
 		var diskFile = toDiskFile(diskImg);
-		System.out.println(" - " + diskFile);
 		try {
 			var remainingPath = FATPreferencesAccess.stripTrailingSlash(URLDecoder.decode(uri.getPath(), "UTF-8"));
 
+			var device = deviceCache.computeIfAbsent(diskImg, p -> {
+				return new SDCard.Builder().withFile(diskFile).withMBR().withReadWrite().build();
+			});
+			
 			var rootStore = storeCache.computeIfAbsent(diskImg, p -> {
-
-				/* TODO close it? */
-				var sdcard = new SDCard.Builder().withFile(diskFile).withMBR().withReadWrite().build();
-
-				return new FATImageFileStore(imgUUID, this, "/", sdcard.fileSystem());
+				return new FATImageFileStore(imgUUID, this, "/", device.fileSystem());
 			});
 
 			if (!remainingPath.equals("")) {
@@ -101,13 +100,14 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 
 	protected void resetStoreCache() {
 		synchronized(storeCache) {
-			storeCache.values().forEach(v -> {
+			deviceCache.values().forEach(v -> {
 				try {
-					v.nativeFileSystem().close();
+					v.close();
 				} catch (IOException e) {
 				}
 			});
 			storeCache.clear();
+			deviceCache.clear();
 		}
 	}
 
