@@ -57,6 +57,10 @@ public class FATImageFileStore extends FileStore {
 		this.parent = parent;
 		this.name = name;
 	}
+	
+	public void close() throws IOException {
+		fileSystem.closeStore(this);
+	}
 
 	@Override
 	public URI toURI() {

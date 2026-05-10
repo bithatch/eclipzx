@@ -1,5 +1,6 @@
 package uk.co.bithatch.eclipzx.ui.glue;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -50,8 +51,16 @@ public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget
 		}
 		var efs = getEFSDir(monitor, uri);
 
-		copy(cleanBeforeUse, monitor, files, uri, efs);
-
-		return Status.OK_STATUS;
+		try {
+			copy(cleanBeforeUse, monitor, files, uri, efs);
+			return Status.OK_STATUS;
+		}
+		finally {
+			try {
+				efs.close();
+			} catch (IOException e) {
+				throw new CoreException(Status.error("Failed to close file system for disk image.", e));
+			}
+		}
 	}
 }

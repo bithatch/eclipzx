@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -23,6 +24,7 @@ import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.fatexplorer.preferences.FATLock;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
+import uk.co.bithatch.fatexplorer.vfs.FATImageFileStore;
 import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 import uk.co.bithatch.zxbasic.ui.util.FileSet;
@@ -49,8 +51,18 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		}
 		
 		var efs = getEFSDir(monitor, uri);
-		copy(false, monitor, files, uri, efs);
-		return Status.OK_STATUS;
+		try {
+			copy(false, monitor, files, uri, efs);
+			return Status.OK_STATUS;
+		}
+		finally {
+			try {
+				efs.close();
+			} catch (IOException e) {
+				throw new CoreException(Status.error("Failed to close file system for disk image.", e));
+			}
+		}
+		
 	}
 
 	protected void beforePrepare(IProgressMonitor monitor, List<FileSet> files) throws CoreException {

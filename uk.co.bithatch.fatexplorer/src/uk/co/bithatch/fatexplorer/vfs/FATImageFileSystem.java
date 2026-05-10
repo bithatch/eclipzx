@@ -39,32 +39,34 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 
 	@Override
 	public IFileStore getStore(URI uri) {
+		synchronized(storeCache) {
 		
-		var imgUUID = uri.getAuthority();
-		if (imgUUID == null || imgUUID.isEmpty()) {
-			return null;
-		}
-
-		var diskImg = FATPreferencesAccess.getPathForURI(uri);
-		var diskFile = toDiskFile(diskImg);
-		try {
-			var remainingPath = FATPreferencesAccess.stripTrailingSlash(URLDecoder.decode(uri.getPath(), "UTF-8"));
-
-			var device = deviceCache.computeIfAbsent(diskImg, p -> {
-				return new SDCard.Builder().withFile(diskFile).withMBR().withReadWrite().build();
-			});
-			
-			var rootStore = storeCache.computeIfAbsent(diskImg, p -> {
-				return new FATImageFileStore(imgUUID, this, "/", device.fileSystem());
-			});
-
-			if (!remainingPath.equals("")) {
-				rootStore = (FATImageFileStore) rootStore.getFileStore(IPath.forPosix(remainingPath.substring(1)));
+			var imgUUID = uri.getAuthority();
+			if (imgUUID == null || imgUUID.isEmpty()) {
+				return null;
 			}
-
-			return rootStore;
-		} catch (UnsupportedEncodingException uee) {
-			throw new IllegalStateException(uee);
+	
+			var diskImg = FATPreferencesAccess.getPathForURI(uri);
+			var diskFile = toDiskFile(diskImg);
+			try {
+				var remainingPath = FATPreferencesAccess.stripTrailingSlash(URLDecoder.decode(uri.getPath(), "UTF-8"));
+	
+				var device = deviceCache.computeIfAbsent(diskImg, p -> {
+					return new SDCard.Builder().withFile(diskFile).withMBR().withReadWrite().build();
+				});
+				
+				var rootStore = storeCache.computeIfAbsent(diskImg, p -> {
+					return new FATImageFileStore(imgUUID, this, "/", device.fileSystem());
+				});
+	
+				if (!remainingPath.equals("")) {
+					rootStore = (FATImageFileStore) rootStore.getFileStore(IPath.forPosix(remainingPath.substring(1)));
+				}
+	
+				return rootStore;
+			} catch (UnsupportedEncodingException uee) {
+				throw new IllegalStateException(uee);
+			}
 		}
 	}
 
@@ -96,6 +98,21 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 	@Override
 	public void preferenceChange(PreferenceChangeEvent event) {
 		resetStoreCache();
+	}
+	
+	public void closeStore(FATImageFileStore store) throws IOException {
+		synchronized(storeCache) {
+			var p = FATPreferencesAccess.getPathForUUID(store.getUuid());
+			if(storeCache.containsKey(p)) {
+				try {
+					deviceCache.get(p).close();
+				} finally {
+					storeCache.remove(p);
+					deviceCache.remove(p);
+				}
+				return;
+			}
+		}
 	}
 
 	protected void resetStoreCache() {
