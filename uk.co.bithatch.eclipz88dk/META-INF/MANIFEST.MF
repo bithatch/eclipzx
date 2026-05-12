@@ -20,7 +20,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.debug.core,
  org.eclipse.ui.ide;bundle-version="3.22.600",
  org.eclipse.jface,
- org.eclipse.ui.workbench
+ org.eclipse.ui.workbench,
+ uk.co.bithatch.emuzx.ui;bundle-version="1.0.0",
+ uk.co.bithatch.emuzx.debug;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.eclipz88dk
 Bundle-ActivationPolicy: lazy

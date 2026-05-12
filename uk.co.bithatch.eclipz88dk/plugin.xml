@@ -298,6 +298,11 @@ org.eclipse.cdt.build.core.buildArtefactType.other
       </language>
     </extension>
 
-
-    
+    <extension point="uk.co.bithatch.emuzx.ui.externallyLaunchable">
+        <externallyLaunchable 
+            id="uk.co.bithatch.eclipz88dk.launch.externallyLaunchable" 
+            name="C Externally Launchable" 
+            class="uk.co.bithatch.eclipz88dk.launch.CExternallyLaunchable"
+            extensions="c,asm"/>
+    </extension>
 </plugin>

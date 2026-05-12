@@ -41,6 +41,8 @@ import uk.co.bithatch.zxbasic.ui.builder.ZXBasicBuilder;
 import uk.co.bithatch.zxbasic.ui.builder.ZXBasicNature;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
+@Deprecated
+/** TODO: Merge with AbstractLaunchProgramConfigurationTab */
 public abstract class AbstractZXBasicLaunchConfigurationTab extends AbstractLaunchConfigurationTab {
 
 	final static DialogSettings settings = new DialogSettings(AbstractZXBasicLaunchConfigurationTab.class.getName());;

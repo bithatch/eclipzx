@@ -9,8 +9,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 import de.waldheinz.fs.fat.FatType;
+import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.eclipzx.ui.glue.AutomaticFATPreparationTarget;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
 
 public class NextZXOSFATPreparationTarget extends AutomaticFATPreparationTarget {
 	

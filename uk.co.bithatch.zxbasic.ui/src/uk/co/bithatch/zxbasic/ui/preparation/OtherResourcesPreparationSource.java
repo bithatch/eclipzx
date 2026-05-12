@@ -12,10 +12,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.ui.PlatformUI;
 
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationSource;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
-import uk.co.bithatch.zxbasic.ui.util.FileSet.Purpose;
+import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.bitzx.FileSet.Purpose;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
+import uk.co.bithatch.emuzx.api.IPreparationSource;
 
 public class OtherResourcesPreparationSource implements IPreparationSource {
 

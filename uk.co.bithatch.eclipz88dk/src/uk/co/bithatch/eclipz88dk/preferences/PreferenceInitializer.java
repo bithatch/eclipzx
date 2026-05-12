@@ -32,7 +32,7 @@ public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer 
         		}
         	}
         }
-		setIfNotSet(prefs, PreferenceConstants.SYSTEM, DEFAULT_SYSTEM, keys);
+		setIfNotSet(prefs, PreferenceConstants.ARCHITECTURE, DEFAULT_SYSTEM, keys);
 		setIfNotSet(prefs, PreferenceConstants.CLIB, DEFAULT_CLIB, keys);
     }
 }

@@ -25,9 +25,7 @@ public class ZXBasicUiActivator extends ZxbasicActivator {
     public static final String LIBRARY_PATH = "icons/library16.png";
     public static final String LIBRARY_DECORATOR_PATH = "icons/library8.png";
     public static final String REF_PATH = "icons/ref16.png";
-    public static final String CHIP_PATH = "icons/chip16.png";
     public static final String LAUNCH_PATH = "icons/launch16.png";
-    public static final String PREPARE_PATH = "icons/prepare16.png";
     public static final String SUB_PATH = "icons/sub16.png";
     public static final String FUNCTION_PATH = "icons/function16.png";
     public static final String COMMENT_PATH = "icons/comment16.png";
@@ -77,9 +75,7 @@ public class ZXBasicUiActivator extends ZxbasicActivator {
 		reg.put(LIBRARY_PATH, checkDescriptor(imageDescriptorFromPlugin(PLUGIN_ID, LIBRARY_PATH)));
 		reg.put(LIBRARY_DECORATOR_PATH, imageDescriptorFromPlugin(PLUGIN_ID, LIBRARY_DECORATOR_PATH));
 		reg.put(REF_PATH, imageDescriptorFromPlugin(PLUGIN_ID, REF_PATH));
-		reg.put(CHIP_PATH, imageDescriptorFromPlugin(PLUGIN_ID, CHIP_PATH));
 		reg.put(LAUNCH_PATH, imageDescriptorFromPlugin(PLUGIN_ID, LAUNCH_PATH));
-		reg.put(PREPARE_PATH, imageDescriptorFromPlugin(PLUGIN_ID, PREPARE_PATH));
 		reg.put(SUB_PATH, imageDescriptorFromPlugin(PLUGIN_ID, SUB_PATH));
 		reg.put(FUNCTION_PATH, imageDescriptorFromPlugin(PLUGIN_ID, FUNCTION_PATH));
 		reg.put(COMMENT_PATH, imageDescriptorFromPlugin(PLUGIN_ID, COMMENT_PATH));

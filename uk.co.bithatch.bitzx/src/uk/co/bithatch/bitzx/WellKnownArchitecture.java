@@ -1,5 +1,5 @@
 package uk.co.bithatch.bitzx;
 
 public enum WellKnownArchitecture {
-	LEGACY, ZXNEXT
+	ZX80, ZX81, ZX, ZXNEXT
 }

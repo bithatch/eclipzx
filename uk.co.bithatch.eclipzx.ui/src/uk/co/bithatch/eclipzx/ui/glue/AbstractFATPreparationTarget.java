@@ -11,13 +11,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 
+import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
 import uk.co.bithatch.fatexplorer.vfs.FATImageFileStore;
 import uk.co.bithatch.fatexplorer.vfs.FileOverwritePolicy;
 import uk.co.bithatch.fatexplorer.vfs.FileStoreCopyUtil;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
 import uk.co.bithatch.zxbasic.ui.preparation.AbstractPreparationTarget;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
 
 public abstract class AbstractFATPreparationTarget extends AbstractPreparationTarget {
 	

@@ -45,6 +45,7 @@
 		<module>uk.co.bithatch.emuzx.emulator.jspeccy</module>
 		<module>uk.co.bithatch.emuzx.emulator.zesarux</module>
         <module>uk.co.bithatch.emuzx.emulator.mame</module>
+        <module>uk.co.bithatch.emuzx.debug</module>
 		<module>uk.co.bithatch.eclipzx</module>
 		<module>uk.co.bithatch.eclipzx.ui</module>
 		<module>uk.co.bithatch.fatexplorer</module>

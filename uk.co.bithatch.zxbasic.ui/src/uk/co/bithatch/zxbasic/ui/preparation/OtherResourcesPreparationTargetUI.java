@@ -24,8 +24,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ResourceSelectionDialog;
 
-import uk.co.bithatch.zxbasic.ui.api.ILaunchPreparationUI;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationSourceUI;
+import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
+import uk.co.bithatch.emuzx.ui.IPreparationSourceUI;
 
 public class OtherResourcesPreparationTargetUI implements IPreparationSourceUI {
 

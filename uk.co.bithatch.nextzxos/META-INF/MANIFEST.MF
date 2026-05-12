@@ -16,4 +16,5 @@ Require-Bundle: uk.co.bithatch.zyxy-mmc;bundle-version="[0.0.0,1.0.0)",
  uk.co.bithatch.emuzx;bundle-version="[1.0.0,2.0.0)",
  uk.co.bithatch.fatexplorer;bundle-version="[1.0.0,2.0.0)",
  uk.co.bithatch.fat32;bundle-version="[0.6.0,1.0.0)",
- uk.co.bithatch.eclipzx.ui;bundle-version="[1.0.0,2.0.0)"
+ uk.co.bithatch.eclipzx.ui;bundle-version="[1.0.0,2.0.0)",
+ uk.co.bithatch.emuzx.ui;bundle-version="1.0.0"

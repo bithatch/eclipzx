@@ -163,8 +163,8 @@ public class EmulatorSelectorDialog extends ListDialog implements ISelectionChan
 		selectedEmulator = calcSelectedEmulator();
 		if (selectedEmulator != null) {
 			
-			var defEmuExe = PreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID) + "." + PreferenceConstants.EXTERNAL_EMULATOR_EXECUTABLE, "");
-			var defEmuHome = PreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID) + "." + PreferenceConstants.EXTERNAL_EMULATOR_HOME, "");
+			var defEmuExe = PreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + PreferenceConstants.EXTERNAL_EMULATOR_EXECUTABLE, "");
+			var defEmuHome = PreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + PreferenceConstants.EXTERNAL_EMULATOR_HOME, "");
 			
 			if(defEmuExe.equals("") || defEmuHome.equals("")) {
 				File found = null;

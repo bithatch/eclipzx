@@ -9,8 +9,8 @@ import java.util.Optional;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 
-import uk.co.bithatch.zxbasic.ui.api.IProgramBuildOptions;
-import uk.co.bithatch.zxbasic.ui.api.IProgramBuildOptionsFactory;
+import uk.co.bithatch.bitzx.IProgramBuildOptions;
+import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
 
 public class FileHeaderProgramBuildOptionsFactory implements IProgramBuildOptionsFactory {
 

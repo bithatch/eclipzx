@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="4.35"?>
 <plugin> 
+    <extension-point id="uk.co.bithatch.emuzx.ui.externalEmulatorLaunchTabFactory" name="External Emulator Launcher Tab Factory" schema="schema/uk.co.bithatch.emuzx.ui.externalEmulatorLaunchTabFactory.exsd" />
+    <extension-point id="uk.co.bithatch.emuzx.ui.externallyLaunchable" name="Language Specific External Launcher Support" schema="schema/uk.co.bithatch.emuzx.ui.externallyLaunchable.exsd" />
+    <extension-point id="uk.co.bithatch.emuzx.ui.preparationTarget" name="External Emulator Preparation Target" schema="schema/uk.co.bithatch.emuzx.ui.preparationTarget.exsd" />
+    <extension-point id="uk.co.bithatch.emuzx.preparationSource" name="External Emulator Preparation Source" schema="schema/uk.co.bithatch.emuzx.ui.preparationSource.exsd" />
     <extension point="org.eclipse.ui.keywords">
         <keyword id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" label="External Emulators" />
     </extension>   
@@ -10,4 +14,39 @@
             <keywordReference id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" />
         </page>
     </extension>  
+    
+    <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+        <launchConfigurationType name="External Emulator" delegate="uk.co.bithatch.emuzx.ui.ExternalEmulatorLaunchConfiguration" modes="run,debug" id="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+        <launchConfigurationTypeImage configTypeID="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch" icon="icons/chip16.png" id="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch.image" />
+    </extension>
+    
+    <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+        <launchConfigurationTabGroup 
+            class="uk.co.bithatch.emuzx.ui.ExternalEmulatorLaunchConfigurationTabGroup" 
+            id="uk.co.bithatch.emuzx.ui.externalEmulatorLaunchConfigurationTabGroup" 
+            type="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch" />
+    </extension>
+    
+    <extension point="org.eclipse.debug.ui.launchShortcuts">
+        <shortcut class="uk.co.bithatch.emuzx.ui.ExternalEmulatorLaunchShortcut" 
+                      icon="icons/chip16.png" 
+                      id="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch" 
+                      label="Run In External Emulator" 
+                      modes="run,debug" 
+                      description="An external emulator should be configured in the preferences for this to work. If the emulator does not support direct launching of the output format, a FAT image should be prepared. See Launch Configuration for details.">
+            <contextualLaunch>
+                <enablement>
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IResource">
+                            </adapt>
+                        </iterate>
+                    </with>
+                </enablement>
+            </contextualLaunch>
+        </shortcut>
+    </extension>
 </plugin>

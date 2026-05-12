@@ -10,6 +10,7 @@ import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider;
 import com.google.inject.Inject;
 
 import uk.co.bithatch.bitzx.Strings;
+import uk.co.bithatch.emuzx.ui.EmuZXUIActivator;
 import uk.co.bithatch.zxbasic.basic.AsmBlock;
 import uk.co.bithatch.zxbasic.basic.CommentStmt;
 import uk.co.bithatch.zxbasic.basic.ConstStmt;
@@ -101,7 +102,7 @@ public class BasicLabelProvider extends DefaultEObjectLabelProvider {
 		}
 		
 		if(element instanceof AsmBlock) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.CHIP_PATH);
+			return ZXBasicUiActivator.getInstance().getImageRegistry().get(EmuZXUIActivator.CHIP_PATH);
 		}
 		else if(element instanceof FunctionBlock) {
 			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.FUNCTION_PATH);
@@ -115,15 +116,15 @@ public class BasicLabelProvider extends DefaultEObjectLabelProvider {
 		else if(element instanceof LetStmt) {
 			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.LOCAL_PATH);
 		}
-		else if(element instanceof PPInclude ppi)
+		else if(element instanceof PPInclude)
 		{
 			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.INCLUDE_PATH);			
 		}
-		else if(element instanceof PPDefine ppd)
+		else if(element instanceof PPDefine)
 		{
 			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.DEFINE_PATH);			
 		}
-		else if(element instanceof PPDirective ppd) 
+		else if(element instanceof PPDirective) 
 		{
 			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.PP_PATH);
 		}

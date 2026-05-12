@@ -9,14 +9,14 @@ import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 
+import uk.co.bithatch.bitzx.FileItem;
+import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.bitzx.FileSet.Purpose;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
+import uk.co.bithatch.emuzx.api.IPreparationSource;
 import uk.co.bithatch.zxbasic.tools.Plus3DosFile;
 import uk.co.bithatch.zxbasic.tools.Txt2NextBasicConverter;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationSource;
 import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
-import uk.co.bithatch.zxbasic.ui.util.FileItem;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
-import uk.co.bithatch.zxbasic.ui.util.FileSet.Purpose;
 
 public class AutoexecBasPreparationSource implements IPreparationSource {
 	private final static ILog LOG = ILog.of(AutoexecBasPreparationSource.class);

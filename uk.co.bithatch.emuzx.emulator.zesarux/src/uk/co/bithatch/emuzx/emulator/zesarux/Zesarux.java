@@ -11,14 +11,15 @@ import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes
 import java.io.File;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
 import uk.co.bithatch.bitzx.Strings;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
+import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
 import uk.co.bithatch.emuzx.api.EmulatorDescriptor;
 import uk.co.bithatch.emuzx.api.IEmulator;
-import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
 public class Zesarux implements IEmulator {
 	
@@ -54,9 +55,9 @@ public class Zesarux implements IEmulator {
 
 
 	@Override
-	public void configure(EmulatorDescriptor descriptor, ILaunchConfigurationWorkingCopy configuration, IFile programFile, File home, String mode) {
+	public void configure(EmulatorDescriptor descriptor, ILaunchConfigurationWorkingCopy configuration, IFile programFile, File home, String mode) throws CoreException {
 		var proj = programFile.getProject();
-		var arch = ZXBasicPreferencesAccess.get().getArchitecture(proj);
+		var arch = ExternallyLaunchableRegistry.externallyLaunchableFor(programFile).getArchitecture(proj);
 
 		if(WellKnownArchitecture.ZXNEXT.equals(arch.wellKnown().orElse(null))) {
 			/* TODO check this actually exists as its in a separate plugin */

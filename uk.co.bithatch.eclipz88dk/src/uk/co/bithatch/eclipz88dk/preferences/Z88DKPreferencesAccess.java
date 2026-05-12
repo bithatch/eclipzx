@@ -25,10 +25,9 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 	public static Z88DKPreferencesAccess get() {
 		return Defaults.DEFAULT;
 	}
-
-	@Deprecated
-	public String getSystem(IProject project) {
-		return getPreference(project, PreferenceConstants.SYSTEM, PreferenceInitializer.DEFAULT_SYSTEM);
+	
+	public boolean isAllArchitectures(IProject project) {
+		return "true".equals(getPreference(project, PreferenceConstants.ALL_ARCHITECTURES, "false"));
 	}
 
 	public String getCLibrary(IProject project) {

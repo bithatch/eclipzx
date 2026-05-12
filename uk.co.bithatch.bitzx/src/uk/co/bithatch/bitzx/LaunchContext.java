@@ -1,5 +1,6 @@
 package uk.co.bithatch.bitzx;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -11,7 +12,7 @@ import java.util.Map;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 
-public class LaunchContext {
+public class LaunchContext implements Closeable {
 	private static final ThreadLocal<LaunchContext> currentConfig = new ThreadLocal<>();
 
 	public static final String BINARY_FILE = "attr.binaryFile";
@@ -36,11 +37,7 @@ public class LaunchContext {
 		return config;
 	}
 
-	@Deprecated
 	public Path tempFile(String suffix) {
-		/* TODO need to move these out of launch context, they need to last
-		 * the length of emulator process
-		 */
 		try {
 			var tmpfile = Files.createTempFile("bitzx", suffix);
 			tempFiles.add(tmpfile);
@@ -51,6 +48,18 @@ public class LaunchContext {
 		} catch (IOException ioe) {
 			throw new UncheckedIOException(ioe);
 		}
+	}
+	
+	@Override
+	public void close() {
+		tempFiles.forEach(f -> {
+			try {
+				Files.delete(f);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		});
+		tempFiles.clear();
 	}
 
 	public static LaunchContext set(ILaunchConfiguration config) {
@@ -64,19 +73,6 @@ public class LaunchContext {
 	}
 
 	public static void clear() {
-		var ctx = currentConfig.get();
-		try {
-			if (ctx != null) {
-//				ctx.tempFiles.forEach(f -> {
-//					try {
-//						Files.delete(f);
-//					} catch (IOException e) {
-//						throw new UncheckedIOException(e);
-//					}
-//				});
-			}
-		} finally {
-			currentConfig.remove();
-		}
+		currentConfig.remove();
 	}
 }

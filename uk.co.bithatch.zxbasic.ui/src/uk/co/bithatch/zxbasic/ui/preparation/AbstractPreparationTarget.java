@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.bithatch.zxbasic.ui.api.IPreparationTarget;
-import uk.co.bithatch.zxbasic.ui.util.FileItem;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
+import uk.co.bithatch.bitzx.FileItem;
+import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.emuzx.api.IPreparationTarget;
 
 public abstract class AbstractPreparationTarget implements IPreparationTarget {
 

@@ -3,10 +3,7 @@
 <plugin>
     <extension-point id="uk.co.bithatch.zxbasic.library" name="ZX Basic Library" schema="schema/uk.co.bithatch.zxbasic.library.exsd" />
     <extension-point id="uk.co.bithatch.zxbasic.sdk" name="ZX Basic SDK" schema="schema/uk.co.bithatch.zxbasic.sdk.exsd" />
-    <extension-point id="uk.co.bithatch.zxbasic.preparationTarget" name="External Emulator Preparation Target" schema="schema/uk.co.bithatch.zxbasic.preparationTarget.exsd" />
-    <extension-point id="uk.co.bithatch.zxbasic.preparationSource" name="External Emulator Preparation Source" schema="schema/uk.co.bithatch.zxbasic.preparationSource.exsd" />
     <extension-point id="uk.co.bithatch.zxbasic.nexConfigurer" name="NEX Configuration Contribution" schema="schema/uk.co.bithatch.zxbasic.nexConfigurer.exsd" />
-    <extension-point id="uk.co.bithatch.zxbasic.programBuildsOptionsFactory" name="Program Build Options Factory Contribution" schema="schema/uk.co.bithatch.zxbasic.programBuildsOptionsFactory.exsd" />
     <extension point="org.eclipse.ui.editors">
         <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" default="true" extensions="bas" icon="icons/bas16.png" id="uk.co.bithatch.zxbasic.Basic" name="ZX Basic Editor" />
         <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" extensions="asm" icon="icons/asm16.png" id="uk.co.bithatch.zxbasic.Asm" name="Z80 Assembler Editor" />
@@ -426,30 +423,15 @@
         <fileTypes extension="asm" type="text" />
     </extension>
     <extension point="org.eclipse.debug.core.launchConfigurationTypes">
-        <launchConfigurationType name="External Emulator" delegate="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchConfiguration" modes="run,debug" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" />
         <launchConfigurationType name="ZX BASIC Interpreter (Experimental)" delegate="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchConfiguration" modes="run,debug" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" />
     </extension>
     <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-        <launchConfigurationTypeImage configTypeID="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" icon="icons/cspect16.png" id="uk.co.bithatch.zxbasic.launch.externalEmulatorLaunch.image" />
         <launchConfigurationTypeImage configTypeID="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" icon="icons/interpreter16.png" id="uk.co.bithatch.zxbasic.launch.interpreterLaunch.image" />
     </extension>
     <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-        <launchConfigurationTabGroup class="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchConfigurationTabGroup" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunchConfigurationTabGroup" type="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" />
         <launchConfigurationTabGroup class="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchConfigurationTabGroup" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunchConfigurationTabGroup" type="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" />
     </extension>
     <extension point="org.eclipse.debug.ui.launchShortcuts">
-        <shortcut class="uk.co.bithatch.zxbasic.ui.launch.ExternalEmulatorLaunchShortcut" icon="icons/cspect16.png" id="uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch" label="Run In External Emulator" modes="run,debug" description="An external emulator should be configured in the preferences for this to work. If the emulator  does not support direct launching of the output format, a FAT image should be prepared. See Launch Configuration for details.">
-            <contextualLaunch>
-                <enablement>
-                    <with variable="selection">
-                        <count value="1" />
-                        <iterate>
-                            <adapt type="org.eclipse.core.resources.IResource" />
-                        </iterate>
-                    </with>
-                </enablement>
-            </contextualLaunch>
-        </shortcut>
         <shortcut class="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchShortcut" icon="icons/interpreter16.png" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" label="Run In ZX Basic Interpreter" modes="run" description="Run the current file in the ZX Basic Interpreter. This is an experimental feature and may not work in all cases. It is intended for quick testing of code snippets and small programs. For larger projects, it is recommended to use the External Emulator launch configuration.">
             <contextualLaunch>
                 <enablement>
@@ -593,12 +575,21 @@
         <variable name="zxbasic_launch_loc" supportsArgument="false" description="Absolute path to the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
         <variable name="zxbasic_launch_name" supportsArgument="false" description="The base name of the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
     </extension>
-    <extension point="uk.co.bithatch.zxbasic.preparationTarget">
+    
+    <extension point="uk.co.bithatch.emuzx.ui.externallyLaunchable">
+        <externallyLaunchable 
+            id="uk.co.bithatch.zxbasic.ui.launch.externallyLaunchable" 
+            name="ZXBasic Externally Launchable" 
+            class="uk.co.bithatch.zxbasic.ui.launch.ZXBasicExternallyLaunchable" 
+            extensions="bas"/>
+    </extension>
+    
+    <extension point="uk.co.bithatch.emuzx.ui.preparationTarget">
         <preparationTarget id="uk.co.bithatch.zxbasic.ui.launch.localPreparationTarget" name="Local File System Folder" uiClass="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTargetUI" class="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTarget" />
     </extension>
     
     <extension
-          point="uk.co.bithatch.zxbasic.preparationSource">
+          point="uk.co.bithatch.emuzx.preparationSource">
        <preparationSource
              id="uk.co.bithatch.nextbuild.compilerOutputPreparationSource"
              name="Compiler Output"

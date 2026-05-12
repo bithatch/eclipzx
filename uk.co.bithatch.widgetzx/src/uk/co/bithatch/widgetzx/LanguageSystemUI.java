@@ -6,7 +6,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
 import uk.co.bithatch.bitzx.IDescribed;
-import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.LanguageSystem;
 
 public class LanguageSystemUI {

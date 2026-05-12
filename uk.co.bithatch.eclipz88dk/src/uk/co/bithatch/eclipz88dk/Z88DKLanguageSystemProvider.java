@@ -12,6 +12,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
 
 import uk.co.bithatch.bitzx.AbstractDescribable;
 import uk.co.bithatch.bitzx.FileNames;
@@ -22,8 +24,6 @@ import uk.co.bithatch.bitzx.WellKnownArchitecture;
 import uk.co.bithatch.eclipz88dk.preferences.PreferenceConstants;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile;
-import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.ILaunchConfiguration;
 
 public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	
@@ -45,16 +45,19 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 
 		@Override
 		public List<? extends IOutputFormat> supportedFormats() {
-			return cfg.subtypes().stream().map(stype -> new Z88DKOutputFormat(stype.toUpperCase())).toList();
+			return cfg.subtypes().
+					stream().
+					map(stype -> new Z88DKOutputFormat(stype.toUpperCase())).
+					toList();
 		}
 
 		@Override
 		public Optional<WellKnownArchitecture> wellKnown() {
-			if(name().equals("zxn")) {
+			if(name().equalsIgnoreCase("ZXN")) {
 				return Optional.of(WellKnownArchitecture.ZXNEXT);
 			}
-			else if(name().equals("zx")) {
-				return Optional.of(WellKnownArchitecture.LEGACY);
+			else if(name().equalsIgnoreCase("ZN")) {
+				return Optional.of(WellKnownArchitecture.ZX);
 			}
 			else {
 				return IArchitecture.super.wellKnown();
@@ -79,9 +82,12 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			var sdkOr = pax.getSDK(project);
 			if (sdkOr.isPresent()) {
 				var sdk = sdkOr.get();
-				return sdk.configurations().configurations().stream().map(cfg -> {
+				var allArchs = pax.isAllArchitectures(project);
+				var configs = sdk.configurations();
+				var configItems = configs.configurations();
+				return configItems.stream().map(cfg -> {
 					return new Z88DKArchitecture(cfg);
-				}).toList();
+				}).filter(a -> allArchs || a.wellKnown().isPresent()).toList();
 			}
 		}
 		return Collections.emptyList();

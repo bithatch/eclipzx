@@ -2,22 +2,12 @@ package uk.co.bithatch.zxbasic.ui.builder;
 
 import static uk.co.bithatch.zxbasic.ui.ZXBasicUiActivator.PLUGIN_ID;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
-
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.QualifiedName;
 
-import uk.co.bithatch.bitzx.AbstractResourceProperties;
+import uk.co.bithatch.emuzx.api.IResourceProperties;
 import uk.co.bithatch.zxbasic.ui.ZXBasicUiActivator;
 
-public class ResourceProperties extends  AbstractResourceProperties {
+public class ResourceProperties extends IResourceProperties {
 	
 	public enum SysVarSource {
 		NONE, BUNDLED, LOCATION
@@ -33,11 +23,6 @@ public class ResourceProperties extends  AbstractResourceProperties {
 			"diskImage.triggerProgramsInThisFolder");
 	public static QualifiedName DISK_IMAGE_OTHER_TRIGGER_PROGRAMS = new QualifiedName(PLUGIN_ID,
 			"diskImage.otherTriggerPrograms");
-
-	public static QualifiedName BUILD = new QualifiedName(ZXBasicUiActivator.PLUGIN_ID, "program.build");
-	public static QualifiedName ORG_ADDRESS = new QualifiedName(ZXBasicUiActivator.PLUGIN_ID, "program.orgAddress");
-	public static QualifiedName HEAP_ADDRESS = new QualifiedName(ZXBasicUiActivator.PLUGIN_ID, "program.heapAddress");
-	public static QualifiedName HEAP_SIZE = new QualifiedName(ZXBasicUiActivator.PLUGIN_ID, "program.heapSize");
 
 	public static QualifiedName NEX_OVERRIDE_PROJECT = new QualifiedName(PLUGIN_ID, "nex.overrideProject");
 	public static QualifiedName NEX_SYSVARS = new QualifiedName(PLUGIN_ID, "nex.sysvars");

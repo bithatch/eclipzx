@@ -1,8 +1,9 @@
 package uk.co.bithatch.emuzx;
 public interface ExternalEmulatorLaunchConfigurationAttributes {
 
-    public static final String ID = "uk.co.bithatch.zxbasic.ui.launch.externalEmulatorLaunch";
+    public static final String ID = "uk.co.bithatch.emuzx.ui.externalEmulatorLaunch";
 
+    public static final String LANGUAGE = ID + ".language";
     public static final String EMULATOR_EXECUTABLE = ID + ".emulator";
     public static final String CONFIGURATION_FILE = ID + ".configurationFile";
     public static final String CONFIGURATION_CONTENT = ID + ".configurationContent";

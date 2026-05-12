@@ -15,8 +15,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
-import uk.co.bithatch.zxbasic.ui.api.ILaunchPreparationUI;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationTargetUI;
+import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
+import uk.co.bithatch.emuzx.ui.IPreparationTargetUI;
 
 public class NextZXOSFATPreparationTargetUI implements IPreparationTargetUI {
 

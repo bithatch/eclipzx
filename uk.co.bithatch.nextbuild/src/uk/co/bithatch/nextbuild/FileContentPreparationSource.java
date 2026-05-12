@@ -14,11 +14,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationSource;
-import uk.co.bithatch.zxbasic.ui.util.FileItem;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
-import uk.co.bithatch.zxbasic.ui.util.FileSet.Purpose;
+import uk.co.bithatch.bitzx.FileItem;
+import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.bitzx.FileSet.Purpose;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
+import uk.co.bithatch.emuzx.api.IPreparationSource;
 
 /**
  * Scans ZX BASIC program for <strong>LoadSD</strong> statements and adds

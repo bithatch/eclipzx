@@ -27,7 +27,7 @@ public interface ILanguageSystemProvider {
 	default IArchitecture architectureOrDefault(IProject project, String archName) {
 		var archs = architectures(project);
 		for (var a : archs) {
-			if (a.name().equals(archName))
+			if (a.name().equalsIgnoreCase(archName))
 				return a;
 		}
 		if (!archs.isEmpty()) {

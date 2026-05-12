@@ -70,7 +70,7 @@ public class EmulatorConfigurationFileTab extends AbstractLaunchConfigurationTab
 
 	@Override
 	public Image getImage() {
-		return Activator.getDefault().getImageRegistry().get(Activator.CONFIG_FILE_PATH);
+		return EmuZXUIActivator.getDefault().getImageRegistry().get(EmuZXUIActivator.CONFIG_FILE_PATH);
 	}
 
 	protected void createEmulatorSelector(Composite parent) {

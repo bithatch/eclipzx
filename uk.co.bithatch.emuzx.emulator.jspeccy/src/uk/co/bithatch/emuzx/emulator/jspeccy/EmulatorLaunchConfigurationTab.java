@@ -13,10 +13,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
-import uk.co.bithatch.widgetzx.AbstracLaunchProgramConfigurationTab;
+import uk.co.bithatch.widgetzx.AbstractLaunchProgramConfigurationTab;
 import uk.co.bithatch.widgetzx.LanguageSystemUI;
 
-public class EmulatorLaunchConfigurationTab extends AbstracLaunchProgramConfigurationTab {
+public class EmulatorLaunchConfigurationTab extends AbstractLaunchProgramConfigurationTab {
 
 	private Combo outputFormatCombo;
 

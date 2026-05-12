@@ -45,7 +45,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 		
 		if(tool.getId().startsWith(UK_CO_BITHATCH_ECLIPZ88DK_COMPILER + ".")) {
 			merged.add("--assemble-only");
-			merged.add("+" + pax.getSystem(project));
+			merged.add("+" + pax.getArchitecture(project).name().toLowerCase());
 			merged.add("-clib=" + pax.getCLibrary(project));
 		}
 		else if(tool.getId().startsWith(UK_CO_BITHATCH_ECLIPZ88DK_LINKER + ".")) {

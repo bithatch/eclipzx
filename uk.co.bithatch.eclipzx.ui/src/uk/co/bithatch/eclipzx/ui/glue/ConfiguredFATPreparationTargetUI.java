@@ -25,9 +25,9 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
+import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
+import uk.co.bithatch.emuzx.ui.IPreparationTargetUI;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
-import uk.co.bithatch.zxbasic.ui.api.ILaunchPreparationUI;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationTargetUI;
 
 public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 

@@ -28,8 +28,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 
-import uk.co.bithatch.zxbasic.ui.api.ILaunchPreparationUI;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationTargetUI;
+import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
+import uk.co.bithatch.emuzx.ui.IPreparationTargetUI;
 
 public class LocalPreparationTargetUI implements IPreparationTargetUI {
 

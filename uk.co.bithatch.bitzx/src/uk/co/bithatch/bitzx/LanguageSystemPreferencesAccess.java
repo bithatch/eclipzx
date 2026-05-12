@@ -32,7 +32,8 @@ public abstract class LanguageSystemPreferencesAccess extends AbstractPreference
 	}
 
 	public final IArchitecture getArchitecture(IProject project) {
-		return LanguageSystem.languageSystem(clazz).architectureOrDefault(project, getPreference(project, LanguageSystemPreferenceConstants.ARCHITECTURE, ""));
+		var defaultArch = getPreference(project, LanguageSystemPreferenceConstants.ARCHITECTURE, "");
+		return LanguageSystem.languageSystem(clazz).architectureOrDefault(project, defaultArch);
 	}
 
 }

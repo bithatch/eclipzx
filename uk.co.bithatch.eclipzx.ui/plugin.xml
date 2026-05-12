@@ -72,7 +72,7 @@
        </cheatsheet>
     </extension>
     <extension
-          point="uk.co.bithatch.zxbasic.preparationTarget">
+          point="uk.co.bithatch.emuzx.ui.preparationTarget">
        <preparationTarget
              id="uk.co.bithatch.eclipzx.ui.glue.automaticFATPreparationTarget"
              name="Automatic FAT Disk Image"
@@ -85,6 +85,5 @@
              uiClass="uk.co.bithatch.eclipzx.ui.glue.ConfiguredFATPreparationTargetUI">
        </preparationTarget>
     </extension>
-    
    
 </plugin>

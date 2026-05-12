@@ -250,7 +250,7 @@ public class ExternalEmulatorsPreferencePage extends PreferencePage implements I
 		
 		
 		if(haveEm) {
-			emulatorExecutable.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_EXECUTABLE, (k) -> { 
+			emulatorExecutable.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_EXECUTABLE, (k) -> { 
 				var str = getPreferenceStore().getString(k);
 				if(str.equals("")) {
 					var found = findEmulator();
@@ -260,7 +260,7 @@ public class ExternalEmulatorsPreferencePage extends PreferencePage implements I
 				}
 				return str;
 			}));
-			emulatorHome.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_HOME, (k) -> {
+			emulatorHome.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_HOME, (k) -> {
 				var str = getPreferenceStore().getString(k);
 				if(str.equals("")) {
 					var found = findEmulator();
@@ -270,8 +270,8 @@ public class ExternalEmulatorsPreferencePage extends PreferencePage implements I
 				}
 				return str; 
 			}));
-			leadingOptions.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_LEADING_OPTIONS, (k) -> getPreferenceStore().getString(k)));
-			trailingOptions.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_TRAILING_OPTIONS, (k) -> getPreferenceStore().getString(k)));
+			leadingOptions.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_LEADING_OPTIONS, (k) -> getPreferenceStore().getString(k)));
+			trailingOptions.setText(tempVals.computeIfAbsent(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + EXTERNAL_EMULATOR_TRAILING_OPTIONS, (k) -> getPreferenceStore().getString(k)));
 		}
 		else {
 			emulatorHome.setText("");
@@ -282,7 +282,7 @@ public class ExternalEmulatorsPreferencePage extends PreferencePage implements I
 	}
 	
 	private File findEmulator() {
-		return emulatorLocationCache.computeIfAbsent(selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID), k -> {
+		return emulatorLocationCache.computeIfAbsent(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID), k -> {
 			File found = null;
 
 			for (var path : EmulatorSelectorDialog.pathsToSearch) {
@@ -301,7 +301,7 @@ public class ExternalEmulatorsPreferencePage extends PreferencePage implements I
 	}
 
 	private void storeCurrent() {
-		var key = selectedEmulator.getIdOrDefault(Activator.PLUGIN_ID);
+		var key = selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID);
 		tempVals.put(key + "." + EXTERNAL_EMULATOR_HOME, emulatorHome.getText());
 		tempVals.put(key + "." + EXTERNAL_EMULATOR_EXECUTABLE, emulatorExecutable.getText());
 		tempVals.put(key + "." + EXTERNAL_EMULATOR_LEADING_OPTIONS, leadingOptions.getText());

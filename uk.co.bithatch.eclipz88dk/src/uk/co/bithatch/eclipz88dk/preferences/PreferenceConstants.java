@@ -1,8 +1,8 @@
 package uk.co.bithatch.eclipz88dk.preferences;
 
-import uk.co.bithatch.bitzx.IPreferenceConstants;
+import uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants;
 
-public interface PreferenceConstants extends IPreferenceConstants  {
+public interface PreferenceConstants extends LanguageSystemPreferenceConstants  {
     
 	String COMPILER = "compiler";
 
@@ -10,9 +10,10 @@ public interface PreferenceConstants extends IPreferenceConstants  {
 	String SDK_PATHS = "sdks.sdkPaths";
 	
 	String SDK = "compiler.sdk";
-	String SYSTEM = "compiler.system";
 	String CLIB = "compiler.clib";
 	String SUBTYPE = "compiler.subtype";
+
+	String ALL_ARCHITECTURES = "architectures.all";
 
 
 }

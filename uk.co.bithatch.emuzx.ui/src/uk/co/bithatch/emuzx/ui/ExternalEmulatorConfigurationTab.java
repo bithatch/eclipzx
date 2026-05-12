@@ -110,7 +110,7 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 
 	@Override
 	public Image getImage() {
-		return Activator.getDefault().getImageRegistry().get(Activator.CHIP_PATH);
+		return EmuZXUIActivator.getDefault().getImageRegistry().get(EmuZXUIActivator.CHIP_PATH);
 	}
 
 	protected void createEmulatorSelector(Composite parent) {
@@ -242,7 +242,11 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 			cfg.setAttribute(EMULATOR_EXECUTABLE, ld.getEmulatorExecutable().toString());
 
 			sel.createEmulator().ifPresent(em -> {
-				em.configure(sel, cfg, context.resolveProgram(), ld.getEmulatorHome(), mode);
+				try {
+					em.configure(sel, cfg, context.resolveProgram(), ld.getEmulatorHome(), mode);
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
 			});
 
 			var preconfigured = new ArrayList<>(
@@ -250,13 +254,13 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 			var leading = new ArrayList<>(
 					separatedList(
 							PreferencesAccess.get().getPreferences()
-									.get(sel.getIdOrDefault(Activator.PLUGIN_ID) + "."
+									.get(sel.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "."
 											+ PreferenceConstants.EXTERNAL_EMULATOR_LEADING_OPTIONS, ""),
 							lineSeparator()));
 			var trailing = new ArrayList<>(
 					separatedList(
 							PreferencesAccess.get().getPreferences()
-									.get(sel.getIdOrDefault(Activator.PLUGIN_ID) + "."
+									.get(sel.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "."
 											+ PreferenceConstants.EXTERNAL_EMULATOR_TRAILING_OPTIONS, ""),
 							lineSeparator()));
 

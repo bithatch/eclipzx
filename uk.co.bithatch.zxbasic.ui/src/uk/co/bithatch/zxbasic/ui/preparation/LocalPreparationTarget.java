@@ -19,10 +19,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
 
+import uk.co.bithatch.bitzx.FileItem;
+import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
-import uk.co.bithatch.zxbasic.ui.util.FileItem;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
 
 public class LocalPreparationTarget extends AbstractPreparationTarget {
 

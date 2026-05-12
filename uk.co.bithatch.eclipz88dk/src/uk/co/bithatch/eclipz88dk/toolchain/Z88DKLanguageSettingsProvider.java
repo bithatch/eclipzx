@@ -29,7 +29,8 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 		var sdkOr = pax.getSDK(project);
 		if (sdkOr.isPresent()) {
 			var sdk = sdkOr.get();
-			var config = sdk.configurations().configuration(pax.getSystem(project)).get();
+			var system = pax.getArchitecture(project).name().toLowerCase();
+			var config = sdk.configurations().configuration(system).get();
 			var entries = new ArrayList<ICLanguageSettingEntry>();
 			
 			/* Default OPTION */

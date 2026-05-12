@@ -76,7 +76,7 @@ public enum BorielZXBasicArchitecture implements IArchitecture {
 //			return valueOf(archName);
 //		}
 //		catch(IllegalArgumentException iae) {
-//			return Architecture.LEGACY;
+//			return Architecture.ZX;
 //		}
 //	}
 }

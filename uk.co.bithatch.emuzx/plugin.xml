@@ -2,6 +2,7 @@
 <?eclipse version="4.35"?>
 <plugin>
     <extension-point id="uk.co.bithatch.emuzx.emulator" name="External Emulator" schema="schema/uk.co.bithatch.emuzx.emulator.exsd" />
+    <extension-point id="uk.co.bithatch.emuzx.programBuildOptionsFactory" name="Program Build Options Factory Contribution" schema="schema/uk.co.bithatch.emuzx.programBuildOptionsFactory.exsd" />
     
     <extension point="org.eclipse.core.variables.dynamicVariables">
        <variable

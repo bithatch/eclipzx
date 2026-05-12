@@ -9,11 +9,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.variables.VariablesPlugin;
 
+import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
 
 public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget {
 

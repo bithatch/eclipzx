@@ -36,10 +36,10 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 
 import uk.co.bithatch.bitzx.FileNames;
+import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
+import uk.co.bithatch.emuzx.api.IWritablePreparationContext;
 import uk.co.bithatch.zxbasic.tools.NexConverter;
 import uk.co.bithatch.zxbasic.ui.api.INEXConfigurer;
-import uk.co.bithatch.zxbasic.ui.api.IProgramBuildOptionsFactory;
-import uk.co.bithatch.zxbasic.ui.api.IWritablePreparationContext;
 import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 import uk.co.bithatch.zxbasic.ui.tools.ToolMessage;

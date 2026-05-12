@@ -5,10 +5,10 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationSource;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
-import uk.co.bithatch.zxbasic.ui.util.FileSet.Purpose;
+import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.bitzx.FileSet.Purpose;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
+import uk.co.bithatch.emuzx.api.IPreparationSource;
 
 public class CompilerOutputPreparationSource implements IPreparationSource {
 

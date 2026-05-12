@@ -4,8 +4,8 @@
     <extension point="uk.co.bithatch.zxbasic.nexConfigurer">
         <nexConfigurer class="uk.co.bithatch.nextbuild.FileContentNEXConfigurer"/>
     </extension>
-     <extension point="uk.co.bithatch.zxbasic.programBuildsOptionsFactory">
-        <programBuildsOptionsFactory class="uk.co.bithatch.nextbuild.FileHeaderProgramBuildOptionsFactory"/>
+     <extension point="uk.co.bithatch.emuzx.programBuildOptionsFactory">
+        <programBuildOptionsFactory class="uk.co.bithatch.nextbuild.FileHeaderProgramBuildOptionsFactory"/>
     </extension>
     <extension point="org.eclipse.ui.newWizards">
         <category id="uk.co.bithatch.zxbasic.wizardCategory" name="ZX Basic Projects" />
@@ -66,7 +66,7 @@
     </extension>
     
     <extension
-          point="uk.co.bithatch.zxbasic.preparationSource">
+          point="uk.co.bithatch.emuzx.preparationSource">
        <preparationSource
              id="uk.co.bithatch.nextbuild.fileContentPreparationSource"
              name="NextBuild Compatible Program Scan"

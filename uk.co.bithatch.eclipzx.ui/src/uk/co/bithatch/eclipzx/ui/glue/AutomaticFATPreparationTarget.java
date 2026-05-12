@@ -20,14 +20,14 @@ import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 import de.waldheinz.fs.fat.FatType;
+import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
+import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.fatexplorer.preferences.FATLock;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
 import uk.co.bithatch.fatexplorer.vfs.FATImageFileStore;
-import uk.co.bithatch.zxbasic.ui.api.IPreparationContext;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
-import uk.co.bithatch.zxbasic.ui.util.FileSet;
 import uk.co.bithatch.zyxy.lib.MemoryUnit;
 import uk.co.bithatch.zyxy.mmc.SDCard;
 import uk.co.bithatch.zyxy.mmc.SDCard.Builder;

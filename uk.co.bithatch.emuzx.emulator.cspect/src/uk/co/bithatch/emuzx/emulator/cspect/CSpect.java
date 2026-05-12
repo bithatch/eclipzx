@@ -2,8 +2,8 @@ package uk.co.bithatch.emuzx.emulator.cspect;
 
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
-import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_FILE;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_FILE;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CUSTOM_WORKING_DIRECTORY;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
@@ -14,21 +14,22 @@ import java.io.File;
 import java.util.Arrays;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
 import uk.co.bithatch.bitzx.Strings;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
+import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
 import uk.co.bithatch.emuzx.api.EmulatorDescriptor;
 import uk.co.bithatch.emuzx.api.IEmulator;
-import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
 public class CSpect implements IEmulator {
 
 	@Override
-	public void configure(EmulatorDescriptor descriptor, ILaunchConfigurationWorkingCopy configuration, IFile programFile, File home, String mode) {
+	public void configure(EmulatorDescriptor descriptor, ILaunchConfigurationWorkingCopy configuration, IFile programFile, File home, String mode) throws CoreException {
 		var proj = programFile.getProject();
-		var arch = ZXBasicPreferencesAccess.get().getArchitecture(proj);
+		var arch = ExternallyLaunchableRegistry.externallyLaunchableFor(programFile).getArchitecture(proj);
 		
 		if(WellKnownArchitecture.ZXNEXT.equals(arch.wellKnown().orElse(null))) {
 

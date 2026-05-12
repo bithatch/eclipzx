@@ -9,7 +9,8 @@ Bundle-Vendor: Bithatch
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  uk.co.bithatch.zxbasic.ui;bundle-version="1.0.0",
- uk.co.bithatch.nextlib;bundle-version="1.0.0"
+ uk.co.bithatch.nextlib;bundle-version="1.0.0",
+ uk.co.bithatch.emuzx;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.nextbuild
 Bundle-ActivationPolicy: lazy

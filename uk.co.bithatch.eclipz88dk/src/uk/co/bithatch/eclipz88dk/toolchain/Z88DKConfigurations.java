@@ -42,7 +42,18 @@ public class Z88DKConfigurations {
 	public String[][] getAllSystemsAsOptions() {
 		return configurations().stream().map(sdk -> new String[] { sdk.name(), sdk.name() }).toList().toArray(new String[0][0]);
 	}
+
+	public String[][] getAllZXSystemsAsOptions() {
+		return configurations().stream().
+				filter(this::isZXSystem).
+				map(sdk -> new String[] { sdk.name(), sdk.name() }).toList().toArray(new String[0][0]);
+	}
 	
+	public boolean isZXSystem(Z88DKConfigurationFile system) {
+		/* TODO ... really WellKnownArchitectures should be doing this */
+		return system.name().toLowerCase().startsWith("zx");
+	}
+
 	public static void main(String[] args) {
 		var zcccfg = System.getenv("ZCCCFG");
 		var cfgs = new Z88DKConfigurations(Paths.get(zcccfg));
