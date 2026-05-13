@@ -61,7 +61,7 @@ public class FontImportTargetWizardPage extends WizardPage {
 		layout.horizontalSpacing = 16;
 		container.setLayout(layout);
 
-		Label destLabel = new Label(container, SWT.NONE);
+		var destLabel = new Label(container, SWT.NONE);
 		destLabel.setText("Destination folder:");
 		destText = new Text(container, SWT.BORDER);
 		destText.setText(defaultDestination == null ? "" : defaultDestination.getFullPath().toString());
@@ -73,7 +73,7 @@ public class FontImportTargetWizardPage extends WizardPage {
 		destDecoration.setDescriptionText("Destination does not exist.");
 		destDecoration.hide();
 
-		Button browseDestButton = new Button(container, SWT.PUSH);
+		var browseDestButton = new Button(container, SWT.PUSH);
 		browseDestButton.setText("Browse...");
 		browseDestButton.addListener(SWT.Selection, e -> {
 
@@ -90,7 +90,7 @@ public class FontImportTargetWizardPage extends WizardPage {
 			}
 		});
 
-		Label nameLabel = new Label(container, SWT.NONE);
+		var nameLabel = new Label(container, SWT.NONE);
 		nameLabel.setText("Font filename:");
 		nameText = new Text(container, SWT.BORDER);
 		nameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

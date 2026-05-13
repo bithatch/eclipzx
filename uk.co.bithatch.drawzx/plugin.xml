@@ -125,7 +125,22 @@
             <description>Import from a selection of 8 bit monochrome character sets.</description>
         </wizard>
     </extension>
-
+    
+    <extension point="org.eclipse.ui.newWizards">
+      <category
+            id="uk.co.bithatch.drawzx.category"
+            name="Graphics Files"/>
+      
+      <wizard
+            id="uk.co.bithatch.drawzx.wizards.newSPR"
+            name="Spritesheet"
+            class="uk.co.bithatch.drawzx.wizards.NewSPRFileWizard"
+            category="uk.co.bithatch.drawzx.category"
+            icon="icons/sprite16.png">
+        <description>Create a new Spritesheet file.</description>
+      </wizard>
+    </extension>
+    
     <extension point="org.eclipse.ui.commands">
       <category
             id="uk.co.bithatch.drawzx.sprites.commands.category"
