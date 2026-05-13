@@ -36,20 +36,51 @@ public class SPREditor extends AbstractSpriteEditor {
 	}
 
 	@Override
-	protected void layoutGridAndSwatch(Composite parent) {
-		var palettes = new Composite(parent, SWT.NONE);
+	protected void createEditorLayout(Composite root) {
 		var layout = new GridLayout(2, false);
-		layout.verticalSpacing = 4;
-		palettes.setLayout(layout);
-		palettes.setLayoutData(GridDataFactory.create(SWT.NONE).align(SWT.FILL, SWT.FILL).grab(true, true).create());
+		layout.marginWidth = 8;
+		layout.marginHeight = 8;
+		root.setLayout(layout);
 
-		spriteSwatch = new SpriteSwatch(palettes, spriteSheet, 32, 4, SWT.BORDER);
-		spriteSwatch.setLayoutData(
-				GridDataFactory.create(SWT.NONE).align(SWT.CENTER, SWT.CENTER).grab(false, true).create());
+		// Left column: swatch
+		spriteSwatch = new SpriteSwatch(root, spriteSheet, swatchCellSize(spriteSheet), swatchColumns(spriteSheet), SWT.BORDER);
+		spriteSwatch.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).create());
 
-		spriteGrid = new SpriteEditorGrid(palettes, spriteCell, SWT.BORDER);
+		// Right column: info bar on top, editor canvas below
+		var rightArea = new Composite(root, SWT.NONE);
+		var rightLayout = new GridLayout(1, false);
+		rightLayout.marginWidth = 0;
+		rightLayout.marginHeight = 0;
+		rightArea.setLayout(rightLayout);
+		rightArea.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+
+		var infoBar = new Composite(rightArea, SWT.NONE);
+		var infoLayout = new GridLayout(2, true);
+		infoLayout.marginWidth = 0;
+		infoLayout.marginHeight = 0;
+		infoBar.setLayout(infoLayout);
+		infoBar.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		createSpritesheetInfoGroup(infoBar).setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		createSpriteInfoGroup(infoBar).setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+
+		spriteGrid = new SpriteEditorGrid(rightArea, spriteCell, SWT.BORDER);
 		spriteGrid.backgroundType(BackgroundType.SMALL_CHEQUER);
-		spriteGrid.setLayoutData(GridDataFactory.create(SWT.NONE).align(SWT.FILL, SWT.FILL).grab(true, true).create());
+		spriteGrid.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+	}
+
+	@Override
+	public int[] cellSizes() {
+		return new int[] { 16, 8 };
+	}
+
+	@Override
+	protected int swatchColumns(SpriteSheet sheet) {
+		return sheet.cellSize() <= 8 ? 8 : 4;
+	}
+
+	@Override
+	protected int swatchCellSize(SpriteSheet sheet) {
+		return sheet.cellSize() <= 8 ? 20 : 32;
 	}
 
 	@Override

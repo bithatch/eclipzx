@@ -92,6 +92,10 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 	private Label encodedBin;
 
 	private IWorkbenchPart activePart;
+	private boolean horizontal;
+	private Composite pickerGroups;
+	private GridData paletteDetailsGridData;
+	private GridData selectionInfoGridData;
 
 
 	@Override
@@ -119,11 +123,39 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 
 		getSite().getWorkbenchWindow().getPartService().addPartListener(this);
 
+		parent.addListener(SWT.Resize, e -> updateOrientation());
+
 		IEditorPart activeEditor = getSite().getPage().getActiveEditor();
 		updateView(activeEditor);
 
 		updatePaletteInfo();
 		updateIndexInfo();
+	}
+
+	private void updateOrientation() {
+		var size = parent.getSize();
+		var nowHorizontal = size.x > size.y;
+		if (nowHorizontal != horizontal) {
+			horizontal = nowHorizontal;
+			var layout = (GridLayout) pickerGroups.getLayout();
+			layout.numColumns = horizontal ? 3 : 1;
+			layout.makeColumnsEqualWidth = !horizontal;
+
+			paletteDetailsGridData.grabExcessVerticalSpace = horizontal;
+			paletteDetailsGridData.verticalAlignment = horizontal ? SWT.FILL : SWT.BEGINNING;
+			paletteDetailsGridData.grabExcessHorizontalSpace = true;
+
+			paletteLayoutData.grabExcessHorizontalSpace = !horizontal;
+			paletteLayoutData.grabExcessVerticalSpace = true;
+			paletteLayoutData.horizontalSpan = horizontal ? 1 : 4;
+
+			selectionInfoGridData.grabExcessVerticalSpace = horizontal;
+			selectionInfoGridData.verticalAlignment = horizontal ? SWT.FILL : SWT.BEGINNING;
+			selectionInfoGridData.grabExcessHorizontalSpace = true;
+
+			pickerGroups.layout(true, true);
+			parent.layout(true, true);
+		}
 	}
 	
 	@Override
@@ -276,7 +308,8 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 		historyLabelGridData = GridDataFactory.swtDefaults().create();
 		historyLabel.setLayoutData(historyLabelGridData);
 		history = new PaletteGrid(colorInfo, Palette.empty(), 22, SWT.NONE); 
-		historyGridData = GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).span(3, 1).hint(200, 22).create();
+//		historyGridData = GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).span(3, 1).hint(200, 22).create(); 
+		historyGridData = GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).span(3, 1).hint(200, 22).grab(true, false).create();
 		history.setLayoutData(historyGridData);
 		history.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 			colorSelected(
@@ -313,15 +346,22 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 	}
 
 	protected void createPicker(Composite groups) {
-		var colorInfo = new Composite(groups, SWT.NONE);
-		var colorLayout = createGroupLayout(4, false);
-		colorInfo.setLayout(colorLayout);
-		colorInfo.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+		pickerGroups = new Composite(groups, SWT.NONE);
+		pickerGroups.setLayout(createGroupLayout(1, true));
+		pickerGroups.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+		
 
-		var paletteLabel = new Label(colorInfo, SWT.NONE);
+		/* Palette details */
+		var paletteDetails = new Composite(pickerGroups, SWT.NONE);
+		var paletteDetailsLayout = createGroupLayout(4, false);
+		paletteDetails.setLayout(paletteDetailsLayout);
+		paletteDetailsGridData = GridDataFactory.fillDefaults().grab(true, false).create();
+		paletteDetails.setLayoutData(paletteDetailsGridData);
+
+		var paletteLabel = new Label(paletteDetails, SWT.NONE);
 		paletteLabel.setText("Palette:");
 
-		paletteLink = new Link(colorInfo, SWT.NONE);
+		paletteLink = new Link(paletteDetails, SWT.NONE);
 		paletteLinkGridData = GridDataFactory.fillDefaults().grab(true, false).hint(142, SWT.DEFAULT)
 				.align(SWT.FILL, SWT.CENTER).create();
 		paletteLink.setLayoutData(paletteLinkGridData);
@@ -352,59 +392,67 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 
 		}));
 
-		paletteLinkButtons = new Composite(colorInfo, SWT.NONE);
+		paletteLinkButtons = new Composite(paletteDetails, SWT.NONE);
 		paletteLinkButtons.setLayout(new RowLayout());
 		paletteLinkButtonsGridData = GridDataFactory.swtDefaults().align(SWT.CENTER, SWT.CENTER).span(2, 1).create();
 		paletteLinkButtons.setLayoutData(paletteLinkButtonsGridData);
 
-		paletteInfoLabel = new Label(colorInfo, SWT.BOLD);
+		paletteInfoLabel = new Label(paletteDetails, SWT.BOLD);
 		paletteInfoLabel.setText("Type:");
 
-		paletteInfo = new Label(colorInfo, SWT.BOLD);
+		paletteInfo = new Label(paletteDetails, SWT.BOLD);
 		paletteInfoGridData = GridDataFactory.fillDefaults().span(3, 1).create();
 		paletteInfo.setLayoutData(paletteInfoGridData);
 
-		createColorAccessories(colorInfo);
+		createColorAccessories(paletteDetails);
 
-		createPaletteGrid(colorInfo);
+		/* Palette grid */
+		createPaletteGrid(pickerGroups);
 		palette.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 			colorSelected((Integer) e.data, ( e.stateMask & SWT.CTRL ) == 0);
 		}));
+		
+		/* Selection details */
+		var selectionInfo = new Composite(pickerGroups, SWT.NONE);
+		var selectionInfoLayout = createGroupLayout(4, false);
+		selectionInfo.setLayout(selectionInfoLayout);
+		selectionInfoGridData = GridDataFactory.fillDefaults().grab(true, false).create();
+		selectionInfo.setLayoutData(selectionInfoGridData);
 
-		var indexLabel = new Label(colorInfo, SWT.NONE);
+		var indexLabel = new Label(selectionInfo, SWT.NONE);
 		indexLabel.setText("Index:");
 
-		index = new Label(colorInfo, SWT.NONE);
+		index = new Label(selectionInfo, SWT.NONE);
 		index.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(3, 1)
 				.align(SWT.FILL, SWT.CENTER).create());
 		index.setText("0");
 		
-		var rgbLabel = new Label(colorInfo, SWT.NONE);
+		var rgbLabel = new Label(selectionInfo, SWT.NONE);
 		rgbLabel.setText("RRRGGGBBB:");
 
-		rgb = new Label(colorInfo, SWT.NONE);
+		rgb = new Label(selectionInfo, SWT.NONE);
 		rgb.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(3, 1)
 				.align(SWT.FILL, SWT.CENTER).create());
 		rgb.setText("0 0 0");
 		
-		var encodedLabel = new Label(colorInfo, SWT.NONE);
+		var encodedLabel = new Label(selectionInfo, SWT.NONE);
 		encodedLabel.setText("Encoded:");
 
-		encoded = new Label(colorInfo, SWT.NONE);
+		encoded = new Label(selectionInfo, SWT.NONE);
 		encoded.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(3, 1)
 				.align(SWT.FILL, SWT.CENTER).create());
 		encoded.setText("0");
 		
-		new Label(colorInfo, SWT.NONE);
+		new Label(selectionInfo, SWT.NONE);
 
-		encodedHex = new Label(colorInfo, SWT.NONE);
+		encodedHex = new Label(selectionInfo, SWT.NONE);
 		encodedHex.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(3, 1)
 				.align(SWT.FILL, SWT.CENTER).create());
 		encodedHex.setText("0");
 		
-		new Label(colorInfo, SWT.NONE);
+		new Label(selectionInfo, SWT.NONE);
 
-		encodedBin = new Label(colorInfo, SWT.NONE);
+		encodedBin = new Label(selectionInfo, SWT.NONE);
 		encodedBin.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(3, 1)
 				.align(SWT.FILL, SWT.CENTER).create());
 		encodedBin.setText("0");
@@ -456,7 +504,6 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
     }
 
 	private void updateView(IWorkbenchPart part) {
-		System.out.println("updateView " + part);
 		this.activePart = part;
 		if (part instanceof IColouredEditor editor) {
 			pickerArea.setVisible(true);

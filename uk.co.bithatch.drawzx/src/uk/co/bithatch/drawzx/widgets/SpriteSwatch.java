@@ -75,7 +75,6 @@ public class SpriteSwatch extends Composite {
 	public void backgroundType(BackgroundType backgroundType) {
 		if(backgroundType != this.backgroundType) {
 			this.backgroundType = backgroundType;
-			rebuildAndRedraw();
 		}
 	}
 
@@ -90,6 +89,27 @@ public class SpriteSwatch extends Composite {
 		}
 	}
 
+	public void update(SpriteSheet spriteSheet, int columns, int cellSize) {
+		this.columns = columns;
+		this.cellSize = cellSize;
+		this.spriteSheet = spriteSheet;
+		rebuildAndRedraw();
+	}
+
+	public void columns(int columns) {
+		if(columns != this.columns) {
+			this.columns = columns;
+			rebuildAndRedraw();
+		}
+	}
+
+	public void cellSize(int cellSize) {
+		if(cellSize != this.cellSize) {
+			this.cellSize = cellSize;
+			rebuildAndRedraw();
+		}
+	}
+
 	public void spriteSheet(SpriteSheet spriteSheet) {
 		if (!Objects.equals(spriteSheet, this.spriteSheet)) {
 			this.spriteSheet = spriteSheet;
@@ -98,7 +118,6 @@ public class SpriteSwatch extends Composite {
 	}
 
 	private void rebuildAndRedraw() {
-		System.out.println("rebuildAndRedraw()");
 		spriteCells.forEach(SpriteGrid::dispose);
 		spriteCells.clear();
 		var sz = this.spriteSheet.size();

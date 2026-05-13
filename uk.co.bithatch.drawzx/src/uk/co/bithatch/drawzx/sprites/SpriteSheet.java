@@ -193,6 +193,65 @@ public class SpriteSheet {
 		return -1;
 	}
 
+	public SpriteSheet withCellSize(int newCellSize) {
+		if (newCellSize == this.cellSize) return this;
+		int oldCellSize = this.cellSize;
+		int pixelsPerOldSprite = oldCellSize * oldCellSize;
+		int pixelsPerNewSprite = newCellSize * newCellSize;
+
+		if (oldCellSize % newCellSize == 0) {
+			// Splitting: e.g. 16x16 -> 8x8 using sequential byte reinterpretation
+			// (matches ZX Next hardware: 256 bytes split into 4 x 64-byte sub-patterns)
+			int subPatternsPerOld = pixelsPerOldSprite / pixelsPerNewSprite;
+			int newSize = size * subPatternsPerOld;
+			var newData = new int[newCellSize][newSize * newCellSize];
+			var cells = new SpriteCell[newSize];
+
+			for (var oldIdx = 0; oldIdx < size; oldIdx++) {
+				for (var sub = 0; sub < subPatternsPerOld; sub++) {
+					var newIdx = oldIdx * subPatternsPerOld + sub;
+					var cellXOffset = newIdx * newCellSize;
+					cells[newIdx] = new SpriteCell(palette, cellXOffset, newCellSize, newData);
+					for (var y = 0; y < newCellSize; y++) {
+						for (var x = 0; x < newCellSize; x++) {
+							var pixelInSprite = sub * pixelsPerNewSprite + y * newCellSize + x;
+							var origRow = pixelInSprite / oldCellSize;
+							var origCol = pixelInSprite % oldCellSize;
+							newData[y][cellXOffset + x] = data[origRow][oldIdx * oldCellSize + origCol];
+						}
+					}
+				}
+			}
+			return new SpriteSheet(palette, newData, newSize, newCellSize, cells, bpp);
+
+		} else if (newCellSize % oldCellSize == 0) {
+			// Merging: e.g. 8x8 -> 16x16 (reverse of the sequential reinterpretation)
+			int subPatternsPerNew = pixelsPerNewSprite / pixelsPerOldSprite;
+			int newSize = size / subPatternsPerNew;
+			var newData = new int[newCellSize][newSize * newCellSize];
+			var cells = new SpriteCell[newSize];
+
+			for (var newIdx = 0; newIdx < newSize; newIdx++) {
+				var cellXOffset = newIdx * newCellSize;
+				cells[newIdx] = new SpriteCell(palette, cellXOffset, newCellSize, newData);
+				for (var y = 0; y < newCellSize; y++) {
+					for (var x = 0; x < newCellSize; x++) {
+						var pixelInNewSprite = y * newCellSize + x;
+						var sub = pixelInNewSprite / pixelsPerOldSprite;
+						var pixelInSub = pixelInNewSprite % pixelsPerOldSprite;
+						var oldRow = pixelInSub / oldCellSize;
+						var oldCol = pixelInSub % oldCellSize;
+						var oldIdx = newIdx * subPatternsPerNew + sub;
+						newData[y][cellXOffset + x] = data[oldRow][oldIdx * oldCellSize + oldCol];
+					}
+				}
+			}
+			return new SpriteSheet(palette, newData, newSize, newCellSize, cells, bpp);
+
+		}
+		throw new IllegalArgumentException("Cell sizes must be evenly divisible");
+	}
+
 	public SpriteSheet withBpp(int bpp) {
 		return new SpriteSheet(palette, data, size, cellSize, cells, bpp);
 	}
@@ -205,13 +264,14 @@ public class SpriteSheet {
 		return new SpriteSheet(palette, data, size, cellSize, newCells, bpp);
 	}
 
+	
 	public void save(WritableByteChannel wtr) throws IOException {
 		if(bpp == 1) {
-			var buf = ByteBuffer.allocate(8 * data.length);
-			for(var c = 0 ; c < size; c += 8) {
+			var buf = ByteBuffer.allocate(cellSize * data.length);
+			for(var c = 0 ; c < size * cellSize; c += cellSize) {
 				for(var r = 0 ; r < data.length; r++) {
 					var v = 0;
-					for(var b = 0 ; b < 8 ; b++) {
+					for(var b = 0 ; b < cellSize ; b++) {
 						if(data[r][c + b] > 0) {
 							v |= 1 << (7 -b);
 						}
@@ -224,10 +284,10 @@ public class SpriteSheet {
 			}
 		}
 		else if(bpp == 8) {
-			var buf = ByteBuffer.allocate(16 * data.length);
-			for(var c = 0 ; c < size * 16; c += 16) {
+			var buf = ByteBuffer.allocate(cellSize * data.length);
+			for(var c = 0 ; c < size * cellSize; c += cellSize) {
 				for(var r = 0 ; r < data.length; r++) {
-					for(var b = 0 ; b < 16 ; b++) {
+					for(var b = 0 ; b < cellSize ; b++) {
 						buf.put((byte)data[r][c + b]);
 					}
 				}
@@ -237,10 +297,11 @@ public class SpriteSheet {
 			}
 		}
 		else if(bpp == 4) {
-			var buf = ByteBuffer.allocate(8 * data.length);
-			for(var c = 0 ; c < size * 16; c += 16) {
+			var bytesPerRow = cellSize / 2;
+			var buf = ByteBuffer.allocate(bytesPerRow * data.length);
+			for(var c = 0 ; c < size * cellSize; c += cellSize) {
 				for(var r = 0 ; r < data.length; r++) {
-					for(var b = 0 ; b < 16 ; b += 2) {
+					for(var b = 0 ; b < cellSize ; b += 2) {
 						buf.put((byte)((data[r][c + b] << 4) | (data[r][c + b + 1] & 0xf)));
 					}
 				}

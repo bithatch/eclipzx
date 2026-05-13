@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.Channels;
+import java.util.stream.IntStream;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.IOperationHistory;
@@ -34,6 +35,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
@@ -117,6 +119,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	private Composite root;
 	private Label spriteSheetBpp;
 	private Label spriteSheetCells;
+	private Combo spriteSheetCellSize;
 	private Label spriteSheetSize;
 
 	private final IResourceChangeListener resourceChangeListener = new IResourceChangeListener() {
@@ -160,8 +163,8 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		layout.marginHeight = 8;
 		root.setLayout(layout);
 
-		createSpriteEditorAndSwatch(root);
-		createInfo(root);
+		createEditorLayout(root);
+		setupEditorListeners();
 
 		updateSpriteSheetInfo();
 
@@ -276,7 +279,11 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 		var file = getFile();
 		try {
+			var configuredCellSize = EditorFileProperties.getIntProperty(getFile(), EditorFileProperties.CELL_SIZE_PROPERTY, cellSizes()[0]);
 			spriteSheet = loadSheet(file.getContents());
+			if(spriteSheet.cellSize() != configuredCellSize) {
+				spriteSheet = spriteSheet.withCellSize(configuredCellSize);
+			}
 		} catch (IOException ioe) {
 			throw new PartInitException(Status.error("Failed to load spritesheet.", ioe));
 		} catch (CoreException e) {
@@ -309,7 +316,6 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 	@Override
 	public void partActivated(IWorkbenchPart part) {
-		System.out.println("Part activated: " + part.getTitle());
 		if (part.equals(this)) {
 			var cmdService = PlatformUI.getWorkbench().getService(ICommandService.class);
 			if (cmdService != null) {
@@ -329,7 +335,6 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 	@Override
 	public void partDeactivated(IWorkbenchPart part) {
-		System.out.println("Part deactivated: " + part.getTitle());
 	}
 
 	@Override
@@ -369,9 +374,12 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	public void setSpriteSheet(SpriteSheet spriteSheet) {
 		this.spriteSheet = spriteSheet;
 		if (spriteSheetCells != null) {
-			spriteSwatch.spriteSheet(spriteSheet);
+			spriteSwatch.update(spriteSheet, swatchColumns(spriteSheet), swatchCellSize(spriteSheet));
 			updateSpriteSheetInfo();
-			selectCell(spriteSheet.cell(spriteSwatch.selected()));
+			var idx = Math.min(spriteSwatch.selected(), spriteSheet.size() - 1);
+			currentCellIndex = idx;
+			spriteSwatch.selected(idx);
+			selectCell(spriteSheet.cell(idx));
 			if(picker != null)
 				picker.palette(spriteSheet.palette());
 		}
@@ -460,6 +468,18 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		l.marginWidth = 8;
 		l.marginHeight = 8;
 		return l;
+	}
+
+	public int[] cellSizes() {
+		return new int[] { 8 };
+	}
+
+	protected int swatchColumns(SpriteSheet sheet) {
+		return 16;
+	}
+
+	protected int swatchCellSize(SpriteSheet sheet) {
+		return 24;
 	}
 
 	@Override
@@ -582,19 +602,49 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		EditorFileProperties.setProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, idx);
 	}
 
-	private void createInfo(Composite parent) {
+	protected void createEditorLayout(Composite root) {
+		GridLayout layout = new GridLayout(2, false);
+		layout.marginWidth = 8;
+		layout.marginHeight = 8;
+		root.setLayout(layout);
+
+		layoutGridAndSwatch(root);
+		createInfoColumn(root);
+	}
+
+	private void createInfoColumn(Composite parent) {
 		var groups = new Composite(parent, SWT.NONE);
 		groups.setLayout(new GridLayout(1, false));
 		groups.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).create());
 
-		var spritesheetInfo = new Group(groups, SWT.TITLE);
-		spritesheetInfo.setLayout(createGroupLayout(2, false));
-		spritesheetInfo.setText("Sprite sheet");
-		spritesheetInfo.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		createSpritesheetInfoGroup(groups).setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		createSpriteInfoGroup(groups).setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+	}
+
+	protected Group createSpritesheetInfoGroup(Composite parent) {
+		var spritesheetInfo = new Group(parent, SWT.TITLE);
+		var spritesheetInfoLayout = createGroupLayout(2, false);
+		spritesheetInfoLayout.horizontalSpacing = 8;
+		spritesheetInfoLayout.verticalSpacing = 8;
+		spritesheetInfo.setLayout(spritesheetInfoLayout);
+		spritesheetInfo.setText("Spritesheet");
 
 		var cellsLabel = new Label(spritesheetInfo, SWT.NONE);
 		cellsLabel.setText("Cells:");
 		spriteSheetCells = new Label(spritesheetInfo, SWT.BOLD);
+
+		var cellsSizeLabel = new Label(spritesheetInfo, SWT.NONE);
+		cellsSizeLabel.setText("Cell Size:");
+		spriteSheetCellSize = new Combo(spritesheetInfo, SWT.READ_ONLY);
+		var cellSizeList = IntStream.of(cellSizes()).mapToObj(String::valueOf).toList();
+		spriteSheetCellSize.setItems(cellSizeList.toArray(String[]::new));
+		var configuredCellSize = spriteSheet.cellSize();
+		var idx = cellSizeList.indexOf(String.valueOf(configuredCellSize));
+		spriteSheetCellSize.select(idx == -1 ? 0 : idx);
+		spriteSheetCellSize.setLayoutData(GridDataFactory.fillDefaults().hint(64, SWT.DEFAULT).grab(true, false).create());
+		spriteSheetCellSize.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+			updateCellSize();
+		}));
 
 		var sizeLabel = new Label(spritesheetInfo, SWT.NONE);
 		sizeLabel.setText("Size:");
@@ -604,9 +654,13 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		depthLabel.setText("Depth:");
 		spriteSheetBpp = new Label(spritesheetInfo, SWT.BOLD);
 
-		var spriteInfo = new Group(groups, SWT.TITLE);
-		spriteInfo.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
-		spriteInfo.setLayout(createGroupLayout(2, false));
+		return spritesheetInfo;
+	}
+
+	protected Group createSpriteInfoGroup(Composite parent) {
+		var spriteInfo = new Group(parent, SWT.TITLE);
+		GridLayout spritesheetInfoLayout2 = createGroupLayout(2, false);
+		spriteInfo.setLayout(spritesheetInfoLayout2);
 		spriteInfo.setText("Sprite");
 
 		var indexLabel = new Label(spriteInfo, SWT.NONE);
@@ -625,11 +679,22 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		spritePreviewInverse.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
 		spritePreviewInverse.setInverse(true);
 
+		return spriteInfo;
 	}
 
-	private void createSpriteEditorAndSwatch(Composite parent) {
+	private void updateCellSize() {
+		int selectedSize = getSelectedCellSize();
+		EditorFileProperties.setProperty(getFile(), EditorFileProperties.CELL_SIZE_PROPERTY, String.valueOf(selectedSize));
+		setSpriteSheet(spriteSheet.withCellSize(selectedSize));
+		updateSpriteSheetInfo();
+	}
 
-		layoutGridAndSwatch(parent);
+	private int getSelectedCellSize() {
+		int selectedSize = cellSizes()[spriteSheetCellSize.getSelectionIndex()];
+		return selectedSize;
+	}
+
+	private void setupEditorListeners() {
 
 		currentCellIndex = EditorFileProperties.getIntProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, 0);
 		spriteSwatch.selected(currentCellIndex);
@@ -716,6 +781,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		spriteSheetCells.setText(String.valueOf(spriteSheet.size()));
 		spriteSheetSize.setText(String.format("%d bytes", spriteSheet.byteSize()));
 		spriteSheetBpp.setText(String.format("%d Bpp", spriteSheet.bpp()));
+		spriteSheetCellSize.select(IntStream.of(cellSizes()).mapToObj(Integer::valueOf).toList().indexOf(spriteSheet.cellSize()));
 		if(picker != null) {
 			picker.updatePaletteInfo();
 		}
