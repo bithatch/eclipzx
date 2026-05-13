@@ -5,6 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.Channels;
 
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.operations.IOperationHistory;
+import org.eclipse.core.commands.operations.IUndoContext;
+import org.eclipse.core.commands.operations.IUndoableOperation;
+import org.eclipse.core.commands.operations.ObjectUndoContext;
+import org.eclipse.core.commands.operations.OperationHistoryFactory;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -40,18 +46,33 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.eclipse.ui.operations.RedoActionHandler;
+import org.eclipse.ui.operations.UndoActionHandler;
 import org.eclipse.ui.part.EditorPart;
 
 import uk.co.bithatch.drawzx.editor.EditorFileProperties.PaletteSource;
 import uk.co.bithatch.drawzx.editor.EditorFileProperties.SpritePaintMode;
+import uk.co.bithatch.drawzx.sprites.ClearOperation;
+import uk.co.bithatch.drawzx.sprites.ColorSelectOperation;
+import uk.co.bithatch.drawzx.sprites.CutOperation;
+import uk.co.bithatch.drawzx.sprites.DrawOperation;
+import uk.co.bithatch.drawzx.sprites.InvertOperation;
+import uk.co.bithatch.drawzx.sprites.MirrorHOperation;
+import uk.co.bithatch.drawzx.sprites.MirrorVOperation;
+import uk.co.bithatch.drawzx.sprites.PasteOperation;
+import uk.co.bithatch.drawzx.sprites.RotateOperation;
+import uk.co.bithatch.drawzx.sprites.ShiftOperation;
 import uk.co.bithatch.drawzx.sprites.SpriteCell;
+import uk.co.bithatch.drawzx.sprites.SpriteCellSelectOperation;
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.views.ColourPickerView;
 import uk.co.bithatch.drawzx.views.IColourPicker;
+import uk.co.bithatch.drawzx.widgets.DrawListener;
 import uk.co.bithatch.drawzx.widgets.SpriteEditorGrid;
 import uk.co.bithatch.drawzx.widgets.SpriteGrid;
 import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
@@ -108,11 +129,17 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 			}
 		}
 	};
+	
 	protected IColourPicker picker;
+	protected final IUndoContext undoContext = new ObjectUndoContext(this);
+	protected IOperationHistory history;
+	private UndoActionHandler undoHandler;
+	private RedoActionHandler redoHandler;
+	private DrawOperation pendingDrawOp;
+	private int currentCellIndex;
 
 	public void clear() {
-		spriteGrid.clear();
-		markDirty();
+		execute(new ClearOperation(spriteGrid, this::markDirty));
 	}
 
 	public void copySelectionToClipboard() {
@@ -124,6 +151,9 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 	@Override
 	public final void createPartControl(Composite parent) {
+		
+		setupUndo();
+		
 		root = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout(2, false);
 		layout.marginWidth = 8;
@@ -167,17 +197,32 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		}
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T getAdapter(Class<T> adapter) {
+		if (adapter == IUndoContext.class) {
+			return (T) undoContext;
+		}
+		return super.getAdapter(adapter);
+	}
+
+	public IUndoContext getUndoContext() {
+		return undoContext;
+	}
+
 	public void cutSelectionToClipboard() {
-		var text = selectionString(spriteGrid.cutPixels());
-		var textTransfer = TextTransfer.getInstance();
-		clipboard.setContents(new Object[] { text }, new Transfer[] { textTransfer });
-		spriteGrid.deselect();
-		markDirty();
+		execute(new CutOperation(spriteGrid, this::markDirty, () -> {
+			var text = selectionString(spriteGrid.cutPixels());
+			var textTransfer = TextTransfer.getInstance();
+			clipboard.setContents(new Object[] { text }, new Transfer[] { textTransfer });
+			spriteGrid.deselect();
+		}));
 	}
 
 	@Override
 	public void dispose() {
 		super.dispose();
+		history.dispose(undoContext, true, true, true);
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().removePartListener(this);
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
 		clipboard.dispose();
@@ -241,8 +286,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	}
 
 	public void invertSprite() {
-		spriteGrid.invert();
-		markDirty();
+		execute(new InvertOperation(spriteGrid, this::markDirty));
 	}
 
 	@Override
@@ -256,17 +300,16 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	}
 
 	public void mirrorSpriteH() {
-		spriteGrid.mirrorH();
-		markDirty();
+		execute(new MirrorHOperation(spriteGrid, this::markDirty));
 	}
 
 	public void mirrorSpriteV() {
-		spriteGrid.mirrorV();
-		markDirty();
+		execute(new MirrorVOperation(spriteGrid, this::markDirty));
 	}
 
 	@Override
 	public void partActivated(IWorkbenchPart part) {
+		System.out.println("Part activated: " + part.getTitle());
 		if (part.equals(this)) {
 			var cmdService = PlatformUI.getWorkbench().getService(ICommandService.class);
 			if (cmdService != null) {
@@ -286,6 +329,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 	@Override
 	public void partDeactivated(IWorkbenchPart part) {
+		System.out.println("Part deactivated: " + part.getTitle());
 	}
 
 	@Override
@@ -306,8 +350,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 						pixels[i][j] = Integer.parseInt(parts[j]);
 					}
 				}
-				spriteGrid.paste(pixels);
-				markDirty();
+				execute(new PasteOperation(spriteGrid, pixels, this::markDirty));
 			} catch (NumberFormatException nfe) {
 				// TODO some indication
 			}
@@ -315,9 +358,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	}
 
 	public void rotate(int degrees) {
-		spriteGrid.rotate(degrees);
-		markDirty();
-
+		execute(new RotateOperation(spriteGrid, degrees, this::markDirty));
 	}
 
 	@Override
@@ -343,22 +384,21 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	}
 
 	public void shift(int h, int v) {
-		spriteGrid.shift(h, v);
-		markDirty();
-
+		execute(new ShiftOperation(spriteGrid, h, v, this::markDirty));
 	}
 
 	@Override
 	public void colorSelected(int index, boolean primary) {
-		if( ( primary ? spriteGrid.color() : spriteGrid.secondaryColor() ) != index) {
-			if(primary) {
-				spriteGrid.color(index);
-				EditorFileProperties.setProperty(getFile(), EditorFileProperties.PALETTE_PRIMARY_PROPERTY, index);
-			}
-			else {
-				spriteGrid.secondaryColor(index);
-				EditorFileProperties.setProperty(getFile(), EditorFileProperties.PALETTE_SECONDARY_PROPERTY, index);
-			}
+		var currentColor = primary ? spriteGrid.color() : spriteGrid.secondaryColor();
+		if (currentColor != index) {
+			execute(new ColorSelectOperation(spriteGrid, primary, currentColor, index, () -> {
+				EditorFileProperties.setProperty(getFile(),
+						primary ? EditorFileProperties.PALETTE_PRIMARY_PROPERTY : EditorFileProperties.PALETTE_SECONDARY_PROPERTY,
+						primary ? spriteGrid.color() : spriteGrid.secondaryColor());
+				if (picker != null) {
+					picker.updatePaletteInfo();
+				}
+			}));
 		}
 	}
 
@@ -463,6 +503,15 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		}
 	}
 
+	protected void execute(IUndoableOperation op) {
+		op.addContext(getUndoContext());
+		try {
+			history.execute(op, null, null);
+		} catch (ExecutionException e) {
+			throw new IllegalStateException("Cannot perform operation.", e);
+		}
+	}
+
 	protected abstract SpriteSheet loadSheet(InputStream file) throws IOException;
 
 	protected void markClean() {
@@ -518,8 +567,19 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	}
 
 	protected void spriteCellSelected(SelectionEvent e) {
-		selectCell((SpriteCell) e.data);
-		EditorFileProperties.setProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, spriteSwatch.selected());
+		var oldIndex = currentCellIndex;
+		var newCell = (SpriteCell) e.data;
+		var newIndex = spriteSheet.index(newCell);
+		if (oldIndex != newIndex) {
+			execute(new SpriteCellSelectOperation(oldIndex, newIndex, this::applyCellSelection));
+		}
+	}
+
+	private void applyCellSelection(int idx) {
+		currentCellIndex = idx;
+		spriteSwatch.selected(idx);
+		selectCell(spriteSheet.cell(idx));
+		EditorFileProperties.setProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, idx);
 	}
 
 	private void createInfo(Composite parent) {
@@ -571,7 +631,8 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 		layoutGridAndSwatch(parent);
 
-		spriteSwatch.selected(EditorFileProperties.getIntProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, 0));
+		currentCellIndex = EditorFileProperties.getIntProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, 0);
+		spriteSwatch.selected(currentCellIndex);
 
 		spriteGrid.addModifyListener(t -> {
 			markDirty();
@@ -586,6 +647,23 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 			commandService.refreshElements("org.eclipse.ui.edit.cut", null);
 			commandService.refreshElements("org.eclipse.ui.edit.paste", null);
 		}));
+
+		spriteGrid.addDrawListener(new DrawListener() {
+			@Override
+			public void drawStarted() {
+				pendingDrawOp = new DrawOperation(spriteGrid, snapshotSpriteData());
+			}
+
+			@Override
+			public void drawFinished() {
+				if (pendingDrawOp != null) {
+					pendingDrawOp.captureAfter();
+					var op = pendingDrawOp;
+					pendingDrawOp = null;
+					spriteGrid.getDisplay().asyncExec(() -> execute(op));
+				}
+			}
+		});
 
 		spriteGrid.mode(SpritePaintMode.valueOf(EditorFileProperties
 				.getProperty(getFile(), EditorFileProperties.EDITOR_MODE_PROPERTY, SpritePaintMode.SELECT.name()).toUpperCase()));
@@ -622,6 +700,18 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		spritePreviewInverse.setSpriteCell(spriteCell);
 	}
 
+	private int[][] snapshotSpriteData() {
+		var cell = spriteGrid.spriteCell();
+		var size = cell.size();
+		var snapshot = new int[size][size];
+		for (var y = 0; y < size; y++) {
+			for (var x = 0; x < size; x++) {
+				snapshot[y][x] = cell.index(x, y);
+			}
+		}
+		return snapshot;
+	}
+
 	private void updateSpriteSheetInfo() {
 		spriteSheetCells.setText(String.valueOf(spriteSheet.size()));
 		spriteSheetSize.setText(String.format("%d bytes", spriteSheet.byteSize()));
@@ -642,14 +732,25 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 				throw new IllegalStateException("No active page.");
 			} else {
 				try {
-					var view = page.showView(ColourPickerView.ID);
-					page.bringToTop(view);
+					var view = page.showView(ColourPickerView.ID, null, org.eclipse.ui.IWorkbenchPage.VIEW_VISIBLE);
 					return (ColourPickerView) view;
 				} catch (PartInitException e) {
 					throw new IllegalStateException("Failed to open colour picker view.", e);
 				}
 			}
 		}
+	}
+
+	private void setupUndo() {
+		history = OperationHistoryFactory.getOperationHistory();
+		history.setLimit(undoContext, 1000);
+		undoHandler = new UndoActionHandler(getSite(), undoContext);
+		redoHandler = new RedoActionHandler(getSite(), undoContext);
+		var bars = getEditorSite().getActionBars();
+
+		bars.setGlobalActionHandler(ActionFactory.UNDO.getId(), undoHandler);
+		bars.setGlobalActionHandler(ActionFactory.REDO.getId(), redoHandler);
+		bars.updateActionBars();
 	}
 
 }

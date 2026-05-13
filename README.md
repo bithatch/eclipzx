@@ -77,7 +77,6 @@ to this repository and opening the issue tracker at point early September 2025.
 
 Just a rough list, there is a lot more to do that this, but these are the ones.
 
- * Undo support in all editors (half done).
  * The screen editor is relatively immature, but should progress rapidly.
  * Debug support using (e.g. CSpect+DeZOG and others) is immature.
  * A full tracker to supplement the AYFX effects editor (if I get time).

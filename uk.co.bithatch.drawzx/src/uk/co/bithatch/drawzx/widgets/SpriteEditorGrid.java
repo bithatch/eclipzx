@@ -1,5 +1,7 @@
 package uk.co.bithatch.drawzx.widgets;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import org.eclipse.swt.SWT;
@@ -64,6 +66,7 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 	private Point selectPoint, normSelectPoint;
 	private boolean shiftDown;
 	private boolean drawWithSecondary;
+	private final List<DrawListener> drawListeners = new ArrayList<>();
 
 	public SpriteEditorGrid(Composite parent, int style) {
 		this(parent, DEFAULT_CELL_SIZE, style);
@@ -134,6 +137,7 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 						if(e.button == 1) {
 							drawing = true;
 							drawWithSecondary = ( e.stateMask & SWT.CONTROL ) != 0;
+							fireDrawStarted();
 							drawAt(normalize(mouseDownPoint));
 						}
 					}
@@ -161,11 +165,13 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 					getTypedListeners(SWT.Selection, SelectionListener.class).forEach(l -> l.widgetSelected(ev));
 				}
 				else if(lineDrawing) {
+					fireDrawStarted();
 					applyToSelectedLine(calcOffsetX(), calcOffsetY(), calPixelSize(), (x,y) -> {
 						spriteCell().index(x, y, drawWithSecondary ? secondaryColor : color);
 						redraw();
 						fireChanged();				
 					});
+					fireDrawFinished();
 				}
 				if(shiftDown) {
 					setSelectPoint(e);
@@ -175,7 +181,11 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 				else {
 					resetDragAndSelectPoints();
 				}
+				var wasDrawing = drawing;
 				drawing = false;
+				if (wasDrawing) {
+					fireDrawFinished();
+				}
 				redraw();
 			}
 		});
@@ -202,6 +212,27 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 	
 	public void addSelectionListener(SelectionListener listener) {
 		addTypedListener(listener, SWT.Selection, SWT.DefaultSelection);
+	}
+
+	public void addDrawListener(DrawListener listener) {
+		drawListeners.add(listener);
+	}
+
+	public void removeDrawListener(DrawListener listener) {
+		drawListeners.remove(listener);
+	}
+
+	public void notifyDataChanged() {
+		redraw();
+		fireChanged();
+	}
+
+	private void fireDrawStarted() {
+		drawListeners.forEach(DrawListener::drawStarted);
+	}
+
+	private void fireDrawFinished() {
+		drawListeners.forEach(DrawListener::drawFinished);
 	}
 	
 	public void clear() {

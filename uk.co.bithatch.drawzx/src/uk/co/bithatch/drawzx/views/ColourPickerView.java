@@ -3,6 +3,7 @@ package uk.co.bithatch.drawzx.views;
 import static uk.co.bithatch.drawzx.editor.EditorFileProperties.setProperty;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,8 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 
 	private Label encodedBin;
 
+	private IWorkbenchPart activePart;
+
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -166,7 +169,9 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 	public void partActivated(IWorkbenchPartReference partRef) {
 		if (partRef instanceof IEditorReference) {
 			IWorkbenchPart part = partRef.getPart(false);
-			updateView(part);
+			if(!Objects.equals(activePart, part)) {
+				updateView(part);
+			}
 		}
 	}
 
@@ -452,7 +457,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 
 	private void updateView(IWorkbenchPart part) {
 		System.out.println("updateView " + part);
-		
+		this.activePart = part;
 		if (part instanceof IColouredEditor editor) {
 			pickerArea.setVisible(true);
 			unsupportedGridData.exclude = true;
