@@ -20,9 +20,8 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 
 	@Override
 	protected void createFieldEditors() {
-		super.createFieldEditors();
 		
-		PreferenceInitializer.checkForZCCCFG(Z88DKPreferencesAccess.get());
+		super.createFieldEditors();
 
 		var sdkChoices = getSDKChoices();
 		sdks = new DynamicComboFieldEditor(PreferenceConstants.SDK, "SDK:", sdkChoices, getFieldEditorParent());

@@ -8,6 +8,8 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import uk.co.bithatch.eclipz88dk.preferences.PreferenceInitializer;
+import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.wizard.CdtProjectCreator;
 import uk.co.bithatch.eclipz88dk.wizard.CdtProjectCreator.CdtType;
 
@@ -36,6 +38,7 @@ public class Activator extends AbstractUIPlugin {
 		plugin = this;
 		CoreModel.getDefault().getProjectDescriptionManager().addCProjectDescriptionListener(descListener,
 				CProjectDescriptionEvent.APPLIED /* CProjectDescriptionEvent.APPLIED *//* | CProjectDescriptionEvent.CREATED */);
+		PreferenceInitializer.checkForZCCCFG(Z88DKPreferencesAccess.get());
 	}
 
 	private final ICProjectDescriptionListener descListener = event -> {

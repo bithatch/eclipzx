@@ -20,7 +20,6 @@ public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer 
 
 	@Override
 	protected void onInit(IEclipsePreferences prefs, Set<String> keys) { 
-        checkForZCCCFG(pax);
 		setIfNotSet(prefs, PreferenceConstants.ARCHITECTURE, DEFAULT_SYSTEM, keys);
 		setIfNotSet(prefs, PreferenceConstants.CLIB, DEFAULT_CLIB, keys);
     }
