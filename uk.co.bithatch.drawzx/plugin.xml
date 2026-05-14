@@ -51,6 +51,14 @@
             contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
             <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.sp4.contenttype"/>
         </editor>
+        <editor
+            id="uk.co.bithatch.drawzx.editor.TilemapEditor"
+            name="ZX Next Tilemap Editor"
+            class="uk.co.bithatch.drawzx.editor.TilemapEditor"
+            icon="icons/drawzx16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.til.contenttype"/>
+        </editor>
     </extension>
     <extension point="org.eclipse.core.contenttype.contentTypes"> 
         <content-type
@@ -100,6 +108,13 @@
             file-extensions="npl"
             id="uk.co.bithatch.drawzx.npl.contenttype"
             name="Palette File (with transparency)"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="til"
+            id="uk.co.bithatch.drawzx.til.contenttype"
+            name="Tilemap File"
             priority="normal">
         </content-type>
     </extension>
@@ -899,6 +914,9 @@
                         <test
                             property="org.eclipse.core.resources.extension"
                             value="shc" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
+                            value="til" />
                     </or>
                 </adapt>
             </enabledWhen>

@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
+import uk.co.bithatch.bitzx.AbstractPreferencesAccess;
 import uk.co.bithatch.bitzx.DefaultAbstractPreferenceInitializer;
 
 public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer {
@@ -19,7 +20,13 @@ public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer 
 
 	@Override
 	protected void onInit(IEclipsePreferences prefs, Set<String> keys) { 
-        var paths = pax.getPathListPreference(null, PreferenceConstants.SDK_PATHS);
+        checkForZCCCFG(pax);
+		setIfNotSet(prefs, PreferenceConstants.ARCHITECTURE, DEFAULT_SYSTEM, keys);
+		setIfNotSet(prefs, PreferenceConstants.CLIB, DEFAULT_CLIB, keys);
+    }
+
+	public static void checkForZCCCFG(AbstractPreferencesAccess pax) {
+		var paths = pax.getPathListPreference(null, PreferenceConstants.SDK_PATHS);
         var zcccfg = System.getenv("ZCCCFG");
         if(zcccfg != null) {
         	var zcccfgFile = new File(zcccfg);
@@ -32,8 +39,6 @@ public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer 
         		}
         	}
         }
-		setIfNotSet(prefs, PreferenceConstants.ARCHITECTURE, DEFAULT_SYSTEM, keys);
-		setIfNotSet(prefs, PreferenceConstants.CLIB, DEFAULT_CLIB, keys);
-    }
+	}
 }
 

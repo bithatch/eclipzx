@@ -21,8 +21,11 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 	@Override
 	protected void createFieldEditors() {
 		super.createFieldEditors();
+		
+		PreferenceInitializer.checkForZCCCFG(Z88DKPreferencesAccess.get());
 
-		sdks = new DynamicComboFieldEditor(PreferenceConstants.SDK, "SDK:", getSDKChoices(), getFieldEditorParent());
+		var sdkChoices = getSDKChoices();
+		sdks = new DynamicComboFieldEditor(PreferenceConstants.SDK, "SDK:", sdkChoices, getFieldEditorParent());
 		sdks.getCombo().addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 			updateSystems(getSDKFromCombo());
 		}));
@@ -58,6 +61,10 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 		updateSystems(initSdk);
 		updateClibs(initSdk, getPreferenceStore().getString(PreferenceConstants.ARCHITECTURE));
 		
+		if(sdkChoices.length == 0) {
+			setErrorMessage("No SDKs found. Please add an SDK path in the main preferences.");
+			setValid(false);
+		}
 
 		getPreferenceStore().addPropertyChangeListener(this);
 	}
