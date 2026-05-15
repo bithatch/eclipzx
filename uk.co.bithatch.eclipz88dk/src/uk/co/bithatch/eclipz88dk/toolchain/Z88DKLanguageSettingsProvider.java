@@ -48,6 +48,10 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 				}
 			}
 
+			/* Z88DK built-in macros */
+			entries.add(CDataUtil.createCMacroEntry("__z88dk_fastcall", "", ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
+			entries.add(CDataUtil.createCMacroEntry("IM2_DEFINE_ISR(name)", "void name(void)", ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
+
 			return entries;
 		}
 		return Collections.emptyList();

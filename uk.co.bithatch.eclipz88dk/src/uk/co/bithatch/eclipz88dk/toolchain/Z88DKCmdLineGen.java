@@ -3,7 +3,17 @@ package uk.co.bithatch.eclipz88dk.toolchain;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
+import org.eclipse.cdt.core.settings.model.ICFolderDescription;
+import org.eclipse.cdt.core.settings.model.ICLanguageSetting;
+import org.eclipse.cdt.core.settings.model.ICLanguageSettingEntry;
+import org.eclipse.cdt.core.settings.model.ICProjectDescription;
+import org.eclipse.cdt.core.settings.model.ICSettingEntry;
+import org.eclipse.cdt.core.settings.model.ICSourceEntry;
+import org.eclipse.cdt.core.settings.model.util.CDataUtil;
 import org.eclipse.cdt.managedbuilder.core.IBuildObject;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineInfo;
@@ -13,7 +23,11 @@ import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.core.ManagedCommandLineGenerator;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IPath;
 
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 
@@ -60,8 +74,24 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 			}
 			merged.add("+" + pax.getArchitecture(project).name().toLowerCase());
 			merged.add("-clib=" + pax.getCLibrary(project));
+			
+			/* Add include paths, library paths, and libraries from CDT settings
+			 * (including those inherited from referenced projects via 
+			 * C/C++ General -> Paths and Symbols -> References) */
+			addSettingsFromReferences(project, merged);
 		}
 		
+		/* If CDT didn't pass any input sources (happens when sources are in
+		 * subdirectories because CDT's per-directory makefile generation doesn't
+		 * feed them back to the target tool), discover them from the project's
+		 * configured source entries. */
+		if ((inputResources == null || inputResources.length == 0) && project != null) {
+			inputResources = discoverSources(project);
+			if (inputResources.length > 0) {
+				LOG.info("Z88DK: discovered " + inputResources.length + " source file(s) from project source entries");
+			}
+		}
+
 		return super.generateCommandLineInfo(
 		        tool,
 		        command,
@@ -72,7 +102,178 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 		        inputResources,
 		        commandLinePattern);
 	}
-  
+
+	/**
+	 * Collect include paths, library paths and library names from referenced
+	 * projects (configured via C/C++ General → Paths and Symbols → References).
+	 * 
+	 * We use a two-pronged approach:
+	 * <ol>
+	 *   <li>Query the referenced project's CDT language settings for
+	 *       include/library entries (works well for managed-build projects).</li>
+	 *   <li>Check for conventional {@code include/} and {@code lib/}
+	 *       directories in the referenced project root (a reliable fallback
+	 *       for makefile projects whose CDT settings may be stale or
+	 *       incomplete).</li>
+	 * </ol>
+	 * All paths are validated against the local filesystem before being added.
+	 */
+	private static void addSettingsFromReferences(IProject project, List<String> flags) {
+		try {
+			ICProjectDescription projDesc = CoreModel.getDefault().getProjectDescription(project, false);
+			if (projDesc == null) return;
+			
+			ICConfigurationDescription cfgDesc = projDesc.getActiveConfiguration();
+			if (cfgDesc == null) return;
+			
+			/* Get projects referenced by this configuration */
+			var refMap = cfgDesc.getReferenceInfo();
+			LOG.info("Z88DK: referenced projects for '" + project.getName() + "': " + refMap);
+			
+			for (var entry : refMap.entrySet()) {
+				String refProjName = entry.getKey();
+				IProject refProject = project.getWorkspace().getRoot().getProject(refProjName);
+				if (refProject == null || !refProject.isAccessible()) {
+					LOG.warn("Z88DK: referenced project '" + refProjName + "' not accessible");
+					continue;
+				}
+				
+				var refLocation = refProject.getLocation();
+				var refDir = refLocation.toFile();
+				
+				/* 1. CDT language settings (managed-build projects) */
+				ICProjectDescription refProjDesc = CoreModel.getDefault().getProjectDescription(refProject, false);
+				if (refProjDesc != null) {
+					String refCfgId = entry.getValue();
+					ICConfigurationDescription refCfgDesc = null;
+					if (refCfgId != null && !refCfgId.isEmpty()) {
+						refCfgDesc = refProjDesc.getConfigurationById(refCfgId);
+					}
+					if (refCfgDesc == null) {
+						refCfgDesc = refProjDesc.getActiveConfiguration();
+					}
+					if (refCfgDesc != null) {
+						ICFolderDescription refRoot = refCfgDesc.getRootFolderDescription();
+						if (refRoot != null) {
+							for (ICLanguageSetting lang : refRoot.getLanguageSettings()) {
+								collectPaths(lang, ICSettingEntry.INCLUDE_PATH, "-I", refLocation, refProjName, flags);
+								collectPaths(lang, ICSettingEntry.LIBRARY_PATH, "-L", refLocation, refProjName, flags);
+								collectPaths(lang, ICSettingEntry.LIBRARY_FILE, "-l", refLocation, refProjName, flags);
+							}
+						}
+					}
+				}
+				
+				/* 2. Conventional directories — check for include/ and lib/
+				 *    in the referenced project root.  This is the reliable
+				 *    fallback for makefile projects. */
+				addIfDir(new File(refDir, "include"), "-I", refProjName, flags);
+				addIfDir(new File(refDir, "lib"), "-L", refProjName, flags);
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to resolve settings from referenced projects for: " + project.getName(), e);
+		}
+	}
+	
+	/** Add a flag for a directory if it exists and isn't already in the list. */
+	private static void addIfDir(File dir, String prefix, String refProjName, List<String> flags) {
+		if (dir.isDirectory()) {
+			String flag = prefix + dir.getAbsolutePath();
+			if (!flags.contains(flag)) {
+				LOG.info("Z88DK: adding " + prefix + " from '" + refProjName + "' (conventional dir): " + dir.getAbsolutePath());
+				flags.add(flag);
+			}
+		}
+	}
+	
+	/**
+	 * Collect path entries of a given kind from a language setting, resolve
+	 * them to absolute paths, and add them to the flags list — but only if
+	 * the path actually exists on the local filesystem.
+	 */
+	private static void collectPaths(ICLanguageSetting lang, int kind, String prefix,
+			IPath refLocation, String refProjName, List<String> flags) {
+		for (ICLanguageSettingEntry se : lang.getResolvedSettingEntries(kind)) {
+			String value = se.getValue();
+			if (value == null || value.isEmpty()) continue;
+			
+			/* For library files (-l), just pass the name without path validation */
+			if (kind == ICSettingEntry.LIBRARY_FILE) {
+				String flag = prefix + value;
+				if (!flags.contains(flag)) {
+					LOG.info("Z88DK: adding " + prefix + " from '" + refProjName + "': " + value);
+					flags.add(flag);
+				}
+				continue;
+			}
+			
+			/* Resolve relative paths against the referenced project root */
+			File resolved;
+			if (new File(value).isAbsolute()) {
+				resolved = new File(value);
+			} else {
+				resolved = new File(refLocation.toFile(), value);
+			}
+			
+			/* Only add paths that actually exist on this system — filters out
+			 * stale Windows paths from .cproject files, SDK paths already
+			 * handled elsewhere, etc. */
+			if (!resolved.isDirectory()) {
+				LOG.info("Z88DK: skipping non-existent path from '" + refProjName + "': " + resolved);
+				continue;
+			}
+			
+			String absPath = resolved.getAbsolutePath();
+			String flag = prefix + absPath;
+			if (!flags.contains(flag)) {
+				LOG.info("Z88DK: adding " + prefix + " from '" + refProjName + "': " + absPath);
+				flags.add(flag);
+			}
+		}
+	}
+
+	/**
+	 * Discover C and ASM source files from the project's CDT source entries.
+	 * Returns workspace-relative or project-relative paths suitable for the
+	 * command line.
+	 */
+	private static String[] discoverSources(IProject project) {
+		List<String> sources = new ArrayList<>();
+		try {
+			ICProjectDescription projDesc = CoreModel.getDefault().getProjectDescription(project, false);
+			if (projDesc == null) return new String[0];
+			
+			ICConfigurationDescription cfgDesc = projDesc.getActiveConfiguration();
+			if (cfgDesc == null) return new String[0];
+			
+			ICSourceEntry[] sourceEntries = cfgDesc.getSourceEntries();
+			
+			project.accept(new IResourceVisitor() {
+				@Override
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource.getType() == IResource.FILE) {
+						String ext = resource.getFileExtension();
+						if (ext != null && (ext.equalsIgnoreCase("c") || ext.equalsIgnoreCase("asm"))) {
+							/* Check this file is within a configured source entry
+							 * and not excluded */
+							if (CDataUtil.isExcluded(resource.getFullPath(), sourceEntries)) {
+								return false;
+							}
+							/* Prepend "../" because CDT runs the build from the
+							 * output directory (e.g. Debug/), not the project root */
+							IPath relPath = resource.getProjectRelativePath();
+							sources.add("../" + relPath.toOSString());
+						}
+					}
+					return true;
+				}
+			});
+		} catch (CoreException e) {
+			LOG.error("Failed to discover source files for project: " + project.getName(), e);
+		}
+		return sources.toArray(String[]::new);
+	}
+
   public static IProject projectFromTool(ITool tool) {
 	    if (tool == null) return null;
 
