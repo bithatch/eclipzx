@@ -7,8 +7,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbench;
 
-import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicArchitecture;
-import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
+import uk.co.bithatch.bitzx.WellKnownArchitecture;
+import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
 public class BasicProjectWizard extends AbstractBasicProjectWizard<BasicProjectWizardPage> {
@@ -36,13 +36,12 @@ public class BasicProjectWizard extends AbstractBasicProjectWizard<BasicProjectW
 			pax.setArchitecture(project, arch);
 			pax.setSDK(project, page.getSDK());
 			page.getLibraries().forEach(lib -> pax.addDependency(project, lib));
-			
-			/* Bit hacky, should probably have an option for this, or the library could find 
-			 * at hit maybe
-			 */
-			if(arch.equals(BorielZXBasicArchitecture.ZXNEXT)) {
-				pax.setOutputFormat(project, BorielZXBasicOutputFormat.NEX);
-			}
+		}
+		
+		var finalArch = pax.getArchitecture(project);
+		var isZxNext = finalArch != null && WellKnownArchitecture.ZXNEXT.equals(finalArch.wellKnown().orElse(null));
+		if (isZxNext) {
+			finalArch.outputFormat(WellKnownOutputFormat.NEX).ifPresent(fmt -> pax.setOutputFormat(project, fmt));
 		}
 
 		var file = project.getFile("main.bas");

@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.settings.model.CProjectDescriptionEvent;
 import org.eclipse.cdt.core.settings.model.ICProjectDescriptionListener;
 import org.eclipse.core.runtime.ILog;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -49,11 +49,13 @@ public class Activator extends AbstractUIPlugin {
 		var project = pd.getProject();
 		
 		CdtType.forProject(project).ifPresent(type -> {
-			try {
-				CdtProjectCreator.createManagedCProject(type, project.getName(), new NullProgressMonitor());
-			} catch (Exception e) {
-				LOG.error("Failed to enable Z88DK features on project.", e);
-			}
+			Job.create("Enable Z88DK features", monitor -> {
+				try {
+					CdtProjectCreator.enableZ88DKFeatures(project);
+				} catch (Exception e) {
+					LOG.error("Failed to enable Z88DK features on project.", e);
+				}
+			}).schedule();
 		});
 		
 //		try {

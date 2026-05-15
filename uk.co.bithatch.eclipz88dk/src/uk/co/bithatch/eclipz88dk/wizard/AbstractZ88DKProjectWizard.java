@@ -57,10 +57,10 @@ public abstract class AbstractZ88DKProjectWizard<PAGE extends AbstractZ88DKProje
 			protected void execute(IProgressMonitor monitor) throws CoreException {
 				try {
 					delegate.call(monitor);
-					checkPerspective();
 				} catch (CoreException ce) {
 					throw ce;
 				} catch (Exception e) {
+					e.printStackTrace();
 					throw new CoreException(Status.error("Failed to create project.", e));
 				}
 			}
@@ -72,6 +72,8 @@ public abstract class AbstractZ88DKProjectWizard<PAGE extends AbstractZ88DKProje
 			// Handle exception or cancel
 			return false;
 		}
+
+		checkPerspective();
 
 		return true;
 	}

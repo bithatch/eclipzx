@@ -109,6 +109,26 @@ public final class CdtProjectCreator {
 	}
 
 	/**
+	 * Enable Z88DK features (content type mappings and language settings provider)
+	 * on an existing CDT project. Safe to call from event listeners as it does not
+	 * call setProjectDescription.
+	 */
+	public static void enableZ88DKFeatures(IProject project) throws CoreException {
+		addContentTypeMappings(project);
+
+		ICProjectDescription pd = CoreModel.getDefault().getProjectDescription(project, true);
+		if (pd != null) {
+			addLanguageSettingsProvider(pd, project);
+			CoreModel.getDefault().setProjectDescription(project, pd);
+		}
+
+		ICProject cproj = CoreModel.getDefault().create(project);
+		if (cproj != null) {
+			CCorePlugin.getIndexManager().reindex(cproj);
+		}
+	}
+
+	/**
 	 * Create a Managed Build CDT project using your projectType & configurations.
 	 * 
 	 * @throws BuildException
@@ -126,18 +146,23 @@ public final class CdtProjectCreator {
 		if (!project.isOpen())
 			project.open(pm);
 		
-		// true = writable description (we’re going to modify it)
-		ICProjectDescription pd = CoreModel.getDefault().getProjectDescription(project, /* write */ true);
-		if (pd == null)
-			throw new IllegalArgumentException("Cannot get project descrpition.");
+		// Add C nature so CDT recognises the project
+		addCdtNatures(project, pm);
 
-//		configureType(cdtType, pm, project);
+		// Create a new writable project description (.cproject)
+		ICProjectDescriptionManager pdm = CoreModel.getDefault().getProjectDescriptionManager();
+		ICProjectDescription pd = pdm.createProjectDescription(project, /* isNew */ true);
+		if (pd == null)
+			throw new IllegalArgumentException("Cannot create project description.");
+
+		configureType(cdtType, pm, project, pd);
 		addContentTypeMappings(project);
 
 		addLanguageSettingsProvider(pd, project);
 
 		// Persist to .cproject
 		CoreModel.getDefault().setProjectDescription(project, pd);
+		ManagedBuildManager.saveBuildInfo(project, true);
 
 		ICProject cproj = CoreModel.getDefault().create(project); // project -> ICProject
 		if (cproj != null) {
@@ -174,22 +199,15 @@ public final class CdtProjectCreator {
 
 	}
 
-	private static IProject configureType(CdtType cdtType, IProgressMonitor pm, IProject project)
+	private static void configureType(CdtType cdtType, IProgressMonitor pm, IProject project, ICProjectDescription projDesc)
 			throws CoreException, BuildException {
-		// 2) Add natures: C, Managed Build, Scanner Config
-		addCdtNatures(project, pm);
 
-		// 3) Create the Managed Build info BEFORE creating the managed project
+		// Create the Managed Build info BEFORE creating the managed project
 		// (prevents NPE)
 		ManagedBuildManager.createBuildInfo(project);
 		ManagedBuildManager.setNewProjectVersion(project); // optional, good hygiene
 
-		// 4) Writable C project description (.cproject in memory)
-		ICProjectDescriptionManager pdm = CoreModel.getDefault().getProjectDescriptionManager();
-		ICProjectDescription projDesc = pdm.createProjectDescription(project, /* isNew */ true,
-				/* usePlatformDefaults */ true);
-
-		// 5) Managed Project (tie the MBS model to the IProject)
+		// Managed Project (tie the MBS model to the IProject)
 		IProjectType ptype = ManagedBuildManager.getExtensionProjectType(cdtType.projectTypeId);
 		if (ptype == null)
 			throw new CoreException(err("ProjectType not found: " + cdtType.projectTypeId));
@@ -214,15 +232,8 @@ public final class CdtProjectCreator {
 		if (active != null)
 			projDesc.setActiveConfiguration(active);
 
-		// 8) Persist .cproject and build info
-		CoreModel.getDefault().setProjectDescription(project, projDesc);
-		ManagedBuildManager.saveBuildInfo(project, true);
-
-		// 9) Ensure MBS builders are present
+		// 8) Ensure MBS builders are present
 		ensureMbsBuilders(project, pm);
-
-		pm.done();
-		return project;
 	}
 
 	// ---------- helpers ----------

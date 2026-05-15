@@ -34,13 +34,17 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		}
 	}
 	
-	private final static class Z88DKArchitecture extends AbstractDescribable implements IArchitecture {
+	public final static class Z88DKArchitecture extends AbstractDescribable implements IArchitecture {
 
 		private Z88DKConfigurationFile cfg;
 
 		private Z88DKArchitecture(Z88DKConfigurationFile cfg) {
 			super(cfg.name().toUpperCase());
 			this.cfg = cfg;
+		}
+		
+		public Z88DKConfigurationFile configuration() {
+			return cfg;
 		}
 
 		@Override
@@ -81,16 +85,22 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			var project = resource == null ? null : resource.getProject();
 			var sdkOr = pax.getSDK(project);
 			if (sdkOr.isPresent()) {
-				var sdk = sdkOr.get();
-				var allArchs = pax.isAllArchitectures(project);
-				var configs = sdk.configurations();
-				var configItems = configs.configurations();
-				return configItems.stream().map(cfg -> {
-					return new Z88DKArchitecture(cfg);
-				}).filter(a -> allArchs || a.wellKnown().isPresent()).toList();
+				return architectures(project, sdkOr.get().name());
 			}
 		}
 		return Collections.emptyList();
+	}
+
+	@Override
+	public List<? extends IArchitecture> architectures(IProject project, String sdkName) {
+		var pax = Z88DKPreferencesAccess.get();
+		var sdk = pax.getSDKByName(sdkName).orElseThrow(() -> new IllegalArgumentException("No such SDK as " + sdkName));
+		var allArchs = pax.isAllArchitectures(project);
+		var configs = sdk.configurations();
+		var configItems = configs.configurations();
+		return configItems.stream().map(cfg -> {
+			return new Z88DKArchitecture(cfg);
+		}).filter(a -> allArchs || a.wellKnown().isPresent()).toList();
 	}
 
 	@Override

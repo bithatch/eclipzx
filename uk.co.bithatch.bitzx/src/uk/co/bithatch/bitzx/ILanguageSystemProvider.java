@@ -42,4 +42,6 @@ public interface ILanguageSystemProvider {
 			IProgressMonitor monitor) throws CoreException;
 
 	boolean isLaunchable(IResource res);
+
+	List<? extends IArchitecture> architectures(IProject project, String sdkName);
 }

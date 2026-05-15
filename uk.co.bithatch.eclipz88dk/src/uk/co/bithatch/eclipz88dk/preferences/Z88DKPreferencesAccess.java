@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.eclipse.core.resources.IProject;
 
+import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.Activator;
 import uk.co.bithatch.eclipz88dk.Z88DKLanguageSystemProvider;
@@ -25,6 +26,24 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 	public static Z88DKPreferencesAccess get() {
 		return Defaults.DEFAULT;
 	}
+
+	public final void setCLibrary(IProject project, String clib) {
+		var prefs = getPreferences(project);
+		prefs.put(PreferenceConstants.CLIB, clib);
+		if (project != null)
+			setProjectSpecificFor(project, PreferenceConstants.CLIB, true);
+		flushSilently(prefs);
+	}
+	
+	public List<? extends IArchitecture> getArchitectures(IProject project) {
+		var sdkOpt = getSDK(project);
+		if(sdkOpt.isPresent()) {
+			return getLanguageSystem().architectures(project, sdkOpt.get().name());
+		}
+		else {
+			return List.of();
+		}
+	}
 	
 	public boolean isAllArchitectures(IProject project) {
 		return "true".equals(getPreference(project, PreferenceConstants.ALL_ARCHITECTURES, "false"));
@@ -32,6 +51,14 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 
 	public String getCLibrary(IProject project) {
 		return getPreference(project, PreferenceConstants.CLIB, PreferenceInitializer.DEFAULT_CLIB);
+	}
+
+	public void setSDK(IProject project, Z88DKSDK sdk) {
+		var prefs = getPreferences(project);
+		prefs.put(PreferenceConstants.SDK, sdk.name());
+		if (project != null)
+			setProjectSpecificFor(project, PreferenceConstants.SDK, true);
+		flushSilently(prefs);
 	}
 	
 	public Optional<Z88DKSDK> getSDK(IProject project) {

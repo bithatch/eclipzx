@@ -1,9 +1,16 @@
 package uk.co.bithatch.eclipz88dk.wizard;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
+import java.io.ByteArrayInputStream;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbench;
+
+import uk.co.bithatch.bitzx.IArchitecture;
+import uk.co.bithatch.bitzx.WellKnownArchitecture;
+import uk.co.bithatch.bitzx.WellKnownOutputFormat;
+import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
+import uk.co.bithatch.eclipz88dk.toolchain.Z88DKSDK;
+import uk.co.bithatch.eclipz88dk.wizard.CdtProjectCreator.CdtType;
 
 public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewProjectWizardPage> {
 
@@ -20,8 +27,67 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 
 	@Override
 	protected CreateTask doProjectCreation(String projectName) {
-		// TODO Auto-generated method stub
-		return null;
+		// Capture SWT widget values on the UI thread before the background operation
+		boolean overridePreferences = page.isOverridePreferences();
+		IArchitecture selectedArch = overridePreferences ? page.getArchitecture() : null;
+		Z88DKSDK selectedSDK = overridePreferences ? page.getSDK() : null;
+		String selectedCLibrary = overridePreferences ? page.getCLibrary() : null;
+
+		return (mon) -> {
+			var project = CdtProjectCreator.createManagedCProject(CdtType.EXECUTABLE, projectName, mon);
+			var pax = Z88DKPreferencesAccess.get();
+
+			if (overridePreferences) {
+				pax.setArchitecture(project, selectedArch);
+				pax.setSDK(project, selectedSDK);
+				pax.setCLibrary(project, selectedCLibrary);
+			}
+			
+			var finalArch = pax.getArchitecture(project);
+			var isZxNext = finalArch != null && WellKnownArchitecture.ZXNEXT.equals(finalArch.wellKnown().orElse(null));
+			if (isZxNext) {
+				finalArch.outputFormat(WellKnownOutputFormat.NEX).ifPresent(fmt -> pax.setOutputFormat(project, fmt));
+			}
+
+			var file = project.getFile("main.c");
+			if (!file.exists()) {
+				if (isZxNext) {
+					file.create(new ByteArrayInputStream("""
+							#include <arch/zxn.h>   // ZX Spectrum Next architecture specfic functions
+							#include <stdio.h>
+
+							// Define some macros to make use of tty_z88dk control codes
+							// Program must be compiled with a CRT that supports tty_z88dk e.g. -startup=1
+							#define printInk(k)          printf("\\x10%c", '0'+(k))
+							#define printPaper(k)        printf("\\x11%c", '0'+(k))
+							#define printAt(row, col)    printf("\\x16%c%c", (col)+1, (row)+1)
+
+							int main()
+							{
+							    printAt(10,10);                 // move cursor
+							    puts("Hello World!");
+
+							    while(1) {                      // loop for ever
+							            zx_border(INK_RED);     // set border red
+							            zx_border(INK_YELLOW);  // set border yellow
+							    };
+
+							    return 0;
+							}
+							  	""".getBytes()), true, null);
+				} else {
+					file.create(new ByteArrayInputStream("""
+							#include <stdio.h>
+
+							int main()
+							{
+							    printf("Hello World!\\n");
+							    return 0;
+							}
+							""".getBytes()), true, null);
+				}
+			}
+		};
 	}
 
 }

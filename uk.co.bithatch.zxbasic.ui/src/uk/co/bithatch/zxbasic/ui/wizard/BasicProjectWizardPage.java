@@ -104,7 +104,7 @@ public class BasicProjectWizardPage extends AbstractBasicProjectWizardPage {
         }
 
     	var prefArch = ZXBasicPreferencesAccess.get().getArchitecture(null);
-    	sdk.select(Arrays.asList(sdk.getItems()).indexOf(prefArch.description()));
+    	arch.select(Arrays.asList(sdk.getItems()).indexOf(prefArch.description()));
 	}
 	
 	public boolean isOverridePreferences() {

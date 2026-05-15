@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -30,6 +31,11 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 
 	@Override
 	public List<IArchitecture> architectures(IResource resource) {
+		return Arrays.asList(BorielZXBasicArchitecture.values());
+	}
+
+	@Override
+	public List<? extends IArchitecture> architectures(IProject project, String sdkName) {
 		return Arrays.asList(BorielZXBasicArchitecture.values());
 	}
 

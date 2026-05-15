@@ -7,7 +7,25 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 
-public record Z88DKSDK(String name, File location) {
+public final class Z88DKSDK {
+	
+	private final String name;
+	private final File location;
+	
+	private Z88DKConfigurations configurations;
+
+	public Z88DKSDK(String name, File location) {
+		this.name = name;
+		this.location = location;
+	}
+	
+	public final String name() {
+		return name;
+	}
+
+	public final File location() {
+		return location;
+	}
 
 	public static Z88DKSDK fromLocation(File location) {
 		var chglog = new File(location, "changelog.txt");
@@ -29,6 +47,9 @@ public record Z88DKSDK(String name, File location) {
 	}
 	
 	public Z88DKConfigurations configurations() {
-		return new Z88DKConfigurations(location.toPath().resolve("lib").resolve("config"));
+		if(configurations == null) {
+			configurations = new Z88DKConfigurations(location.toPath().resolve("lib").resolve("config"));
+		}
+		return configurations;
 	}
 }
