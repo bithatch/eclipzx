@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -170,9 +171,10 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 		return result;
 	}
 
-	public ZXSDK getSDK(IProject project) {
-		return ContributedSDKRegistry.getSDKByPath(getPreference(project, ZXBasicPreferenceConstants.SDK, ""))
-				.orElseGet(() -> ContributedSDKRegistry.getDefaultSDK());
+	@Override
+	public Optional<ZXSDK> getSDK(IProject project) {
+		return Optional.ofNullable(ContributedSDKRegistry.getSDKByPath(getPreference(project, ZXBasicPreferenceConstants.SDK, ""))
+				.orElseGet(() -> ContributedSDKRegistry.getDefaultSDKOr().orElse(null)));
 	}
 
 	public List<File> getExternalLibs(IProject project) {

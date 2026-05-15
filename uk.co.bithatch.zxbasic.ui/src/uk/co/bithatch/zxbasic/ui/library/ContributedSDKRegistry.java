@@ -56,9 +56,13 @@ public class ContributedSDKRegistry {
 	}
 
 	public static ZXSDK getDefaultSDK() {
+		return getDefaultSDKOr().orElseThrow(() -> new IllegalStateException("No SDKs found"));
+	}
+	
+	public static Optional<ZXSDK> getDefaultSDKOr() {
 		var all = getAllSDKs();
 		if(all.isEmpty())
-			throw new IllegalStateException("No default SDK.");
-		return all.get(0);
+			return Optional.empty();
+		return Optional.of(all.get(0));
 	}
 }

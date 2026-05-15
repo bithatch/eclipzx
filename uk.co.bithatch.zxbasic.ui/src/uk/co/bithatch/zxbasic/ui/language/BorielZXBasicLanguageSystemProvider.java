@@ -17,6 +17,7 @@ import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
+import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
 import uk.co.bithatch.emuzx.DefaultPreparationContext;
 import uk.co.bithatch.zxbasic.ui.builder.ZXBasicBuilder;
 import uk.co.bithatch.zxbasic.ui.builder.ZXBasicNature;
@@ -46,6 +47,11 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 		var ctx = new DefaultPreparationContext(configuration, file, fmt);
 		ZXBasicBuilder.compileForLaunch(ctx, mode, ZXBasicBuilder.DEFAULT_REPORTER);
 		return ctx.binaryFile();
+	}
+
+	@Override
+	public LanguageSystemPreferencesAccess preferenceAccess() {
+		return ZXBasicPreferencesAccess.get();
 	}
 
 	@Override

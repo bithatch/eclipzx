@@ -48,6 +48,9 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 			if (isZxNext) {
 				finalArch.outputFormat(WellKnownOutputFormat.NEX).ifPresent(fmt -> pax.setOutputFormat(project, fmt));
 			}
+			else {
+				finalArch.outputFormat(WellKnownOutputFormat.TAP).ifPresent(fmt -> pax.setOutputFormat(project, fmt));
+			}
 
 			var file = project.getFile("main.c");
 			if (!file.exists()) {

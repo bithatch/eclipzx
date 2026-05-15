@@ -1,7 +1,10 @@
 package uk.co.bithatch.emuzx.api;
 
+import java.nio.file.Path;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -16,7 +19,7 @@ public interface IExternallyLaunchable {
 	IDebugTarget createRemoteDebugTarget(ILaunchConfiguration configuration, ILaunch launch,
 			DefaultPreparationContext prepCtx, IProcess eclipseProcess) throws CoreException;
 
-	void compileForLaunch(String mode, DefaultPreparationContext prepCtx) throws CoreException;
+	void compileForLaunch(String mode, DefaultPreparationContext prepCtx, IProgressMonitor monitor) throws CoreException;
 
 	IOutputFormat getOutputFormat(IProject prj);
 
@@ -24,4 +27,8 @@ public interface IExternallyLaunchable {
 			IProcess eclipseProcess);
 
 	IArchitecture getArchitecture(IProject proj);
+
+	Path  getOutputFolder(IProject project);
+
+	Path getBinFile(Path srcfile, Path outputFolder, IOutputFormat outputFormat);
 }

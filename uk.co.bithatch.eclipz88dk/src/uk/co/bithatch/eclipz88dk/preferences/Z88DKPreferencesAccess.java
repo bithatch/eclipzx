@@ -55,7 +55,7 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 
 	public void setSDK(IProject project, Z88DKSDK sdk) {
 		var prefs = getPreferences(project);
-		prefs.put(PreferenceConstants.SDK, sdk.name());
+		prefs.put(PreferenceConstants.SDK, sdk.location().getAbsolutePath());
 		if (project != null)
 			setProjectSpecificFor(project, PreferenceConstants.SDK, true);
 		flushSilently(prefs);

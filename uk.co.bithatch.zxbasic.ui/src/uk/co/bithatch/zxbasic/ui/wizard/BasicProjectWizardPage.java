@@ -99,8 +99,13 @@ public class BasicProjectWizardPage extends AbstractBasicProjectWizardPage {
         	setErrorMessage("There are no Boriel Basic SDKs installed");
         }
         else {
-        	var prefSdk = ZXBasicPreferencesAccess.get().getSDK(null);
-        	sdk.select(Arrays.asList(sdk.getItems()).indexOf(prefSdk.name()));
+        	var prefSdk = ZXBasicPreferencesAccess.get().getSDK(null).orElse(null);
+        	if(prefSdk != null) {
+	        	sdk.select(Arrays.asList(sdk.getItems()).indexOf(prefSdk.name()));
+	        }
+        	else {
+				sdk.select(0);
+			}
         }
 
     	var prefArch = ZXBasicPreferencesAccess.get().getArchitecture(null);

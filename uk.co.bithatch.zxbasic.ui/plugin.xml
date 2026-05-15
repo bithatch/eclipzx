@@ -563,6 +563,8 @@
             <adapter type="org.eclipse.ui.IEditorInput" />
         </factory>
     </extension>
+    
+    <!-- Deprecated variables for backward compatibility (replaced with ee_ variables). These will be removed in a future release. -->
     <extension point="org.eclipse.core.variables.dynamicVariables">
         <variable name="zxbasic_program_path" supportsArgument="false" description="Workspace relative path to current source program (.bas or .asm)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />
         <variable name="zxbasic_program_loc" supportsArgument="false" description="Absolute path to current source program (.bas or .asm)." resolver="uk.co.bithatch.zxbasic.ui.launch.ZXBasicVariableResolver" />

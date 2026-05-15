@@ -239,7 +239,8 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 		try {
 			// TODO
 			var cfg = (ILaunchConfigurationWorkingCopy) configuration/* .getWorkingCopy() */;
-			cfg.setAttribute(EMULATOR_EXECUTABLE, ld.getEmulatorExecutable().toString());
+			var eexe = ld.getEmulatorExecutable().toString();
+			cfg.setAttribute(EMULATOR_EXECUTABLE, eexe);
 
 			sel.createEmulator().ifPresent(em -> {
 				try {

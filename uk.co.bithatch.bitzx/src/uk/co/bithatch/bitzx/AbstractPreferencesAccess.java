@@ -117,7 +117,6 @@ public abstract class AbstractPreferencesAccess {
 		}
 	}
 
-
 	public final void setProjectSpecificFor(IProject project, String key, boolean specific) {
 		if (!key.equals(IPreferenceConstants.PROJECT_SPECIFIC_SETTINGS))
 			setProjectSpecific(project, key.substring(0, key.indexOf('.')), specific);

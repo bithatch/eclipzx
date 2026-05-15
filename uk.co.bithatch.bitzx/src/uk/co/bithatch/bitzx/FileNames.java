@@ -38,6 +38,14 @@ public class FileNames {
 			return filename.substring(i + 1);
 	}
 
+	public static Path changeExtension(Path file, String newExtension) {
+		Path parent = file.getParent();
+		if(parent == null)
+			return Paths.get(changeExtension(file.getFileName().toString(), newExtension));
+		else
+			return parent.resolve(changeExtension(file.getFileName().toString(), newExtension));
+	}
+
 	public static File changeExtension(File file, String newExtension) {
 		File parent = file.getParentFile();
 		if(parent == null)

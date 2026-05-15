@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 import org.eclipse.cdt.core.CProjectNature;
 import org.eclipse.core.resources.IContainer;
@@ -20,7 +21,9 @@ import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
+import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
+import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 import uk.co.bithatch.eclipz88dk.preferences.PreferenceConstants;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile;
@@ -29,8 +32,32 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	
 	private final static class Z88DKOutputFormat extends AbstractDescribable implements IOutputFormat {
 
-		private Z88DKOutputFormat(String name) {
+		private String extension;
+
+		private Z88DKOutputFormat(String name, String extension) {
 			super(name);
+			this.extension = extension;
+		}
+
+		@Override
+		public String extension() {
+			return extension;
+		}
+
+		@Override
+		public Optional<WellKnownOutputFormat> wellKnown() {
+			// TODO Auto-generated method stub
+			return IOutputFormat.super.wellKnown();
+		}
+	}
+	
+	private final static Properties extensionMap = new Properties();
+	
+	static {
+		try(var in = Z88DKLanguageSystemProvider.class.getResourceAsStream("/output-format-extensions.properties")) {
+			extensionMap.load(in);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to load output format extensions properties", e);
 		}
 	}
 	
@@ -51,7 +78,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		public List<? extends IOutputFormat> supportedFormats() {
 			return cfg.subtypes().
 					stream().
-					map(stype -> new Z88DKOutputFormat(stype.toUpperCase())).
+					map(stype -> new Z88DKOutputFormat(stype.toUpperCase(), extensionMap.getProperty(name().toLowerCase() + "." + stype, stype.toLowerCase()))).
 					toList();
 		}
 
@@ -89,6 +116,11 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			}
 		}
 		return Collections.emptyList();
+	}
+
+	@Override
+	public LanguageSystemPreferencesAccess preferenceAccess() {
+		return Z88DKPreferencesAccess.get();
 	}
 
 	@Override

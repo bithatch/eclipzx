@@ -4,8 +4,9 @@ import java.io.File;
 import java.util.List;
 
 import uk.co.bithatch.bitzx.IArchitecture;
+import uk.co.bithatch.bitzx.ISDK;
 
-public record ZXSDK(String name, File location, List<ZXLibrary> libraries) {
+public record ZXSDK(String name, File location, List<ZXLibrary> libraries) implements ISDK {
 
 	public File runtime(IArchitecture architecture) {
 		return new File(new File(new File(new File(new File(location, "src"), "lib"), "arch"),

@@ -35,7 +35,7 @@ public class ContributedLibraryRegistry {
 	}
 	
 	public static List<ZXLibrary> getActiveLibraries(IProject project) {
-		return getLibrariesFor(ZXBasicPreferencesAccess.get().getSDK(project), 
+		return getLibrariesFor(ZXBasicPreferencesAccess.get().getSDK(project).orElseThrow(() -> new IllegalStateException("Cannot get active libraries for project " + project.getName() + " because no SDK is configured!")), 
 				(BorielZXBasicArchitecture) ZXBasicPreferencesAccess.get().getArchitecture(project));
 	}
 	
@@ -54,7 +54,7 @@ public class ContributedLibraryRegistry {
 	}
 
     public static List<ZXLibrary> getAllLibraries(IProject project) {
-        return getAllLibraries(ZXBasicPreferencesAccess.get().getSDK(project));
+        return getAllLibraries(ZXBasicPreferencesAccess.get().getSDK(project).orElseThrow(() -> new IllegalStateException("Cannot get active libraries for project " + project.getName() + " because no SDK is configured!")));
     }
     
     public static List<ZXLibrary> getAllLibraries(ZXSDK sdk) {

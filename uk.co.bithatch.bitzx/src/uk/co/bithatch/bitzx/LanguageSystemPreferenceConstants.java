@@ -5,4 +5,5 @@ public interface LanguageSystemPreferenceConstants {
 	String COMPILER = "compiler";
     String OUTPUT_FORMAT = "compiler.outputFormat";
     String ARCHITECTURE = "compiler.arch";
+	String SDK = "compiler.sdk";
 }

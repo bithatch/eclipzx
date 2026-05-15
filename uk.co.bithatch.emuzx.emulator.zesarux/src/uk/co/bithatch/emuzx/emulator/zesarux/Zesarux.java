@@ -70,7 +70,7 @@ public class Zesarux implements IEmulator {
 					--configfile
 					${emulator_config_file}
 					--snap
-					${zxbasic_launch_loc}
+					${ee_launch_loc}
 					""", System.lineSeparator()));
 	        configuration.setAttribute(CONFIGURATION_CONTENT, """
 					--enable-mmc
@@ -85,7 +85,7 @@ public class Zesarux implements IEmulator {
 					--configfile
 					${emulator_config_file}
 					--snap
-					${zxbasic_launch_loc}
+					${ee_launch_loc}
 					""", System.lineSeparator()));
 	        configuration.setAttribute(CONFIGURATION_CONTENT, """
 	        		""");

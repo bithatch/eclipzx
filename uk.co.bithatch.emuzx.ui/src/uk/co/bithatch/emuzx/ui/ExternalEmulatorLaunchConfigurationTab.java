@@ -58,6 +58,11 @@ public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgra
 		rebuildOutputFormats();
 	}
 
+	@Override
+	protected void architectureChanged() {
+		rebuildOutputFormats();
+	}
+
 	protected void createOutputFormatControl(Composite parent) {
 		Label formatLabel = new Label(parent, SWT.NONE);
 		formatLabel.setText("Output Format:");
@@ -79,13 +84,12 @@ public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgra
 			var program = resolveProgram();
 			if(program != null) {
 				var externallyLaunchable = ExternallyLaunchableRegistry.externallyLaunchableFor(program);
-				var system = externallyLaunchable.getArchitecture(project);
+				var system = resolveArchitecture();
 				
 				outputFormatCombo.setEnabled(true);
 				wrappers.add(new OutputFormatWrapper(null, externallyLaunchable.getOutputFormat(project)));
 				wrappers.addAll(
-						resolveLanguage().outputFormats(project).stream().
-						filter(f -> system.supportedFormats().contains(f)).
+						system.supportedFormats().stream().
 						map(f -> new OutputFormatWrapper(f, null)).
 						toList());
 		

@@ -16,7 +16,7 @@ public interface IOutputFormat extends IDescribed {
 
 	default Optional<WellKnownOutputFormat> wellKnown() {
 		try {
-			return Optional.of(WellKnownOutputFormat.valueOf(name().toUpperCase()));
+			return Optional.of(WellKnownOutputFormat.valueOf(extension().toUpperCase()));
 		} catch (IllegalArgumentException iae) {
 			return Optional.empty();
 		}

@@ -1,10 +1,20 @@
 package uk.co.bithatch.eclipz88dk.launch;
 
 import java.io.File;
+import java.nio.file.Path;
 
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
+import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
+import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -14,6 +24,7 @@ import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
+import uk.co.bithatch.eclipz88dk.toolchain.Z88DKBuildContext;
 import uk.co.bithatch.emuzx.DefaultPreparationContext;
 import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
@@ -31,7 +42,7 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 	}
 
 	@Override
-	public void compileForLaunch(String mode, DefaultPreparationContext prepCtx) throws CoreException {
+	public void compileForLaunch(String mode, DefaultPreparationContext prepCtx, IProgressMonitor monitor) throws CoreException {
 		var file = prepCtx.programFile();
 		var project = file.getProject();
 		var sourceFile = file.getLocation().toFile();	
@@ -40,78 +51,48 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 		
 		if (FileNames.hasExtensions(sourceFile, "c", "asm")) {
 			if (project != null) {
-//				var outputDir = Z88DKPreferencesAccess.get().getOutputFolder(project).getLocation().toFile();
 				var relFile = fullProjectDir.toPath().relativize(sourceFile.toPath()).toFile();
 				
 				prepCtx.buildOptions(IProgramBuildOptionsFactory.accumulate(file));
 				
-				// XXXXX TEMP XXXXX
-				var outputDir = project.getFullPath().toFile();
-				var outputFile = FileNames.changeExtension(new File(outputDir, relFile.getPath()),
-						fmt.name().toLowerCase());
+				
+				/* Get the CDT managed build info for the project */
+				IManagedBuildInfo buildInfo = ManagedBuildManager.getBuildInfo(project);
+				if (buildInfo == null) {
+					throw new CoreException(Status.error("No CDT managed build information found for project: " + project.getName()));
+				}
+				
+				IConfiguration buildCfg = buildInfo.getDefaultConfiguration();
+				if (buildCfg == null) {
+					throw new CoreException(Status.error("No default build configuration found for project: " + project.getName()));
+				}
+				
+				/* Determine the output directory and file from the build configuration.
+				 * The artifact name/extension may have been customised in 
+				 * C/C++ Build -> Settings -> Build Artifact */
+				var buildDir = new File(project.getLocation().toFile(), buildCfg.getName());
+				var artifactName = ManagedBuildManager.getBuildMacroProvider()
+						.resolveValueToMakefileFormat(buildCfg.getArtifactName(), "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildCfg);
+				var outputFile = new File(buildDir, artifactName + "." + fmt.extension().toLowerCase());
+
+				/* Invoke the CDT build system (incremental build), passing the
+				 * required output format via thread-local so Z88DKCmdLineGen
+				 * can pick it up */
+				LOG.info("Building project '" + project.getName() + "' with configuration '" + buildCfg.getName() + "' for format " + fmt.name());
+				Z88DKBuildContext.set(fmt);
+				try {
+					project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+				} finally {
+					Z88DKBuildContext.clear();
+					var buildFolder = project.getFolder(buildCfg.getName());
+					if (buildFolder.exists()) {
+						buildFolder.refreshLocal(IResource.DEPTH_ONE, monitor);
+					}
+				}
+				
+				/* Set output file for launch. */
 				prepCtx.binaryFile(outputFile);
 				
-//				var zxbc = builderForProject(project)
-//						.withWorkingdir(fullProjectDir)
-//						.withOutputFormat(fmt.firstPass())
-//						.withAutorun(fmt.snapshot())
-//						.withBasicLoader(fmt.snapshot())
-//						.withErrorHandler(errHandler)
-//						.withMemoryMap(false).build();
-//				
-//				File firstPassOutput = null;
-//
-//				if (zxbc.isNeedsProcessing(sourceFile)) {
-//					try {
-//						firstPassOutput = zxbc.compile(sourceFile);
-//					} catch (IOException ioe) {
-//						throw new UncheckedIOException(ioe);
-//					}
-//				}
-//				else {
-//					firstPassOutput = zxbc.targetFile(sourceFile);
-//				}
-//				
-//				prepCtx.binaryFile(firstPassOutput);
-//				
-//				var outputFile = FileNames.changeExtension(new File(outputDir, relFile.getPath()),
-//						fmt.name().toLowerCase());
-				
-//				if(fmt.requiresSecondPass()) {
-//					switch(fmt) {
-//					case BorielZXBasicOutputFormat.NEX:
-//						var org = prepCtx.buildOptions().orgOrDefault();
-//						var cfg = new NexConverter.NexConfiguration();
-//						var pc = getPc(file, org); 
-//						var sp = getSp(file, org - 2);//
-//						
-//						/* Basic Program and project configuration */
-//						cfg.core(getCore(file));
-//						getSysVars(file).ifPresent(sv -> {
-//							cfg.mmu(sv, 10, 0x1c00);
-//						});
-//						cfg.pcsp(pc, Optional.of(sp));
-//						
-//						/* Add all other the contributions */
-//						INEXConfigurer.accumulate(file, cfg);
-//						
-//						/* Finally the actual binary */
-//						LOG.info(String.format("Adding output %s to NEX", firstPassOutput));
-//						cfg.addFile(firstPassOutput.toPath(), Optional.of(prepCtx.buildOptions().bankForOrg()), Optional.of(prepCtx.buildOptions().codestart()));
-//						
-//						var gen = new NexConverter.NexGenerator(cfg);
-//						gen.reporting(msg -> {
-//							errHandler.accept(new ToolMessage(file.toString(), 0, ToolMessageLevel.INFO, msg));
-//						});
-//						gen.generate(outputFile.toPath());
-//						break;
-//					default:
-//						throw new UnsupportedOperationException("Output format declared it needs a second pass, but I don't know how!");
-//					}
-//				}
-
-//				sourceFile = outputFile;
-//				prepCtx.binaryFile(outputFile);
 			}
 		}
 	}
@@ -130,6 +111,29 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 	@Override
 	public IArchitecture getArchitecture(IProject proj) {
 		return Z88DKPreferencesAccess.get().getArchitecture(proj);
+	}
+
+	@Override
+	public Path getOutputFolder(IProject project) {
+		/* Get the CDT managed build info for the project */
+		IManagedBuildInfo buildInfo = ManagedBuildManager.getBuildInfo(project);
+		if (buildInfo == null) {
+			throw new IllegalArgumentException("No CDT managed build information found for project: " + project.getName());
+		}
+		
+		IConfiguration buildCfg = buildInfo.getDefaultConfiguration();
+		if (buildCfg == null) {
+			throw new IllegalArgumentException("No default build configuration found for project: " + project.getName());
+		}
+		
+		/* Determine the output directory and file from the build configuration */
+		return project.getLocation().toPath().resolve(buildCfg.getName());
+	}
+
+	@Override
+	public Path getBinFile(Path srcfile, Path outputFolder, IOutputFormat outputFormat) {
+		return FileNames.changeExtension(outputFolder.resolve(srcfile.getFileName().toString()),
+				outputFormat.extension().toLowerCase());
 	}
 
 	

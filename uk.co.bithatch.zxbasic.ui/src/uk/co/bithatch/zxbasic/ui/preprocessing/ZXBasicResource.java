@@ -168,7 +168,7 @@ public class ZXBasicResource extends LazyLinkingResource {
 		var pax = ZXBasicPreferencesAccess.get();
 		var fs = new ZXPreprocessor.FileSystemResourceResolver.Builder().withIncludeDirs(pax.getAllLibs(project))
 				.withWorkingDir(project.getLocation().toFile())
-				.withRuntimeDir(pax.getSDK(project).runtime(pax.getArchitecture(project))).build();
+				.withRuntimeDir(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).runtime(pax.getArchitecture(project))).build();
 
 		return new ZXPreprocessor.Builder().withResourceResolver(fs).withDefines(pax.getDefines(project));
 	}

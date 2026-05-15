@@ -31,7 +31,6 @@ public interface ZXBasicPreferenceConstants extends LanguageSystemPreferenceCons
     String HEAP_ADDRESS = "compiler.heapAddress";
     String BREAK_DETECTION = "compiler.breakDetection";
     String OPTIMIZATION_LEVEL = "compiler.optimizationLevel";
-	String SDK = "compiler.sdk";
 	String STRICT = "compliance.strict";
 	String STRICT_BOOLEAN = "compliance.strictBooleans";
 	String IGNORE_VARIABLE_CASE = "compliance.ignoreVariableCase";

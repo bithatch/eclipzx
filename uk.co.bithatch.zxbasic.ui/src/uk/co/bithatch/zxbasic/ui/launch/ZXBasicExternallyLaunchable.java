@@ -1,7 +1,10 @@
 package uk.co.bithatch.zxbasic.ui.launch;
 
+import java.nio.file.Path;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -14,7 +17,9 @@ import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 import uk.co.bithatch.emuzx.debug.DezogDebugTarget;
 import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTarget;
 import uk.co.bithatch.zxbasic.ui.builder.ZXBasicBuilder;
+import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
+import uk.co.bithatch.zxbasic.ui.tools.ZXBC;
 
 public class ZXBasicExternallyLaunchable implements IExternallyLaunchable {
 
@@ -25,7 +30,7 @@ public class ZXBasicExternallyLaunchable implements IExternallyLaunchable {
 	}
 
 	@Override
-	public void compileForLaunch(String mode, DefaultPreparationContext prepCtx) throws CoreException {
+	public void compileForLaunch(String mode, DefaultPreparationContext prepCtx, IProgressMonitor monitor) throws CoreException {
 		ZXBasicBuilder.compileForLaunch(prepCtx, mode, ZXBasicBuilder.DEFAULT_REPORTER);
 	}
 
@@ -43,6 +48,17 @@ public class ZXBasicExternallyLaunchable implements IExternallyLaunchable {
 	@Override
 	public IArchitecture getArchitecture(IProject proj) {
 		return ZXBasicPreferencesAccess.get().getArchitecture(proj);
+	}
+
+	@Override
+	public Path getOutputFolder(IProject project) {
+		return ZXBasicPreferencesAccess.get().getOutputFolder(project).getRawLocation()
+				.toPath();
+	}
+
+	@Override
+	public Path getBinFile(Path srcfile, Path outputFolder, IOutputFormat outputFormat) {
+		return ZXBC.targetFile(srcfile.toFile(), outputFolder.toFile(), (BorielZXBasicOutputFormat) outputFormat).toPath();
 	}
 
 	

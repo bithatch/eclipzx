@@ -64,8 +64,9 @@ public class MAME implements IEmulator {
 		}
 		else {
 			configuration.setAttribute(PREPARATION_TARGET, "");
-			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.BIN).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
+			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.TAP).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""
+					-inipath
 					${emulator_config_file}
 					-ui_active
 					-nounevenstretch
@@ -82,7 +83,7 @@ public class MAME implements IEmulator {
 					-confirm_quit
 					spec128
 					-cass
-					${zxbasic_launch_loc}
+					${ee_launch_loc}
 					""", System.lineSeparator()));
 		}
         configuration.setAttribute(CUSTOM_WORKING_DIRECTORY, true);

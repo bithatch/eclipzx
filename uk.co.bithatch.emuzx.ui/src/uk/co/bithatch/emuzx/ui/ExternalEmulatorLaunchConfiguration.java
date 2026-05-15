@@ -74,7 +74,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 			prepCtx.outputFormat(actualFormat);
 
 			/* Compile to the chosen format for the launch. */
-			externallyLaunchable.compileForLaunch(mode, prepCtx);
+			externallyLaunchable.compileForLaunch(mode, prepCtx, monitor);
 			launchCtx.attr(LaunchContext.BINARY_FILE, prepCtx.binaryFile());
 
 			/* If there is preparation to do, do it now */

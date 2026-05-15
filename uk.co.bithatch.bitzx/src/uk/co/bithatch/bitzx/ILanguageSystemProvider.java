@@ -35,6 +35,8 @@ public interface ILanguageSystemProvider {
 		}
 		throw new IllegalStateException("Could not get any architectures for this project!");
 	}
+	
+	LanguageSystemPreferencesAccess preferenceAccess();
 
 	boolean isCompatible(IResource resource);
 

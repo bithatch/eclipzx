@@ -82,6 +82,11 @@ public class EmulatorLaunchConfigurationTab extends AbstractLaunchProgramConfigu
 		updateOutputFormats();
 	}
 
+	@Override
+	protected void architectureChanged() {
+		updateOutputFormats();
+	}
+
 	protected void updateOutputFormats() {
 		if(outputFormatCombo == null)
 			return;
@@ -90,7 +95,8 @@ public class EmulatorLaunchConfigurationTab extends AbstractLaunchProgramConfigu
 		if(lang == null)
 			outputFormatCombo.setItems();
 		else {
-			var formats = lang.outputFormats(resolveProject()).stream()
+			var arch = resolveArchitecture();
+			var formats = arch.supportedFormats().stream()
 				.filter(f -> Activator.JSPECCY_RUNNABLE_FORMATS.contains(f.extension())).toList();
 			outputFormatCombo.setItems(LanguageSystemUI.describedNames(formats));
 			if(outputFormatCombo.getSelectionIndex() == -1 && formats.size() > 0) {

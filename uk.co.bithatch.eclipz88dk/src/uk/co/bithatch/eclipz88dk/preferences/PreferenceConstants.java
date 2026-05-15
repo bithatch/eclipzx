@@ -9,7 +9,6 @@ public interface PreferenceConstants extends LanguageSystemPreferenceConstants  
 	String SDKS = "sdks";
 	String SDK_PATHS = "sdks.sdkPaths";
 	
-	String SDK = "compiler.sdk";
 	String CLIB = "compiler.clib";
 	String SUBTYPE = "compiler.subtype";
 

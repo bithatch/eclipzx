@@ -13,11 +13,13 @@ import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.core.ManagedCommandLineGenerator;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.ILog;
 
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 
 public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 
+	private static final ILog LOG = ILog.of(Z88DKCmdLineGen.class);
 	private static final String UK_CO_BITHATCH_ECLIPZ88DK_COMPILER = "uk.co.bithatch.eclipz88dk.compiler";
 	private static final String UK_CO_BITHATCH_ECLIPZ88DK_LINKER = "uk.co.bithatch.eclipz88dk.linker";
 
@@ -42,14 +44,22 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 		var sdk = pax.getSDK(project).get();
 		
 		command = new File(new File(sdk.location(), "bin"), command).getAbsolutePath();
+
+		LOG.info("Z88DK generateCommandLineInfo: tool.getId()=" + tool.getId() + ", buildContext=" + Z88DKBuildContext.get());
 		
-		if(tool.getId().startsWith(UK_CO_BITHATCH_ECLIPZ88DK_COMPILER + ".")) {
-			merged.add("--assemble-only");
+		if(tool.getId().startsWith(UK_CO_BITHATCH_ECLIPZ88DK_COMPILER + ".") 
+				|| tool.getId().equals(UK_CO_BITHATCH_ECLIPZ88DK_COMPILER)) {
+			var buildCtx = Z88DKBuildContext.get();
+			if (buildCtx.isEmpty()) {
+				/* Normal build: compile/assemble only */
+				merged.add("--assemble-only");
+			} else {
+				/* Launch build: produce final binary in the requested format */
+				merged.add("-create-app");
+				merged.add("-subtype=" + buildCtx.get().name().toLowerCase());
+			}
 			merged.add("+" + pax.getArchitecture(project).name().toLowerCase());
 			merged.add("-clib=" + pax.getCLibrary(project));
-		}
-		else if(tool.getId().startsWith(UK_CO_BITHATCH_ECLIPZ88DK_LINKER + ".")) {
-			merged.add("-b");
 		}
 		
 		return super.generateCommandLineInfo(

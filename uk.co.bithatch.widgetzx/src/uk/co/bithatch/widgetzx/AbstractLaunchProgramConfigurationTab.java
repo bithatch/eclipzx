@@ -1,5 +1,6 @@
 package uk.co.bithatch.widgetzx;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
+import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.LanguageSystem;
 
@@ -49,6 +51,8 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 	private final String languageKey;
 
 	private Combo languageCombo;
+	private Combo architectureCombo;
+
 
 	protected AbstractLaunchProgramConfigurationTab(String projectKey, String programKey, String languageKey) {
 		this.programKey = programKey;
@@ -66,6 +70,7 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 
 		createProjectSelector(comp);
 		createLanguageSelector(comp);
+		createArchitectureSelector(comp);
 		createProgramSelector(comp);
 
 		createAdditionalControls(comp);
@@ -82,6 +87,22 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				languageChanged();
+				updateLaunchConfigurationDialog();
+			}
+		});
+	}
+
+	protected final void createArchitectureSelector(Composite parent) {
+		Label label = new Label(parent, SWT.NONE);
+		label.setText("Architecture:");
+
+		architectureCombo = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
+		architectureCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		updateArchitectures();
+		architectureCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				architectureChanged();
 				updateLaunchConfigurationDialog();
 			}
 		});
@@ -123,6 +144,7 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 
 	protected void projectChanged() {
 		updateLanguages();
+		updateArchitectures();
 	}
 
 	protected final void createProgramSelector(Composite parent) {
@@ -183,6 +205,9 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 		});
 	}
 
+	protected void architectureChanged() {
+	}
+
 	protected void languageChanged() {
 	}
 
@@ -205,6 +230,15 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 		} catch (IllegalArgumentException iae) {
 			return null;
 		}
+	}
+	
+	public final IArchitecture resolveArchitecture() {
+		var lang = resolveLanguage();
+		var proj = resolveProject();
+		if(lang != null && proj != null) {
+			return lang.architectureOrDefault(proj, architectureCombo.getText());
+		}
+		return null;
 	}
 
 	public final IFile resolveProgram() {
@@ -283,5 +317,25 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 			languageCombo.select(0);
 		}
 		languageCombo.setEnabled(newItems.size() > 1);
+	}
+
+	protected final void updateArchitectures() {
+		var proj = resolveProject();
+		var wasSel = architectureCombo.getText();
+		List<String> newItems = List.of();
+		if(proj != null) {
+			var arch = resolveLanguage().preferenceAccess().getArchitecture(proj);
+			if(arch != null) {
+				newItems = List.of(arch).stream().map(a -> a.fullDescription()).toList();
+			}
+		}
+		architectureCombo.setItems(newItems.toArray(new String[0]));
+		if(wasSel != null && newItems.contains(wasSel)) {
+			architectureCombo.select(newItems.indexOf(wasSel));
+		}
+		else if(newItems.size() > 0) {
+			architectureCombo.select(0);
+		}
+		architectureCombo.setEnabled(newItems.size() > 1);
 	}
 }

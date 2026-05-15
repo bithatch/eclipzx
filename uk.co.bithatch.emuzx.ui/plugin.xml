@@ -13,7 +13,21 @@
             id="uk.co.bithatch.emuzx.ui.preferencePage" name="External Emulators">
             <keywordReference id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" />
         </page>
-    </extension>  
+    </extension> 
+    
+    
+    <extension point="org.eclipse.core.variables.dynamicVariables">
+        <variable name="ee_program_path" supportsArgument="false" description="Workspace relative path to current source program (.bas or .asm)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_program_loc" supportsArgument="false" description="Absolute path to current source program (.bas or .asm)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_program_name" supportsArgument="false" description="The base name of current source program without any extension." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_program_ext" supportsArgument="false" description="The file extension of the current source program." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_output_path" supportsArgument="false" description="Workspace relative path to the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_output_loc" supportsArgument="false" description="Absolute path to the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_output_name" supportsArgument="false" description="The base name of the final output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_launch_path" supportsArgument="false" description="Workspace relative path to the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_launch_loc" supportsArgument="false" description="Absolute path to the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_launch_name" supportsArgument="false" description="The base name of the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+    </extension> 
     
     <extension point="org.eclipse.debug.core.launchConfigurationTypes">
         <launchConfigurationType name="External Emulator" delegate="uk.co.bithatch.emuzx.ui.ExternalEmulatorLaunchConfiguration" modes="run,debug" id="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch" />

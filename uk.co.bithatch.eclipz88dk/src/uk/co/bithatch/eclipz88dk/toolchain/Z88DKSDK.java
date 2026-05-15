@@ -6,8 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import uk.co.bithatch.bitzx.ISDK;
 
-public final class Z88DKSDK {
+
+public final class Z88DKSDK implements ISDK {
 	
 	private final String name;
 	private final File location;

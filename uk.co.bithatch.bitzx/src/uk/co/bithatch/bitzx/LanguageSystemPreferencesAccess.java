@@ -1,5 +1,7 @@
 package uk.co.bithatch.bitzx;
 
+import java.util.Optional;
+
 import org.eclipse.core.resources.IProject;
 
 public abstract class LanguageSystemPreferencesAccess extends AbstractPreferencesAccess {
@@ -10,7 +12,9 @@ public abstract class LanguageSystemPreferencesAccess extends AbstractPreference
 		super(activatorId);
 		this.clazz = clazz;
 	}
-
+	
+	public abstract Optional<? extends ISDK> getSDK(IProject project);
+	
 	public final IOutputFormat getOutputFormat(IProject project) {
 		return LanguageSystem.outputFormatOrDefault(project, getPreference(project, LanguageSystemPreferenceConstants.OUTPUT_FORMAT, ""));
 	}
