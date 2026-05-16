@@ -75,4 +75,9 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 		}
 	}
 
+	@Override
+	public String[] sourceFileExtensions() {
+		return new String[] { "bas", "zxbasic" };
+	}
+
 }

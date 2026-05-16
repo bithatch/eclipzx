@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preparation;
+package uk.co.bithatch.emuzx.ui;
 
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +12,6 @@ import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.bitzx.FileSet.Purpose;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.emuzx.api.IPreparationSource;
-import uk.co.bithatch.zxbasic.ui.builder.ResourceProperties;
 
 public class AssociatedResourcesPreparationSource implements IPreparationSource {
 

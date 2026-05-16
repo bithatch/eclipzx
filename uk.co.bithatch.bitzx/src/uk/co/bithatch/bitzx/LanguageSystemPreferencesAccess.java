@@ -2,6 +2,7 @@ package uk.co.bithatch.bitzx;
 
 import java.util.Optional;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 
 public abstract class LanguageSystemPreferencesAccess extends AbstractPreferencesAccess {
@@ -43,5 +44,7 @@ public abstract class LanguageSystemPreferencesAccess extends AbstractPreference
 	public final ILanguageSystemProvider getLanguageSystem() {
 		return LanguageSystem.languageSystem(clazz);
 	}
+
+	public abstract IFolder getOutputFolder(IProject project);
 
 }

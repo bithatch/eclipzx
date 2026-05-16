@@ -13,17 +13,6 @@ public class ResourceProperties extends IResourceProperties {
 		NONE, BUNDLED, LOCATION
 	}
 
-	public static QualifiedName DISK_IMAGE_INCLUDE_IN_PREPARATION = new QualifiedName(PLUGIN_ID,
-			"diskImage.includeInPreparation");
-	public static QualifiedName DISK_IMAGE_PREPARATION_FOLDER = new QualifiedName(PLUGIN_ID,
-			"diskImage.preparationFolder");
-	public static QualifiedName DISK_IMAGE_FLATTEN_PREPARATION = new QualifiedName(PLUGIN_ID,
-			"diskImage.flattenPreparation");
-	public static QualifiedName DISK_IMAGE_TRIGGER_PROGRAMS_IN_THIS_FOLDER = new QualifiedName(PLUGIN_ID,
-			"diskImage.triggerProgramsInThisFolder");
-	public static QualifiedName DISK_IMAGE_OTHER_TRIGGER_PROGRAMS = new QualifiedName(PLUGIN_ID,
-			"diskImage.otherTriggerPrograms");
-
 	public static QualifiedName NEX_OVERRIDE_PROJECT = new QualifiedName(PLUGIN_ID, "nex.overrideProject");
 	public static QualifiedName NEX_SYSVARS = new QualifiedName(PLUGIN_ID, "nex.sysvars");
 	public static QualifiedName NEX_SYSVARS_LOCATION = new QualifiedName(PLUGIN_ID, "nex.sysvars.location");

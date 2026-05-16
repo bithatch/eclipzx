@@ -1,6 +1,6 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.emuzx.ui;
 
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.setProperty;
+import static uk.co.bithatch.emuzx.ui.ResourceProperties.setProperty;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -29,8 +29,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ui.dialogs.ResourceSelectionDialog;
 
 import uk.co.bithatch.bitzx.FileNames;
-import uk.co.bithatch.zxbasic.ui.builder.ResourceProperties;
-import uk.co.bithatch.zxbasic.ui.builder.ZXBasicBuilder;
+import uk.co.bithatch.bitzx.LanguageSystem;
 
 
 public class DiskImagePreparationOptionsPage extends PropertyPage {
@@ -189,11 +188,12 @@ public class DiskImagePreparationOptionsPage extends PropertyPage {
 		var triggerPrograms = getCurrentTriggerPrograms();
 		var nonProgramSources = 0;
 		var missingTriggerPrograms = 0;
+		var langSys = LanguageSystem.languageSystem(project);
 		for(var program : triggerPrograms) {
 			if(!project.getFile(program).exists()) {
 				missingTriggerPrograms++;
 			}
-			if(!FileNames.hasExtensions(program, ZXBasicBuilder.EXTENSIONS)) 
+			if(!FileNames.hasExtensions(program, langSys.sourceFileExtensions())) 
 				nonProgramSources++;
 			
 		}

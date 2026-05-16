@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.tools;
+package uk.co.bithatch.bitzx;
 
 import java.io.*;
 import java.nio.ByteBuffer;

@@ -8,6 +8,7 @@ import org.eclipse.core.variables.IDynamicVariable;
 import org.eclipse.core.variables.IDynamicVariableResolver;
 import org.eclipse.ui.PlatformUI;
 
+import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LaunchContext;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
@@ -36,8 +37,9 @@ public class ExternalEmulatorVariableResolver implements IDynamicVariableResolve
 						return srcfile.getLocation().toString();
 					} else {
 						var launchable = ExternallyLaunchableRegistry.externallyLaunchableFor(srcfile);
+						var lang = LanguageSystem.languageSystem(project);
 						var outputFormat = launchable.getOutputFormat(project);
-						var outputFolder = launchable.getOutputFolder(project);
+						var outputFolder = lang.preferenceAccess().getOutputFolder(project).getLocation().toPath();
 						var binfile = launchable.getBinFile(srcfile.getLocation().toPath(), outputFolder, outputFormat).toFile();
 						if (variable.getName().equals("ee_output_path")) {
 							return project.getRawLocation().toPath().relativize(binfile.toPath()).toString();

@@ -37,7 +37,7 @@ public class AFBContentProvider implements ITreeContentProvider {
 
 	@Override
 	public boolean hasChildren(Object element) {
-		return element instanceof IFile file && file.getFileExtension().equalsIgnoreCase("afb");
+		return element instanceof IFile file && file.getFileExtension() != null && file.getFileExtension().equalsIgnoreCase("afb");
 	}
 
 	@Override

@@ -100,14 +100,6 @@
                 </adapt>
             </enabledWhen>
         </page>
-        <page id="uk.co.bithatch.zxbasic.ui.builder.diskImagePreparationOptions" name="Disk Image Preparation" class="uk.co.bithatch.zxbasic.ui.preferences.DiskImagePreparationOptionsPage">
-            <enabledWhen>
-                <or>
-                    <adapt type="org.eclipse.core.resources.IFile" />
-                    <adapt type="org.eclipse.core.resources.IFolder" />
-                </or>
-            </enabledWhen>
-        </page>
         <page id="uk.co.bithatch.zxbasic.ui.builder.nexBundlingOptions" name="NEX Bundling" class="uk.co.bithatch.zxbasic.ui.preferences.NEXBundlingOptionsPage">
             <enabledWhen>
                 <adapt type="org.eclipse.core.resources.IFile" />
@@ -584,42 +576,6 @@
             name="ZXBasic Externally Launchable" 
             class="uk.co.bithatch.zxbasic.ui.launch.ZXBasicExternallyLaunchable" 
             extensions="bas"/>
-    </extension>
-    
-    <extension point="uk.co.bithatch.emuzx.ui.preparationTarget">
-        <preparationTarget id="uk.co.bithatch.zxbasic.ui.launch.localPreparationTarget" name="Local File System Folder" uiClass="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTargetUI" class="uk.co.bithatch.zxbasic.ui.preparation.LocalPreparationTarget" />
-    </extension>
-    
-    <extension
-          point="uk.co.bithatch.emuzx.preparationSource">
-       <preparationSource
-             id="uk.co.bithatch.nextbuild.compilerOutputPreparationSource"
-             name="Compiler Output"
-             order="100"
-             selected="true"
-             class="uk.co.bithatch.zxbasic.ui.preparation.CompilerOutputPreparationSource">
-       </preparationSource>
-       <preparationSource
-             id="uk.co.bithatch.nextbuild.associatedResourcesPreparationSource"
-             name="Associated Resources"
-             order="200"
-             selected="true"
-             class="uk.co.bithatch.zxbasic.ui.preparation.AssociatedResourcesPreparationSource">
-       </preparationSource>
-       <preparationSource
-             id="uk.co.bithatch.nextbuild.otherResourcesPreparationSource"
-             name="Other Resources"
-             order="300"
-             uiClass="uk.co.bithatch.zxbasic.ui.preparation.OtherResourcesPreparationTargetUI"
-             class="uk.co.bithatch.zxbasic.ui.preparation.OtherResourcesPreparationSource">
-       </preparationSource>
-       <preparationSource
-             id="uk.co.bithatch.nextbuild.autoexecBasPreparationSource"
-             name="Generate Autoexec.bas to autostart"
-             selected="true"
-             order="400"
-             class="uk.co.bithatch.zxbasic.ui.preparation.AutoexecBasPreparationSource">
-       </preparationSource>
     </extension>
 
     <extension point="uk.co.bithatch.bitzx.languageSystemProvider">

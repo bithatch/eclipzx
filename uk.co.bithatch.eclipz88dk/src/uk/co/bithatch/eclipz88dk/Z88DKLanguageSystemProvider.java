@@ -99,6 +99,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 
 
 	private static final String[] EXTENSIONS = new String[] { "c", "asm" };
+	private static final String[] SOURCE_FILE_EXTENSIONS = new String[] { "c", "asm", "h" };
 
 	@Override
 	public List<? extends IArchitecture> architectures(IResource resource) {
@@ -168,5 +169,10 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		// TODO Auto-generated method stub
 		return file.getLocation().toFile();
+	}
+
+	@Override
+	public String[] sourceFileExtensions() {
+		return SOURCE_FILE_EXTENSIONS;
 	}
 }

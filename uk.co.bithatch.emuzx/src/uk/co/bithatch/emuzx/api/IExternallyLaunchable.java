@@ -28,7 +28,5 @@ public interface IExternallyLaunchable {
 
 	IArchitecture getArchitecture(IProject proj);
 
-	Path  getOutputFolder(IProject project);
-
 	Path getBinFile(Path srcfile, Path outputFolder, IOutputFormat outputFormat);
 }

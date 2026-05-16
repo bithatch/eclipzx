@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preparation;
+package uk.co.bithatch.emuzx.ui;
 
 import static org.eclipse.jface.layout.GridDataFactory.defaultsFor;
 import static org.eclipse.jface.layout.GridDataFactory.fillDefaults;
@@ -23,9 +23,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ResourceSelectionDialog;
-
-import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
-import uk.co.bithatch.emuzx.ui.IPreparationSourceUI;
 
 public class OtherResourcesPreparationTargetUI implements IPreparationSourceUI {
 

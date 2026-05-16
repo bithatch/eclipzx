@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preparation;
+package uk.co.bithatch.emuzx.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;

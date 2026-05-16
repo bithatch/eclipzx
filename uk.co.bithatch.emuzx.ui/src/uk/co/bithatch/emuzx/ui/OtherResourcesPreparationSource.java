@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preparation;
+package uk.co.bithatch.emuzx.ui;
 
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_OTHER_FILES;
 

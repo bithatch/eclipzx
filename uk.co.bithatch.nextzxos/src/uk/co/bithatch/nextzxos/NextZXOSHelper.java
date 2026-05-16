@@ -20,8 +20,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
+import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
-import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
 public class NextZXOSHelper {
 	private final static ILog LOG = ILog.of(NextZXOSHelper.class);
@@ -38,7 +38,7 @@ public class NextZXOSHelper {
 		
 		/* We need the project from the launch configuration to determine where to copy the file to */
 		var project = ResourcesPlugin.getWorkspace().getRoot().getProject(configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, ""));
-		out = ZXBasicPreferencesAccess.get().getOutputFolder(project);
+		out =  LanguageSystem.languageSystem(project).preferenceAccess().getOutputFolder(project);
 		
 		/* The working image file needs to be known up front */
 		LOG.info(String.format("Working Next ZXOS image will be at %s", workingImageFile));

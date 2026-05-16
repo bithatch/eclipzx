@@ -92,7 +92,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 			}
 		}
 
-		return super.generateCommandLineInfo(
+		var result = super.generateCommandLineInfo(
 		        tool,
 		        command,
 		        merged.toArray(String[]::new),
@@ -101,6 +101,38 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 		        output,
 		        inputResources,
 		        commandLinePattern);
+
+		/* When using --assemble-only, zcc leaves intermediate .c.asm files
+		 * next to the original .c sources.  Append a cleanup command to move
+		 * them into the build output directory so they don't pollute the
+		 * source tree and don't get picked up as source files on subsequent
+		 * builds. */
+		if (merged.contains("--assemble-only") && project != null && inputResources != null) {
+			var cmdLine = result.getCommandLine();
+			var sb = new StringBuilder(cmdLine);
+			for (String inp : inputResources) {
+				if (inp.toLowerCase().endsWith(".c")) {
+					/* The .c.asm is created next to the .c file */
+					String casmPath = inp + ".asm";
+					sb.append(" ; mv -f ").append(casmPath).append(" . 2>/dev/null");
+				}
+			}
+			var finalCmd = sb.toString();
+			/* Return a wrapper that overrides getCommandLine() */
+			var orig = result;
+			result = new IManagedCommandLineInfo() {
+				@Override public String getCommandLine() { return finalCmd; }
+				@Override public String getCommandLinePattern() { return orig.getCommandLinePattern(); }
+				@Override public String getCommandName() { return orig.getCommandName(); }
+				@Override public String getFlags() { return orig.getFlags(); }
+				@Override public String getOutputFlag() { return orig.getOutputFlag(); }
+				@Override public String getOutputPrefix() { return orig.getOutputPrefix(); }
+				@Override public String getOutput() { return orig.getOutput(); }
+				@Override public String getInputs() { return orig.getInputs(); }
+			};
+		}
+
+		return result;
 	}
 
 	/**
@@ -168,6 +200,15 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 				 *    in the referenced project root.  This is the reliable
 				 *    fallback for makefile projects. */
 				addIfDir(new File(refDir, "include"), "-I", refProjName, flags);
+				
+				/* For library paths, check the clib-specific subdirectory first
+				 * (e.g. lib/sccz80 for "new", lib/sdcc_ix for "sdcc_ix"), then
+				 * fall back to lib/ itself. */
+				var clib = Z88DKPreferencesAccess.get().getCLibrary(project);
+				var clibSubdir = clibToLibSubdir(clib);
+				if (clibSubdir != null) {
+					addIfDir(new File(new File(refDir, "lib"), clibSubdir), "-L", refProjName, flags);
+				}
 				addIfDir(new File(refDir, "lib"), "-L", refProjName, flags);
 			}
 		} catch (Exception e) {
@@ -175,6 +216,23 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 		}
 	}
 	
+	/**
+	 * Map a Z88DK C library name to the conventional subdirectory under
+	 * {@code lib/} where compiled libraries are placed.
+	 * 
+	 * @return the subdirectory name, or {@code null} if no mapping is known
+	 */
+	private static String clibToLibSubdir(String clib) {
+		if (clib == null) return null;
+		return switch (clib.toLowerCase()) {
+			case "new"      -> "sccz80";
+			case "sdcc_ix"  -> "sdcc_ix";
+			case "sdcc_iy"  -> "sdcc_iy";
+			case "classic"  -> "sccz80";
+			default         -> clib.toLowerCase();
+		};
+	}
+
 	/** Add a flag for a directory if it exists and isn't already in the list. */
 	private static void addIfDir(File dir, String prefix, String refProjName, List<String> flags) {
 		if (dir.isDirectory()) {
@@ -253,7 +311,9 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource.getType() == IResource.FILE) {
 						String ext = resource.getFileExtension();
-						if (ext != null && (ext.equalsIgnoreCase("c") || ext.equalsIgnoreCase("asm"))) {
+						if (ext != null 
+								&& (ext.equalsIgnoreCase("c") || ext.equalsIgnoreCase("asm"))
+								&& !resource.getName().endsWith(".c.asm")) {
 							/* Check this file is within a configured source entry
 							 * and not excluded */
 							if (CDataUtil.isExcluded(resource.getFullPath(), sourceEntries)) {

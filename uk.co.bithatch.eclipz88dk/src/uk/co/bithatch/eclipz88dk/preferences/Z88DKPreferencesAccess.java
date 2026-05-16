@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
+import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 
 import uk.co.bithatch.bitzx.IArchitecture;
@@ -45,6 +49,24 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 		}
 	}
 	
+	@Override
+	public IFolder getOutputFolder(IProject project) {
+
+		/* Get the CDT managed build info for the project */
+		IManagedBuildInfo buildInfo = ManagedBuildManager.getBuildInfo(project);
+		if (buildInfo == null) {
+			throw new IllegalArgumentException("No CDT managed build information found for project: " + project.getName());
+		}
+		
+		IConfiguration buildCfg = buildInfo.getDefaultConfiguration();
+		if (buildCfg == null) {
+			throw new IllegalArgumentException("No default build configuration found for project: " + project.getName());
+		}
+		
+		/* Determine the output directory and file from the build configuration */
+		return project.findMember(buildCfg.getName()).getAdapter(IFolder.class);
+	}
+
 	public boolean isAllArchitectures(IProject project) {
 		return "true".equals(getPreference(project, PreferenceConstants.ALL_ARCHITECTURES, "false"));
 	}

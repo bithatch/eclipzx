@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preparation;
+package uk.co.bithatch.emuzx.ui;
 
 import static org.eclipse.jface.layout.GridDataFactory.defaultsFor;
 import static org.eclipse.jface.layout.GridDataFactory.fillDefaults;
@@ -27,9 +27,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
-
-import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
-import uk.co.bithatch.emuzx.ui.IPreparationTargetUI;
 
 public class LocalPreparationTargetUI implements IPreparationTargetUI {
 

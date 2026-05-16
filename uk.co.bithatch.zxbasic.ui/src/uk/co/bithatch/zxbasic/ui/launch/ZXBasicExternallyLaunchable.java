@@ -51,12 +51,6 @@ public class ZXBasicExternallyLaunchable implements IExternallyLaunchable {
 	}
 
 	@Override
-	public Path getOutputFolder(IProject project) {
-		return ZXBasicPreferencesAccess.get().getOutputFolder(project).getRawLocation()
-				.toPath();
-	}
-
-	@Override
 	public Path getBinFile(Path srcfile, Path outputFolder, IOutputFormat outputFormat) {
 		return ZXBC.targetFile(srcfile.toFile(), outputFolder.toFile(), (BorielZXBasicOutputFormat) outputFormat).toPath();
 	}

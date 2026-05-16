@@ -7,7 +7,6 @@ import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -46,12 +45,10 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 		var file = prepCtx.programFile();
 		var project = file.getProject();
 		var sourceFile = file.getLocation().toFile();	
-		var fullProjectDir = project.getLocation().toFile().getAbsoluteFile();
 		var fmt = prepCtx.outputFormat();
 		
 		if (FileNames.hasExtensions(sourceFile, "c", "asm")) {
 			if (project != null) {
-				var relFile = fullProjectDir.toPath().relativize(sourceFile.toPath()).toFile();
 				
 				prepCtx.buildOptions(IProgramBuildOptionsFactory.accumulate(file));
 				
@@ -111,23 +108,6 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 	@Override
 	public IArchitecture getArchitecture(IProject proj) {
 		return Z88DKPreferencesAccess.get().getArchitecture(proj);
-	}
-
-	@Override
-	public Path getOutputFolder(IProject project) {
-		/* Get the CDT managed build info for the project */
-		IManagedBuildInfo buildInfo = ManagedBuildManager.getBuildInfo(project);
-		if (buildInfo == null) {
-			throw new IllegalArgumentException("No CDT managed build information found for project: " + project.getName());
-		}
-		
-		IConfiguration buildCfg = buildInfo.getDefaultConfiguration();
-		if (buildCfg == null) {
-			throw new IllegalArgumentException("No default build configuration found for project: " + project.getName());
-		}
-		
-		/* Determine the output directory and file from the build configuration */
-		return project.getLocation().toPath().resolve(buildCfg.getName());
 	}
 
 	@Override

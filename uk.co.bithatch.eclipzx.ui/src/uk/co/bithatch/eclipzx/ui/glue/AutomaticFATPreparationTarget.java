@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -21,13 +20,12 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 
 import de.waldheinz.fs.fat.FatType;
 import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.fatexplorer.preferences.FATLock;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
-import uk.co.bithatch.fatexplorer.vfs.FATImageFileStore;
-import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 import uk.co.bithatch.zyxy.lib.MemoryUnit;
 import uk.co.bithatch.zyxy.mmc.SDCard;
 import uk.co.bithatch.zyxy.mmc.SDCard.Builder;
@@ -75,7 +73,8 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
 		var configuration = prepCtx.launchConfiguration();
 		var pprj = resolveProject(configuration);
-		var out = ZXBasicPreferencesAccess.get().getOutputFolder(pprj);
+		var prefs = LanguageSystem.languageSystem(pprj).preferenceAccess();
+		var out = prefs.getOutputFolder(pprj);
 		var outf = out.getFile(Integer.toUnsignedLong(configuration.getName().hashCode()) + ".img");
 		var imgfile = outf.getLocation().toPath();
 		var imgFullPath = imgfile.toString();

@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preparation;
+package uk.co.bithatch.emuzx.ui;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,11 +12,10 @@ import org.eclipse.core.runtime.Status;
 import uk.co.bithatch.bitzx.FileItem;
 import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.bitzx.FileSet.Purpose;
+import uk.co.bithatch.bitzx.Plus3DosFile;
+import uk.co.bithatch.bitzx.Txt2NextBasicConverter;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.emuzx.api.IPreparationSource;
-import uk.co.bithatch.zxbasic.tools.Plus3DosFile;
-import uk.co.bithatch.zxbasic.tools.Txt2NextBasicConverter;
-import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
 
 public class AutoexecBasPreparationSource implements IPreparationSource {
 	private final static ILog LOG = ILog.of(AutoexecBasPreparationSource.class);
@@ -27,14 +26,14 @@ public class AutoexecBasPreparationSource implements IPreparationSource {
 		try {
 			byte[] basicProg;
 			
-			switch(ctx.outputFormat()) {
-			case BorielZXBasicOutputFormat.NEX:
+			switch(ctx.outputFormat().wellKnown().orElseThrow(() -> new CoreException(Status.error("Autoexec.bas is only appropriate whem outpput format is well known (e.g. NEX).")))) {
+			case NEX:
 				basicProg = Txt2NextBasicConverter.encodeProgram(replaceVariables(ctx, """
 				10 CD "[binaryPath]"
 				20 .NEXLOAD [binaryFile]
 				"""));
 				break;
-			case BorielZXBasicOutputFormat.BIN:
+			case BIN:
 				basicProg = Txt2NextBasicConverter.encodeProgram(replaceVariables(ctx, """
 				10 CD "[binaryPath]"
 				20 CLEAR [clear]
