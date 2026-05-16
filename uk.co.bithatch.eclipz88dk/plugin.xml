@@ -274,6 +274,14 @@ org.eclipse.cdt.build.core.buildArtefactType.other
         <keyword id="uk.co.bithatch.eclipz88dk.keyword_Compiler" label="Compiler" />
     </extension>
  
+    <extension point="org.eclipse.core.resources.builders"
+          id="cleanBuilder"
+          name="Z88DK Clean Builder">
+        <builder hasNature="false">
+            <run class="uk.co.bithatch.eclipz88dk.toolchain.Z88DKCleanBuilder"/>
+        </builder>
+    </extension>
+
     <extension point="uk.co.bithatch.bitzx.languageSystemProvider">
         <languageSystemProvider id="uk.co.bithatch.eclipz88dk.langageSystemProvider.z88dk" name="Z88DK C" class="uk.co.bithatch.eclipz88dk.Z88DKLanguageSystemProvider"/> 
     </extension> 

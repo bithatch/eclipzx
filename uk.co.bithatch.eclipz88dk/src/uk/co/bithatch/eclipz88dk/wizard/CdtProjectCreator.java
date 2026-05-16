@@ -36,6 +36,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 
+import uk.co.bithatch.eclipz88dk.toolchain.Z88DKCleanBuilder;
+
 public final class CdtProjectCreator {
 
 	public enum CdtType {
@@ -115,6 +117,7 @@ public final class CdtProjectCreator {
 	 */
 	public static void enableZ88DKFeatures(IProject project) throws CoreException {
 		addContentTypeMappings(project);
+		addCleanBuilder(project);
 
 		ICProjectDescription pd = CoreModel.getDefault().getProjectDescription(project, true);
 		if (pd != null) {
@@ -126,6 +129,28 @@ public final class CdtProjectCreator {
 		if (cproj != null) {
 			CCorePlugin.getIndexManager().reindex(cproj);
 		}
+	}
+
+	/**
+	 * Add the Z88DK clean builder to the project's build spec if not already
+	 * present.  This builder removes extra artifacts (e.g. {@code .c.asm},
+	 * {@code .nex}, {@code .tap}, {@code *_CODE.bin}) during a clean build.
+	 */
+	private static void addCleanBuilder(IProject project) throws CoreException {
+		var desc = project.getDescription();
+		var cmds = desc.getBuildSpec();
+		for (var cmd : cmds) {
+			if (Z88DKCleanBuilder.BUILDER_ID.equals(cmd.getBuilderName())) {
+				return; // already present
+			}
+		}
+		var newCmd = desc.newCommand();
+		newCmd.setBuilderName(Z88DKCleanBuilder.BUILDER_ID);
+		var newSpec = new ICommand[cmds.length + 1];
+		System.arraycopy(cmds, 0, newSpec, 0, cmds.length);
+		newSpec[cmds.length] = newCmd;
+		desc.setBuildSpec(newSpec);
+		project.setDescription(desc, null);
 	}
 
 	/**

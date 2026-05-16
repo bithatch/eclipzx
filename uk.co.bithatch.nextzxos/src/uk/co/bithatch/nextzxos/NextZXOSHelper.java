@@ -24,6 +24,8 @@ import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 
 public class NextZXOSHelper {
+	private static final String BASE_IMAGE_RESOURCE_NAME = "cspect-next-64mb.zip";
+
 	private final static ILog LOG = ILog.of(NextZXOSHelper.class);
 	
 	private final  ILaunchConfiguration configuration;
@@ -179,7 +181,7 @@ public class NextZXOSHelper {
 	private URL getNextZXOSUrl() throws MalformedURLException {
 		var locationStr = PreferencesAccess.get().getPreferenceStore().getString(PreferenceConstants.NEXT_ZXOS);
 		if(locationStr == null || locationStr.isBlank()) {
-			return NextZXOSHelper.class.getResource("/resources/cspect-next-2gb.zip");
+			return NextZXOSHelper.class.getResource("/resources/" + BASE_IMAGE_RESOURCE_NAME);
 		}
 		else {
 			try {

@@ -19,6 +19,7 @@ public class AssociatedResourcesPreparationSource implements IPreparationSource 
 	public void contribute(IPreparationContext ctx, List<FileSet> fileSets, IProgressMonitor monitor) throws CoreException {
 		
 		var file = ctx.programFile();
+		var prj = file.getProject();
 		file.getProject().accept(vis -> {
 			
 			if(ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_INCLUDE_IN_PREPARATION, false)) {
@@ -33,9 +34,10 @@ public class AssociatedResourcesPreparationSource implements IPreparationSource 
 					include = true;
 				}
 				
-				for(var other : ResourceProperties.getProperty(file, ResourceProperties.DISK_IMAGE_OTHER_TRIGGER_PROGRAMS, Collections.emptySet())) {
-					var res = file.getProject().findMember(other);
-					if(res.getFullPath().toString().equals(other)) {
+				for(var other : ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_OTHER_TRIGGER_PROGRAMS, Collections.emptySet())) {
+					var res = prj.findMember(other);
+					var fullPath = res.getFullPath().toString().substring(prj.getFullPath().toString().length()).substring(1);
+					if(fullPath.equals(other)) {
 						include = true;
 					}
 				}
@@ -44,7 +46,7 @@ public class AssociatedResourcesPreparationSource implements IPreparationSource 
 				var flatten = ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_FLATTEN_PREPARATION, false);
 				
 				if(include) {
-					fileSets.add(new FileSet(Purpose.ANCILLARY, folder, flatten, new FileItem(file.getRawLocation().toFile())));
+					fileSets.add(new FileSet(Purpose.ANCILLARY, folder, flatten, new FileItem(vis.getRawLocation().toFile())));
 				}
 			}
 			
