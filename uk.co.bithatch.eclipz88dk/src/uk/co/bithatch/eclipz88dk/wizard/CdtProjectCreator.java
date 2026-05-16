@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKCleanBuilder;
+import uk.co.bithatch.eclipz88dk.toolchain.Z88DKNature;
 
 public final class CdtProjectCreator {
 
@@ -116,6 +117,7 @@ public final class CdtProjectCreator {
 	 * call setProjectDescription.
 	 */
 	public static void enableZ88DKFeatures(IProject project) throws CoreException {
+		addNatureIfMissing(project);
 		addContentTypeMappings(project);
 		addCleanBuilder(project);
 
@@ -129,6 +131,22 @@ public final class CdtProjectCreator {
 		if (cproj != null) {
 			CCorePlugin.getIndexManager().reindex(cproj);
 		}
+	}
+
+	/**
+	 * Add the Z88DK nature to the project if not already present.
+	 */
+	private static void addNatureIfMissing(IProject project) throws CoreException {
+		IProjectDescription desc = project.getDescription();
+		String[] natures = desc.getNatureIds();
+		for (String n : natures) {
+			if (Z88DKNature.NATURE_ID.equals(n)) return;
+		}
+		String[] newNatures = new String[natures.length + 1];
+		System.arraycopy(natures, 0, newNatures, 0, natures.length);
+		newNatures[natures.length] = Z88DKNature.NATURE_ID;
+		desc.setNatureIds(newNatures);
+		project.setDescription(desc, null);
 	}
 
 	/**
@@ -295,7 +313,7 @@ public final class CdtProjectCreator {
 	private static void addCdtNatures(IProject project, IProgressMonitor pm) throws CoreException {
 		IProjectDescription d = project.getDescription();
 		d.setNatureIds(new String[] { CProjectNature.C_NATURE_ID, ManagedCProjectNature.MNG_NATURE_ID,
-				ScannerConfigNature.NATURE_ID });
+				ScannerConfigNature.NATURE_ID, Z88DKNature.NATURE_ID });
 		project.setDescription(d, pm);
 	}
 

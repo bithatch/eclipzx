@@ -255,6 +255,11 @@ org.eclipse.cdt.build.core.buildArtefactType.other
               class="uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencePage" 
               id="uk.co.bithatch.eclipz88dk.properties" name="Z88DK">
             <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Z88DK" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject">
+                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.eclipz88dk.Z88DKNature" />
+                </adapt>
+            </enabledWhen>
         </page>
         
         <page category="uk.co.bithatch.eclipz88dk.properties"  
@@ -262,9 +267,10 @@ org.eclipse.cdt.build.core.buildArtefactType.other
                 id="uk.co.bithatch.eclipz88dk.properties.compiler" name="Compiler">
             <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Compiler" />
             <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IProject" />
+                <adapt type="org.eclipse.core.resources.IProject">
+                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.eclipz88dk.Z88DKNature" />
+                </adapt>
             </enabledWhen>
-            <filter name="projectNature" value="org.eclipse.cdt.core.cnature" />
         </page>
     </extension>
 
@@ -274,12 +280,62 @@ org.eclipse.cdt.build.core.buildArtefactType.other
         <keyword id="uk.co.bithatch.eclipz88dk.keyword_Compiler" label="Compiler" />
     </extension>
  
+    <extension id="uk.co.bithatch.eclipz88dk.Z88DKNature" name="Z88DK Nature" point="org.eclipse.core.resources.natures">
+        <runtime>
+            <run class="uk.co.bithatch.eclipz88dk.toolchain.Z88DKNature" />
+        </runtime>
+        <builder id="uk.co.bithatch.eclipz88dk.cleanBuilder" />
+    </extension>
+
     <extension point="org.eclipse.core.resources.builders"
           id="cleanBuilder"
           name="Z88DK Clean Builder">
-        <builder hasNature="false">
+        <builder hasNature="true">
             <run class="uk.co.bithatch.eclipz88dk.toolchain.Z88DKCleanBuilder"/>
         </builder>
+    </extension>
+
+    <extension point="org.eclipse.ui.commands">
+        <category id="uk.co.bithatch.eclipz88dk.Z88DKNature.category" name="Z88DK Nature commands" />
+        <command categoryId="uk.co.bithatch.eclipz88dk.Z88DKNature.category"
+                 defaultHandler="uk.co.bithatch.eclipz88dk.toolchain.AddRemoveZ88DKNatureHandler"
+                 id="uk.co.bithatch.eclipz88dk.addRemoveZ88DKNature"
+                 name="Add/Remove Z88DK Nature" />
+    </extension>
+
+    <extension point="org.eclipse.ui.menus">
+        <menuContribution locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+            <command commandId="uk.co.bithatch.eclipz88dk.addRemoveZ88DKNature" label="Disable Z88DK Nature" style="push">
+                <visibleWhen checkEnabled="false">
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IProject">
+                                <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.eclipz88dk.Z88DKNature" />
+                            </adapt>
+                        </iterate>
+                    </with>
+                </visibleWhen>
+            </command>
+            <command commandId="uk.co.bithatch.eclipz88dk.addRemoveZ88DKNature" label="Enable Z88DK Nature" style="push">
+                <visibleWhen checkEnabled="false">
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IProject">
+                                <not>
+                                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.eclipz88dk.Z88DKNature" />
+                                </not>
+                            </adapt>
+                        </iterate>
+                    </with>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+    </extension>
+
+    <extension point="org.eclipse.ui.ide.projectNatureImages">
+        <image id="uk.co.bithatch.eclipz88dk.Z88DKNature.image" natureId="uk.co.bithatch.eclipz88dk.Z88DKNature" icon="icons/z88dk.png" />
     </extension>
 
     <extension point="uk.co.bithatch.bitzx.languageSystemProvider">
