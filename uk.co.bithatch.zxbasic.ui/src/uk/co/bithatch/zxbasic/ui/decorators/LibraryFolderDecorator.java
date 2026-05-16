@@ -21,6 +21,9 @@ public class LibraryFolderDecorator implements ILightweightLabelDecorator {
     }
 
     private boolean isUserLibraryFolder(IFolder folder) {
+		if (folder.getLocation() == null)
+			return false; // Not a filesystem folder, can't be a library
+    	
         IProject project = folder.getProject();
         for(var ext : ZXBasicPreferencesAccess.get().getExternalLibs(project)) {
         	if(ext.getAbsoluteFile().toString().equals(folder.getLocation().toFile().toString())) {

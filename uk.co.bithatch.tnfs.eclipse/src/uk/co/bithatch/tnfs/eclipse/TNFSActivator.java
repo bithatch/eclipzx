@@ -58,17 +58,19 @@ public class TNFSActivator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		
 
-//		try {
-//			PlatformUI.getWorkbench().getActiveWorkbenchWindow().run(true, false, new UpdateSettingsOperation());
-//		} catch (InvocationTargetException  |  InterruptedException e) {
-//			throw new IllegalStateException(e);
-//		}
+		// Install listener to detect linked folder deletions
+		TNFSMountManager.installResourceListener();
+
+		// Automount configured mounts on startup (run async so workbench is ready)
+		org.eclipse.core.runtime.jobs.Job.create("TNFS Automount", monitor -> {
+			TNFSMountManager.mountAllAutomounts();
+		}).schedule(2000);
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
+		TNFSMountManager.uninstallResourceListener();
 		plugin = null;
 		super.stop(context);
 	}

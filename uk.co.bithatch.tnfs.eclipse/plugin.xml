@@ -4,10 +4,21 @@
 
     <extension point="org.eclipse.ui.propertyPages">
         <page id="uk.co.bithatch.tnfs.eclipse.propertyPage"
-            name="TNFS"
+            name="TNFS Sharing"
             class="uk.co.bithatch.tnfs.eclipse.TNFSSharePropertiesPage"
             objectClass="org.eclipse.core.resources.IResource">
         </page>
+        <page id="uk.co.bithatch.tnfs.eclipse.mountsPropertyPage"
+            name="TNFS Mounts"
+            class="uk.co.bithatch.tnfs.eclipse.TNFSMountPropertiesPage"
+            objectClass="org.eclipse.core.resources.IProject">
+        </page>
+    </extension>
+
+    <extension point="org.eclipse.core.filesystem.filesystems">
+        <filesystem scheme="tnfs">
+            <run class="uk.co.bithatch.tnfs.eclipse.TNFSEclipseFileSystem" />
+        </filesystem>
     </extension>
 
     <extension point="org.eclipse.ui.preferencePages">

@@ -413,4 +413,8 @@ version(s), and exceptions or additional permissions here}.&quot;
          id="uk.co.bithatch.nextzxos"
          version="0.0.0"/>
 
+   <includes
+         id="org.eclipse.epp.mpc"
+         version="0.0.0"/>
+
 </feature>
