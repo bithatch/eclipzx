@@ -92,6 +92,7 @@ else you fancy running in no time at all.
       <feature id="org.eclipse.emf.common" installMode="root"/>
       <feature id="org.eclipse.emf.ecore" installMode="root"/>
       <feature id="org.eclipse.ecf.core.feature" installMode="root"/>
+      <feature id="org.eclipse.epp.mpc" installMode="root"/>
    </features>
 
    <configurations>
