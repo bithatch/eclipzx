@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -13,7 +14,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -36,10 +36,16 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 
 	protected URI uri;
 	protected Builder formatter;
+	protected IFolder out;
 	
 	@Override
 	public final IStatus prepare(IProgressMonitor monitor, List<FileSet> files) throws CoreException {
+
+		out.refreshLocal(IResource.DEPTH_ONE, monitor);
+		
 		beforePrepare(monitor, files);
+		
+		out.refreshLocal(IResource.DEPTH_ONE, monitor);
 		
 		if(formatter != null) {
 			try {
@@ -83,7 +89,7 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		var configuration = prepCtx.launchConfiguration();
 		var pprj = resolveProject(configuration);
 		var prefs = LanguageSystem.languageSystem(pprj).preferenceAccess();
-		var out = prefs.getOutputFolder(pprj);
+		out = prefs.getOutputFolder(pprj);
 		FATImageContext.set(FATImageContext.PROJECT, pprj.getName());
 		var outfilename = strmgr.performStringSubstitution(
 				configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_IMAGE_NAME, "${ProjName}.img"));
@@ -100,7 +106,6 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		try {
 			checkForImage(configuration, imgfile, sizeMb, type);
 		
-			outf.getParent().refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
 			FATPreferencesAccess.addImagePath(apath);
 			
 			FATImageContext.set(FATImageContext.DEFAULT, "/" + pprj.getName());
