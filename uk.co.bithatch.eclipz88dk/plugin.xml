@@ -6,12 +6,13 @@
          name="Z88DK Toolchain"
          point="org.eclipse.cdt.managedbuilder.core.buildDefinitions">
          
-         <toolChain
-               id="uk.co.bithatch.eclipz88dk.toolChain"
-               isAbstract="true"
-               languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
-               name="Z88DK Toolchain"
-               osList="win32,linux,macosx">
+          <toolChain
+                id="uk.co.bithatch.eclipz88dk.toolChain"
+                isAbstract="true"
+                languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                name="Z88DK Toolchain"
+                osList="win32,linux,macosx"
+                environmentVariableSupplier="uk.co.bithatch.eclipz88dk.toolchain.Z88DKEnvironmentVariableSupplier">
                
           <!-- <supportedProperties>
                <property id="org.eclipse.cdt.build.core.buildArtefactType">
