@@ -26,8 +26,6 @@ import de.waldheinz.fs.FsDirectoryEntry;
 import de.waldheinz.fs.FsObject;
 import de.waldheinz.fs.fat.FatFileSystem;
 import uk.co.bithatch.fatexplorer.Activator;
-import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
-import uk.co.bithatch.fatexplorer.preferences.PreferenceConstants;
 import uk.co.bithatch.fatexplorer.util.FileNames;
 import uk.co.bithatch.fatexplorer.util.Util;
 
@@ -38,21 +36,21 @@ public class FATImageFileStore extends FileStore {
 	private final FatFileSystem fatFileSystem;
 	private final FsObject dir;
 	private final FATImageFileStore parent;
-	private final String uuid;
+	private final URI uri;
 
-	public FATImageFileStore(String uuid, FATImageFileSystem fileSystem, String path, FatFileSystem fatFileSystem) {
+	public FATImageFileStore(URI uri, FATImageFileSystem fileSystem, String path, FatFileSystem fatFileSystem) {
 		this.fileSystem = fileSystem;
 		this.fatFileSystem = fatFileSystem;
 		this.parent = null;
 		this.dir = fatFileSystem.getRoot();
-		this.uuid = uuid;
+		this.uri = uri;
 		this.name = "/";
 	}
 
 	private FATImageFileStore(String name, FsObject dir, FATImageFileStore parent) {
 		this.fileSystem = parent.fileSystem;
 		this.fatFileSystem = parent.fatFileSystem;
-		this.uuid = parent.uuid;
+		this.uri = parent.uri;
 		this.dir = dir;
 		this.parent = parent;
 		this.name = name;
@@ -64,7 +62,7 @@ public class FATImageFileStore extends FileStore {
 
 	@Override
 	public URI toURI() {
-		return URI.create(PreferenceConstants.SCHEME + "://" + uuid + path());
+		return uri;
 	}
 
 	@Override
@@ -73,7 +71,7 @@ public class FATImageFileStore extends FileStore {
 			synchronized(fatFileSystem) {
 				FileInfo info;
 				if (parent == null) {
-					info = new FileInfo(FileNames.getPathFileName(FATPreferencesAccess.getPathForUUID(uuid)));
+					info = new FileInfo(FileNames.getPathFileName(uri.getPath()));
 					info.setExists(true);
 					info.setDirectory(true);
 				} else {
@@ -100,10 +98,6 @@ public class FATImageFileStore extends FileStore {
 	@Override
 	public String getName() {
 		return name;
-	}
-
-	public String getUuid() {
-		return uuid;
 	}
 
 	@Override

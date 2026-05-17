@@ -21,6 +21,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import de.waldheinz.fs.fat.FatType;
 import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.bitzx.LanguageSystem;
+import uk.co.bithatch.bitzx.URIS;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.fatexplorer.preferences.FATLock;
@@ -50,7 +51,7 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		
 		var efs = getEFSDir(monitor, uri);
 		try {
-			copy(false, monitor, files, uri, efs);
+			copy(false, monitor, files, uri, efs, FATImageContext.get(FATImageContext.FOLDER, ""));
 			return Status.OK_STATUS;
 		}
 		finally {
@@ -71,19 +72,30 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 	public final String init(IPreparationContext prepCtx) throws CoreException {
 		
 		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
+//		for(var var : strmgr.getVariables()) {
+//			try {
+//			LOG.info(String.format("Available variable: %s=%s", var.getName(), strmgr.performStringSubstitution("${" + var.getName() + "}")));
+//			}
+//			catch(CoreException e) {
+//				LOG.error(String.format("Failed to resolve variable %s", var.getName()), e);
+//			}
+//		}
 		var configuration = prepCtx.launchConfiguration();
 		var pprj = resolveProject(configuration);
 		var prefs = LanguageSystem.languageSystem(pprj).preferenceAccess();
 		var out = prefs.getOutputFolder(pprj);
-		var outf = out.getFile(Integer.toUnsignedLong(configuration.getName().hashCode()) + ".img");
+		FATImageContext.set(FATImageContext.PROJECT, pprj.getName());
+		var outfilename = strmgr.performStringSubstitution(
+				configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_IMAGE_NAME, "${ProjName}.img"));
+		var outf = out.getFile(outfilename);
 		var imgfile = outf.getLocation().toPath();
 		var imgFullPath = imgfile.toString();
 		var sizeMb = 64;
 		var type = FatType.FAT16;
 
 		var apath = outf.getFullPath().toString().substring(1);
-		uri = FATPreferencesAccess.encodeToURI(apath);
-		FATLock.lockImage(uri.toString());
+		var diskImageUri = FATPreferencesAccess.encodeToURI(apath);
+		uri = FATLock.lockImage(diskImageUri);
 		
 		try {
 			checkForImage(configuration, imgfile, sizeMb, type);
@@ -93,23 +105,24 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 			
 			FATImageContext.set(FATImageContext.DEFAULT, "/" + pprj.getName());
 			FATImageContext.set(FATImageContext.IMAGE, imgFullPath);
+			FATImageContext.set(FATImageContext.IMAGE_NAME, outfilename);
 			FATImageContext.set(FATImageContext.FOLDER, strmgr.performStringSubstitution(
-					configuration.getAttribute(ConfiguredFATPreparationTargetUI.FAT_FOLDER, "${fat_default}")));
+					configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_FAT_FOLDER, "${fat_default}")));
 			
 			
 			
 			prepCtx.addCleanUpTask(() -> {
-				FATLock.unlockImage(uri.toString());
+				FATLock.unlockImage(uri);
 			});
 			
-			return super.init(prepCtx);
+			return super.init(prepCtx) + URIS.stripLeadingSlash(FATImageContext.get(FATImageContext.FOLDER, ""));
 		}
 		catch(CoreException e) {
-			FATLock.unlockImage(uri.toString());
+			FATLock.unlockImage(uri);
 			throw e;
 		}
 		catch(RuntimeException e) {
-			FATLock.unlockImage(uri.toString());
+			FATLock.unlockImage(uri);
 			throw e;
 		}
 	}
@@ -127,12 +140,24 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 				withFormatter(new SDCard.Formatter.Builder().
 					withType(type).
 					withOEMName("EclipZX").
-					withLabel("V" + Integer.toUnsignedLong(imgfile.hashCode())).
+					withLabel(calcImageLabel(imgfile)).
 					build());
 		}
 		else {
 			LOG.info(String.format("Disk image  at %s already exists, using that", imgfile));
 		}
+	}
+
+	protected String calcImageLabel(Path imgfile) {
+		var fn = imgfile.getFileName().toString();
+		var idx = fn.lastIndexOf('.');
+		if(idx > 0) {
+			fn = fn.substring(0, idx);
+		}
+		if(fn.length() > 11) {
+			fn = fn.substring(0, 11);
+		}
+		return fn;
 	}
 	
 	protected final IProject resolveProject(ILaunchConfiguration configuration) throws CoreException {

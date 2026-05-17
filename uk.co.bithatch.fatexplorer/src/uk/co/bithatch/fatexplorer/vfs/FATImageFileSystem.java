@@ -1,5 +1,7 @@
 package uk.co.bithatch.fatexplorer.vfs;
 
+import static uk.co.bithatch.bitzx.URIS.stripTrailingSlash;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -41,43 +43,49 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 	public IFileStore getStore(URI uri) {
 		synchronized(storeCache) {
 		
-			var imgUUID = uri.getAuthority();
-			if (imgUUID == null || imgUUID.isEmpty()) {
-				return null;
+			var diskImg = FATPreferencesAccess.getImageForURI(uri);
+
+			if(FATLock.isImageLocked(diskImg)) {
+				throw new IllegalStateException("Disk image is locked.");
 			}
-	
-			var diskImg = FATPreferencesAccess.getPathForURI(uri);
+			
+			var diskPath = FATPreferencesAccess.getPathForURI(uri);
 			var diskFile = toDiskFile(diskImg);
-			try {
-				var remainingPath = FATPreferencesAccess.stripTrailingSlash(URLDecoder.decode(uri.getPath(), "UTF-8"));
-	
-				var device = deviceCache.computeIfAbsent(diskImg, p -> {
-					return new SDCard.Builder().withFile(diskFile).withMBR().withReadWrite().build();
-				});
-				
-				var rootStore = storeCache.computeIfAbsent(diskImg, p -> {
-					return new FATImageFileStore(imgUUID, this, "/", device.fileSystem());
-				});
-	
-				if (!remainingPath.equals("")) {
-					rootStore = (FATImageFileStore) rootStore.getFileStore(IPath.forPosix(remainingPath.substring(1)));
-				}
-	
-				return rootStore;
-			} catch (UnsupportedEncodingException uee) {
-				throw new IllegalStateException(uee);
+			var remainingPath = stripTrailingSlash(diskPath);
+
+			var device = deviceCache.computeIfAbsent(diskImg.toASCIIString(), p -> {
+				return new SDCard.Builder().withFile(diskFile).withMBR().withReadWrite().build();
+			});
+			
+			var rootStore = storeCache.computeIfAbsent(diskImg.toASCIIString(), p -> {
+				return new FATImageFileStore(uri, this, "/", device.fileSystem());
+			});
+
+			if (!remainingPath.equals("")) {
+				rootStore = (FATImageFileStore) rootStore.getFileStore(IPath.forPosix(remainingPath.substring(1)));
 			}
+
+			return rootStore;
 		}
 	}
 
-	public static File toDiskFile(String diskImg) {
-		var diskFile = new File(diskImg);
-		if (!diskFile.isAbsolute()) {
-			diskFile = new File(
-					PlatformUI.getWorkbench().getAdapter(IWorkspace.class).getRoot().getRawLocation().toFile(),
-					diskFile.toString());
+	public static File toDiskFile(URI uri) {
+		try {
+			String uriPath = uri.getPath();
+			var diskFile = new File(URLDecoder.decode(uriPath.substring(1), "UTF-8"));
+			if (!diskFile.isAbsolute()) {
+				var wsRoot = PlatformUI.getWorkbench().getAdapter(IWorkspace.class).
+						getRoot();
+				var wsFile = wsRoot.findMember(diskFile.toString());
+				if(wsFile == null)
+					throw new IllegalArgumentException("Disk image file " + diskFile + " does not exist in the workspace.");
+				diskFile = wsFile.getLocation().toFile();
+			}
+			return diskFile;
 		}
-		return diskFile;
+		catch (UnsupportedEncodingException uee) {
+			throw new IllegalArgumentException(uee);
+		}
 	}
 
 	@Override
@@ -102,7 +110,7 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 	
 	public void closeStore(FATImageFileStore store) throws IOException {
 		synchronized(storeCache) {
-			var p = FATPreferencesAccess.getPathForUUID(store.getUuid());
+			var p = store.toURI().getPath();
 			if(storeCache.containsKey(p)) {
 				try {
 					deviceCache.get(p).close();
@@ -129,7 +137,7 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 	}
 
 	@Override
-	public void lockStateChanged(String uri, boolean locked) {
+	public void lockStateChanged(URI uri, boolean locked) {
 		resetStoreCache();
 	}
 

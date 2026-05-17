@@ -16,6 +16,8 @@ public class ResourceProperties extends IResourceProperties {
 			"diskImage.flattenPreparation");
 	public static QualifiedName DISK_IMAGE_TRIGGER_PROGRAMS_IN_THIS_FOLDER = new QualifiedName(PLUGIN_ID,
 			"diskImage.triggerProgramsInThisFolder");
+	public static QualifiedName DISK_IMAGE_TRIGGER_ALWAYS = new QualifiedName(PLUGIN_ID,
+			"diskImage.triggerAlways");
 	public static QualifiedName DISK_IMAGE_OTHER_TRIGGER_PROGRAMS = new QualifiedName(PLUGIN_ID,
 			"diskImage.otherTriggerPrograms");
 }

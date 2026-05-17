@@ -38,6 +38,7 @@ public class DiskImagePreparationOptionsPage extends PropertyPage {
 	private Label folderLabel;
 	private Text folder;
 	private Button flatten;
+	private Button always;
 	private Text programs;
 	private Button selectPrograms;
 	private Button programsInThisFolder;
@@ -78,7 +79,14 @@ public class DiskImagePreparationOptionsPage extends PropertyPage {
 			public void modifyText(ModifyEvent e) {
 			}
 		});
-        
+
+		always = new Button(composite, SWT.CHECK);
+		always.setText("Always include");
+		always.setToolTipText("Always include this resource for all launches and exports.");
+		always.setLayoutData(GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(3, 1).indent(0, 8).create());
+		always.addSelectionListener(SelectionListener.widgetSelectedAdapter(evt -> updateState()));
+
+		
 		programsLabel = new Label(composite, SWT.NONE);
 		programsLabel.setText("Associated Programs");
 		programsLabel.setLayoutData(GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(3, 1).indent(0, 24).create());
@@ -87,7 +95,7 @@ public class DiskImagePreparationOptionsPage extends PropertyPage {
 		infoLabel.setText("When any associated program is launched, this resource will be copied to the preparation area following rules as specified above and in the launcher.");
 		infoLabel.setLayoutData(GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(3, 1).hint(200, 48).create());
         infoLabel.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
-
+        
 		programsInThisFolder = new Button(composite, SWT.CHECK);
 		programsInThisFolder.setText("Programs In This Folder.");
 		programsInThisFolder.setToolTipText("Any .BAS or .ASM files in the same directory as this resource will trigger a copy of the resource.");
@@ -144,6 +152,7 @@ public class DiskImagePreparationOptionsPage extends PropertyPage {
 		includeInPreparation.setSelection(ResourceProperties.getProperty(file, ResourceProperties.DISK_IMAGE_INCLUDE_IN_PREPARATION, false));
 		flatten.setSelection(ResourceProperties.getProperty(file, ResourceProperties.DISK_IMAGE_FLATTEN_PREPARATION, false));
 		programsInThisFolder.setSelection(ResourceProperties.getProperty(file, ResourceProperties.DISK_IMAGE_TRIGGER_PROGRAMS_IN_THIS_FOLDER, true));
+		always.setSelection(ResourceProperties.getProperty(file, ResourceProperties.DISK_IMAGE_TRIGGER_ALWAYS, false));
 		folder.setText(ResourceProperties.getProperty(file, ResourceProperties.DISK_IMAGE_PREPARATION_FOLDER, ""));
         
 		updateState();
@@ -158,6 +167,7 @@ public class DiskImagePreparationOptionsPage extends PropertyPage {
 		setProperty(file, ResourceProperties.DISK_IMAGE_OTHER_TRIGGER_PROGRAMS, getCurrentTriggerPrograms());
 		setProperty(file, ResourceProperties.DISK_IMAGE_INCLUDE_IN_PREPARATION, includeInPreparation.getSelection());
 		setProperty(file, ResourceProperties.DISK_IMAGE_TRIGGER_PROGRAMS_IN_THIS_FOLDER, programsInThisFolder.getSelection());
+		setProperty(file, ResourceProperties.DISK_IMAGE_TRIGGER_ALWAYS, always.getSelection());
 		setProperty(file, ResourceProperties.DISK_IMAGE_FLATTEN_PREPARATION, flatten.getSelection());
 		setProperty(file, ResourceProperties.DISK_IMAGE_PREPARATION_FOLDER, folder.getText());
 		return true;
@@ -176,13 +186,16 @@ public class DiskImagePreparationOptionsPage extends PropertyPage {
 		var sel = includeInPreparation.getSelection();
 		folderLabel.setEnabled(sel);
 		flatten.setEnabled(sel);
-		programsInThisFolder.setEnabled(sel);
-		selectPrograms.setEnabled(sel);
-		programs.setEnabled(sel);
-		programsLabel.setEnabled(sel);
+		always.setEnabled(sel);
 		folder.setEnabled(sel);
-		andLabel.setEnabled(sel);
-		infoLabel.setEnabled(sel);
+		
+		var alwaysSel = always.getSelection();
+		programsInThisFolder.setEnabled(sel && !alwaysSel);
+		selectPrograms.setEnabled(sel && !alwaysSel);
+		programs.setEnabled(sel && !alwaysSel);
+		programsLabel.setEnabled(sel && !alwaysSel);
+		andLabel.setEnabled(sel && !alwaysSel);
+		infoLabel.setEnabled(sel && !alwaysSel);
 
 		var project = getElement().getAdapter(IResource.class).getProject();
 		var triggerPrograms = getCurrentTriggerPrograms();

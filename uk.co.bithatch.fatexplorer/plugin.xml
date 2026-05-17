@@ -150,6 +150,18 @@
              resolver="uk.co.bithatch.fatexplorer.variables.FATImagePathVariableResolver">
        </variable>
        <variable
+             name="fat_image_name"
+             supportsArgument="false"
+             description="The filename of the FAT disk image (without any path)."
+             resolver="uk.co.bithatch.fatexplorer.variables.FATImagePathVariableResolver">
+       </variable>
+       <variable
+             name="fat_project"
+             supportsArgument="false"
+             description="The name of project attached to the launch configuration."
+             resolver="uk.co.bithatch.fatexplorer.variables.FATImagePathVariableResolver">
+       </variable>
+       <variable
              name="fat_folder"
              supportsArgument="false"
              description="The folder path resources will be copied to."

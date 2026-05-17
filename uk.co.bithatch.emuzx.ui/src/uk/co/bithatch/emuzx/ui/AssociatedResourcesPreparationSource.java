@@ -25,20 +25,22 @@ public class AssociatedResourcesPreparationSource implements IPreparationSource 
 			if(ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_INCLUDE_IN_PREPARATION, false)) {
 				/* File is included, is it appropriate for the program we are launching? */
 				
-				boolean include = false;
+				var include = ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_TRIGGER_ALWAYS, false);
 				
-				if(file.getFullPath().toString().equals(vis.getFullPath().toString()) &&
+				if(!include && file.getFullPath().toString().equals(vis.getFullPath().toString()) &&
 				   ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_TRIGGER_PROGRAMS_IN_THIS_FOLDER, true)) {
 					
 					/* Included because the file is in the same folder as the program we are launching */
 					include = true;
 				}
 				
-				for(var other : ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_OTHER_TRIGGER_PROGRAMS, Collections.emptySet())) {
-					var res = prj.findMember(other);
-					var fullPath = res.getFullPath().toString().substring(prj.getFullPath().toString().length()).substring(1);
-					if(fullPath.equals(other)) {
-						include = true;
+				if(!include) {
+					for(var other : ResourceProperties.getProperty(vis, ResourceProperties.DISK_IMAGE_OTHER_TRIGGER_PROGRAMS, Collections.emptySet())) {
+						var res = prj.findMember(other);
+						var fullPath = res.getFullPath().toString().substring(prj.getFullPath().toString().length()).substring(1);
+						if(fullPath.equals(other)) {
+							include = true;
+						}
 					}
 				}
 				

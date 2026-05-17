@@ -28,10 +28,24 @@ public class LocalPreparationTarget extends AbstractPreparationTarget {
 
 	private boolean cleanBeforeUse;
 	private String targetLocation;
+	private String destFolder;
 
 	public static String defaultLocalPreparation() {
 		return Paths.get(System.getProperty("user.home")).resolve("Documents").resolve("EclipZX").resolve("Preparation")
 				.toAbsolutePath().toString();
+	}
+
+	@Override
+	public String init(IPreparationContext prepCtx) throws CoreException {
+		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
+		targetLocation = strmgr.performStringSubstitution(prepCtx.launchConfiguration().getAttribute(
+				ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_TARGET_LOCATION, defaultLocalPreparation()));
+		cleanBeforeUse = prepCtx.launchConfiguration()
+				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_CLEAR_BEFORE_USE, false);
+		destFolder = strmgr.performStringSubstitution(prepCtx.launchConfiguration()
+				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_FAT_FOLDER, "${fat_default}"));
+		
+		return "/" + destFolder;
 	}
 
 	@Override
@@ -55,8 +69,7 @@ public class LocalPreparationTarget extends AbstractPreparationTarget {
 			subMonitor.setWorkRemaining(remaining--);
 
 			var dest = efs;
-			var subfolder = fileSet.destination();
-
+			var subfolder = resolveDestination(destFolder, fileSet);
 			if (!subfolder.equals("") && !subfolder.equals("\\") && !subfolder.equals("/")) {
 				dest = new File(dest, subfolder.replace("\\", "/"));
 			}
@@ -107,17 +120,6 @@ public class LocalPreparationTarget extends AbstractPreparationTarget {
 				}
 			});
 		}
-	}
-
-	@Override
-	public String init(IPreparationContext prepCtx) throws CoreException {
-		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
-		targetLocation = strmgr.performStringSubstitution(prepCtx.launchConfiguration().getAttribute(
-				ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_TARGET_LOCATION, defaultLocalPreparation()));
-		cleanBeforeUse = prepCtx.launchConfiguration()
-				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_CLEAR_BEFORE_USE, false);
-		
-		return "/";
 	}
 
 	@Override

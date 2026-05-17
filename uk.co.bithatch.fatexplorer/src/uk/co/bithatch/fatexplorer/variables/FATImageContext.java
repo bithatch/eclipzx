@@ -11,8 +11,10 @@ public class FATImageContext {
 	private final static ILog LOG = ILog.of(FATImageContext.class);
 	
 	private static final ThreadLocal<Map<String, String>> currentConfig = new ThreadLocal<>();
-	
+
+	public final static String PROJECT = "fat_project";
 	public final static String IMAGE = "fat_image";
+	public final static String IMAGE_NAME = "fat_image_name";
 	public final static String DEFAULT = "fat_default";
 	public final static String FOLDER = "fat_folder";
 	public final static String OWNER = "fat_owner";

@@ -1,28 +1,21 @@
 package uk.co.bithatch.eclipzx.ui.glue;
 
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION;
-import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_CLEAR_BEFORE_USE;
 
 import java.util.function.Consumer;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
@@ -32,16 +25,11 @@ import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 
 	public static final String FAT_IMAGE_PATH = PREPARATION + ".fatImagePath";
-	public static final String FAT_FOLDER = PREPARATION + ".fatFolder";
 	
 	private Combo diskImage;
-	private Text folder;
-	private Button clearBeforeUse;
 	private boolean available;
 	private Button manage;
 	private Label diskImageLabel;
-	private Label folderLabel;
-	private ControlDecoration clearBeforeUseDecoration;
 	private Label info;
 
 	@Override
@@ -82,34 +70,6 @@ public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 			}
         }));
         
-        folderLabel = new Label(grid, SWT.NONE);
-        folderLabel.setLayoutData(GridDataFactory.swtDefaults().create());
-        folderLabel.setText("Folder:");
-
-        folder = new Text(grid, SWT.NONE);
-        folder.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-        folder.setToolTipText("The full path to folder on the disk image. Empty is the root folder. Use ${fat_default} for a default path based on the launcher project.");
-        folder.addModifyListener(new ModifyListener() {
-			
-			@Override
-			public void modifyText(ModifyEvent e) {
-	        	onUpdate.run();
-			}
-		});
-        
-        clearBeforeUse = new Button(grid, SWT.CHECK);
-        clearBeforeUse.setText("Clear Before Use");
-        clearBeforeUse.setLayoutData(GridDataFactory.swtDefaults().create());
-        clearBeforeUse.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-        	onUpdate.run();
-        }));
-        
-        clearBeforeUseDecoration = new ControlDecoration(clearBeforeUse, SWT.LEFT | SWT.TOP);
-        clearBeforeUseDecoration.setImage(PlatformUI.getWorkbench().getSharedImages()
-		        .getImage(ISharedImages.IMG_OBJS_WARN_TSK));
-        clearBeforeUseDecoration.setDescriptionText("Are you sure you wish to clear the root folder on every launch?");
-        clearBeforeUseDecoration.hide();
-        
         updateState();
 	}
 
@@ -124,17 +84,11 @@ public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 		var idx = uris.indexOf(uri);
 		if(uris.size() > 0)
 			diskImage.select(idx == -1 ? 0 : idx);
-
-		folder.setText(config.getAttribute(FAT_FOLDER, "${fat_default}"));
-
-        clearBeforeUse.setSelection(config.getAttribute(PREPARATION_CLEAR_BEFORE_USE, false));
 	}
 
 	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy config) {
 		config.setAttribute(FAT_IMAGE_PATH, diskImage.getItem(diskImage.getSelectionIndex()));
-		config.setAttribute(FAT_FOLDER, folder.getText());
-		config.setAttribute(PREPARATION_CLEAR_BEFORE_USE, clearBeforeUse.getSelection());
 		
 	}
 
@@ -147,8 +101,6 @@ public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 		if(diskImage.getItemCount() > 0)
 			diskImage.select(0);
-		folder.setText("${fat_default}");
-		clearBeforeUse.setSelection(false);
 	}
 
 	@Override
@@ -165,17 +117,7 @@ public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 		diskImage.setEnabled(available);
 		manage.setEnabled(available);
 		diskImageLabel.setEnabled(available);
-		clearBeforeUse.setEnabled(available);
-		folder.setEnabled(available);
 		info.setEnabled(available);
-		
-		var folderText = folder.getText();
-		if(clearBeforeUse.getSelection() && (folderText.equals("") || folderText.equals("/") || folderText.equals("\\"))) {
-			clearBeforeUseDecoration.show();	
-		}
-		else {
-			clearBeforeUseDecoration.hide();	
-		}
 	}
 
 }

@@ -1,4 +1,5 @@
 package uk.co.bithatch.emuzx;
+
 public interface ExternalEmulatorLaunchConfigurationAttributes {
 
     public static final String ID = "uk.co.bithatch.emuzx.ui.externalEmulatorLaunch";
@@ -20,5 +21,7 @@ public interface ExternalEmulatorLaunchConfigurationAttributes {
     public static final String PREPARATION_CLEAR_BEFORE_USE = PREPARATION + ".clearBeforeUse";
     public static final String AUTOCONFIGURED = PREPARATION + ".autoConfigured";
     public static final String PREPARATION_SOURCE_IDS = PREPARATION + ".sourceIds";
+	public static final String PREPARATION_FAT_FOLDER = PREPARATION + ".fatFolder";
+    public static final String PREPARATION_IMAGE_NAME = PREPARATION + ".imageName";
     
 }

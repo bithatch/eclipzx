@@ -62,7 +62,7 @@ public class NEXBundlingOptionsPage extends PropertyPage  {
 		composite.setLayout(layout);
 
 		includeInNEX = new Button(composite, SWT.CHECK);
-		includeInNEX.setText("Include in NEX.");
+		includeInNEX.setText("Include in NEX (currently only ZX Basic programs)");
 		includeInNEX.setLayoutData(swtDefaults().
 				align(SWT.FILL, SWT.CENTER).
 				grab(true, false).

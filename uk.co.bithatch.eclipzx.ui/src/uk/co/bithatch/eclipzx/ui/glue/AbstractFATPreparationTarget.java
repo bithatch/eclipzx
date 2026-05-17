@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.SubMonitor;
 import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.emuzx.ui.AbstractPreparationTarget;
+import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
 import uk.co.bithatch.fatexplorer.vfs.FATImageFileStore;
 import uk.co.bithatch.fatexplorer.vfs.FileOverwritePolicy;
@@ -33,7 +34,7 @@ public abstract class AbstractFATPreparationTarget extends AbstractPreparationTa
 		return "/";
 	}
 
-	protected void copy(boolean cleanBeforeUse, IProgressMonitor monitor, List<FileSet> files, URI uri, FATImageFileStore efs)
+	protected final void copy(boolean cleanBeforeUse, IProgressMonitor monitor, List<FileSet> files, URI uri, FATImageFileStore efs, String destFolder)
 			throws CoreException {
 		if(cleanBeforeUse) {
 			for(var c : efs.childStores(EFS.NONE, monitor)) {
@@ -48,15 +49,13 @@ public abstract class AbstractFATPreparationTarget extends AbstractPreparationTa
 			subMonitor.setWorkRemaining(remaining--);
 			
 			var dest = efs;
-			
-			var subfolder = fileSet.destination();
-			var filesetUri = uri;
 
-			if(!subfolder.equals("") && !subfolder.equals("\\") && !subfolder.equals("/")) {
-				filesetUri = filesetUri.resolve(subfolder.replace("\\", "/"));
-				dest = getEFSDir(monitor, filesetUri);
-			}
+			String subfolder = resolveDestination(destFolder, fileSet);
 			
+			var filesetUri = FATPreferencesAccess.resolve(uri, subfolder);
+			if(!filesetUri.equals(uri))
+				dest = getEFSDir(monitor, filesetUri);
+
 			var filesRemain = fileSet.files().length;
 			var fileSetSubMonitor = subMonitor.split(filesRemain);
 			

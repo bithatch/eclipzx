@@ -18,13 +18,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 
-public class NextZXOSHelper {
-	private static final String BASE_IMAGE_RESOURCE_NAME = "cspect-next-64mb.zip";
+public class NextZXOSHelper implements PreferenceConstants {
 
 	private final static ILog LOG = ILog.of(NextZXOSHelper.class);
 	
@@ -152,7 +152,14 @@ public class NextZXOSHelper {
 			 */
 			
 			var ext = extractExtensionForURL(url.toString());
-			var outf = out.getFile(Integer.toUnsignedLong(configuration.getName().hashCode()) + "-download." + ext);
+			var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
+			var outfilename = strmgr.performStringSubstitution(
+					configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_IMAGE_NAME, "${fat_project}.img"));
+			var idx = outfilename.lastIndexOf(".");
+			if(idx > 0) {
+				outfilename = outfilename.substring(0, idx);
+			}
+			var outf = out.getFile(outfilename + "-download." + ext);
 			var imgfile = outf.getLocation().toPath();
 			LOG.info(String.format("Copying Next ZXOS image from %s to %s", url, imgfile));
 			

@@ -70,7 +70,6 @@ import uk.co.bithatch.fatexplorer.preferences.FATLock;
 import uk.co.bithatch.fatexplorer.preferences.FATLock.LockListener;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.preferences.PreferenceConstants;
-import uk.co.bithatch.fatexplorer.util.FileNames;
 import uk.co.bithatch.fatexplorer.vfs.FATImageFileStore;
 import uk.co.bithatch.fatexplorer.vfs.FileStoreCopyUtil;
 import uk.co.bithatch.fatexplorer.vfs.FileStoreTransfer;
@@ -175,9 +174,7 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 			var fs = str.nativeFileSystem();
 			try {
 				return String.format("%s (%d of %d MiB)", 
-						fs.getVolumeLabel() == null || fs.getVolumeLabel().equals("") 
-							? FileNames.getPathFileName(FATPreferencesAccess.getPathForUUID(str.getUuid()))
-							: fs.getVolumeLabel(), 
+						str.toURI().getPath().substring(1), 
 						MemoryUnit.MEBIBYTE.fromBytes(fs.getUsableSpace() - fs.getFreeSpace()),
 						MemoryUnit.MEBIBYTE.fromBytes(fs.getUsableSpace()));
 			}
@@ -264,9 +261,6 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 
 	protected IFileStore openUri(URI uri) {
 		try {
-			if(FATLock.isImageLocked(uri.toString())) {
-				throw new IOException("Disk image is locked.");
-			}
 			return EFS.getStore(uri);
 		} catch (Exception e) {
 			return new FileStore() {
@@ -877,7 +871,7 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 				String uriStr = DiskImageListEditor.newDiskImageDialog(shell, null);
 				if (uriStr != null) {
 					FATPreferencesAccess.addImagePath(uriStr);
-					viewer.setInput(FATPreferencesAccess.getConfiguredImageURIs());
+					resetInput();
 				}
 			}
 		};
@@ -953,7 +947,7 @@ public class FATExplorerView extends ViewPart implements ISelectionChangedListen
 	}
 
 	@Override
-	public void lockStateChanged(String uri, boolean locked) {
+	public void lockStateChanged(URI uri, boolean locked) {
 		fileJob("Image lock status changed", monitor -> {
 			monitor.beginTask("Refreshing", 1);
 			try {

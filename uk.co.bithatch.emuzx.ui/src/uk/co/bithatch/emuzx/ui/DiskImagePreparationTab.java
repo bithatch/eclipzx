@@ -1,7 +1,11 @@
 package uk.co.bithatch.emuzx.ui;
 
+
 import static org.eclipse.jface.layout.GridDataFactory.fillDefaults;
 import static org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_CLEAR_BEFORE_USE;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_FAT_FOLDER;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_IMAGE_NAME;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_SOURCE_IDS;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_TARGET;
 
@@ -18,7 +22,11 @@ import org.eclipse.core.runtime.ILog;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
@@ -26,7 +34,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 
 public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab implements ILaunchPreparationUI {
 	
@@ -39,6 +50,12 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 	private Map<Button, IPreparationSourceUI> sourceUIs = new HashMap<>();
 	private List<Button> targetSelectors = new ArrayList<>();
 	private Map<Button, IPreparationTargetUI> targetUIs = new HashMap<>();
+	private Label folderLabel;
+	private Text folder;
+	private Label imageNameLabel;
+	private Text imageName;
+	private Button clearBeforeUse;
+	private ControlDecoration clearBeforeUseDecoration;
 
 	@Override
 	public void createControl(Composite parent) {
@@ -47,6 +64,58 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 		var layout = new GridLayout(1, false);
 		layout.horizontalSpacing = layout.verticalSpacing = 8;
 		preparationParent.setLayout(layout);
+
+		var options = new Group(preparationParent, SWT.TITLE);
+		options.setLayoutData(fillDefaults().grab(true, true).create());
+		options.setText("Options");
+		var optionsLayout = new GridLayout(2, false);
+		optionsLayout.horizontalSpacing = optionsLayout.verticalSpacing = 8;
+		options.setLayout(optionsLayout);
+        
+		imageNameLabel = new Label(options, SWT.NONE);
+		imageNameLabel.setLayoutData(GridDataFactory.swtDefaults().create());
+		imageNameLabel.setText("Image Name:");
+
+		imageName = new Text(options, SWT.NONE);
+		imageName.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		imageName.setToolTipText("The name of generated disk image file. When blank, will be generated based on "
+				+ "the project name. The name is available as the ${fat_image_name} variable for use in emulator "
+				+ "arguments. Doesn't apply to `Configured FAT Image` target.");
+		imageName.addModifyListener(new ModifyListener() {
+			
+			@Override
+			public void modifyText(ModifyEvent e) {
+				updateLaunchConfigurationDialog();
+			}
+		});
+        
+        folderLabel = new Label(options, SWT.NONE);
+        folderLabel.setLayoutData(GridDataFactory.swtDefaults().create());
+        folderLabel.setText("Folder:");
+
+        folder = new Text(options, SWT.NONE);
+        folder.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+        folder.setToolTipText("The full path to folder on the disk image. Empty is the root folder. Use ${fat_default} for a default path based on the launcher project.");
+        folder.addModifyListener(new ModifyListener() {
+			
+			@Override
+			public void modifyText(ModifyEvent e) {
+				updateLaunchConfigurationDialog();
+			}
+		});
+        
+        clearBeforeUse = new Button(options, SWT.CHECK);
+        clearBeforeUse.setText("Clear Before Use");
+        clearBeforeUse.setLayoutData(GridDataFactory.swtDefaults().create());
+        clearBeforeUse.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+			updateLaunchConfigurationDialog();
+        }));
+        
+        clearBeforeUseDecoration = new ControlDecoration(clearBeforeUse, SWT.LEFT | SWT.TOP);
+        clearBeforeUseDecoration.setImage(PlatformUI.getWorkbench().getSharedImages()
+		        .getImage(ISharedImages.IMG_OBJS_WARN_TSK));
+        clearBeforeUseDecoration.setDescriptionText("Are you sure you wish to clear the root folder on every launch?");
+        clearBeforeUseDecoration.hide();
 
 		var targetParent = new Group(preparationParent, SWT.TITLE);
 		targetParent.setLayoutData(fillDefaults().grab(true, true).create());
@@ -132,6 +201,11 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 	public void initializeFrom(ILaunchConfiguration configuration) {
         try 
         {
+
+    		folder.setText(configuration.getAttribute(PREPARATION_FAT_FOLDER, "${fat_default}"));
+            clearBeforeUse.setSelection(configuration.getAttribute(PREPARATION_CLEAR_BEFORE_USE, false));
+            imageName.setText(configuration.getAttribute(PREPARATION_IMAGE_NAME, "${fat_project}.img"));
+            
         	for(var ui : targetUIs.values())
     			ui.initializeFrom(configuration);
         	
@@ -186,6 +260,10 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 			ui.performApply(configuration);
 		}
 		
+		configuration.setAttribute(PREPARATION_IMAGE_NAME, imageName.getText());
+		configuration.setAttribute(PREPARATION_FAT_FOLDER, folder.getText());
+		configuration.setAttribute(PREPARATION_CLEAR_BEFORE_USE, clearBeforeUse.getSelection());
+		
 		if(noPreparation.getSelection()) {
 			configuration.setAttribute(PREPARATION_TARGET, "");
 		}
@@ -217,6 +295,9 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
         configuration.setAttribute(PREPARATION_TARGET, "");
         configuration.setAttribute(PREPARATION_SOURCE_IDS, 
         		defaultDescriptors());
+		folder.setText("${fat_default}");
+		clearBeforeUse.setSelection(false);
+		imageName.setText("${fat_project}.img");
 	}
 
 	@Override
@@ -224,6 +305,14 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 		super.updateLaunchConfigurationDialog();
 		
 		var sources = isSourcesSet();
+
+		var folderText = folder.getText();
+		if(clearBeforeUse.getSelection() && (folderText.equals("") || folderText.equals("/") || folderText.equals("\\"))) {
+			clearBeforeUseDecoration.show();	
+		}
+		else {
+			clearBeforeUseDecoration.hide();	
+		}
 
 		var selUi = getSelectedUI();
 		for(var button : targetSelectors) {
@@ -233,7 +322,6 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 				ui.setAvailable(ui == selUi && sources);
 		}
 		
-
 		for(var button : sourceSelectors) {
 			var ui = sourceUIs.get(button);
 			if(ui != null)
