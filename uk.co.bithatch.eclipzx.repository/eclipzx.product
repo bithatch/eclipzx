@@ -36,7 +36,7 @@ else you fancy running in no time at all.
 
    <splash
       location="uk.co.bithatch.eclipzx"
-      startupProgressRect="86,367,460,16"
+      startupProgressRect="86,354,460,24"
       startupMessageRect="30,430,580,25"
       startupForegroundColor="F800FF" />
    <launcher name="eclipzx">
@@ -60,6 +60,7 @@ else you fancy running in no time at all.
       <macos include="true">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21</macos>
       <windows include="true">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21</windows>
    </vm>
+
 
    <plugins>
       <plugin id="com.sun.jna"/>

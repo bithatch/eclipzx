@@ -40,7 +40,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 public class TNFSMountPropertiesPage extends PropertyPage {
 
 	private TableViewer tableViewer;
-	private List<TNFSMount> mounts;
+	private List<TNFSClientMount> mounts;
 	private IProject project;
 	private final Set<String> pendingMounts = new HashSet<>();
 
@@ -80,9 +80,9 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		mountedCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				var name = ((TNFSMount) element).getName();
+				var name = ((TNFSClientMount) element).getName();
 				if (pendingMounts.contains(name)) return "\u23F3";
-				return TNFSMountManager.isMounted(project, (TNFSMount) element) ? "\u2713" : "";
+				return TNFSMountManager.isMounted(project, (TNFSClientMount) element) ? "\u2713" : "";
 			}
 		});
 
@@ -92,7 +92,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		nameCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((TNFSMount) element).getName();
+				return ((TNFSClientMount) element).getName();
 			}
 		});
 
@@ -102,7 +102,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		hostCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				var m = (TNFSMount) element;
+				var m = (TNFSClientMount) element;
 				return m.getHost() + ":" + m.getPort();
 			}
 		});
@@ -113,7 +113,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		pathCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((TNFSMount) element).getRemotePath();
+				return ((TNFSClientMount) element).getRemotePath();
 			}
 		});
 
@@ -123,7 +123,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		autoCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((TNFSMount) element).isAutomount() ? "\u2713" : "";
+				return ((TNFSClientMount) element).isAutomount() ? "\u2713" : "";
 			}
 		});
 
@@ -157,7 +157,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSMount) sel.getFirstElement();
+				var selected = (TNFSClientMount) sel.getFirstElement();
 				var dlg = new MountDialog(getShell(), selected);
 				if (dlg.open() == IDialogConstants.OK_ID) {
 					var idx = mounts.indexOf(selected);
@@ -178,7 +178,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSMount) sel.getFirstElement();
+				var selected = (TNFSClientMount) sel.getFirstElement();
 				TNFSMountManager.setPassword(selected, null);
 				mounts.remove(selected);
 				TNFSMountManager.saveMounts(project, mounts);
@@ -208,7 +208,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSMount) sel.getFirstElement();
+				var selected = (TNFSClientMount) sel.getFirstElement();
 				TNFSMountManager.saveMounts(project, mounts);
 				pendingMounts.add(selected.getName());
 				tableViewer.refresh();
@@ -240,7 +240,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSMount) sel.getFirstElement();
+				var selected = (TNFSClientMount) sel.getFirstElement();
 				pendingMounts.add(selected.getName());
 				tableViewer.refresh();
 				var job = Job.create("Unmounting TNFS: " + selected.getName(), monitor -> {
@@ -300,7 +300,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 	 */
 	private static class MountDialog extends TitleAreaDialog {
 
-		private TNFSMount mount;
+		private TNFSClientMount mount;
 		private String password;
 
 		private Text nameText;
@@ -311,12 +311,12 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		private Text passwordText;
 		private Button automountCheck;
 
-		public MountDialog(Shell parentShell, TNFSMount existing) {
+		public MountDialog(Shell parentShell, TNFSClientMount existing) {
 			super(parentShell);
 			this.mount = existing != null
-					? new TNFSMount(existing.getName(), existing.getHost(), existing.getPort(),
+					? new TNFSClientMount(existing.getName(), existing.getHost(), existing.getPort(),
 							existing.getRemotePath(), existing.getUsername(), existing.isAutomount())
-					: new TNFSMount();
+					: new TNFSClientMount();
 		}
 
 		@Override
@@ -401,7 +401,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			super.okPressed();
 		}
 
-		public TNFSMount getMount() {
+		public TNFSClientMount getMount() {
 			return mount;
 		}
 

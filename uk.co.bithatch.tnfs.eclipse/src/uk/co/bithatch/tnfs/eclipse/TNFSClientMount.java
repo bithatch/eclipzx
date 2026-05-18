@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Represents a single TNFS client mount configuration.
  */
-public class TNFSMount {
+public class TNFSClientMount {
 
 	private String name;
 	private String host;
@@ -15,7 +15,7 @@ public class TNFSMount {
 	private String username;
 	private boolean automount;
 
-	public TNFSMount() {
+	public TNFSClientMount() {
 		this.port = uk.co.bithatch.tnfs.lib.TNFS.DEFAULT_PORT;
 		this.remotePath = "/";
 		this.host = "";
@@ -24,7 +24,7 @@ public class TNFSMount {
 		this.automount = true;
 	}
 
-	public TNFSMount(String name, String host, int port, String remotePath, String username) {
+	public TNFSClientMount(String name, String host, int port, String remotePath, String username) {
 		this.name = name;
 		this.host = host;
 		this.port = port;
@@ -33,7 +33,7 @@ public class TNFSMount {
 		this.automount = true;
 	}
 
-	public TNFSMount(String name, String host, int port, String remotePath, String username, boolean automount) {
+	public TNFSClientMount(String name, String host, int port, String remotePath, String username, boolean automount) {
 		this.name = name;
 		this.host = host;
 		this.port = port;
@@ -115,10 +115,10 @@ public class TNFSMount {
 	/**
 	 * Deserialize from stored string.
 	 */
-	public static TNFSMount deserialize(String s) {
+	public static TNFSClientMount deserialize(String s) {
 		var parts = s.split("\\|", -1);
 		if (parts.length < 4) return null;
-		var m = new TNFSMount();
+		var m = new TNFSClientMount();
 		m.name = parts[0];
 		m.host = parts[1];
 		m.port = Integer.parseInt(parts[2]);
@@ -136,7 +136,7 @@ public class TNFSMount {
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
-		if (!(obj instanceof TNFSMount other)) return false;
+		if (!(obj instanceof TNFSClientMount other)) return false;
 		return Objects.equals(name, other.name);
 	}
 

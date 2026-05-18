@@ -36,7 +36,7 @@
          </property>
          <property
                name="startupProgressRect"
-               value="86,367,460,16">
+               value="86,354,460,24">
          </property>
          <property
                name="startupMessageRect"
@@ -50,6 +50,18 @@
                name="preferenceCustomization"
                value="plugin_customization.ini">
          </property>
-      </product>
+       </product>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.splashHandlers">
+      <splashHandler
+            class="uk.co.bithatch.eclipzx.product.SplashHandler"
+            id="uk.co.bithatch.eclipzx.splashHandler">
+      </splashHandler>
+      <splashHandlerProductBinding
+            productId="uk.co.bithatch.eclipzx.eclipzx"
+            splashId="uk.co.bithatch.eclipzx.splashHandler">
+      </splashHandlerProductBinding>
    </extension>
 </plugin>

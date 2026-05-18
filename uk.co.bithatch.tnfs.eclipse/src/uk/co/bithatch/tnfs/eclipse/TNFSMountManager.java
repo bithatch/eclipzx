@@ -34,14 +34,14 @@ public class TNFSMountManager {
 	/**
 	 * Get all configured mounts for a project.
 	 */
-	public static List<TNFSMount> getMounts(IProject project) {
+	public static List<TNFSClientMount> getMounts(IProject project) {
 		try {
 			var value = project.getPersistentProperty(MOUNTS_KEY);
 			if (value == null || value.isBlank()) return new ArrayList<>();
-			var result = new ArrayList<TNFSMount>();
+			var result = new ArrayList<TNFSClientMount>();
 			for (var entry : value.split("\n")) {
 				if (!entry.isBlank()) {
-					var m = TNFSMount.deserialize(entry.trim());
+					var m = TNFSClientMount.deserialize(entry.trim());
 					if (m != null) result.add(m);
 				}
 			}
@@ -55,7 +55,7 @@ public class TNFSMountManager {
 	/**
 	 * Save mount configurations only (does not create/remove linked folders).
 	 */
-	public static void saveMounts(IProject project, List<TNFSMount> mounts) {
+	public static void saveMounts(IProject project, List<TNFSClientMount> mounts) {
 		try {
 			var sb = new StringBuilder();
 			for (var m : mounts) {
@@ -70,7 +70,7 @@ public class TNFSMountManager {
 	/**
 	 * Save mounts and refresh linked folders (removes stale links, updates changed URIs).
 	 */
-	public static void setMounts(IProject project, List<TNFSMount> mounts) {
+	public static void setMounts(IProject project, List<TNFSClientMount> mounts) {
 		saveMounts(project, mounts);
 		try {
 			refreshLinkedFolders(project, mounts);
@@ -82,7 +82,7 @@ public class TNFSMountManager {
 	/**
 	 * Check if a mount's linked folder currently exists.
 	 */
-	public static boolean isMounted(IProject project, TNFSMount mount) {
+	public static boolean isMounted(IProject project, TNFSClientMount mount) {
 		var mountsFolder = project.getFolder(MOUNTS_FOLDER);
 		if (!mountsFolder.exists()) return false;
 		return mountsFolder.getFolder(mount.getName()).exists();
@@ -91,7 +91,7 @@ public class TNFSMountManager {
 	/**
 	 * Mount a single entry (create its linked folder).
 	 */
-	public static void mount(IProject project, TNFSMount mount) throws CoreException {
+	public static void mount(IProject project, TNFSClientMount mount) throws CoreException {
 		var monitor = new NullProgressMonitor();
 		var mountsFolder = project.getFolder(MOUNTS_FOLDER);
 		if (!mountsFolder.exists()) {
@@ -112,7 +112,7 @@ public class TNFSMountManager {
 	/**
 	 * Unmount a single entry (remove its linked folder).
 	 */
-	public static void unmount(IProject project, TNFSMount mount) throws CoreException {
+	public static void unmount(IProject project, TNFSClientMount mount) throws CoreException {
 		var monitor = new NullProgressMonitor();
 		var mountsFolder = project.getFolder(MOUNTS_FOLDER);
 		if (!mountsFolder.exists()) return;
@@ -145,7 +145,7 @@ public class TNFSMountManager {
 	/**
 	 * Store password in Eclipse Secure Storage.
 	 */
-	public static void setPassword(TNFSMount mount, String password) {
+	public static void setPassword(TNFSClientMount mount, String password) {
 		try {
 			var node = getSecureNode();
 			if (password == null || password.isEmpty()) {
@@ -162,7 +162,7 @@ public class TNFSMountManager {
 	/**
 	 * Retrieve password from Eclipse Secure Storage.
 	 */
-	public static String getPassword(TNFSMount mount) {
+	public static String getPassword(TNFSClientMount mount) {
 		try {
 			var node = getSecureNode();
 			return node.get(mount.getName(), "");
@@ -178,16 +178,16 @@ public class TNFSMountManager {
 
 	/**
 	 * Refresh linked folders: remove stale links (config deleted), update changed URIs.
-	 * Does NOT create new links — use {@link #mount(IProject, TNFSMount)} for that.
+	 * Does NOT create new links — use {@link #mount(IProject, TNFSClientMount)} for that.
 	 */
-	public static void refreshLinkedFolders(IProject project, List<TNFSMount> mounts) throws CoreException {
+	public static void refreshLinkedFolders(IProject project, List<TNFSClientMount> mounts) throws CoreException {
 		var monitor = new NullProgressMonitor();
 		var mountsFolder = project.getFolder(MOUNTS_FOLDER);
 
 		if (!mountsFolder.exists()) return;
 
 		// Remove linked folders for mounts that no longer exist in config
-		var configNames = mounts.stream().map(TNFSMount::getName).toList();
+		var configNames = mounts.stream().map(TNFSClientMount::getName).toList();
 		for (var member : mountsFolder.members()) {
 			if (!configNames.contains(member.getName())) {
 				member.delete(true, monitor);
