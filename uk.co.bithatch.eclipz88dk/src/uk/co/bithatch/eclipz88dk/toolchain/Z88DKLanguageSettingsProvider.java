@@ -20,17 +20,22 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 	@Override
 	public List<ICLanguageSettingEntry> getSettingEntries(ICConfigurationDescription cfgDescription, IResource rc,
 			String languageId) {
+		if (rc == null) return Collections.emptyList();
 		var pax = Z88DKPreferencesAccess.get();
 		var sdks = pax.getPathListPreference(null, PreferenceConstants.SDK_PATHS);
 		if (sdks.isEmpty())
-			throw new IllegalStateException("No Z88DK home!");
+			return Collections.emptyList();
 
 		var project = rc.getProject();
 		var sdkOr = pax.getSDK(project);
 		if (sdkOr.isPresent()) {
 			var sdk = sdkOr.get();
-			var system = pax.getArchitecture(project).name().toLowerCase();
-			var config = sdk.configurations().configuration(system).get();
+			var arch = pax.getArchitecture(project);
+			if (arch == null) return Collections.emptyList();
+			var system = arch.name().toLowerCase();
+			var configOpt = sdk.configurations().configuration(system);
+			if (configOpt.isEmpty()) return Collections.emptyList();
+			var config = configOpt.get();
 			var entries = new ArrayList<ICLanguageSettingEntry>();
 			
 			/* Default OPTION */

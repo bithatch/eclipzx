@@ -2,6 +2,8 @@ package uk.co.bithatch.eclipz88dk.wizard;
 
 import java.io.ByteArrayInputStream;
 
+import org.eclipse.cdt.core.CCorePlugin;
+import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbench;
 
@@ -52,6 +54,10 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 				finalArch.outputFormat(WellKnownOutputFormat.TAP).ifPresent(fmt -> pax.setOutputFormat(project, fmt));
 			}
 
+			// Now that preferences are set, re-apply the language settings provider
+			// so it can resolve include paths correctly against the configured SDK/architecture.
+			CdtProjectCreator.enableZ88DKFeatures(project);
+
 			var file = project.getFile("main.c");
 			if (!file.exists()) {
 				if (isZxNext) {
@@ -89,6 +95,13 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 							}
 							""".getBytes()), true, null);
 				}
+			}
+
+			// Reindex now that preferences (SDK, architecture, cLibrary) are set,
+			// so the language settings provider returns the correct include paths.
+			var cproj = CoreModel.getDefault().create(project);
+			if (cproj != null) {
+				CCorePlugin.getIndexManager().reindex(cproj);
 			}
 		};
 	}
