@@ -14,4 +14,6 @@ public interface IPreparationTarget {
 	IStatus prepare(IProgressMonitor monitor, List<FileSet> files) throws CoreException;
 	
 	void cleanUp();
+
+	default void preparationDone() {}
 }

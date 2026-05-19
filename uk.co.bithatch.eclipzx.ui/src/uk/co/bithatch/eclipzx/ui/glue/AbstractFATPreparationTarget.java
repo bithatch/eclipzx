@@ -8,6 +8,7 @@ import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 
@@ -17,6 +18,7 @@ import uk.co.bithatch.emuzx.ui.AbstractPreparationTarget;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
 import uk.co.bithatch.fatexplorer.vfs.FATImageFileStore;
+import uk.co.bithatch.fatexplorer.vfs.FATImageFileSystem;
 import uk.co.bithatch.fatexplorer.vfs.FileOverwritePolicy;
 import uk.co.bithatch.fatexplorer.vfs.FileStoreCopyUtil;
 
@@ -32,6 +34,16 @@ public abstract class AbstractFATPreparationTarget extends AbstractPreparationTa
 	@Override
 	public String init(IPreparationContext prepCtx) throws CoreException {
 		return "/";
+	}
+	
+	protected void closeImage(URI destUri) {
+		try {
+			var store = getEFSDir(new NullProgressMonitor(), destUri);
+			((FATImageFileSystem)store.getFileSystem()).closeStore(store);
+		}
+		catch(Exception e) {
+			LOG.error("Failed to close image.", e);
+		}
 	}
 
 	protected final void copy(boolean cleanBeforeUse, IProgressMonitor monitor, List<FileSet> files, URI uri, FATImageFileStore efs, String destFolder)

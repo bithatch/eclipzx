@@ -14,6 +14,7 @@ import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
@@ -25,6 +26,7 @@ import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.zyxy.mmc.SDCard;
 
 public class FATImageFileSystem extends FileSystem implements IPreferenceChangeListener, LockListener {
+	private final static ILog LOG = ILog.of(FATImageFileSystem.class);
 
 	private final Map<String, SDCard> deviceCache = new HashMap<>();
 	private final Map<String, FATImageFileStore> storeCache = new HashMap<>();
@@ -53,11 +55,12 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 			var diskFile = toDiskFile(diskImg);
 			var remainingPath = stripTrailingSlash(diskPath);
 
-			var device = deviceCache.computeIfAbsent(diskImg.toASCIIString(), p -> {
+			var device = deviceCache.computeIfAbsent(diskImg.toString(), p -> {
+				LOG.info("Opening disk image " + p);
 				return new SDCard.Builder().withFile(diskFile).withMBR().withReadWrite().build();
 			});
 			
-			var rootStore = storeCache.computeIfAbsent(diskImg.toASCIIString(), p -> {
+			var rootStore = storeCache.computeIfAbsent(diskImg.toString(), p -> {
 				return new FATImageFileStore(uri, this, "/", device.fileSystem());
 			});
 
@@ -110,9 +113,10 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 	
 	public void closeStore(FATImageFileStore store) throws IOException {
 		synchronized(storeCache) {
-			var p = store.toURI().getPath();
+			var p = FATPreferencesAccess.getImageForURI(store.toURI()).toString();
 			if(storeCache.containsKey(p)) {
 				try {
+					LOG.info("Closing disk image " + p + " (close store)");
 					deviceCache.get(p).close();
 				} finally {
 					storeCache.remove(p);
@@ -127,6 +131,7 @@ public class FATImageFileSystem extends FileSystem implements IPreferenceChangeL
 		synchronized(storeCache) {
 			deviceCache.values().forEach(v -> {
 				try {
+					LOG.info("Closing disk image " + v + " (reset store cache)");
 					v.close();
 				} catch (IOException e) {
 				}

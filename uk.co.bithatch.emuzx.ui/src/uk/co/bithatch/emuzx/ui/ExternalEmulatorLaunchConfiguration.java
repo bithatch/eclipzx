@@ -102,6 +102,8 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 					closeContexts(launchCtx, prepCtx);
 					throw new CoreException(Status.error("Failed to prepare for launch.", e));
 				}
+				
+				preparationTarget.get().preparationDone();
 			}
 
 			/* Emulator */

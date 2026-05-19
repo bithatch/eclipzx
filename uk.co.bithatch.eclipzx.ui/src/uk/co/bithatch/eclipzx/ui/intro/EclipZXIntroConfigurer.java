@@ -8,6 +8,7 @@ import org.eclipse.ui.intro.IIntroSite;
 import org.eclipse.ui.intro.config.IntroConfigurer;
 import org.eclipse.ui.intro.config.IntroElement;
 
+import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.zxbasic.ui.library.ContributedSDKRegistry;
 import uk.co.bithatch.zxbasic.ui.tools.Python;
@@ -31,6 +32,17 @@ public class EclipZXIntroConfigurer extends IntroConfigurer {
 	public IntroElement[] getGroupChildren(String pageId, String groupId) {
 		var elements = new ArrayList<IntroElement>();
 		if (groupId.equals("setup")) {
+			
+			try {
+				FileNames.findCommand("make");
+			}
+			catch(Exception e) {
+				var setupZ88DK = new IntroElement("link");
+				setupZ88DK.setAttribute("url", "https://winget.run/pkg/GnuWin32/Make");
+				setupZ88DK.setAttribute("label", "Click to setup `Make` command (for C Programs)");
+				elements.add(setupZ88DK);
+			}
+			
 			var z88dks = Z88DKPreferencesAccess.get().getAllSDKs();
 			if (z88dks.isEmpty()) {
 				var setupZ88DK = new IntroElement("link");

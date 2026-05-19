@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.variables.VariablesPlugin;
 
 import uk.co.bithatch.bitzx.FileSet;
-import uk.co.bithatch.bitzx.URIS;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.fatexplorer.preferences.FATLock;
@@ -71,5 +70,10 @@ public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget
 				throw new CoreException(Status.error("Failed to close file system for disk image.", e));
 			}
 		}
+	}
+
+	@Override
+	public void preparationDone() {
+		closeImage(destUri);
 	}
 }

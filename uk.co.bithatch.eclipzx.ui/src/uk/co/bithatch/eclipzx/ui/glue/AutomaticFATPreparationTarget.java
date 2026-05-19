@@ -75,6 +75,11 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 	}
 
 	@Override
+	public void preparationDone() {
+		closeImage(uri);
+	}
+
+	@Override
 	public final String init(IPreparationContext prepCtx) throws CoreException {
 		
 		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();

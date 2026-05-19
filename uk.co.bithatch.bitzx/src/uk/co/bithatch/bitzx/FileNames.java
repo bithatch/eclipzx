@@ -91,11 +91,12 @@ public class FileNames {
 	}
 
 	public static Path findCommand(String... cmd) throws IOException {
+		var paths = systemPaths();
 		for(var c : cmd) {
-			for(var path : systemPaths()) {
-				if (Platform.getOS().equals(Platform.OS_WIN32) && !c.toLowerCase().endsWith(".exe")) {
-					c += ".exe";
-				}
+			if (Platform.getOS().equals(Platform.OS_WIN32) && !c.toLowerCase().endsWith(".exe")) {
+				c += ".exe";
+			}
+			for(var path : paths) {
 				var fullPath = Paths.get(path).resolve(c);
 				if(Files.exists(fullPath)) {
 					return fullPath;
