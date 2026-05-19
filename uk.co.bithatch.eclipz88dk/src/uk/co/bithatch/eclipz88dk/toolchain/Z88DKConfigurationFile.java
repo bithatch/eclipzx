@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import uk.co.bithatch.bitzx.IOutputFormat;
-
 public class Z88DKConfigurationFile {
 
 	public enum Key {

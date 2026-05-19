@@ -3,20 +3,22 @@ package uk.co.bithatch.tnfs.eclipse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.NotDirectoryException;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import uk.co.bithatch.tnfs.nio.TNFSFileSystemProvider;
+import uk.co.bithatch.tnfs.client.TNFSClient;
+import uk.co.bithatch.tnfs.client.TNFSMount;
+import uk.co.bithatch.tnfs.lib.DirEntryFlag;
+import uk.co.bithatch.tnfs.lib.ModeFlag;
+import uk.co.bithatch.tnfs.lib.OpenFlag;
+import uk.co.bithatch.tnfs.lib.Protocol;
+import uk.co.bithatch.tnfs.lib.TNFS;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
@@ -28,18 +30,26 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 
 /**
- * EFS IFileStore implementation that delegates to the TNFS NIO FileSystem provider.
- * Each IFileStore wraps a tnfs:// URI and resolves it to a NIO Path for all operations.
+ * EFS IFileStore implementation that delegates to the TNFS client API directly.
+ * Each IFileStore wraps a tnfs:// URI and resolves it to a TNFSMount for all operations.
  */
 public class TNFSEclipseFileStore extends FileStore {
 
 	private final URI uri;
 
-	// Single shared TNFSFileSystemProvider instance (bypasses ServiceLoader which doesn't work in OSGi)
-	private static final TNFSFileSystemProvider PROVIDER = new TNFSFileSystemProvider();
+	private record MountEntry(TNFSClient client, TNFSMount mount) implements AutoCloseable {
+		@Override
+		public void close() throws Exception {
+			try {
+				mount.close();
+			} finally {
+				client.close();
+			}
+		}
+	}
 
-	// Cache of open NIO file systems keyed by authority (host:port)
-	private static final Map<String, FileSystem> FS_CACHE = Collections.synchronizedMap(new HashMap<>());
+	// Cache of open TNFSMount instances keyed by authority (host:port)
+	private static final Map<String, MountEntry> MOUNT_CACHE = Collections.synchronizedMap(new HashMap<>());
 
 	public TNFSEclipseFileStore(URI uri) {
 		this.uri = uri;
@@ -84,25 +94,21 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var nioPath = resolveNioPath();
-			if (!Files.isDirectory(nioPath)) {
+			var mount = resolveMount();
+			var tnfsPath = resolvePath();
+			try {
+				var names = new ArrayList<String>();
+				try (var dir = mount.directory(tnfsPath)) {
+					dir.stream().forEach(entry -> {
+						if (!DirEntryFlag.isSpecial(entry.flags())) {
+							names.add(entry.name());
+						}
+					});
+				}
+				return names.toArray(new String[0]);
+			} catch (java.nio.file.NotDirectoryException e) {
 				return new String[0];
 			}
-			var names = new ArrayList<String>();
-			try (DirectoryStream<Path> stream = Files.newDirectoryStream(nioPath)) {
-				try {
-					for (Path entry : stream) {
-						names.add(entry.getFileName().toString());
-					}	
-				}
-				catch(UncheckedIOException nde) {
-					if(nde.getCause() instanceof NotDirectoryException) {
-						// This can happen if the directory is unreadable for some reason (e.g. permissions) - treat it as empty rather than failing
-						return new String[0];
-					}
-				}
-			}
-			return names.toArray(new String[0]);
 		} catch (IOException e) {
 			throw new CoreException(Status.error("Failed to list TNFS directory: " + uri, e));
 		}
@@ -112,17 +118,21 @@ public class TNFSEclipseFileStore extends FileStore {
 	public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
 		var info = new FileInfo(getName());
 		try {
-			var nioPath = resolveNioPath();
-			if (Files.exists(nioPath)) {
+			var mount = resolveMount();
+			var tnfsPath = resolvePath();
+			try {
+				var stat = mount.stat(tnfsPath);
 				info.setExists(true);
-				var attrs = Files.readAttributes(nioPath, BasicFileAttributes.class);
-				info.setDirectory(attrs.isDirectory());
-				info.setLength(attrs.size());
-				info.setLastModified(attrs.lastModifiedTime().toMillis());
-			} else {
+				var modes = Arrays.asList(stat.mode());
+				info.setDirectory(modes.contains(ModeFlag.IFDIR));
+				info.setLength(stat.size());
+				if (stat.mtime() != null) {
+					info.setLastModified(stat.mtime().toMillis());
+				}
+			} catch (java.nio.file.NoSuchFileException e) {
 				info.setExists(false);
 			}
-		} catch (IOException e) {
+		} catch (IllegalArgumentException | IOException e) {
 			info.setExists(false);
 		}
 		return info;
@@ -131,7 +141,10 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public InputStream openInputStream(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			return Files.newInputStream(resolveNioPath());
+			var mount = resolveMount();
+			var tnfsPath = resolvePath();
+			var channel = mount.open(tnfsPath, OpenFlag.READ);
+			return channelToInputStream(channel);
 		} catch (IOException e) {
 			throw new CoreException(Status.error("Failed to open TNFS file for reading: " + uri, e));
 		}
@@ -140,12 +153,14 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public OutputStream openOutputStream(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var nioPath = resolveNioPath();
-			if ((options & EFS.APPEND) != 0) {
-				return Files.newOutputStream(nioPath, java.nio.file.StandardOpenOption.APPEND,
-						java.nio.file.StandardOpenOption.CREATE);
-			}
-			return Files.newOutputStream(nioPath);
+			var mount = resolveMount();
+			var tnfsPath = resolvePath();
+			var append = (options & EFS.APPEND) != 0;
+			var flags = append
+					? new OpenFlag[] { OpenFlag.WRITE, OpenFlag.CREATE, OpenFlag.APPEND }
+					: new OpenFlag[] { OpenFlag.WRITE, OpenFlag.CREATE, OpenFlag.TRUNCATE };
+			var channel = mount.open(tnfsPath, ModeFlag.DEFAULT_WRITABLE_FLAGS, flags);
+			return channelToOutputStream(channel);
 		} catch (IOException e) {
 			throw new CoreException(Status.error("Failed to open TNFS file for writing: " + uri, e));
 		}
@@ -154,11 +169,13 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public IFileStore mkdir(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var nioPath = resolveNioPath();
+			var mount = resolveMount();
+			var tnfsPath = resolvePath();
 			if ((options & EFS.SHALLOW) != 0) {
-				Files.createDirectory(nioPath);
+				mount.mkdir(tnfsPath);
 			} else {
-				Files.createDirectories(nioPath);
+				// Create directories recursively
+				mkdirs(mount, tnfsPath);
 			}
 			return this;
 		} catch (IOException e) {
@@ -169,39 +186,86 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public void delete(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			Files.deleteIfExists(resolveNioPath());
+			var mount = resolveMount();
+			var tnfsPath = resolvePath();
+			try {
+				var stat = mount.stat(tnfsPath);
+				if (Arrays.asList(stat.mode()).contains(ModeFlag.IFDIR)) {
+					mount.rmdir(tnfsPath);
+				} else {
+					mount.unlink(tnfsPath);
+				}
+			} catch (java.nio.file.NoSuchFileException e) {
+				// Already gone, nothing to do
+			}
 		} catch (IOException e) {
 			throw new CoreException(Status.error("Failed to delete TNFS file: " + uri, e));
 		}
 	}
 
 	/**
-	 * Resolve this store's URI to a NIO Path via the TNFS NIO FileSystemProvider.
+	 * Resolve this store's URI to a TNFSMount via the TNFS client API.
 	 */
-	private Path resolveNioPath() throws IOException {
-		var authority = uri.getHost() + ":" + (uri.getPort() > 0 ? uri.getPort() : uk.co.bithatch.tnfs.lib.TNFS.DEFAULT_PORT);
-		var fs = FS_CACHE.computeIfAbsent(authority, k -> {
+	private TNFSMount resolveMount() throws IOException {
+		var protocol = Protocol.TCP;
+		var fragment = uri.getFragment();
+		if (fragment != null && !fragment.isEmpty()) {
 			try {
-				// Build a URI with just the authority for getting the file system
-				var fsUri = new URI("tnfs", uri.getUserInfo(), uri.getHost(),
-						uri.getPort(), "/", null, null);
-				try {
-					return PROVIDER.getFileSystem(fsUri);
-				} catch (Exception e) {
-					var env = new HashMap<String, Object>();
-					if (uri.getUserInfo() != null && !uri.getUserInfo().isEmpty()) {
-						env.put("username", uri.getUserInfo());
-					}
-					return PROVIDER.newFileSystem(fsUri, env);
+				protocol = Protocol.valueOf(fragment.toUpperCase());
+			} catch (IllegalArgumentException e) {
+				// default to TCP
+			}
+		}
+		var authority = uri.getHost() + ":" + (uri.getPort() > 0 ? uri.getPort() : TNFS.DEFAULT_PORT) + ":" + protocol.name();
+		var fProtocol = protocol;
+		var entry = MOUNT_CACHE.computeIfAbsent(authority, k -> {
+			try {
+				var bldr = new TNFSClient.Builder()
+						.withHostname(uri.getHost())
+						.withProtocol(fProtocol);
+				if (uri.getPort() > 0) {
+					bldr.withPort(uri.getPort());
 				}
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to create TNFS file system for " + authority, e);
+				var client = bldr.build();
+
+				var mountBldr = client.mount("/");
+				if (uri.getUserInfo() != null && !uri.getUserInfo().isEmpty()) {
+					mountBldr.withUsername(uri.getUserInfo());
+				}
+				var mount = mountBldr.build();
+				return new MountEntry(client, mount);
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to create TNFS mount for " + authority, e);
 			}
 		});
+		return entry.mount();
+	}
 
+	/**
+	 * Get the TNFS path from the URI.
+	 */
+	private String resolvePath() {
 		var path = uri.getPath();
-		if (path == null || path.isEmpty()) path = "/";
-		return fs.getPath(path);
+		if (path == null || path.isEmpty()) return "/";
+		return path;
+	}
+
+	/**
+	 * Recursively create directories.
+	 */
+	private void mkdirs(TNFSMount mount, String path) throws IOException {
+		if (path.equals("/") || path.isEmpty()) return;
+		try {
+			mount.stat(path);
+			return; // already exists
+		} catch (java.nio.file.NoSuchFileException e) {
+			// doesn't exist, continue to create
+		}
+		var parent = path.contains("/") ? path.substring(0, path.lastIndexOf('/')) : "";
+		if (!parent.isEmpty() && !parent.equals("/")) {
+			mkdirs(mount, parent);
+		}
+		mount.mkdir(path);
 	}
 
 	private URI withPath(String newPath) {
@@ -210,5 +274,84 @@ public class TNFSEclipseFileStore extends FileStore {
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
+	}
+
+	/**
+	 * Close all cached mounts. Should be called on plugin stop.
+	 */
+	public static void closeAll() {
+		synchronized (MOUNT_CACHE) {
+			for (var entry : MOUNT_CACHE.values()) {
+				try {
+					entry.close();
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+			MOUNT_CACHE.clear();
+		}
+	}
+
+	/**
+	 * Remove a specific cached mount (e.g. when config changes).
+	 */
+	public static void invalidateCache(String host, int port) {
+		var key = host + ":" + (port > 0 ? port : TNFS.DEFAULT_PORT);
+		synchronized (MOUNT_CACHE) {
+			var entry = MOUNT_CACHE.remove(key);
+			if (entry != null) {
+				try {
+					entry.close();
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+		}
+	}
+
+	private static InputStream channelToInputStream(SeekableByteChannel channel) {
+		return new InputStream() {
+			private final ByteBuffer single = ByteBuffer.allocate(1);
+
+			@Override
+			public int read() throws IOException {
+				single.clear();
+				int n = channel.read(single);
+				if (n <= 0) return -1;
+				single.flip();
+				return Byte.toUnsignedInt(single.get());
+			}
+
+			@Override
+			public int read(byte[] b, int off, int len) throws IOException {
+				var buf = ByteBuffer.wrap(b, off, len);
+				int n = channel.read(buf);
+				return n == 0 ? -1 : n;
+			}
+
+			@Override
+			public void close() throws IOException {
+				channel.close();
+			}
+		};
+	}
+
+	private static OutputStream channelToOutputStream(SeekableByteChannel channel) {
+		return new OutputStream() {
+			@Override
+			public void write(int b) throws IOException {
+				channel.write(ByteBuffer.wrap(new byte[] { (byte) b }));
+			}
+
+			@Override
+			public void write(byte[] b, int off, int len) throws IOException {
+				channel.write(ByteBuffer.wrap(b, off, len));
+			}
+
+			@Override
+			public void close() throws IOException {
+				channel.close();
+			}
+		};
 	}
 }

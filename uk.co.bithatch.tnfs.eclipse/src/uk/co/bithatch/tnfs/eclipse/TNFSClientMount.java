@@ -3,6 +3,8 @@ package uk.co.bithatch.tnfs.eclipse;
 import java.net.URI;
 import java.util.Objects;
 
+import uk.co.bithatch.tnfs.lib.Protocol;
+
 /**
  * Represents a single TNFS client mount configuration.
  */
@@ -14,6 +16,7 @@ public class TNFSClientMount {
 	private String remotePath;
 	private String username;
 	private boolean automount;
+	private Protocol protocol;
 
 	public TNFSClientMount() {
 		this.port = uk.co.bithatch.tnfs.lib.TNFS.DEFAULT_PORT;
@@ -22,6 +25,7 @@ public class TNFSClientMount {
 		this.name = "";
 		this.username = "";
 		this.automount = true;
+		this.protocol = Protocol.TCP;
 	}
 
 	public TNFSClientMount(String name, String host, int port, String remotePath, String username) {
@@ -31,6 +35,7 @@ public class TNFSClientMount {
 		this.remotePath = remotePath;
 		this.username = username;
 		this.automount = true;
+		this.protocol = Protocol.TCP;
 	}
 
 	public TNFSClientMount(String name, String host, int port, String remotePath, String username, boolean automount) {
@@ -40,6 +45,17 @@ public class TNFSClientMount {
 		this.remotePath = remotePath;
 		this.username = username;
 		this.automount = automount;
+		this.protocol = Protocol.TCP;
+	}
+
+	public TNFSClientMount(String name, String host, int port, String remotePath, String username, boolean automount, Protocol protocol) {
+		this.name = name;
+		this.host = host;
+		this.port = port;
+		this.remotePath = remotePath;
+		this.username = username;
+		this.automount = automount;
+		this.protocol = protocol;
 	}
 
 	public String getName() {
@@ -90,26 +106,37 @@ public class TNFSClientMount {
 		this.automount = automount;
 	}
 
+	public Protocol getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(Protocol protocol) {
+		this.protocol = protocol;
+	}
+
 	/**
 	 * Build a tnfs:// URI for this mount.
-	 * Format: tnfs://[user@]host[:port]/path
+	 * Format: tnfs://[user@]host[:port]/path#protocol
 	 */
 	public URI toURI() {
 		try {
 			var userInfo = (username != null && !username.isEmpty()) ? username : null;
 			var p = (port != uk.co.bithatch.tnfs.lib.TNFS.DEFAULT_PORT) ? port : -1;
 			var path = remotePath.startsWith("/") ? remotePath : "/" + remotePath;
-			return new URI("tnfs", userInfo, host, p, path, null, null);
+			var fragment = protocol != null ? protocol.name().toLowerCase() : "tcp";
+			return new URI("tnfs", userInfo, host, p, path, null, fragment);
 		} catch (Exception e) {
 			throw new IllegalStateException("Invalid mount configuration", e);
 		}
 	}
 
 	/**
-	 * Serialize to a storable string: name|host|port|remotePath|username|automount
+	 * Serialize to a storable string: name|host|port|remotePath|username|automount|protocol
 	 */
 	public String serialize() {
-		return String.join("|", name, host, String.valueOf(port), remotePath, username == null ? "" : username, String.valueOf(automount));
+		return String.join("|", name, host, String.valueOf(port), remotePath, 
+				username == null ? "" : username, String.valueOf(automount),
+				protocol != null ? protocol.name() : "TCP");
 	}
 
 	/**
@@ -125,7 +152,16 @@ public class TNFSClientMount {
 		m.remotePath = parts[3];
 		m.username = parts.length > 4 ? parts[4] : "";
 		m.automount = parts.length > 5 ? Boolean.parseBoolean(parts[5]) : true;
+		m.protocol = parts.length > 6 ? parseProtocol(parts[6]) : Protocol.TCP;
 		return m;
+	}
+
+	private static Protocol parseProtocol(String s) {
+		try {
+			return Protocol.valueOf(s.toUpperCase());
+		} catch (Exception e) {
+			return Protocol.TCP;
+		}
 	}
 
 	@Override

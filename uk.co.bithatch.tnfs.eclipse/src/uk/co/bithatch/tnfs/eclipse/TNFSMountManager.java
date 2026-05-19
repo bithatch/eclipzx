@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -102,10 +103,10 @@ public class TNFSMountManager {
 		if (linkedFolder.exists()) {
 			if (!uri.equals(linkedFolder.getLocationURI())) {
 				linkedFolder.delete(true, monitor);
-				linkedFolder.createLink(uri, 0, monitor);
+				linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
 			}
 		} else {
-			linkedFolder.createLink(uri, 0, monitor);
+			linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
 		}
 	}
 
@@ -201,7 +202,7 @@ public class TNFSMountManager {
 				var uri = m.toURI();
 				if (!uri.equals(linkedFolder.getLocationURI())) {
 					linkedFolder.delete(true, monitor);
-					linkedFolder.createLink(uri, 0, monitor);
+					linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
 				}
 			}
 		}

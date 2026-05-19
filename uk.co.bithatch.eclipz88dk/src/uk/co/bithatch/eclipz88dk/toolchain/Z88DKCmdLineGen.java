@@ -35,7 +35,6 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 
 	private static final ILog LOG = ILog.of(Z88DKCmdLineGen.class);
 	private static final String UK_CO_BITHATCH_ECLIPZ88DK_COMPILER = "uk.co.bithatch.eclipz88dk.compiler";
-	private static final String UK_CO_BITHATCH_ECLIPZ88DK_LINKER = "uk.co.bithatch.eclipz88dk.linker";
 
 	@Override
 	public IManagedCommandLineInfo generateCommandLineInfo(

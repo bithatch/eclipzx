@@ -26,12 +26,15 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PropertyPage;
+
+import uk.co.bithatch.tnfs.lib.Protocol;
 
 /**
  * Property page for managing TNFS client mounts on a project.
@@ -104,6 +107,16 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public String getText(Object element) {
 				var m = (TNFSClientMount) element;
 				return m.getHost() + ":" + m.getPort();
+			}
+		});
+
+		var protoCol = new TableViewerColumn(tableViewer, SWT.NONE);
+		protoCol.getColumn().setText("Protocol");
+		protoCol.getColumn().setWidth(65);
+		protoCol.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((TNFSClientMount) element).getProtocol().name();
 			}
 		});
 
@@ -269,12 +282,18 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 	@Override
 	public boolean performOk() {
 		if (project != null) {
-			// Save config synchronously (fast), but refresh linked folders in background
+			// Save config synchronously (fast), then mount automounts and refresh in background
 			TNFSMountManager.saveMounts(project, mounts);
 			var mountsCopy = List.copyOf(mounts);
 			var job = Job.create("Refreshing TNFS mounts", monitor -> {
 				try {
 					TNFSMountManager.refreshLinkedFolders(project, mountsCopy);
+					// Mount any automount entries that are not yet mounted
+					for (var m : mountsCopy) {
+						if (m.isAutomount() && !TNFSMountManager.isMounted(project, m)) {
+							TNFSMountManager.mount(project, m);
+						}
+					}
 				} catch (CoreException e) {
 					return Status.error("Failed to refresh TNFS linked folders", e);
 				}
@@ -310,12 +329,13 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		private Text usernameText;
 		private Text passwordText;
 		private Button automountCheck;
+		private Combo protocolCombo;
 
 		public MountDialog(Shell parentShell, TNFSClientMount existing) {
 			super(parentShell);
 			this.mount = existing != null
 					? new TNFSClientMount(existing.getName(), existing.getHost(), existing.getPort(),
-							existing.getRemotePath(), existing.getUsername(), existing.isAutomount())
+							existing.getRemotePath(), existing.getUsername(), existing.isAutomount(), existing.getProtocol())
 					: new TNFSClientMount();
 		}
 
@@ -349,6 +369,12 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			portText = new Text(container, SWT.BORDER);
 			portText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			portText.setText(String.valueOf(mount.getPort()));
+
+			new Label(container, SWT.NONE).setText("Protocol:");
+			protocolCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+			protocolCombo.setItems("TCP", "UDP");
+			protocolCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			protocolCombo.select(mount.getProtocol() == Protocol.UDP ? 1 : 0);
 
 			new Label(container, SWT.NONE).setText("Remote Path:");
 			pathText = new Text(container, SWT.BORDER);
@@ -393,6 +419,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			mount.setName(name);
 			mount.setHost(host);
 			mount.setPort(port);
+			mount.setProtocol(protocolCombo.getSelectionIndex() == 1 ? Protocol.UDP : Protocol.TCP);
 			mount.setRemotePath(pathText.getText().trim());
 			mount.setUsername(usernameText.getText().trim());
 			mount.setAutomount(automountCheck.getSelection());

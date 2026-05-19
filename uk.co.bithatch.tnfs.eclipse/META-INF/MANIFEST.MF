@@ -8,7 +8,6 @@ Import-Package: org.eclipse.equinox.security.storage,
  uk.co.bithatch.tnfs.client.extensions,
  uk.co.bithatch.tnfs.lib,
  uk.co.bithatch.tnfs.lib.extensions,
- uk.co.bithatch.tnfs.nio,
  uk.co.bithatch.tnfs.server,
  uk.co.bithatch.tnfs.server.extensions,
  uk.co.bithatch.tnfs.server.handlers

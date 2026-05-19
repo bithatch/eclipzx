@@ -71,6 +71,7 @@ public class TNFSActivator extends AbstractUIPlugin {
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		TNFSMountManager.uninstallResourceListener();
+		TNFSEclipseFileStore.closeAll();
 		plugin = null;
 		super.stop(context);
 	}
