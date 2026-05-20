@@ -46,6 +46,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 	private List<TNFSClientMount> mounts;
 	private IProject project;
 	private final Set<String> pendingMounts = new HashSet<>();
+	private final Set<String> pendingUnmounts = new HashSet<>();
 
 	@Override
 	protected Control createContents(Composite parent) {
@@ -66,7 +67,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		var infoLabel = new Label(composite, SWT.WRAP);
 		infoLabel.setText("Mount remote TNFS servers as folders in this project. "
 				+ "Mounts appear under \"TNFS Mounts\" in the project. "
-				+ "Use Mount/Unmount to connect or disconnect immediately.");
+				+ "Use Mount/Unmount to mark entries, then Apply to execute.");
 		infoLabel.setLayoutData(swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false)
 				.span(2, 1).hint(400, SWT.DEFAULT).create());
 
@@ -84,7 +85,8 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			@Override
 			public String getText(Object element) {
 				var name = ((TNFSClientMount) element).getName();
-				if (pendingMounts.contains(name)) return "\u23F3";
+				if (pendingMounts.contains(name)) return "\u23F3\u2191"; // pending mount
+				if (pendingUnmounts.contains(name)) return "\u23F3\u2193"; // pending unmount
 				return TNFSMountManager.isMounted(project, (TNFSClientMount) element) ? "\u2713" : "";
 			}
 		});
@@ -222,26 +224,9 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
 				var selected = (TNFSClientMount) sel.getFirstElement();
-				TNFSMountManager.saveMounts(project, mounts);
+				pendingUnmounts.remove(selected.getName());
 				pendingMounts.add(selected.getName());
 				tableViewer.refresh();
-				var job = Job.create("Mounting TNFS: " + selected.getName(), monitor -> {
-					try {
-						TNFSMountManager.mount(project, selected);
-					} catch (CoreException ex) {
-						return Status.error("Failed to mount '" + selected.getName() + "'", ex);
-					} finally {
-						pendingMounts.remove(selected.getName());
-					}
-					if (tableViewer != null && !tableViewer.getControl().isDisposed()) {
-						tableViewer.getControl().getDisplay().asyncExec(() -> {
-							if (!tableViewer.getControl().isDisposed()) tableViewer.refresh();
-						});
-					}
-					return Status.OK_STATUS;
-				});
-				job.setUser(true);
-				job.schedule();
 			}
 		});
 
@@ -254,25 +239,9 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
 				var selected = (TNFSClientMount) sel.getFirstElement();
-				pendingMounts.add(selected.getName());
+				pendingMounts.remove(selected.getName());
+				pendingUnmounts.add(selected.getName());
 				tableViewer.refresh();
-				var job = Job.create("Unmounting TNFS: " + selected.getName(), monitor -> {
-					try {
-						TNFSMountManager.unmount(project, selected);
-					} catch (CoreException ex) {
-						return Status.error("Failed to unmount '" + selected.getName() + "'", ex);
-					} finally {
-						pendingMounts.remove(selected.getName());
-					}
-					if (tableViewer != null && !tableViewer.getControl().isDisposed()) {
-						tableViewer.getControl().getDisplay().asyncExec(() -> {
-							if (!tableViewer.getControl().isDisposed()) tableViewer.refresh();
-						});
-					}
-					return Status.OK_STATUS;
-				});
-				job.setUser(true);
-				job.schedule();
 			}
 		});
 
@@ -282,15 +251,23 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 	@Override
 	public boolean performOk() {
 		if (project != null) {
-			// Save config synchronously (fast), then mount automounts and refresh in background
+			// Save config synchronously (fast), then mount/unmount in background
 			TNFSMountManager.saveMounts(project, mounts);
 			var mountsCopy = List.copyOf(mounts);
+			var toMount = Set.copyOf(pendingMounts);
+			var toUnmount = Set.copyOf(pendingUnmounts);
+			pendingMounts.clear();
+			pendingUnmounts.clear();
 			var job = Job.create("Refreshing TNFS mounts", monitor -> {
 				try {
 					TNFSMountManager.refreshLinkedFolders(project, mountsCopy);
-					// Mount any automount entries that are not yet mounted
 					for (var m : mountsCopy) {
-						if (m.isAutomount() && !TNFSMountManager.isMounted(project, m)) {
+						if (toUnmount.contains(m.getName())) {
+							// Explicitly requested unmount
+							TNFSMountManager.unmount(project, m);
+						} else if (toMount.contains(m.getName()) || 
+								   (m.isAutomount() && !TNFSMountManager.isMounted(project, m))) {
+							// Explicitly requested mount, or automount entry not yet mounted
 							TNFSMountManager.mount(project, m);
 						}
 					}

@@ -31,6 +31,16 @@ public class TNFSMountManager {
 	private static final String SECURE_NODE = "uk.co.bithatch.tnfs.eclipse";
 
 	private static IResourceChangeListener resourceListener;
+	private static volatile boolean suppressResourceListener = false;
+
+	/**
+	 * Suppress or unsuppress the resource listener. Use this when
+	 * programmatically creating/deleting linked folders to prevent
+	 * the listener from modifying mount configurations.
+	 */
+	public static void setSuppressResourceListener(boolean suppress) {
+		suppressResourceListener = suppress;
+	}
 
 	/**
 	 * Get all configured mounts for a project.
@@ -95,18 +105,23 @@ public class TNFSMountManager {
 	public static void mount(IProject project, TNFSClientMount mount) throws CoreException {
 		var monitor = new NullProgressMonitor();
 		var mountsFolder = project.getFolder(MOUNTS_FOLDER);
-		if (!mountsFolder.exists()) {
-			mountsFolder.create(IFolder.VIRTUAL, true, monitor);
-		}
-		var linkedFolder = mountsFolder.getFolder(mount.getName());
-		var uri = mount.toURI();
-		if (linkedFolder.exists()) {
-			if (!uri.equals(linkedFolder.getLocationURI())) {
-				linkedFolder.delete(true, monitor);
+		setSuppressResourceListener(true);
+		try {
+			if (!mountsFolder.exists()) {
+				mountsFolder.create(IFolder.VIRTUAL, true, monitor);
+			}
+			var linkedFolder = mountsFolder.getFolder(mount.getName());
+			var uri = mount.toURI();
+			if (linkedFolder.exists()) {
+				if (!uri.equals(linkedFolder.getLocationURI())) {
+					linkedFolder.delete(true, monitor);
+					linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
+				}
+			} else {
 				linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
 			}
-		} else {
-			linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
+		} finally {
+			setSuppressResourceListener(false);
 		}
 	}
 
@@ -117,13 +132,18 @@ public class TNFSMountManager {
 		var monitor = new NullProgressMonitor();
 		var mountsFolder = project.getFolder(MOUNTS_FOLDER);
 		if (!mountsFolder.exists()) return;
-		var linkedFolder = mountsFolder.getFolder(mount.getName());
-		if (linkedFolder.exists()) {
-			linkedFolder.delete(true, monitor);
-		}
-		// Clean up empty mounts folder
-		if (mountsFolder.exists() && mountsFolder.members().length == 0) {
-			mountsFolder.delete(true, monitor);
+		setSuppressResourceListener(true);
+		try {
+			var linkedFolder = mountsFolder.getFolder(mount.getName());
+			if (linkedFolder.exists()) {
+				linkedFolder.delete(true, monitor);
+			}
+			// Clean up empty mounts folder
+			if (mountsFolder.exists() && mountsFolder.members().length == 0) {
+				mountsFolder.delete(true, monitor);
+			}
+		} finally {
+			setSuppressResourceListener(false);
 		}
 	}
 
@@ -187,29 +207,34 @@ public class TNFSMountManager {
 
 		if (!mountsFolder.exists()) return;
 
-		// Remove linked folders for mounts that no longer exist in config
-		var configNames = mounts.stream().map(TNFSClientMount::getName).toList();
-		for (var member : mountsFolder.members()) {
-			if (!configNames.contains(member.getName())) {
-				member.delete(true, monitor);
-			}
-		}
-
-		// Update URIs for mounted entries whose config changed
-		for (var m : mounts) {
-			var linkedFolder = mountsFolder.getFolder(m.getName());
-			if (linkedFolder.exists()) {
-				var uri = m.toURI();
-				if (!uri.equals(linkedFolder.getLocationURI())) {
-					linkedFolder.delete(true, monitor);
-					linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
+		setSuppressResourceListener(true);
+		try {
+			// Remove linked folders for mounts that no longer exist in config
+			var configNames = mounts.stream().map(TNFSClientMount::getName).toList();
+			for (var member : mountsFolder.members()) {
+				if (!configNames.contains(member.getName())) {
+					member.delete(true, monitor);
 				}
 			}
-		}
 
-		// Clean up empty mounts folder
-		if (mountsFolder.exists() && mountsFolder.members().length == 0) {
-			mountsFolder.delete(true, monitor);
+			// Update URIs for mounted entries whose config changed
+			for (var m : mounts) {
+				var linkedFolder = mountsFolder.getFolder(m.getName());
+				if (linkedFolder.exists()) {
+					var uri = m.toURI();
+					if (!uri.equals(linkedFolder.getLocationURI())) {
+						linkedFolder.delete(true, monitor);
+						linkedFolder.createLink(uri, IResource.BACKGROUND_REFRESH, monitor);
+					}
+				}
+			}
+
+			// Clean up empty mounts folder
+			if (mountsFolder.exists() && mountsFolder.members().length == 0) {
+				mountsFolder.delete(true, monitor);
+			}
+		} finally {
+			setSuppressResourceListener(false);
 		}
 	}
 
@@ -221,6 +246,7 @@ public class TNFSMountManager {
 	public static void installResourceListener() {
 		if (resourceListener != null) return;
 		resourceListener = event -> {
+			if (suppressResourceListener) return;
 			if (event.getType() != IResourceChangeEvent.POST_CHANGE) return;
 			var delta = event.getDelta();
 			if (delta == null) return;

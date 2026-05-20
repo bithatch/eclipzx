@@ -37,7 +37,7 @@ public class TNFSEclipseFileStore extends FileStore {
 
 	private final URI uri;
 
-	private record MountEntry(TNFSClient client, TNFSMount mount) implements AutoCloseable {
+	private record MountEntry(TNFSClient client, TNFSMount mount, String remotePath) implements AutoCloseable {
 		@Override
 		public void close() throws Exception {
 			try {
@@ -94,14 +94,14 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var mount = resolveMount();
-			var tnfsPath = resolvePath();
+			var entry = resolveMountEntry();
+			var tnfsPath = resolvePath(entry);
 			try {
 				var names = new ArrayList<String>();
-				try (var dir = mount.directory(tnfsPath)) {
-					dir.stream().forEach(entry -> {
-						if (!DirEntryFlag.isSpecial(entry.flags())) {
-							names.add(entry.name());
+				try (var dir = entry.mount().directory(tnfsPath)) {
+					dir.stream().forEach(e -> {
+						if (!DirEntryFlag.isSpecial(e.flags())) {
+							names.add(e.name());
 						}
 					});
 				}
@@ -118,10 +118,10 @@ public class TNFSEclipseFileStore extends FileStore {
 	public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
 		var info = new FileInfo(getName());
 		try {
-			var mount = resolveMount();
-			var tnfsPath = resolvePath();
+			var entry = resolveMountEntry();
+			var tnfsPath = resolvePath(entry);
 			try {
-				var stat = mount.stat(tnfsPath);
+				var stat = entry.mount().stat(tnfsPath);
 				info.setExists(true);
 				var modes = Arrays.asList(stat.mode());
 				info.setDirectory(modes.contains(ModeFlag.IFDIR));
@@ -129,11 +129,18 @@ public class TNFSEclipseFileStore extends FileStore {
 				if (stat.mtime() != null) {
 					info.setLastModified(stat.mtime().toMillis());
 				}
+				// Mark as writable unless the mode flags indicate no write permission
+				var readOnly = !modes.contains(ModeFlag.IWUSR) && !modes.contains(ModeFlag.IWGRP) && !modes.contains(ModeFlag.IWOTH);
+				info.setAttribute(EFS.ATTRIBUTE_READ_ONLY, readOnly);
 			} catch (java.nio.file.NoSuchFileException e) {
 				info.setExists(false);
 			}
 		} catch (IllegalArgumentException | IOException e) {
 			info.setExists(false);
+		}
+		// Ensure non-existent entries are not marked read-only (allows creation)
+		if (!info.exists()) {
+			info.setAttribute(EFS.ATTRIBUTE_READ_ONLY, false);
 		}
 		return info;
 	}
@@ -141,9 +148,9 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public InputStream openInputStream(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var mount = resolveMount();
-			var tnfsPath = resolvePath();
-			var channel = mount.open(tnfsPath, OpenFlag.READ);
+			var entry = resolveMountEntry();
+			var tnfsPath = resolvePath(entry);
+			var channel = entry.mount().open(tnfsPath, OpenFlag.READ);
 			return channelToInputStream(channel);
 		} catch (IOException e) {
 			throw new CoreException(Status.error("Failed to open TNFS file for reading: " + uri, e));
@@ -153,13 +160,13 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public OutputStream openOutputStream(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var mount = resolveMount();
-			var tnfsPath = resolvePath();
+			var entry = resolveMountEntry();
+			var tnfsPath = resolvePath(entry);
 			var append = (options & EFS.APPEND) != 0;
 			var flags = append
 					? new OpenFlag[] { OpenFlag.WRITE, OpenFlag.CREATE, OpenFlag.APPEND }
 					: new OpenFlag[] { OpenFlag.WRITE, OpenFlag.CREATE, OpenFlag.TRUNCATE };
-			var channel = mount.open(tnfsPath, ModeFlag.DEFAULT_WRITABLE_FLAGS, flags);
+			var channel = entry.mount().open(tnfsPath, ModeFlag.DEFAULT_WRITABLE_FLAGS, flags);
 			return channelToOutputStream(channel);
 		} catch (IOException e) {
 			throw new CoreException(Status.error("Failed to open TNFS file for writing: " + uri, e));
@@ -169,13 +176,12 @@ public class TNFSEclipseFileStore extends FileStore {
 	@Override
 	public IFileStore mkdir(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var mount = resolveMount();
-			var tnfsPath = resolvePath();
+			var entry = resolveMountEntry();
+			var tnfsPath = resolvePath(entry);
 			if ((options & EFS.SHALLOW) != 0) {
-				mount.mkdir(tnfsPath);
+				entry.mount().mkdir(tnfsPath);
 			} else {
-				// Create directories recursively
-				mkdirs(mount, tnfsPath);
+				mkdirs(entry.mount(), tnfsPath);
 			}
 			return this;
 		} catch (IOException e) {
@@ -184,16 +190,22 @@ public class TNFSEclipseFileStore extends FileStore {
 	}
 
 	@Override
+	public void putInfo(IFileInfo info, int options, IProgressMonitor monitor) throws CoreException {
+		// Accept putInfo calls silently — TNFS doesn't support setting timestamps/attributes
+		// but we must override to prevent the default "read only file system" error.
+	}
+
+	@Override
 	public void delete(int options, IProgressMonitor monitor) throws CoreException {
 		try {
-			var mount = resolveMount();
-			var tnfsPath = resolvePath();
+			var entry = resolveMountEntry();
+			var tnfsPath = resolvePath(entry);
 			try {
-				var stat = mount.stat(tnfsPath);
+				var stat = entry.mount().stat(tnfsPath);
 				if (Arrays.asList(stat.mode()).contains(ModeFlag.IFDIR)) {
-					mount.rmdir(tnfsPath);
+					entry.mount().rmdir(tnfsPath);
 				} else {
-					mount.unlink(tnfsPath);
+					entry.mount().unlink(tnfsPath);
 				}
 			} catch (java.nio.file.NoSuchFileException e) {
 				// Already gone, nothing to do
@@ -204,9 +216,11 @@ public class TNFSEclipseFileStore extends FileStore {
 	}
 
 	/**
-	 * Resolve this store's URI to a TNFSMount via the TNFS client API.
+	 * Resolve this store's URI to a MountEntry, finding an existing cached mount
+	 * whose remotePath is a prefix of this URI's path, or creating a new mount
+	 * using the full URI path as the remotePath.
 	 */
-	private TNFSMount resolveMount() throws IOException {
+	private MountEntry resolveMountEntry() throws IOException {
 		var protocol = Protocol.TCP;
 		var fragment = uri.getFragment();
 		if (fragment != null && !fragment.isEmpty()) {
@@ -216,9 +230,34 @@ public class TNFSEclipseFileStore extends FileStore {
 				// default to TCP
 			}
 		}
-		var authority = uri.getHost() + ":" + (uri.getPort() > 0 ? uri.getPort() : TNFS.DEFAULT_PORT) + ":" + protocol.name();
+		var authorityPrefix = uri.getHost() + ":" + (uri.getPort() > 0 ? uri.getPort() : TNFS.DEFAULT_PORT) + ":" + protocol.name();
+		var uriPath = uri.getPath();
+		if (uriPath == null || uriPath.isEmpty()) uriPath = "/";
+
+		// Search for an existing cached mount whose remotePath is a prefix of this URI's path
+		synchronized (MOUNT_CACHE) {
+			MountEntry best = null;
+			String bestPath = "";
+			for (var e : MOUNT_CACHE.entrySet()) {
+				if (e.getKey().startsWith(authorityPrefix + ":")) {
+					var rp = e.getValue().remotePath();
+					if (uriPath.equals(rp) || uriPath.startsWith(rp.endsWith("/") ? rp : rp + "/") || "/".equals(rp)) {
+						if (rp.length() > bestPath.length()) {
+							best = e.getValue();
+							bestPath = rp;
+						}
+					}
+				}
+			}
+			if (best != null) return best;
+		}
+
+		// No existing mount found — this is a root store, use the full URI path as remotePath
+		var remotePath = uriPath;
+		var cacheKey = authorityPrefix + ":" + remotePath;
 		var fProtocol = protocol;
-		var entry = MOUNT_CACHE.computeIfAbsent(authority, k -> {
+		var fRemotePath = remotePath;
+		return MOUNT_CACHE.computeIfAbsent(cacheKey, k -> {
 			try {
 				var bldr = new TNFSClient.Builder()
 						.withHostname(uri.getHost())
@@ -228,25 +267,29 @@ public class TNFSEclipseFileStore extends FileStore {
 				}
 				var client = bldr.build();
 
-				var mountBldr = client.mount("/");
+				var mountBldr = client.mount(fRemotePath);
 				if (uri.getUserInfo() != null && !uri.getUserInfo().isEmpty()) {
 					mountBldr.withUsername(uri.getUserInfo());
 				}
 				var mount = mountBldr.build();
-				return new MountEntry(client, mount);
+				return new MountEntry(client, mount, fRemotePath);
 			} catch (IOException e) {
-				throw new RuntimeException("Failed to create TNFS mount for " + authority, e);
+				throw new RuntimeException("Failed to create TNFS mount for " + cacheKey, e);
 			}
 		});
-		return entry.mount();
 	}
 
 	/**
-	 * Get the TNFS path from the URI.
+	 * Get the TNFS path relative to the mount's remotePath.
 	 */
-	private String resolvePath() {
+	private String resolvePath(MountEntry entry) {
 		var path = uri.getPath();
 		if (path == null || path.isEmpty()) return "/";
+		var remotePath = entry.remotePath();
+		if (remotePath != null && !"/".equals(remotePath) && path.startsWith(remotePath)) {
+			path = path.substring(remotePath.length());
+			if (path.isEmpty() || !path.startsWith("/")) path = "/" + path;
+		}
 		return path;
 	}
 
@@ -270,7 +313,7 @@ public class TNFSEclipseFileStore extends FileStore {
 
 	private URI withPath(String newPath) {
 		try {
-			return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), newPath, null, null);
+			return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), newPath, null, uri.getFragment());
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
