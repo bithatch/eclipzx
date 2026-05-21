@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.36"?>
+<plugin>
+
+   <!-- Property page for image files -->
+   <extension point="org.eclipse.ui.propertyPages">
+      <page
+            id="uk.co.bithatch.zximgconv.propertyPage"
+            name="ZX Image Conversion"
+            class="uk.co.bithatch.zximgconv.ZXImageConversionPropertyPage">
+         <enabledWhen>
+            <adapt type="org.eclipse.core.resources.IFile">
+               <or>
+                  <test property="org.eclipse.core.resources.extension" value="png" />
+                  <test property="org.eclipse.core.resources.extension" value="gif" />
+                  <test property="org.eclipse.core.resources.extension" value="jpg" />
+                  <test property="org.eclipse.core.resources.extension" value="jpeg" />
+                  <test property="org.eclipse.core.resources.extension" value="bmp" />
+                  <test property="org.eclipse.core.resources.extension" value="tiff" />
+                  <test property="org.eclipse.core.resources.extension" value="tif" />
+                  <test property="org.eclipse.core.resources.extension" value="webp" />
+               </or>
+            </adapt>
+         </enabledWhen>
+      </page>
+   </extension>
+
+   <!-- Custom builder -->
+   <extension
+         id="builder"
+         name="ZX Image Conversion Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true">
+         <run class="uk.co.bithatch.zximgconv.ZXImageConversionBuilder"/>
+      </builder>
+   </extension>
+
+   <!-- Project nature -->
+   <extension
+         id="nature"
+         name="ZX Image Conversion Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run class="uk.co.bithatch.zximgconv.ZXImageConversionNature"/>
+      </runtime>
+      <builder id="uk.co.bithatch.zximgconv.builder"/>
+   </extension>
+
+   <!-- Property tester for nature presence -->
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            id="uk.co.bithatch.zximgconv.naturePropertyTester"
+            class="uk.co.bithatch.zximgconv.NaturePropertyTester"
+            namespace="uk.co.bithatch.zximgconv"
+            properties="hasNature"
+            type="org.eclipse.core.resources.IProject"/>
+   </extension>
+
+   <!-- Enable / Disable commands -->
+   <extension point="org.eclipse.ui.commands">
+      <command
+            id="uk.co.bithatch.zximgconv.enableNature"
+            name="Enable ZX Image Conversion"/>
+      <command
+            id="uk.co.bithatch.zximgconv.disableNature"
+            name="Disable ZX Image Conversion"/>
+   </extension>
+
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            class="uk.co.bithatch.zximgconv.EnableNatureHandler"
+            commandId="uk.co.bithatch.zximgconv.enableNature"/>
+      <handler
+            class="uk.co.bithatch.zximgconv.DisableNatureHandler"
+            commandId="uk.co.bithatch.zximgconv.disableNature"/>
+   </extension>
+
+   <!-- Add to project Configure menu -->
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+         <command
+               commandId="uk.co.bithatch.zximgconv.enableNature"
+               label="Enable ZX Image Conversion"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <not>
+                           <test property="uk.co.bithatch.zximgconv.hasNature"/>
+                        </not>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+         <command
+               commandId="uk.co.bithatch.zximgconv.disableNature"
+               label="Disable ZX Image Conversion"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <test property="uk.co.bithatch.zximgconv.hasNature"/>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+
+   <!-- Early startup to install the nature auto-add listener -->
+   <extension point="org.eclipse.ui.startup">
+      <startup class="uk.co.bithatch.zximgconv.EarlyStartup"/>
+   </extension>
+
+</plugin>

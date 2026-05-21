@@ -14,12 +14,12 @@ public abstract class AbstractPreparationTarget implements IPreparationTarget {
 	protected List<FileItem> flatten(FileSet fileSet) {
 		var fls = Arrays.asList(fileSet.files());
 		if(fileSet.flatten()) {
-			return fls;
-		}
-		else {
 			var l = new ArrayList<FileItem>();
 			fls.forEach(f -> flatten(l, f));
 			return l;
+		}
+		else {
+			return fls;
 		}
 	}
 
