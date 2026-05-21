@@ -16,7 +16,6 @@ Export-Package:
  uk.co.bithatch.fatexplorer.util,
  uk.co.bithatch.fatexplorer.variables,
  uk.co.bithatch.fatexplorer.vfs;uses:="org.eclipse.core.filesystem.provider,org.eclipse.core.runtime,org.eclipse.core.filesystem",
- uk.co.bithatch.fatexplorer.views;uses:="org.eclipse.swt.widgets,org.eclipse.ui.part",
  uk.co.bithatch.fatexplorer.wizards
 Import-Package: de.waldheinz.fs,
  de.waldheinz.fs.fat,

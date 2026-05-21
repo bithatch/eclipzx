@@ -6,6 +6,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 import uk.co.bithatch.fatexplorer.Activator;
+import uk.co.bithatch.fatexplorer.FATDiskImageMount;
+import uk.co.bithatch.fatexplorer.preferences.FATLock;
 
 public class DiskImageFilesLabelProvider extends LabelProvider {
     private final WorkbenchLabelProvider delegate = new WorkbenchLabelProvider();
@@ -14,6 +16,9 @@ public class DiskImageFilesLabelProvider extends LabelProvider {
     public Image getImage(Object element) {
         if (element instanceof IFile ifile && ifile.getFileExtension() != null) {
         	if(ifile.getFileExtension().equalsIgnoreCase("img")) {
+        		if (isLocked(ifile)) {
+        			return Activator.getDefault().getImageRegistry().get(Activator.NO_ENTRY_PATH);
+        		}
                 return Activator.getDefault().getImageRegistry().get(Activator.DISK_IMAGE_PATH);
         	}
         }
@@ -29,5 +34,17 @@ public class DiskImageFilesLabelProvider extends LabelProvider {
     public void dispose() {
         delegate.dispose();
         super.dispose();
+    }
+
+    private boolean isLocked(IFile ifile) {
+    	try {
+    		var project = ifile.getProject();
+    		var path = ifile.getProjectRelativePath().toPortableString();
+    		var mount = new FATDiskImageMount(ifile.getName(), path, false);
+    		var uri = mount.toURI(project);
+    		return FATLock.isImageLocked(uri);
+    	} catch (Exception e) {
+    		return false;
+    	}
     }
 }

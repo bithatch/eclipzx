@@ -1,4 +1,4 @@
-package uk.co.bithatch.tnfs.eclipse;
+package uk.co.bithatch.fatexplorer;
 
 import static org.eclipse.jface.layout.GridDataFactory.swtDefaults;
 
@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -20,30 +21,32 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.PropertyPage;
-
-import uk.co.bithatch.tnfs.lib.Protocol;
+import org.eclipse.ui.model.WorkbenchContentProvider;
+import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 /**
- * Property page for managing TNFS client mounts on a project.
+ * Property page for managing FAT disk image mounts on a project.
  * Shows only for IProject resources.
  */
-public class TNFSMountPropertiesPage extends PropertyPage {
+public class FATDiskImagePropertiesPage extends PropertyPage {
 
 	private TableViewer tableViewer;
-	private List<TNFSClientMount> mounts;
+	private List<FATDiskImageMount> mounts;
 	private IProject project;
 	private final Set<String> pendingMounts = new HashSet<>();
 
@@ -52,20 +55,20 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		var resource = (IResource) getElement().getAdapter(IResource.class);
 		if (!(resource instanceof IProject)) {
 			var label = new Label(parent, SWT.WRAP);
-			label.setText("TNFS client mounts are only available for projects.");
+			label.setText("FAT disk image mounts are only available for projects.");
 			return label;
 		}
 
 		project = (IProject) resource;
-		mounts = new ArrayList<>(TNFSMountManager.getMounts(project));
+		mounts = new ArrayList<>(FATDiskImageManager.getMounts(project));
 
 		var composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(2, false));
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		var infoLabel = new Label(composite, SWT.WRAP);
-		infoLabel.setText("Mount remote TNFS servers as folders in this project. "
-				+ "Mounts appear under \"TNFS Mounts\" in the project. "
+		infoLabel.setText("Mount FAT16/FAT32 disk images as folders in this project. "
+				+ "Mounts appear under \"FAT Disk Images\" in the project explorer. "
 				+ "Use Mount/Unmount to connect or disconnect immediately.");
 		infoLabel.setLayoutData(swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false)
 				.span(2, 1).hint(400, SWT.DEFAULT).create());
@@ -83,50 +86,29 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		mountedCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				var name = ((TNFSClientMount) element).getName();
+				var name = ((FATDiskImageMount) element).getName();
 				if (pendingMounts.contains(name)) return "\u23F3";
-				return TNFSMountManager.isMounted(project, (TNFSClientMount) element) ? "\u2713" : "";
+				return FATDiskImageManager.isMounted(project, (FATDiskImageMount) element) ? "\u2713" : "";
 			}
 		});
 
 		var nameCol = new TableViewerColumn(tableViewer, SWT.NONE);
 		nameCol.getColumn().setText("Name");
-		nameCol.getColumn().setWidth(100);
+		nameCol.getColumn().setWidth(120);
 		nameCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((TNFSClientMount) element).getName();
-			}
-		});
-
-		var hostCol = new TableViewerColumn(tableViewer, SWT.NONE);
-		hostCol.getColumn().setText("Host");
-		hostCol.getColumn().setWidth(120);
-		hostCol.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				var m = (TNFSClientMount) element;
-				return m.getHost() + ":" + m.getPort();
-			}
-		});
-
-		var protoCol = new TableViewerColumn(tableViewer, SWT.NONE);
-		protoCol.getColumn().setText("Protocol");
-		protoCol.getColumn().setWidth(65);
-		protoCol.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				return ((TNFSClientMount) element).getProtocol().name();
+				return ((FATDiskImageMount) element).getName();
 			}
 		});
 
 		var pathCol = new TableViewerColumn(tableViewer, SWT.NONE);
-		pathCol.getColumn().setText("Remote Path");
-		pathCol.getColumn().setWidth(100);
+		pathCol.getColumn().setText("Image Path");
+		pathCol.getColumn().setWidth(250);
 		pathCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((TNFSClientMount) element).getRemotePath();
+				return ((FATDiskImageMount) element).getImagePath();
 			}
 		});
 
@@ -136,7 +118,7 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		autoCol.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((TNFSClientMount) element).isAutomount() ? "\u2713" : "";
+				return ((FATDiskImageMount) element).isAutomount() ? "\u2713" : "";
 			}
 		});
 
@@ -150,13 +132,9 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 		addButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				var dlg = new MountDialog(getShell(), null);
+				var dlg = new DiskImageDialog(getShell(), project, null);
 				if (dlg.open() == IDialogConstants.OK_ID) {
-					var m = dlg.getMount();
-					mounts.add(m);
-					if (dlg.getPassword() != null && !dlg.getPassword().isEmpty()) {
-						TNFSMountManager.setPassword(m, dlg.getPassword());
-					}
+					mounts.add(dlg.getMount());
 					tableViewer.refresh();
 				}
 			}
@@ -170,14 +148,11 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSClientMount) sel.getFirstElement();
-				var dlg = new MountDialog(getShell(), selected);
+				var selected = (FATDiskImageMount) sel.getFirstElement();
+				var dlg = new DiskImageDialog(getShell(), project, selected);
 				if (dlg.open() == IDialogConstants.OK_ID) {
 					var idx = mounts.indexOf(selected);
 					mounts.set(idx, dlg.getMount());
-					if (dlg.getPassword() != null) {
-						TNFSMountManager.setPassword(dlg.getMount(), dlg.getPassword());
-					}
 					tableViewer.refresh();
 				}
 			}
@@ -191,15 +166,13 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSClientMount) sel.getFirstElement();
-				TNFSMountManager.setPassword(selected, null);
+				var selected = (FATDiskImageMount) sel.getFirstElement();
 				mounts.remove(selected);
-				TNFSMountManager.saveMounts(project, mounts);
+				FATDiskImageManager.saveMounts(project, mounts);
 				tableViewer.refresh();
-				// Unmount in background
-				var job = Job.create("Unmounting TNFS: " + selected.getName(), monitor -> {
+				var job = Job.create("Unmounting disk image: " + selected.getName(), monitor -> {
 					try {
-						TNFSMountManager.unmount(project, selected);
+						FATDiskImageManager.unmount(project, selected);
 					} catch (CoreException ex) {
 						return Status.error("Failed to unmount '" + selected.getName() + "'", ex);
 					}
@@ -221,13 +194,13 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSClientMount) sel.getFirstElement();
-				TNFSMountManager.saveMounts(project, mounts);
+				var selected = (FATDiskImageMount) sel.getFirstElement();
+				FATDiskImageManager.saveMounts(project, mounts);
 				pendingMounts.add(selected.getName());
 				tableViewer.refresh();
-				var job = Job.create("Mounting TNFS: " + selected.getName(), monitor -> {
+				var job = Job.create("Mounting disk image: " + selected.getName(), monitor -> {
 					try {
-						TNFSMountManager.mount(project, selected);
+						FATDiskImageManager.mount(project, selected);
 					} catch (CoreException ex) {
 						return Status.error("Failed to mount '" + selected.getName() + "'", ex);
 					} finally {
@@ -253,12 +226,12 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				var sel = (IStructuredSelection) tableViewer.getSelection();
 				if (sel.isEmpty()) return;
-				var selected = (TNFSClientMount) sel.getFirstElement();
+				var selected = (FATDiskImageMount) sel.getFirstElement();
 				pendingMounts.add(selected.getName());
 				tableViewer.refresh();
-				var job = Job.create("Unmounting TNFS: " + selected.getName(), monitor -> {
+				var job = Job.create("Unmounting disk image: " + selected.getName(), monitor -> {
 					try {
-						TNFSMountManager.unmount(project, selected);
+						FATDiskImageManager.unmount(project, selected);
 					} catch (CoreException ex) {
 						return Status.error("Failed to unmount '" + selected.getName() + "'", ex);
 					} finally {
@@ -282,14 +255,18 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 	@Override
 	public boolean performOk() {
 		if (project != null) {
-			// Save config synchronously (fast), then mount/unmount in background
-			TNFSMountManager.saveMounts(project, mounts);
+			FATDiskImageManager.saveMounts(project, mounts);
 			var mountsCopy = List.copyOf(mounts);
-			var job = Job.create("Refreshing TNFS mounts", monitor -> {
+			var job = Job.create("Refreshing FAT disk image mounts", monitor -> {
 				try {
-					TNFSMountManager.refreshLinkedFolders(project, mountsCopy);
+					FATDiskImageManager.refreshLinkedFolders(project, mountsCopy);
+					for (var m : mountsCopy) {
+						if (m.isAutomount() && !FATDiskImageManager.isMounted(project, m)) {
+							FATDiskImageManager.mount(project, m);
+						}
+					}
 				} catch (CoreException e) {
-					return Status.error("Failed to refresh TNFS linked folders", e);
+					return Status.error("Failed to refresh FAT disk image linked folders", e);
 				}
 				return Status.OK_STATUS;
 			});
@@ -309,125 +286,131 @@ public class TNFSMountPropertiesPage extends PropertyPage {
 	}
 
 	/**
-	 * Dialog for adding/editing a TNFS mount.
+	 * Dialog for adding/editing a FAT disk image mount.
 	 */
-	private static class MountDialog extends TitleAreaDialog {
+	private static class DiskImageDialog extends TitleAreaDialog {
 
-		private TNFSClientMount mount;
-		private String password;
-
+		private FATDiskImageMount mount;
+		private final IProject project;
 		private Text nameText;
-		private Text hostText;
-		private Text portText;
 		private Text pathText;
-		private Text usernameText;
-		private Text passwordText;
 		private Button automountCheck;
-		private Combo protocolCombo;
 
-		public MountDialog(Shell parentShell, TNFSClientMount existing) {
+		public DiskImageDialog(Shell parentShell, IProject project, FATDiskImageMount existing) {
 			super(parentShell);
+			this.project = project;
 			this.mount = existing != null
-					? new TNFSClientMount(existing.getName(), existing.getHost(), existing.getPort(),
-							existing.getRemotePath(), existing.getUsername(), existing.isAutomount(), existing.getProtocol())
-					: new TNFSClientMount();
+					? new FATDiskImageMount(existing.getName(), existing.getImagePath(), existing.isAutomount())
+					: new FATDiskImageMount();
 		}
 
 		@Override
 		protected void configureShell(Shell newShell) {
 			super.configureShell(newShell);
-			newShell.setText("TNFS Mount");
+			newShell.setText("FAT Disk Image");
 		}
 
 		@Override
 		protected Control createDialogArea(Composite parent) {
-			setTitle("TNFS Mount Configuration");
-			setMessage("Enter the TNFS server details for this mount.");
+			setTitle("FAT Disk Image Configuration");
+			setMessage("Enter a name and select the disk image file.\n"
+					+ "Project-relative paths (e.g. Debug/test.img) or absolute paths are supported.");
 
 			var area = (Composite) super.createDialogArea(parent);
 			var container = new Composite(area, SWT.NONE);
 			container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-			container.setLayout(new GridLayout(2, false));
+			container.setLayout(new GridLayout(4, false));
 
 			new Label(container, SWT.NONE).setText("Name:");
 			nameText = new Text(container, SWT.BORDER);
-			nameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			nameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 			nameText.setText(mount.getName());
 
-			new Label(container, SWT.NONE).setText("Host:");
-			hostText = new Text(container, SWT.BORDER);
-			hostText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			hostText.setText(mount.getHost());
-
-			new Label(container, SWT.NONE).setText("Port:");
-			portText = new Text(container, SWT.BORDER);
-			portText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			portText.setText(String.valueOf(mount.getPort()));
-
-			new Label(container, SWT.NONE).setText("Protocol:");
-			protocolCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-			protocolCombo.setItems("TCP", "UDP");
-			protocolCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			protocolCombo.select(mount.getProtocol() == Protocol.UDP ? 1 : 0);
-
-			new Label(container, SWT.NONE).setText("Remote Path:");
+			new Label(container, SWT.NONE).setText("Image Path:");
 			pathText = new Text(container, SWT.BORDER);
 			pathText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			pathText.setText(mount.getRemotePath());
+			pathText.setText(mount.getImagePath());
 
-			new Label(container, SWT.NONE).setText("Username:");
-			usernameText = new Text(container, SWT.BORDER);
-			usernameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			usernameText.setText(mount.getUsername());
+			var browseProjectButton = new Button(container, SWT.PUSH);
+			browseProjectButton.setText("Project...");
+			browseProjectButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					var dlg = new ElementTreeSelectionDialog(
+							getShell(),
+							new WorkbenchLabelProvider(),
+							new WorkbenchContentProvider());
+					dlg.setTitle("Select Disk Image");
+					dlg.setMessage("Select a disk image file from the project.");
+					dlg.setInput(project);
+					dlg.setAllowMultiple(false);
+					if (dlg.open() == Window.OK) {
+						var result = dlg.getFirstResult();
+						if (result instanceof IFile ifile) {
+							var projRelPath = ifile.getProjectRelativePath().toPortableString();
+							pathText.setText(projRelPath);
+							autoFillName(projRelPath);
+						} else if (result instanceof IResource res) {
+							var projRelPath = res.getProjectRelativePath().toPortableString();
+							pathText.setText(projRelPath);
+							autoFillName(projRelPath);
+						}
+					}
+				}
+			});
 
-			new Label(container, SWT.NONE).setText("Password:");
-			passwordText = new Text(container, SWT.BORDER | SWT.PASSWORD);
-			passwordText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			// Don't pre-fill password for security
+			var browseExternalButton = new Button(container, SWT.PUSH);
+			browseExternalButton.setText("External...");
+			browseExternalButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					var dlg = new FileDialog(getShell(), SWT.OPEN);
+					dlg.setFilterExtensions(new String[] { "*.img", "*.*" });
+					dlg.setFilterNames(new String[] { "Disk Images (*.img)", "All Files (*.*)" });
+					var result = dlg.open();
+					if (result != null) {
+						pathText.setText(result);
+						autoFillName(result);
+					}
+				}
+			});
 
 			new Label(container, SWT.NONE); // spacer
 			automountCheck = new Button(container, SWT.CHECK);
 			automountCheck.setText("Automount when project opens");
 			automountCheck.setSelection(mount.isAutomount());
-			automountCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			automountCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 
 			return area;
+		}
+
+		private void autoFillName(String path) {
+			if (nameText.getText().isBlank()) {
+				var fname = path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
+				if (fname.contains("\\")) fname = fname.substring(fname.lastIndexOf('\\') + 1);
+				var dot = fname.lastIndexOf('.');
+				nameText.setText(dot > 0 ? fname.substring(0, dot) : fname);
+			}
 		}
 
 		@Override
 		protected void okPressed() {
 			var name = nameText.getText().trim();
-			var host = hostText.getText().trim();
-			if (name.isEmpty() || host.isEmpty()) {
-				setErrorMessage("Name and Host are required.");
-				return;
-			}
-			int port;
-			try {
-				port = Integer.parseInt(portText.getText().trim());
-			} catch (NumberFormatException e) {
-				setErrorMessage("Port must be a valid number.");
+			var path = pathText.getText().trim();
+			if (name.isEmpty() || path.isEmpty()) {
+				setErrorMessage("Name and Image Path are required.");
 				return;
 			}
 
 			mount.setName(name);
-			mount.setHost(host);
-			mount.setPort(port);
-			mount.setProtocol(protocolCombo.getSelectionIndex() == 1 ? Protocol.UDP : Protocol.TCP);
-			mount.setRemotePath(pathText.getText().trim());
-			mount.setUsername(usernameText.getText().trim());
+			mount.setImagePath(path);
 			mount.setAutomount(automountCheck.getSelection());
-			password = passwordText.getText();
 
 			super.okPressed();
 		}
 
-		public TNFSClientMount getMount() {
+		public FATDiskImageMount getMount() {
 			return mount;
-		}
-
-		public String getPassword() {
-			return password;
 		}
 	}
 }

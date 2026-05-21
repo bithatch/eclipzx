@@ -11,7 +11,8 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
 import uk.co.bithatch.fatexplorer.Activator;
-import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
+import uk.co.bithatch.fatexplorer.FATDiskImageManager;
+import uk.co.bithatch.fatexplorer.FATDiskImageMount;
 import uk.co.bithatch.zyxy.lib.MemoryUnit;
 import uk.co.bithatch.zyxy.mmc.SDCard;
 
@@ -75,7 +76,16 @@ public class NewDiskImageWizard extends Wizard implements INewWizard {
 					file.getParent().refreshLocal(IResource.DEPTH_ZERO, monitor);
 					
 					if(addToExplorer) {
-						FATPreferencesAccess.addImagePath(file.getFullPath().toString().substring(1));
+						var project = file.getProject();
+						var imgPath = file.getProjectRelativePath().toPortableString();
+						var fname = file.getName();
+						var dot = fname.lastIndexOf('.');
+						var mountName = dot > 0 ? fname.substring(0, dot) : fname;
+						var mount = new FATDiskImageMount(mountName, imgPath, true);
+						var mounts = FATDiskImageManager.getMounts(project);
+						mounts.add(mount);
+						FATDiskImageManager.saveMounts(project, mounts);
+						FATDiskImageManager.mount(project, mount);
 					}
 					
 					return Status.OK_STATUS;

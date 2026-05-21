@@ -24,8 +24,9 @@ import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.URIS;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
+import uk.co.bithatch.fatexplorer.FATDiskImageManager;
+import uk.co.bithatch.fatexplorer.FATDiskImageMount;
 import uk.co.bithatch.fatexplorer.preferences.FATLock;
-import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
 import uk.co.bithatch.zyxy.lib.MemoryUnit;
 import uk.co.bithatch.zyxy.mmc.SDCard;
@@ -104,14 +105,24 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 		var sizeMb = 64;
 		var type = FatType.FAT16;
 
-		var apath = outf.getFullPath().toString().substring(1);
-		var diskImageUri = FATPreferencesAccess.encodeToURI(apath);
+		// Use project-relative path for the mount (e.g. "Debug/test.img")
+		var projectRelPath = outf.getProjectRelativePath().toPortableString();
+		var mount = new FATDiskImageMount(outfilename, projectRelPath, true);
+		var diskImageUri = mount.toURI(pprj);
 		uri = FATLock.lockImage(diskImageUri);
 		
 		try {
 			checkForImage(configuration, imgfile, sizeMb, type);
 		
-			FATPreferencesAccess.addImagePath(apath);
+			// Ensure mount is registered per-project and linked folder created.
+			// Pass the keyed (locked) URI so that createLink's internal call to
+			// EFS.getStore() includes the lock key and isn't rejected.
+			var mounts = FATDiskImageManager.getMounts(pprj);
+			if (mounts.stream().noneMatch(m -> m.getImagePath().equals(projectRelPath))) {
+				mounts.add(mount);
+				FATDiskImageManager.saveMounts(pprj, mounts);
+				FATDiskImageManager.mount(pprj, mount, uri);
+			}
 			
 			FATImageContext.set(FATImageContext.DEFAULT, "/" + pprj.getName());
 			FATImageContext.set(FATImageContext.IMAGE, imgFullPath);

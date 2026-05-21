@@ -15,9 +15,13 @@ import org.eclipse.core.variables.VariablesPlugin;
 import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
+import uk.co.bithatch.fatexplorer.FATDiskImageMount;
 import uk.co.bithatch.fatexplorer.preferences.FATLock;
 import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
 import uk.co.bithatch.fatexplorer.variables.FATImageContext;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 
 public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget {
 
@@ -30,8 +34,10 @@ public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget
 		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
 		var configuration = prepCtx.launchConfiguration();
 
-		FATImageContext.set(FATImageContext.DEFAULT,
-				"/" + configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, "eclipzx"));
+		var projectName = configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, "eclipzx");
+		var project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+
+		FATImageContext.set(FATImageContext.DEFAULT, "/" + projectName);
 		FATImageContext.set(FATImageContext.IMAGE,
 				configuration.getAttribute(ConfiguredFATPreparationTargetUI.FAT_IMAGE_PATH, ""));
 		FATImageContext.set(FATImageContext.IMAGE_NAME, "");
@@ -44,7 +50,9 @@ public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget
 				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_CLEAR_BEFORE_USE, false);
 
 		var path = FATImageContext.get(FATImageContext.IMAGE, "");
-		var diskImageUri = FATPreferencesAccess.getImageForPath(path);
+		// Build the URI using project context for project-relative paths
+		var mount = new FATDiskImageMount("configured", path, false);
+		var diskImageUri = mount.toURI(project);
 
 		var lockedDiskImageUri = FATLock.lockImage(diskImageUri);
 		destUri = FATPreferencesAccess.resolve(lockedDiskImageUri, FATImageContext.get(FATImageContext.FOLDER, ""));

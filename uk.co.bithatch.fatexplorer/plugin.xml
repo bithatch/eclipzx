@@ -11,29 +11,13 @@
          </run>
       </filesystem>
    </extension>
-    <extension point="org.eclipse.ui.preferencePages">
-        <page
-            class="uk.co.bithatch.fatexplorer.preferences.DiskImagesPreferencePage"
-            id="uk.co.bithatch.fatexplorer.preferences.diskImagesPreferences"
-            name="Disk Images">
-            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_DiskImages"/>
+
+    <extension point="org.eclipse.ui.propertyPages">
+        <page id="uk.co.bithatch.fatexplorer.diskImageMountsPropertyPage"
+            name="FAT Disk Images"
+            class="uk.co.bithatch.fatexplorer.FATDiskImagePropertiesPage"
+            objectClass="org.eclipse.core.resources.IProject">
         </page>
-    </extension>
-    <extension
-        point="org.eclipse.ui.keywords">
-        <keyword
-            id="uk.co.bithatch.zxbasic.ui.keyword_DiskImages"
-            label="Disk Images"/>
-    </extension>
-    
-    <extension point="org.eclipse.ui.views">
-        <view
-              class="uk.co.bithatch.fatexplorer.views.FATExplorerView"
-              icon="icons/diskImage16.png"
-              id="uk.co.bithatch.fatexplorer.views.fatExplorerView"
-              inject="true"
-              name="FAT16 / FAT32 Explorer">
-        </view>
     </extension>
     
     
@@ -170,4 +154,18 @@
     </extension>
     
     
+    <extension point="org.eclipse.ui.decorators">
+        <decorator
+            id="uk.co.bithatch.fatexplorer.diskImageFolderDecorator"
+            label="FAT Disk Image Lock Status"
+            lightweight="true"
+            adaptable="true"
+            state="true"
+            class="uk.co.bithatch.fatexplorer.navigator.DiskImageFolderDecorator">
+            <enablement>
+                <objectClass name="org.eclipse.core.resources.IFolder"/>
+            </enablement>
+        </decorator>
+    </extension>
+
 </plugin>

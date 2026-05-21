@@ -2,6 +2,8 @@ package uk.co.bithatch.eclipzx.ui.glue;
 
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.eclipse.core.runtime.CoreException;
@@ -10,17 +12,15 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import uk.co.bithatch.emuzx.ui.ILaunchPreparationUI;
 import uk.co.bithatch.emuzx.ui.IPreparationTargetUI;
-import uk.co.bithatch.fatexplorer.preferences.FATPreferencesAccess;
+import uk.co.bithatch.fatexplorer.FATDiskImageManager;
+import uk.co.bithatch.fatexplorer.FATDiskImageMount;
 
 public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 
@@ -28,23 +28,24 @@ public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 	
 	private Combo diskImage;
 	private boolean available;
-	private Button manage;
 	private Label diskImageLabel;
 	private Label info;
+	private ILaunchPreparationUI prepUi;
+	private List<String> currentImagePaths = new ArrayList<>();
 
 	@Override
 	public void createControls(Composite parent, Runnable onUpdate) {
 		
 		var grid = new Composite(parent, SWT.NONE);
-		var layout = new GridLayout(3, false);
+		var layout = new GridLayout(2, false);
 		layout.horizontalSpacing = 24;
 		layout.verticalSpacing = 8;
 		grid.setLayout(layout);
         
         info = new Label(grid, SWT.NONE);
         info.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
-        info.setLayoutData(GridDataFactory.fillDefaults().span(3, 1).create());
-        info.setText("The full image path is available as the ${fat_image} variable for use in emulator arguments.");
+        info.setLayoutData(GridDataFactory.fillDefaults().span(2, 1).create());
+        info.setText("The full image path is available as the ${fat_image} variable for use in emulator arguments.\nManage disk images in the project properties under \"FAT Disk Images\".");
 
         diskImageLabel = new Label(grid, SWT.NONE);
         diskImageLabel.setLayoutData(GridDataFactory.swtDefaults().create());
@@ -54,42 +55,36 @@ public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
         diskImage.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
         rebuildItems();
         
-        manage = new Button(grid, SWT.PUSH);
-        manage.setText("Manage");
-        manage.setLayoutData(GridDataFactory.fillDefaults().create());
-        manage.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-        	var dialog = PreferencesUtil.createPreferenceDialogOn(
-        		    parent.getShell(),
-        		    "uk.co.bithatch.fatexplorer.preferences.diskImagesPreferences",
-        		    null,
-        		    null
-        		);
-			if (dialog != null) {
-				dialog.open();
-				rebuildItems();
-			}
-        }));
-        
         updateState();
 	}
 
 	protected void rebuildItems() {
-		diskImage.setItems(FATPreferencesAccess.getURIs().toArray(new String[0]));
+		currentImagePaths.clear();
+		if (prepUi != null) {
+			var project = prepUi.resolveProject();
+			if (project != null && project.isOpen()) {
+				var mounts = FATDiskImageManager.getMounts(project);
+				for (var m : mounts) {
+					currentImagePaths.add(m.getImagePath());
+				}
+			}
+		}
+		diskImage.setItems(currentImagePaths.toArray(new String[0]));
 	}
 
 	@Override
 	public void initializeFrom(ILaunchConfiguration config) throws CoreException {
-		var uri = config.getAttribute(FAT_IMAGE_PATH, "");
-		var uris = FATPreferencesAccess.getURIs();
-		var idx = uris.indexOf(uri);
-		if(uris.size() > 0)
+		rebuildItems();
+		var path = config.getAttribute(FAT_IMAGE_PATH, "");
+		var idx = currentImagePaths.indexOf(path);
+		if(currentImagePaths.size() > 0)
 			diskImage.select(idx == -1 ? 0 : idx);
 	}
 
 	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy config) {
-		config.setAttribute(FAT_IMAGE_PATH, diskImage.getItem(diskImage.getSelectionIndex()));
-		
+		if (diskImage.getSelectionIndex() >= 0)
+			config.setAttribute(FAT_IMAGE_PATH, diskImage.getItem(diskImage.getSelectionIndex()));
 	}
 
 	@Override
@@ -111,11 +106,12 @@ public class ConfiguredFATPreparationTargetUI implements IPreparationTargetUI {
 
 	@Override
 	public void init(ILaunchPreparationUI prepUi) {
+		this.prepUi = prepUi;
+		rebuildItems();
 	}
 	
 	private void updateState() {
 		diskImage.setEnabled(available);
-		manage.setEnabled(available);
 		diskImageLabel.setEnabled(available);
 		info.setEnabled(available);
 	}

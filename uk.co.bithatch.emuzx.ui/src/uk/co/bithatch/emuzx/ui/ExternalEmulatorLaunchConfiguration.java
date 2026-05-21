@@ -223,6 +223,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 			}
 			
 		} catch (IllegalStateException ise) {
+			closeContexts(launchCtx, prepCtx);
 			if (ise.getCause() instanceof CoreException ce) {
 				throw ce;
 			} else {

@@ -37,6 +37,7 @@ public class FATImageFileStore extends FileStore {
 	private final FsObject dir;
 	private final FATImageFileStore parent;
 	private final URI uri;
+	private final java.util.Map<String, FATImageFileStore> childCache = new java.util.concurrent.ConcurrentHashMap<>();
 
 	public FATImageFileStore(URI uri, FATImageFileSystem fileSystem, String path, FatFileSystem fatFileSystem) {
 		this.fileSystem = fileSystem;
@@ -62,7 +63,25 @@ public class FATImageFileStore extends FileStore {
 
 	@Override
 	public URI toURI() {
-		return uri;
+		if (parent == null) {
+			return uri;
+		}
+		// Build a URI that includes the in-image path so Eclipse can resolve 
+		// back to this specific file/folder, not just the root
+		var basePath = uri.getPath();
+		var inImagePath = path();
+		// Remove leading // from inImagePath since path() starts with //
+		if (inImagePath.startsWith("//")) {
+			inImagePath = inImagePath.substring(2);
+		} else if (inImagePath.startsWith("/")) {
+			inImagePath = inImagePath.substring(1);
+		}
+		var fullPath = basePath.endsWith("/") ? basePath + inImagePath : basePath + "/" + inImagePath;
+		try {
+			return new URI(uri.getScheme(), uri.getAuthority(), fullPath, uri.getQuery(), uri.getFragment());
+		} catch (Exception e) {
+			throw new IllegalStateException("Failed to build URI for " + name, e);
+		}
 	}
 
 	@Override
@@ -76,7 +95,7 @@ public class FATImageFileStore extends FileStore {
 					info.setDirectory(true);
 				} else {
 					info = new FileInfo(getName());
-					var parentDir = (FsDirectory) parent.dir;
+					var parentDir = parent.dir instanceof FsDirectory d ? d : null;
 					var entry = parentDir == null ? null : parentDir.getEntry(name);
 					if (entry == null) {
 						info.setExists(false);
@@ -112,10 +131,18 @@ public class FATImageFileStore extends FileStore {
 				try {
 					var de = fsDir.getEntry(name);
 					if(de == null) {
+						// Non-existent entry, don't cache (it may be created later)
 						return new FATImageFileStore(name, null, this);
 					}
 					else if (de.isDirectory()) {
-						return new FATImageFileStore(name, de.getDirectory(), this);
+						// Cache directory children so the same FsDirectory object is reused
+						return childCache.computeIfAbsent(name, n -> {
+							try {
+								return new FATImageFileStore(n, de.getDirectory(), this);
+							} catch (IOException e) {
+								throw new UncheckedIOException(e);
+							}
+						});
 					} else {
 						return new FATImageFileStore(name, null, this);
 					}
@@ -321,13 +348,13 @@ public class FATImageFileStore extends FileStore {
 
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof FATImageFileStore other && Objects.equals(fileSystem, other.fileSystem)
+		return obj instanceof FATImageFileStore other && Objects.equals(fatFileSystem, other.fatFileSystem)
 				&& Objects.equals(path(), other.path());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(fileSystem, path());
+		return Objects.hash(fatFileSystem, path());
 	}
 
 	protected ByteBuffer allocBuffer() {
@@ -340,13 +367,40 @@ public class FATImageFileStore extends FileStore {
 		if(parent != null && !parent.fetchInfo().exists()) {
 			parent.mkdir(options, monitor);
 		}
-		try {
-			var dir = ((FsDirectory) parent.dir).addDirectory(getName());
-			fatFileSystem.flush();
-			return new FATImageFileStore(getName(), dir.getDirectory(), parent);
+		synchronized (fatFileSystem) {
+			try {
+				var parentDir = (FsDirectory) parent.dir;
+				// Check if directory already exists
+				var existing = parentDir.getEntry(getName());
+				if (existing != null && existing.isDirectory()) {
+					return new FATImageFileStore(getName(), existing.getDirectory(), parent);
+				}
+				var dir = parentDir.addDirectory(getName());
+				fatFileSystem.flush();
+				return new FATImageFileStore(getName(), dir.getDirectory(), parent);
+			}
+			catch(IOException ioe) {
+				throw new CoreException(Status.error("Failed to create directory.", ioe));
+			}
 		}
-		catch(IOException ioe) {
-			throw new CoreException(Status.error("Failed to copy or  move file.", ioe));
+	}
+
+	@Override
+	public void putInfo(IFileInfo info, int options, IProgressMonitor monitor) throws CoreException {
+		synchronized (fatFileSystem) {
+			if (parent == null) return;
+			try {
+				var parentDir = parent.dir instanceof FsDirectory d ? d : null;
+				if (parentDir == null) return;
+				var entry = parentDir.getEntry(name);
+				if (entry == null) return;
+				if ((options & EFS.SET_LAST_MODIFIED) != 0) {
+					entry.setLastModified(info.getLastModified());
+				}
+				fatFileSystem.flush();
+			} catch (IOException e) {
+				throw new CoreException(Status.error("Failed to set file info.", e));
+			}
 		}
 	}
 
@@ -357,6 +411,7 @@ public class FATImageFileStore extends FileStore {
 				throw new CoreException(Status.error("Cannot delete the root."));
 			try {
 				((FsDirectory)parent.dir).remove(name);
+				parent.childCache.remove(name);
 			} catch (IOException e) {
 				throw new CoreException(Status.error("Failed to delete file or folder.", e));
 			}
