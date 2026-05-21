@@ -8,6 +8,7 @@ Building on the shoulders of giants, such as Boriels ZX Basic, Z88DK, and JSpecc
 
 It consists of a suite of Eclipse plugins, all packaged up together in an an easy to use but powerful (nearly) all-in-one development kit.
 
+Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and Mac OS
 
 ## Features
 
