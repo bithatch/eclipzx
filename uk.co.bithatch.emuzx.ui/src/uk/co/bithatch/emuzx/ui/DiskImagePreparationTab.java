@@ -8,9 +8,10 @@ import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_IMAGE_NAME;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_SOURCE_IDS;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_TARGET;
+import static uk.co.bithatch.emuzx.ui.PreparationSourceRegistry.defaultDescriptors;
+import static uk.co.bithatch.emuzx.ui.PreparationSourceRegistry.getSourceIds;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -227,10 +228,7 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
     			}
     		}
 
-    		var sourceIds = Arrays.asList(configuration.getAttribute(PREPARATION_SOURCE_IDS, defaultDescriptors()).split(";")).
-    				stream().
-    				filter(s -> !s.equals("")).
-    				toList();
+    		var sourceIds = getSourceIds(configuration);
     				
     		for(var btn :sourceSelectors) {
 				var descriptor = (PreparationSourceDescriptor)btn.getData();
@@ -327,14 +325,6 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 			if(ui != null)
 				ui.setAvailable(button.getSelection());
 		}
-	}
-
-	protected String defaultDescriptors() {
-		return String.join(";", PreparationSourceRegistry.descriptors().
-				stream().
-				filter(d -> d.selected()).
-				map(d -> d.id()).
-				toList());
 	}
 
 	protected boolean isSourcesSet() {

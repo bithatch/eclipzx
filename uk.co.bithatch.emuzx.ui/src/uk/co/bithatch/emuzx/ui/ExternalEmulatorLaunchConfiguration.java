@@ -85,8 +85,15 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 				/* Do the prep */
 				try {
 					/* Plugins that can find more resources to contribute */
+					var enabled = PreparationSourceRegistry.getSourceIds(configuration);
 					for (var desc : PreparationSourceRegistry.descriptors()) {
-						desc.createSource().contribute(prepCtx, externalFiles, monitor);
+						if(enabled.contains(desc.id())) {
+							LOG.info(String.format("Contributing preparation source %s", desc.id()));
+							desc.createSource().contribute(prepCtx, externalFiles, monitor);
+						}
+						else {
+							LOG.info(String.format("Preparation source %s is not enabled, skipping.", desc.id()));
+						}
 					}
 					
 					var status = preparationTarget.get().prepare(monitor, externalFiles);

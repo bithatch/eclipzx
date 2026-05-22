@@ -1,10 +1,14 @@
 package uk.co.bithatch.emuzx.ui;
 
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_SOURCE_IDS;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.debug.core.ILaunchConfiguration;
 
 public class PreparationSourceRegistry {
 
@@ -21,6 +25,22 @@ public class PreparationSourceRegistry {
 					.map(c -> new PreparationSourceDescriptor(c, point))
 					.sorted()
 					.toList();
+	}
+
+	public static List<String> getSourceIds(ILaunchConfiguration configuration) throws CoreException {
+		var sourceIds = Arrays.asList(configuration.getAttribute(PREPARATION_SOURCE_IDS, defaultDescriptors()).split(";")).
+				stream().
+				filter(s -> !s.equals("")).
+				toList();
+		return sourceIds;
+	}
+
+	public static String defaultDescriptors() {
+		return String.join(";", PreparationSourceRegistry.descriptors().
+				stream().
+				filter(d -> d.selected()).
+				map(d -> d.id()).
+				toList());
 	}
 
 }

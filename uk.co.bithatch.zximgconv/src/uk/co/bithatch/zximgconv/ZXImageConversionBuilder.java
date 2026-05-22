@@ -15,12 +15,12 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.SubMonitor;
+
+import uk.co.bithatch.zyxy.graphics.Palette;
 
 /**
  * An incremental project builder that converts image files marked with the
@@ -38,8 +38,10 @@ public class ZXImageConversionBuilder extends IncrementalProjectBuilder {
 	public static final String PROP_PALETTE_FILE = "paletteFile";
 	public static final String PROP_GENERATE_PALETTE = "generatePalette";
 	public static final String PROP_EMBED_PALETTE = "embedPalette";
+	public static final String PROP_TRANSPARENCY = "transparency";
+	public static final String PROP_TRANSPARENCY_INDEX = "transparencyIndex";
+	public static final String PROP_ALPHA_THRESHOLD = "alphaThreshold";
 
-	private static final ILog LOG = Platform.getLog(ZXImageConversionBuilder.class);
 
 	private static final Set<String> IMAGE_EXTENSIONS = Set.of(
 			"png", "gif", "jpg", "jpeg", "bmp", "tiff", "tif", "webp");
@@ -280,7 +282,36 @@ public class ZXImageConversionBuilder extends IncrementalProjectBuilder {
 				new QualifiedName(Activator.PLUGIN_ID, PROP_EMBED_PALETTE));
 		boolean embedPalette = embedPalStr == null || "true".equals(embedPalStr); // default true
 
-		ZXImageConverter.convert(file, formatIndex, outputFolder, ditherMode, l2Resolution, null, paletteFile, generatePalette, embedPalette, monitor);
+		// Transparency
+		String transStr = file.getPersistentProperty(
+				new QualifiedName(Activator.PLUGIN_ID, PROP_TRANSPARENCY));
+		boolean transparency = "true".equals(transStr);
+
+		// Transparency index (output)
+		String transIdxStr = file.getPersistentProperty(
+				new QualifiedName(Activator.PLUGIN_ID, PROP_TRANSPARENCY_INDEX));
+		int transparencyIndex = Palette.DEFAULT_TRANSPARENCY;
+		if (transIdxStr != null) {
+			try {
+				transparencyIndex = Integer.parseInt(transIdxStr);
+			} catch (NumberFormatException e) {
+				// default
+			}
+		}
+
+		// Alpha threshold
+		String alphaThreshStr = file.getPersistentProperty(
+				new QualifiedName(Activator.PLUGIN_ID, PROP_ALPHA_THRESHOLD));
+		int alphaThreshold = 128;
+		if (alphaThreshStr != null) {
+			try {
+				alphaThreshold = Integer.parseInt(alphaThreshStr);
+			} catch (NumberFormatException e) {
+				// default
+			}
+		}
+
+		ZXImageConverter.convert(file, formatIndex, outputFolder, ditherMode, l2Resolution, null, paletteFile, generatePalette, embedPalette, transparency, transparencyIndex, alphaThreshold, monitor);
 	}
 
 	/**
@@ -302,12 +333,12 @@ public class ZXImageConversionBuilder extends IncrementalProjectBuilder {
 				if (p.isAbsolute()) {
 					outDir = p.toFile();
 				} else {
-					IResource wsResource = sourceFile.getWorkspace().getRoot().findMember(outputFolder);
-					if (wsResource != null && wsResource.getLocation() != null) {
-						outDir = wsResource.getLocation().toFile();
+					// Resolve relative to the project root
+					IPath projectLoc = sourceFile.getProject().getLocation();
+					if (projectLoc != null) {
+						outDir = projectLoc.toFile().toPath().resolve(outputFolder).toFile();
 					} else {
-						IPath wsRoot = sourceFile.getWorkspace().getRoot().getLocation();
-						outDir = wsRoot.toFile().toPath().resolve(outputFolder).toFile();
+						outDir = p.toFile();
 					}
 				}
 			}

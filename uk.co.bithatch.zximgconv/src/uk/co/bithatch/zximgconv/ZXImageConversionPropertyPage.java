@@ -2,7 +2,6 @@ package uk.co.bithatch.zximgconv;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.QualifiedName;
@@ -17,6 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.eclipse.ui.dialogs.PropertyPage;
@@ -39,6 +39,11 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 	private Label paletteLabel;
 	private Composite paletteButtons;
 	private Button embedPaletteCheckbox;
+	private Button transparencyCheckbox;
+	private Spinner transparencyIndexSpinner;
+	private Label transparencyIndexLabel;
+	private Spinner alphaThresholdSpinner;
+	private Label alphaThresholdLabel;
 
 	@Override
 	protected Control createContents(Composite parent) {
@@ -65,6 +70,55 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 		gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		gd.horizontalSpan = 2;
 		formatCombo.setLayoutData(gd);
+
+		// --- Output folder ---
+		Label folderLabel = new Label(composite, SWT.NONE);
+		folderLabel.setText("Output folder:");
+
+		outputFolderText = new Text(composite, SWT.BORDER | SWT.SINGLE);
+		outputFolderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+		Composite folderButtons = new Composite(composite, SWT.NONE);
+		GridLayout folderBtnLayout = new GridLayout(2, true);
+		folderBtnLayout.marginWidth = 0;
+		folderBtnLayout.marginHeight = 0;
+		folderButtons.setLayout(folderBtnLayout);
+
+		Button browseButton = new Button(folderButtons, SWT.PUSH);
+		browseButton.setText("Project...");
+		browseButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				IFile file = getFile();
+				if (file == null) return;
+				ContainerSelectionDialog dialog = new ContainerSelectionDialog(
+						getShell(), file.getProject(), true, "Select output folder in project");
+				if (dialog.open() == ContainerSelectionDialog.OK) {
+					Object[] result = dialog.getResult();
+					if (result != null && result.length > 0) {
+						IPath ipath = (IPath) result[0];
+						// Make project-relative by removing the first segment (project name)
+						String path = ipath.removeFirstSegments(1).makeRelative().toString();
+						outputFolderText.setText(path);
+					}
+				}
+			}
+		});
+
+		Button extFolderBrowseButton = new Button(folderButtons, SWT.PUSH);
+		extFolderBrowseButton.setText("External...");
+		extFolderBrowseButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				org.eclipse.swt.widgets.DirectoryDialog dialog = new org.eclipse.swt.widgets.DirectoryDialog(getShell(), SWT.OPEN);
+				dialog.setText("Select external output folder");
+				dialog.setMessage("Choose an external folder for converted files");
+				String result = dialog.open();
+				if (result != null) {
+					outputFolderText.setText(result);
+				}
+			}
+		});
 
 		// --- Dithering ---
 		Label ditherLabel = new Label(composite, SWT.NONE);
@@ -102,55 +156,48 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 			public void widgetSelected(SelectionEvent e) {
 				updateL2ResolutionEnabled();
 				updateEmbedPaletteEnabled();
+				updateTransparencyEnabled();
 			}
 		});
 
-		// --- Output folder ---
-		Label folderLabel = new Label(composite, SWT.NONE);
-		folderLabel.setText("Output folder:");
-
-		outputFolderText = new Text(composite, SWT.BORDER | SWT.SINGLE);
-		outputFolderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-		Composite folderButtons = new Composite(composite, SWT.NONE);
-		GridLayout folderBtnLayout = new GridLayout(2, true);
-		folderBtnLayout.marginWidth = 0;
-		folderBtnLayout.marginHeight = 0;
-		folderButtons.setLayout(folderBtnLayout);
-
-		Button browseButton = new Button(folderButtons, SWT.PUSH);
-		browseButton.setText("Workspace...");
-		browseButton.addSelectionListener(new SelectionAdapter() {
+		// --- Transparency checkbox ---
+		transparencyCheckbox = new Button(composite, SWT.CHECK);
+		transparencyCheckbox.setText("Enable transparency");
+		gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		gd.horizontalSpan = 3;
+		transparencyCheckbox.setLayoutData(gd);
+		transparencyCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				ContainerSelectionDialog dialog = new ContainerSelectionDialog(
-						getShell(), null, true, "Select output folder in workspace");
-				if (dialog.open() == ContainerSelectionDialog.OK) {
-					Object[] result = dialog.getResult();
-					if (result != null && result.length > 0) {
-						// ContainerSelectionDialog returns IPath objects
-						IPath ipath = (IPath) result[0];
-						String path = ipath.makeRelative().toString();
-						outputFolderText.setText(path);
-					}
-				}
+				updateTransparencyEnabled();
 			}
 		});
 
-		Button extFolderBrowseButton = new Button(folderButtons, SWT.PUSH);
-		extFolderBrowseButton.setText("External...");
-		extFolderBrowseButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				org.eclipse.swt.widgets.DirectoryDialog dialog = new org.eclipse.swt.widgets.DirectoryDialog(getShell(), SWT.OPEN);
-				dialog.setText("Select external output folder");
-				dialog.setMessage("Choose an external folder for converted files");
-				String result = dialog.open();
-				if (result != null) {
-					outputFolderText.setText(result);
-				}
-			}
-		});
+		// --- Transparency index (output) ---
+		transparencyIndexLabel = new Label(composite, SWT.NONE);
+		transparencyIndexLabel.setText("Output transparency index:");
+
+		transparencyIndexSpinner = new Spinner(composite, SWT.BORDER);
+		transparencyIndexSpinner.setMinimum(0);
+		transparencyIndexSpinner.setMaximum(255);
+		transparencyIndexSpinner.setSelection(uk.co.bithatch.zyxy.graphics.Palette.DEFAULT_TRANSPARENCY);
+		transparencyIndexSpinner.setToolTipText("Palette index in the output image that represents transparency (ZX Next default is 227 / 0xE3)");
+		gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		gd.horizontalSpan = 2;
+		transparencyIndexSpinner.setLayoutData(gd);
+
+		// --- Alpha threshold ---
+		alphaThresholdLabel = new Label(composite, SWT.NONE);
+		alphaThresholdLabel.setText("Alpha threshold:");
+
+		alphaThresholdSpinner = new Spinner(composite, SWT.BORDER);
+		alphaThresholdSpinner.setMinimum(1);
+		alphaThresholdSpinner.setMaximum(255);
+		alphaThresholdSpinner.setSelection(128);
+		alphaThresholdSpinner.setToolTipText("Alpha values below this threshold are treated as transparent (used for formats with alpha channel like PNG)");
+		gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		gd.horizontalSpan = 2;
+		alphaThresholdSpinner.setLayoutData(gd);
 
 		// --- Generate palette checkbox ---
 		generatePaletteCheckbox = new Button(composite, SWT.CHECK);
@@ -219,7 +266,7 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 		// --- Hint labels ---
 		Label hint = new Label(composite, SWT.WRAP);
 		hint.setText("Leave output folder empty to place converted files next to the source image.\n"
-				+ "Relative paths are resolved from the workspace root (e.g. MyProject/gfx). Absolute paths are used as-is.");
+				+ "Relative paths are resolved from the project root (e.g. gfx/converted). Absolute paths are used as-is.");
 		gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		gd.horizontalSpan = 3;
 		gd.widthHint = 400;
@@ -228,7 +275,7 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 		Label paletteHint = new Label(composite, SWT.WRAP);
 		paletteHint.setText("Leave custom palette empty to use the default palette for the selected format.\n"
 				+ "Supports .pal (9-bit) and .npl (9-bit with transparency) palette files.\n"
-				+ "Relative paths are resolved from the workspace root. Absolute paths are used as-is.\n"
+				+ "Relative paths are resolved from the project root. Absolute paths are used as-is.\n"
 				+ "When 'Generate palette' is checked, a .npl file is created alongside the output.");
 		gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		gd.horizontalSpan = 3;
@@ -241,6 +288,7 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 		// Initial state
 		updateL2ResolutionEnabled();
 		updateEmbedPaletteEnabled();
+		updateTransparencyEnabled();
 		updatePaletteControlsEnabled();
 
 		return composite;
@@ -261,6 +309,20 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 			boolean supported = ZXImageConverter.OutputFormat.values()[idx].supportsEmbeddedPalette();
 			embedPaletteCheckbox.setEnabled(supported);
 		}
+	}
+
+	private void updateTransparencyEnabled() {
+		int idx = formatCombo.getSelectionIndex();
+		boolean supported = false;
+		if (idx >= 0 && idx < ZXImageConverter.OutputFormat.values().length) {
+			supported = ZXImageConverter.OutputFormat.values()[idx].supportsTransparency();
+		}
+		transparencyCheckbox.setEnabled(supported);
+		boolean enabled = supported && transparencyCheckbox.getSelection();
+		transparencyIndexLabel.setEnabled(enabled);
+		transparencyIndexSpinner.setEnabled(enabled);
+		alphaThresholdLabel.setEnabled(enabled);
+		alphaThresholdSpinner.setEnabled(enabled);
 	}
 
 	private void updatePaletteControlsEnabled() {
@@ -339,6 +401,33 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 
 			String embedPal = file.getPersistentProperty(qn(ZXImageConversionBuilder.PROP_EMBED_PALETTE));
 			embedPaletteCheckbox.setSelection(embedPal == null || "true".equals(embedPal)); // default true
+
+			String trans = file.getPersistentProperty(qn(ZXImageConversionBuilder.PROP_TRANSPARENCY));
+			transparencyCheckbox.setSelection("true".equals(trans));
+
+			String transIdx = file.getPersistentProperty(qn(ZXImageConversionBuilder.PROP_TRANSPARENCY_INDEX));
+			if (transIdx != null) {
+				try {
+					int idx = Integer.parseInt(transIdx);
+					if (idx >= 0 && idx <= 255) {
+						transparencyIndexSpinner.setSelection(idx);
+					}
+				} catch (NumberFormatException e) {
+					// ignore
+				}
+			}
+
+			String alphaThresh = file.getPersistentProperty(qn(ZXImageConversionBuilder.PROP_ALPHA_THRESHOLD));
+			if (alphaThresh != null) {
+				try {
+					int val = Integer.parseInt(alphaThresh);
+					if (val >= 1 && val <= 255) {
+						alphaThresholdSpinner.setSelection(val);
+					}
+				} catch (NumberFormatException e) {
+					// ignore
+				}
+			}
 		} catch (CoreException e) {
 			setErrorMessage("Failed to load properties: " + e.getMessage());
 		}
@@ -365,6 +454,12 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 					String.valueOf(generatePaletteCheckbox.getSelection()));
 			file.setPersistentProperty(qn(ZXImageConversionBuilder.PROP_EMBED_PALETTE),
 					String.valueOf(embedPaletteCheckbox.getSelection()));
+			file.setPersistentProperty(qn(ZXImageConversionBuilder.PROP_TRANSPARENCY),
+					String.valueOf(transparencyCheckbox.getSelection()));
+			file.setPersistentProperty(qn(ZXImageConversionBuilder.PROP_TRANSPARENCY_INDEX),
+					String.valueOf(transparencyIndexSpinner.getSelection()));
+			file.setPersistentProperty(qn(ZXImageConversionBuilder.PROP_ALPHA_THRESHOLD),
+					String.valueOf(alphaThresholdSpinner.getSelection()));
 		} catch (CoreException e) {
 			setErrorMessage("Failed to save properties: " + e.getMessage());
 			return false;
@@ -382,8 +477,12 @@ public class ZXImageConversionPropertyPage extends PropertyPage {
 		paletteFileText.setText("");
 		generatePaletteCheckbox.setSelection(false);
 		embedPaletteCheckbox.setSelection(true);
+		transparencyCheckbox.setSelection(false);
+		transparencyIndexSpinner.setSelection(uk.co.bithatch.zyxy.graphics.Palette.DEFAULT_TRANSPARENCY);
+		alphaThresholdSpinner.setSelection(128);
 		updateL2ResolutionEnabled();
 		updateEmbedPaletteEnabled();
+		updateTransparencyEnabled();
 		updatePaletteControlsEnabled();
 		super.performDefaults();
 	}

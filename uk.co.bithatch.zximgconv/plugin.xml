@@ -120,4 +120,20 @@
       <startup class="uk.co.bithatch.zximgconv.EarlyStartup"/>
    </extension>
 
+   <!-- Export wizard -->
+   <extension point="org.eclipse.ui.exportWizards">
+      <category
+            id="uk.co.bithatch.eclipzx.imageExportCategory"
+            name="Images"/>
+      <wizard
+            category="uk.co.bithatch.eclipzx.imageExportCategory"
+            class="uk.co.bithatch.zximgconv.ZXImageExportWizard"
+            icon="icons/zximgconv16.png"
+            id="uk.co.bithatch.zximgconv.exportWizard"
+            name="Modern Image to ZX Image">
+         <description>Convert image files to ZX Spectrum screen formats (SCR, SL2, NXI, etc.)</description>
+         <selection class="org.eclipse.core.resources.IFile"/>
+      </wizard>
+   </extension>
+
 </plugin>

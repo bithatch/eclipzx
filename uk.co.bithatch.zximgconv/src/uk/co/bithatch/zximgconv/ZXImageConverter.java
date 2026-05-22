@@ -3,6 +3,7 @@ package uk.co.bithatch.zximgconv;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -113,6 +114,13 @@ public class ZXImageConverter {
 		public boolean supportsEmbeddedPalette() {
 			return this == NXI;
 		}
+
+		/**
+		 * Whether this format supports a transparency index.
+		 */
+		public boolean supportsTransparency() {
+			return this == NXI || this == SL2 || this == SLR;
+		}
 	}
 
 	/**
@@ -170,11 +178,15 @@ public class ZXImageConverter {
 	 * @param paletteFile   optional path to a .pal/.npl file (null = use default)
 	 * @param generatePalette if true, generate a palette from the source image and save it
 	 * @param embedPalette  if true and format supports it, embed palette in output file
+	 * @param transparency  if true, transparent source pixels are mapped to the transparency index
+	 * @param transparencyIndex the output palette index to write for transparent pixels (typically 227)
+	 * @param alphaThreshold alpha values below this are considered transparent (0-255, default 128)
 	 * @param monitor       progress monitor (may be null)
 	 */
 	public static void convert(IFile sourceFile, int formatIndex, String outputFolder,
 			DitherMode ditherMode, int l2Resolution, Palette palette, String paletteFile,
-			boolean generatePalette, boolean embedPalette, IProgressMonitor monitor) {
+			boolean generatePalette, boolean embedPalette, boolean transparency, int transparencyIndex,
+			int alphaThreshold, IProgressMonitor monitor) {
 
 		SubMonitor sub = SubMonitor.convert(monitor, "Converting " + sourceFile.getName(), 100);
 
@@ -200,6 +212,9 @@ public class ZXImageConverter {
 				throw new IOException("Failed to read image: " + sourceFile.getLocation());
 			}
 			sub.worked(10);
+			
+			int sourceTransparencyIndex = sourceImage.getColorModel() instanceof IndexColorModel ? 
+					((IndexColorModel) sourceImage.getColorModel()).getTransparentPixel() : -1;
 
 			// 2. Determine video mode
 			VideoMode videoMode;
@@ -234,15 +249,21 @@ public class ZXImageConverter {
 			}
 			sub.worked(5);
 
+			// Resolve effective transparency index (only for formats that support it)
+			int effectiveTransparencyIndex = -1;
+			if (transparency && format.supportsTransparency()) {
+				effectiveTransparencyIndex = transparencyIndex;
+			}
+
 			// 5. Convert
 			sub.subTask("Converting to " + format.label());
 			byte[] output;
 			if (format == OutputFormat.NXI) {
-				output = convertNxi(scaled, videoMode, palette, ditherMode, embedPalette);
+				output = convertNxi(scaled, videoMode, palette, ditherMode, embedPalette, effectiveTransparencyIndex, sourceTransparencyIndex, alphaThreshold);
 			} else if (videoMode.ula() && format != OutputFormat.SLR) {
 				output = convertAttributed(scaled, videoMode, palette, ditherMode);
 			} else {
-				output = convertIndexed(scaled, videoMode, palette, ditherMode);
+				output = convertIndexed(scaled, videoMode, palette, ditherMode, effectiveTransparencyIndex, sourceTransparencyIndex, alphaThreshold);
 			}
 			sub.worked(60);
 
@@ -299,20 +320,26 @@ public class ZXImageConverter {
 	 * Backward-compatible overload.
 	 */
 	public static void convert(IFile sourceFile, int formatIndex, String outputFolder) {
-		convert(sourceFile, formatIndex, outputFolder, DitherMode.FLOYD_STEINBERG, 0, null, null, false, true, null);
+		convert(sourceFile, formatIndex, outputFolder, DitherMode.FLOYD_STEINBERG, 0, null, null, false, true, false, Palette.DEFAULT_TRANSPARENCY, 128, null);
 	}
 
 	// -----------------------------------------------------------------------
 	// Indexed mode conversion (SLR, SL2, L2 modes)
 	// -----------------------------------------------------------------------
 
-	private static byte[] convertIndexed(BufferedImage img, VideoMode mode, Palette palette, DitherMode dither) {
+	private static byte[] convertIndexed(BufferedImage img, VideoMode mode, Palette palette, DitherMode dither, int transparencyIndex, int sourceTransparencyIndex, int alphaThreshold) {
 		int w = mode.width();
 		int h = mode.height();
 		VideoMemory vm = mode.createBuffer().asWriteable();
 
 		Entry[] colors = palette.colors();
 		int palSize = Math.min(colors.length, mode.colors());
+		boolean useTransparency = transparencyIndex >= 0 && transparencyIndex < palSize;
+
+		// Check if source is indexed — if so, we can read raw palette indices
+		boolean sourceIsIndexed = img.getType() == BufferedImage.TYPE_BYTE_INDEXED
+				|| img.getType() == BufferedImage.TYPE_BYTE_BINARY;
+		java.awt.image.Raster sourceRaster = sourceIsIndexed ? img.getRaster() : null;
 
 		int[][] errR = null, errG = null, errB = null;
 		if (dither == DitherMode.FLOYD_STEINBERG) {
@@ -323,10 +350,27 @@ public class ZXImageConverter {
 
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
-				int rgb = img.getRGB(x, y);
-				int r = (rgb >> 16) & 0xff;
-				int g = (rgb >> 8) & 0xff;
-				int b = rgb & 0xff;
+
+				// For indexed source images, check raw palette index
+				if (useTransparency && sourceIsIndexed) {
+					int srcIdx = sourceRaster.getSample(x, y, 0);
+					if (srcIdx == sourceTransparencyIndex) {
+						vm.color(x, y, transparencyIndex);
+						continue;
+					}
+				}
+
+				int argb = img.getRGB(x, y);
+				int a = (argb >> 24) & 0xff;
+				int r = (argb >> 16) & 0xff;
+				int g = (argb >> 8) & 0xff;
+				int b = argb & 0xff;
+
+				// For non-indexed images (PNG etc.), use alpha channel
+				if (useTransparency && !sourceIsIndexed && a < alphaThreshold) {
+					vm.color(x, y, transparencyIndex);
+					continue;
+				}
 
 				if (dither == DitherMode.FLOYD_STEINBERG) {
 					r = clamp(r + errR[y][x]);
@@ -365,7 +409,7 @@ public class ZXImageConverter {
 		VideoMemory rawVm = mode.createBuffer().asWriteable();
 
 		if (!(rawVm instanceof AttributedVideoMemory avm)) {
-			return convertIndexed(img, mode, palette, dither);
+			return convertIndexed(img, mode, palette, dither, -1, -1, 128);
 		}
 
 		Entry[] colors = palette.colors();
@@ -448,7 +492,7 @@ public class ZXImageConverter {
 	// NXI conversion (palette header + L2 pixel data)
 	// -----------------------------------------------------------------------
 
-	private static byte[] convertNxi(BufferedImage img, VideoMode mode, Palette palette, DitherMode dither, boolean embedPalette) {
+	private static byte[] convertNxi(BufferedImage img, VideoMode mode, Palette palette, DitherMode dither, boolean embedPalette, int transparencyIndex, int sourceTransparencyIndex, int alphaThreshold) {
 		int w = mode.width();
 		int h = mode.height();
 
@@ -460,6 +504,10 @@ public class ZXImageConverter {
 			quantised = medianCutQuantise(img, w, h, 256);
 		}
 		Entry[] colors = quantised.colors();
+		boolean useTransparency = transparencyIndex >= 0 && transparencyIndex < colors.length;
+
+		boolean sourceIsIndexed = img.getType() == BufferedImage.TYPE_BYTE_INDEXED
+				|| img.getType() == BufferedImage.TYPE_BYTE_BINARY;
 
 		VideoMemory vm = mode.createBuffer().asWriteable();
 
@@ -472,10 +520,27 @@ public class ZXImageConverter {
 
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
-				int rgb = img.getRGB(x, y);
-				int r = (rgb >> 16) & 0xff;
-				int g = (rgb >> 8) & 0xff;
-				int b = rgb & 0xff;
+
+				// For indexed source images at the same resolution, check raw palette index
+				if (useTransparency && sourceIsIndexed) {
+					int srcIdx = img.getRaster().getSample(x, y, 0);
+					if (srcIdx == sourceTransparencyIndex) {
+						vm.color(x, y, transparencyIndex);
+						continue;
+					}
+				}
+
+				int argb = img.getRGB(x, y);
+				int a = (argb >> 24) & 0xff;
+				int r = (argb >> 16) & 0xff;
+				int g = (argb >> 8) & 0xff;
+				int b = argb & 0xff;
+
+				// For non-indexed images (PNG etc.), use alpha channel
+				if (useTransparency && !sourceIsIndexed && a < alphaThreshold) {
+					vm.color(x, y, transparencyIndex);
+					continue;
+				}
 
 				if (dither == DitherMode.FLOYD_STEINBERG) {
 					r = clamp(r + errR[y][x]);
@@ -600,11 +665,52 @@ public class ZXImageConverter {
 	// Utility methods
 	// -----------------------------------------------------------------------
 
+	/**
+	 * Handle transparency for indexed and non-indexed source images.
+	 * <p>
+	 * For indexed (paletted) images without alpha (e.g. BMP): creates a new
+	 * indexed image with an {@link java.awt.image.IndexColorModel} that marks
+	 * {@code sourceTransparencyIndex} as the transparent pixel. The image
+	 * remains indexed so palette indices are preserved through scaling.
+	 * <p>
+	 * For images that already have an alpha channel (e.g. PNG): returned as-is;
+	 * the conversion loop handles alpha directly.
+	 */
+	private static BufferedImage applyIndexedTransparency(BufferedImage img, int sourceTransparencyIndex, int outputTransparencyIndex) {
+		int type = img.getType();
+		if (type != BufferedImage.TYPE_BYTE_INDEXED && type != BufferedImage.TYPE_BYTE_BINARY) {
+			// Not an indexed image — alpha channel (if any) is already usable
+			return img;
+		}
+
+		java.awt.image.IndexColorModel icm = (java.awt.image.IndexColorModel) img.getColorModel();
+
+		// If the IndexColorModel already has a transparent pixel, nothing to do
+		if (icm.getTransparentPixel() >= 0) {
+			return img;
+		}
+
+		// Build a new IndexColorModel with the source transparency index marked
+		int mapSize = icm.getMapSize();
+		byte[] r = new byte[mapSize];
+		byte[] g = new byte[mapSize];
+		byte[] b = new byte[mapSize];
+		icm.getReds(r);
+		icm.getGreens(g);
+		icm.getBlues(b);
+
+		java.awt.image.IndexColorModel newIcm = new java.awt.image.IndexColorModel(
+				icm.getPixelSize(), mapSize, r, g, b, sourceTransparencyIndex);
+
+		// Create a new image with the same raster but the new color model
+		return new BufferedImage(newIcm, img.getRaster(), img.isAlphaPremultiplied(), null);
+	}
+
 	private static BufferedImage scaleImage(BufferedImage src, int w, int h) {
 		if (src.getWidth() == w && src.getHeight() == h) {
 			return src;
 		}
-		BufferedImage scaled = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage scaled = new BufferedImage(w, h, src.getType());
 		Graphics2D g2 = scaled.createGraphics();
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -614,9 +720,47 @@ public class ZXImageConverter {
 	}
 
 	private static int findNearest(int r, int g, int b, Entry[] palette, int palSize) {
+		return findNearest(r, g, b, palette, palSize, -1);
+	}
+
+	/**
+	 * Encode an RGB colour directly as an RRRGGGBB byte, matching the ZX Next
+	 * default Layer 2 palette identity mapping. Each component is truncated
+	 * (floored) to its top bits: R=3 bits, G=3 bits, B=2 bits.
+	 */
+	private static int encodeRGB332(int r, int g, int b) {
+		return ((r >> 5) << 5) | ((g >> 5) << 2) | (b >> 6);
+	}
+
+	/**
+	 * Returns {@code true} when the supplied palette is the default RGB333
+	 * identity palette (256 entries whose index encodes the colour directly).
+	 */
+	private static boolean isDefaultRGB333(Entry[] palette, int palSize) {
+		if (palSize != 256) return false;
+		// Spot-check a few entries to confirm identity mapping
+		for (int i : new int[] { 0, 32, 64, 128, 237, 255 }) {
+			Entry e = palette[i];
+			int expected = encodeRGB332(e.r(), e.g(), e.b());
+			if (expected != i) return false;
+		}
+		return true;
+	}
+
+	private static int findNearest(int r, int g, int b, Entry[] palette, int palSize, int skipIndex) {
+		// Fast path: for the default 256-colour RGB332 identity palette, encode directly
+		// rather than searching — this matches the per-component quantisation that
+		// other ZX Next tools use with the default palette.
+		if (isDefaultRGB333(palette, palSize)) {
+			int direct = encodeRGB332(r, g, b);
+			if (skipIndex < 0 || direct != skipIndex) return direct;
+			// Fall through to search if the direct encoding hits the skip index
+		}
+
 		int bestIdx = 0;
 		int bestDist = Integer.MAX_VALUE;
 		for (int i = 0; i < palSize; i++) {
+			if (i == skipIndex) continue;
 			Entry e = palette[i];
 			int dist = colorDistanceRaw(r, g, b, e.r(), e.g(), e.b());
 			if (dist < bestDist) {
@@ -766,11 +910,11 @@ public class ZXImageConverter {
 	}
 
 	/**
-	 * Resolve a path that may be workspace-relative or absolute.
+	 * Resolve a path that may be project-relative or absolute.
 	 * <p>
-	 * If the path is absolute (starts with {@code /} on Linux or drive letter on
-	 * Windows), it is used as a filesystem path directly. Otherwise it is treated
-	 * as a workspace-relative path and resolved via the workspace root.
+	 * If the path is absolute it is used as a filesystem path directly.
+	 * Otherwise it is treated as a project-relative path and resolved via the
+	 * project that owns the context file.
 	 */
 	private static Path resolvePath(String pathStr, IFile contextFile) {
 		if (pathStr == null || pathStr.isBlank()) {
@@ -782,16 +926,11 @@ public class ZXImageConverter {
 			return p;
 		}
 
-		// Relative path — resolve as workspace-relative
+		// Relative path — resolve against the project root
 		if (contextFile != null) {
-			IResource wsResource = contextFile.getWorkspace().getRoot().findMember(pathStr);
-			if (wsResource != null && wsResource.getLocation() != null) {
-				return wsResource.getLocation().toFile().toPath();
-			}
-			// Fall back to resolving against workspace root directory on disk
-			IPath wsRoot = contextFile.getWorkspace().getRoot().getLocation();
-			if (wsRoot != null) {
-				return wsRoot.toFile().toPath().resolve(pathStr);
+			IPath projectLoc = contextFile.getProject().getLocation();
+			if (projectLoc != null) {
+				return projectLoc.toFile().toPath().resolve(pathStr);
 			}
 		}
 

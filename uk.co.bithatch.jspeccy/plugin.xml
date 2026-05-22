@@ -770,13 +770,13 @@
     
     <extension point="org.eclipse.ui.exportWizards">
         <category
-            id="uk.co.bithatch.jspeccy.category"
-            name="ZX Spectrum Emulator"/>
+            id="uk.co.bithatch.eclipzx.imageExportCategory"
+            name="Images"/>
         <wizard
             id="uk.co.bithatch.jspeccy.wizards.screenshot"
-            name="Screenshot"
+            name="Built-in Emulator Screenshot"
             class="uk.co.bithatch.jspeccy.wizards.ExportScreenshotWizard"
-            category="uk.co.bithatch.jspeccy.category"
+            category="uk.co.bithatch.eclipzx.imageExportCategory"
             icon="icons/screenshot16.png">
             <description>Export a PNG or SCR format screenshot.</description>
         </wizard>
