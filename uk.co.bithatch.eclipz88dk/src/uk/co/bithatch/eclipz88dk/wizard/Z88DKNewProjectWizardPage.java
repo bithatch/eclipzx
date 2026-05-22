@@ -77,13 +77,13 @@ public class Z88DKNewProjectWizardPage extends AbstractZ88DKProjectWizardPage {
         	}
         	updateState(); 
         }));
-        fillDefaults().grab(true, false).span(2, 1).indent(0, 24).applyTo(overridePreferences);
+        fillDefaults().grab(true, false).span(3, 1).indent(0, 24).applyTo(overridePreferences);
 
         sdkLabel = new Label(container, SWT.NONE);
         sdkLabel.setText("SDK:");
 
         sdk = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fillDefaults().grab(true, false).applyTo(sdk);
+        fillDefaults().grab(true, false).span(2, 1).applyTo(sdk);
         sdk.addSelectionListener(widgetSelectedAdapter(e -> {
         	rebuildArchs();
 			setArchFromSDKSelectionAndPreferences();
@@ -97,7 +97,7 @@ public class Z88DKNewProjectWizardPage extends AbstractZ88DKProjectWizardPage {
         archLabel.setText("System:");
         
         arch= new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fillDefaults().grab(true, false).applyTo(arch);
+        fillDefaults().grab(true, false).span(2, 1).applyTo(arch);
 		arch.addSelectionListener(widgetSelectedAdapter(e -> {
 			rebuildCLibs();
 			setCLibraryFromSDKSelectionAndPreferences();
@@ -108,7 +108,7 @@ public class Z88DKNewProjectWizardPage extends AbstractZ88DKProjectWizardPage {
         fillDefaults().grab(true, false).indent(0, 16).applyTo(libsLabel);
 
         cLibrary = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fillDefaults().grab(true, false).applyTo(arch);
+        fillDefaults().grab(true, false).span(2, 1).applyTo(cLibrary);
         
         setSdkDefaults();
         rebuildArchs();

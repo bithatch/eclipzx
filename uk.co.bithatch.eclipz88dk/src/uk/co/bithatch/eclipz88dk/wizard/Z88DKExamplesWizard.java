@@ -26,8 +26,8 @@ public class Z88DKExamplesWizard extends AbstractZ88DKProjectWizard<Z88DKExample
 	@Override
 	protected CreateTask doProjectCreation(String projectName) {
 		var sdk = Z88DKPreferencesAccess.get().getAllSDKs().get(page.sdk.getSelectionIndex());
-		return (mon) -> {
-			var project = CdtProjectCreator.createManagedCProject(CdtType.EXECUTABLE, projectName, mon);
+		return (mon, locationURI) -> {
+			var project = CdtProjectCreator.createManagedCProject(CdtType.EXECUTABLE, projectName, locationURI, mon);
 			FileCopyUtil.copyDirectoryToProject(new File(sdk.location(), "examples"), project, mon);
 		};
 	}

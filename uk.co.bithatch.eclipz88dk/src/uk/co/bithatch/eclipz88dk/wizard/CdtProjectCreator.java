@@ -26,6 +26,8 @@ import org.eclipse.cdt.managedbuilder.core.IManagedProject;
 import org.eclipse.cdt.managedbuilder.core.IProjectType;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.core.ManagedCProjectNature;
+import java.net.URI;
+
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -178,14 +180,33 @@ public final class CdtProjectCreator {
 	 */
 	public static IProject createManagedCProject(CdtType cdtType, String projectName, IProgressMonitor pm)
 			throws CoreException, BuildException {
+		return createManagedCProject(cdtType, projectName, null, pm);
+	}
+
+	/**
+	 * Create a Managed Build CDT project using your projectType & configurations.
+	 * 
+	 * @param locationURI the location for the project content, or {@code null}
+	 *                    to use the default workspace location
+	 * @throws BuildException
+	 */
+	public static IProject createManagedCProject(CdtType cdtType, String projectName, URI locationURI, IProgressMonitor pm)
+			throws CoreException, BuildException {
 		if (pm == null)
 			pm = new NullProgressMonitor();
 		pm.beginTask("Create CDT project: " + projectName, IProgressMonitor.UNKNOWN);
 
 		// 1) Create/open IProject
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-		if (!project.exists())
-			project.create(pm);
+		if (!project.exists()) {
+			if (locationURI != null) {
+				IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
+				desc.setLocationURI(locationURI);
+				project.create(desc, pm);
+			} else {
+				project.create(pm);
+			}
+		}
 		if (!project.isOpen())
 			project.open(pm);
 		

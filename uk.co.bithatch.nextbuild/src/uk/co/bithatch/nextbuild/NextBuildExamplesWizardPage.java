@@ -53,7 +53,7 @@ public class NextBuildExamplesWizardPage extends AbstractBasicProjectWizardPage 
         label.setText("SDK:");
 
         sdk = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        sdk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        sdk.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         sdk.setItems(ContributedSDKRegistry.getAllSDKs().stream().map(ZXSDK::name).toList().toArray(new String[0]));
 		sdk.select(0);
 		
@@ -62,7 +62,7 @@ public class NextBuildExamplesWizardPage extends AbstractBasicProjectWizardPage 
         label.setText("Example:");
 
         example = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        example.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        example.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         
         var items = new ArrayList<String>();
         try(var in = getClass().getResourceAsStream("/META-INF/next-build.dat")) {
@@ -82,10 +82,10 @@ public class NextBuildExamplesWizardPage extends AbstractBasicProjectWizardPage 
 				+ "an External Emulator launch. It also enabled the `Next Build Nature`, that "
 				+ "adds support for NextBuilds source header processing instructions. You can "
 				+ "add this to your own project too if you want (see Project -> Natures)");
-        GridDataFactory.defaultsFor(info).span(2, 1).indent(0, 32).applyTo(info);
+        GridDataFactory.defaultsFor(info).span(3, 1).indent(0, 32).applyTo(info);
 		
         var link = new Link(container, SWT.NONE);
-        GridDataFactory.generate(link, 2, 1);
+        GridDataFactory.generate(link, 3, 1);
         link.setText("<a>The awesome NextBuild IDE</a>");
         link.addSelectionListener(new SelectionAdapter() {
             @Override

@@ -57,13 +57,13 @@ public class BasicProjectWizardPage extends AbstractBasicProjectWizardPage {
         	}
         	updateState(); 
         }));
-        fillDefaults().grab(true, false).span(2, 1).indent(0, 24).applyTo(overridePreferences);
+        fillDefaults().grab(true, false).span(3, 1).indent(0, 24).applyTo(overridePreferences);
 
         sdkLabel = new Label(container, SWT.NONE);
         sdkLabel.setText("SDK:");
 
         sdk = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fillDefaults().grab(true, false).applyTo(sdk);
+        fillDefaults().grab(true, false).span(2, 1).applyTo(sdk);
         sdk.addSelectionListener(widgetSelectedAdapter(e -> rebuildItems()));
         allSDKs = ContributedSDKRegistry.getAllSDKs();
 		sdk.setItems(allSDKs.stream().map(s -> s.name()).toList().toArray(new String[0]));
@@ -72,7 +72,7 @@ public class BasicProjectWizardPage extends AbstractBasicProjectWizardPage {
         archLabel.setText("Architecture:");
         
         arch= new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        fillDefaults().grab(true, false).applyTo(arch);
+        fillDefaults().grab(true, false).span(2, 1).applyTo(arch);
         arch.addSelectionListener(widgetSelectedAdapter(e -> rebuildItems()));
 		arch.setItems(LanguageSystemUI.describedNames(LanguageSystem.languageSystem(BorielZXBasicLanguageSystemProvider.class).architectures(null)));
        	arch.select(0);
@@ -81,14 +81,14 @@ public class BasicProjectWizardPage extends AbstractBasicProjectWizardPage {
 
         libsLabel = new Label(container, SWT.NONE);
         libsLabel.setText("Optional Libraries");
-        fillDefaults().grab(true, false).indent(0, 16).applyTo(libsLabel);
+        fillDefaults().grab(true, false).span(3, 1).indent(0, 16).applyTo(libsLabel);
         
        	viewer = CheckboxTableViewer.newCheckList(container, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         viewer.setContentProvider(ArrayContentProvider.getInstance());
         viewer.setLabelProvider(new LibraryLabelProvider());
 		viewer.setInput(ContributedLibraryRegistry.getContributedLibraries());
         
-        fillDefaults().grab(true, false).span(2, 1).hint(200, 128).applyTo(viewer.getControl());
+        fillDefaults().grab(true, false).span(3, 1).hint(200, 128).applyTo(viewer.getControl());
         
         rebuildItems();
         updateState();

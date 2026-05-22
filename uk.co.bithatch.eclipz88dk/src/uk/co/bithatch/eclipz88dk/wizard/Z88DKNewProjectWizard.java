@@ -35,8 +35,8 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 		Z88DKSDK selectedSDK = overridePreferences ? page.getSDK() : null;
 		String selectedCLibrary = overridePreferences ? page.getCLibrary() : null;
 
-		return (mon) -> {
-			var project = CdtProjectCreator.createManagedCProject(CdtType.EXECUTABLE, projectName, mon);
+		return (mon, locationURI) -> {
+			var project = CdtProjectCreator.createManagedCProject(CdtType.EXECUTABLE, projectName, locationURI, mon);
 			var pax = Z88DKPreferencesAccess.get();
 
 			if (overridePreferences) {

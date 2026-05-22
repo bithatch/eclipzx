@@ -46,7 +46,14 @@ public abstract class AbstractBasicProjectWizard<PAGE extends AbstractBasicProje
         try {
             IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
             if (!project.exists()) {
-                project.create(null);
+                var locationURI = page.getLocationURI();
+                if (locationURI != null) {
+                    IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
+                    desc.setLocationURI(locationURI);
+                    project.create(desc, null);
+                } else {
+                    project.create(null);
+                }
             }
             project.open(null);
 

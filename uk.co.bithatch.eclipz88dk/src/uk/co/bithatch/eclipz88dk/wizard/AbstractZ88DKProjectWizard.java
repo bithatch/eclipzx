@@ -25,7 +25,7 @@ public abstract class AbstractZ88DKProjectWizard<PAGE extends AbstractZ88DKProje
 		implements INewWizard {
 
 	public interface CreateTask {
-		void call(IProgressMonitor monitor) throws Exception;
+		void call(IProgressMonitor monitor, java.net.URI locationURI) throws Exception;
 	}
 
 	private static final String C_PERSPECTIVE = "org.eclipse.cdt.ui.CPerspective";
@@ -52,11 +52,12 @@ public abstract class AbstractZ88DKProjectWizard<PAGE extends AbstractZ88DKProje
 			return false;
 
 		var delegate = doProjectCreation(projectName);
+		var locationURI = page.getLocationURI();
 		var operation = new WorkspaceModifyOperation() {
 			@Override
 			protected void execute(IProgressMonitor monitor) throws CoreException {
 				try {
-					delegate.call(monitor);
+					delegate.call(monitor, locationURI);
 				} catch (CoreException ce) {
 					throw ce;
 				} catch (Exception e) {

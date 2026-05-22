@@ -33,7 +33,7 @@ public class ZXBasicExamplesWizardPage extends AbstractBasicProjectWizardPage {
         label.setText("SDK:");
 
         sdk = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-        sdk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        sdk.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         var items = ContributedSDKRegistry.getAllSDKs().stream().map(ZXSDK::name).toList().toArray(new String[0]);
 		sdk.setItems(items);
 		sdk.select(0);
