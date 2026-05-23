@@ -17,11 +17,14 @@ import uk.co.bithatch.eclipz88dk.Z88DKLanguageSystemProvider.Z88DKArchitecture;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKSDK;
 
+import uk.co.bithatch.eclipz88dk.wizard.CdtProjectCreator.CdtType;
+
 public class Z88DKNewProjectWizardPage extends AbstractZ88DKProjectWizardPage {
 
 	private Combo sdk;
 	private Combo arch;
 	private Combo cLibrary;
+	private Combo projectType;
 	private List<Z88DKSDK> allSDKs;
 	private Button overridePreferences;
 	private Label sdkLabel;
@@ -34,6 +37,11 @@ public class Z88DKNewProjectWizardPage extends AbstractZ88DKProjectWizardPage {
 		setDescription(
 				"Create a new Z88DK C project for the ZX Spectrum or ZX Spectrum Next");
     }
+
+	public CdtType getProjectCdtType() {
+		int sel = projectType.getSelectionIndex();
+		return sel <= 0 ? CdtType.EXECUTABLE : CdtType.LIBRARY;
+	}
 
 	public IArchitecture getArchitecture() {
 		var sdk = getSDK();
@@ -66,6 +74,14 @@ public class Z88DKNewProjectWizardPage extends AbstractZ88DKProjectWizardPage {
 	
 	@Override
 	protected void createFields(Composite container) {
+
+        var typeLabel = new Label(container, SWT.NONE);
+        typeLabel.setText("Project Type:");
+
+        projectType = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+        projectType.setItems("Executable", "Static Library");
+        projectType.select(0);
+        fillDefaults().grab(true, false).span(2, 1).applyTo(projectType);
 
         overridePreferences = new Button(container, SWT.CHECK);
         overridePreferences.setText("I want to choose my own basic project setup");

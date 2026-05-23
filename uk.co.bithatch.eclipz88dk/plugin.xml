@@ -133,6 +133,31 @@
                 </option>
             </tool>
             
+            <!-- ============== ARCHIVER TOOL (.o -> .lib static library) ============== -->
+            <tool
+                  command="z80asm"
+                  icon="icons/z88dk.png"
+                  id="uk.co.bithatch.eclipz88dk.archiver"
+                  outputFlag=""
+                  commandLineGenerator="uk.co.bithatch.eclipz88dk.toolchain.Z88DKArchiverCmdLineGen"
+                  name="Z88DK Archiver">
+               <inputType
+                     id="uk.co.bithatch.eclipz88dk.archiver.inputType"
+                     name="Z88DK Object Files"
+                     primaryInput="true"
+                     sources="o"
+                     multipleOfType="true"
+                     buildVariable="OBJS">
+               </inputType>
+               <outputType
+                     buildVariable="LIBS"
+                     id="uk.co.bithatch.eclipz88dk.archiver.outputType"
+                     name="Z88DK Library"
+                     outputs="lib"
+                     primaryOutput="true">
+               </outputType>
+            </tool>
+            
             <!-- ============== LINKER TOOL (.o -> final binary) ============== -->
             <tool
                   command="zcc"
@@ -274,7 +299,7 @@ org.eclipse.cdt.build.core.buildArtefactType.other
       
       <projectType
             
-            buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
+            buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib"
             id="uk.co.bithatch.eclipz88dk.library"
             isAbstract="false"
             isTest="false"
@@ -282,43 +307,43 @@ org.eclipse.cdt.build.core.buildArtefactType.other
          <configuration
                cleanCommand="rm -f"
                errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
-               id="uk.co.bithatch.eclipz88dk.release.so"
+               id="uk.co.bithatch.eclipz88dk.release.lib"
                name="Release"
-               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib"
                buildProperties="
-                  org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib;
+                  org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib;
                   org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
                artifactName="${ProjName}"
                artifactExtension="lib">
             <toolChain
-                  id="uk.co.bithatch.eclipz88dk.release.so.toolChain"
+                  id="uk.co.bithatch.eclipz88dk.release.lib.toolChain"
                   isAbstract="false"
                   languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
                   name="Z88DK Release Configuration"
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
-                  targetTool="uk.co.bithatch.eclipz88dk.linker">
+                  targetTool="uk.co.bithatch.eclipz88dk.archiver">
             </toolChain>
          </configuration>
          <configuration
                cleanCommand="rm -f"
                errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
-               id="uk.co.bithatch.eclipz88dk.debug.so"
+               id="uk.co.bithatch.eclipz88dk.debug.lib"
                name="Debug"
-               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib"
                   buildProperties="
-                      org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib;
+                      org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib;
                       org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
                artifactName="${ProjName}"
-               artifactExtension="bin">
+               artifactExtension="lib">
             <toolChain
-                  id="uk.co.bithatch.eclipz88dk.debug.so.toolChain"
+                  id="uk.co.bithatch.eclipz88dk.debug.lib.toolChain"
                   isAbstract="false"
                   languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
                   name="Z88DK Debug Configuration"
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
-                  targetTool="uk.co.bithatch.eclipz88dk.linker">
+                  targetTool="uk.co.bithatch.eclipz88dk.archiver">
             </toolChain>
          </configuration>
       </projectType>

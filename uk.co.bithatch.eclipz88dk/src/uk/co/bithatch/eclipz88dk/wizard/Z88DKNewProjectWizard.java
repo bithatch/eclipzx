@@ -34,9 +34,11 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 		IArchitecture selectedArch = overridePreferences ? page.getArchitecture() : null;
 		Z88DKSDK selectedSDK = overridePreferences ? page.getSDK() : null;
 		String selectedCLibrary = overridePreferences ? page.getCLibrary() : null;
+		CdtType cdtType = page.getProjectCdtType();
+		boolean isLibrary = cdtType == CdtType.LIBRARY;
 
 		return (mon, locationURI) -> {
-			var project = CdtProjectCreator.createManagedCProject(CdtType.EXECUTABLE, projectName, locationURI, mon);
+			var project = CdtProjectCreator.createManagedCProject(cdtType, projectName, locationURI, mon);
 			var pax = Z88DKPreferencesAccess.get();
 
 			if (overridePreferences) {
@@ -58,44 +60,46 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 			// so it can resolve include paths correctly against the configured SDK/architecture.
 			CdtProjectCreator.enableZ88DKFeatures(project);
 
-			var file = project.getFile("main.c");
-			if (!file.exists()) {
-				if (isZxNext) {
-					file.create(new ByteArrayInputStream("""
-							#include <arch/zxn.h>   // ZX Spectrum Next architecture specfic functions
-							#include <stdio.h>
+			if (!isLibrary) {
+				var file = project.getFile("main.c");
+				if (!file.exists()) {
+					if (isZxNext) {
+						file.create(new ByteArrayInputStream("""
+								#include <arch/zxn.h>   // ZX Spectrum Next architecture specfic functions
+								#include <stdio.h>
 
-							// Define some macros to make use of tty_z88dk control codes
-							// Program must be compiled with a CRT that supports tty_z88dk e.g. -startup=1
-							#define printInk(k)          printf("\\x10%c", '0'+(k))
-							#define printPaper(k)        printf("\\x11%c", '0'+(k))
-							#define printAt(row, col)    printf("\\x16%c%c", (col)+1, (row)+1)
+								// Define some macros to make use of tty_z88dk control codes
+								// Program must be compiled with a CRT that supports tty_z88dk e.g. -startup=1
+								#define printInk(k)          printf("\\x10%c", '0'+(k))
+								#define printPaper(k)        printf("\\x11%c", '0'+(k))
+								#define printAt(row, col)    printf("\\x16%c%c", (col)+1, (row)+1)
 
-							int main()
-							{
-							    printAt(10,10);                 // move cursor
-							    puts("Hello World!");
+								int main()
+								{
+								    printAt(10,10);                 // move cursor
+								    puts("Hello World!");
 
-							    while(1) {                      // loop for ever
-							            zx_border(INK_RED);     // set border red
-							            zx_border(INK_YELLOW);  // set border yellow
-							    };
+								    while(1) {                      // loop for ever
+								            zx_border(INK_RED);     // set border red
+								            zx_border(INK_YELLOW);  // set border yellow
+								    };
 
-							    return 0;
-							}
-							  	""".getBytes()), true, null);
-				} else {
-					file.create(new ByteArrayInputStream("""
-							#include <stdio.h>
+								    return 0;
+								}
+								  	""".getBytes()), true, null);
+					} else {
+						file.create(new ByteArrayInputStream("""
+								#include <stdio.h>
 
-							int main()
-							{
-							    printf("Hello World!\\n");
-							    return 0;
-							}
-							""".getBytes()), true, null);
+								int main()
+								{
+								    printf("Hello World!\\n");
+								    return 0;
+								}
+								""".getBytes()), true, null);
+					}
 				}
-			}
+			} // end !isLibrary
 
 			// Reindex now that preferences (SDK, architecture, cLibrary) are set,
 			// so the language settings provider returns the correct include paths.

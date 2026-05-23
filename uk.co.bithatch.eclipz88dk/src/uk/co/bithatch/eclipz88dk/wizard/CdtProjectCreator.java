@@ -46,8 +46,8 @@ public final class CdtProjectCreator {
 	public enum CdtType {
 		EXECUTABLE("uk.co.bithatch.eclipz88dk.executable", "uk.co.bithatch.eclipz88dk.debug.exe",
 				"uk.co.bithatch.eclipz88dk.release.exe", "org.eclipse.cdt.build.core.buildArtefactType.exe", "bin"),
-		LIBRARY("uk.co.bithatch.eclipz88dk.library", "uk.co.bithatch.eclipz88dk.debug.so",
-				"uk.co.bithatch.eclipz88dk.release.so", "org.eclipse.cdt.build.core.buildArtefactType.sharedLibrary",
+		LIBRARY("uk.co.bithatch.eclipz88dk.library", "uk.co.bithatch.eclipz88dk.debug.lib",
+				"uk.co.bithatch.eclipz88dk.release.lib", "org.eclipse.cdt.build.core.buildArtefactType.staticLib",
 				"lib");
 
 		private final String projectTypeId;

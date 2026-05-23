@@ -18,6 +18,21 @@ import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile.Key;
 
 public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableProvider implements ILanguageSettingsEditableProvider {
+
+	
+	public final static Map<String, String> BUILTIN_MACROS = Map.of(
+		"IO_NEXTREG_REG", "(...)",
+		"IO_NEXTREG_DAT", "(...)",
+		"__z88dk_fastcall", "",
+		"__z88dk_callee", "",
+		"__smallc", "",
+		"__critical", "",
+		"__naked", "",
+		"__interrupt", "",
+		"__preserves_regs", "(...)",
+		"IM2_DEFINE_ISR(name)", "void name(void)"
+	);
+	
 	@Override
 	public List<ICLanguageSettingEntry> getSettingEntries(ICConfigurationDescription cfgDescription, IResource rc,
 			String languageId) {
@@ -63,17 +78,6 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 		}
 		return Collections.emptyList();
 	}
-	
-	public final static Map<String, String> BUILTIN_MACROS = Map.of(
-		"__z88dk_fastcall", "",
-		"__z88dk_callee", "",
-		"__smallc", "",
-		"__critical", "",
-		"__naked", "",
-		"__interrupt", "",
-		"__preserves_regs", "(...)",
-		"IM2_DEFINE_ISR(name)", "void name(void)"
-	);
 
 	protected void addOptions(Z88DKSDK sdk, ArrayList<ICLanguageSettingEntry> entries, String opt) {
 		if (opt.startsWith("-D")) {
