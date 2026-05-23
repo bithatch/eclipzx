@@ -61,7 +61,8 @@ public class FATImageFileSystem extends FileSystem implements LockListener {
 			}
 
 			if (!diskFile.exists()) {
-				throw new IllegalArgumentException("Disk image file does not exist: " + diskFile);
+				LOG.error("Disk image file does not exist: " + diskFile);
+				return null;
 			}
 
 			var device = deviceCache.computeIfAbsent(diskKey, p -> {

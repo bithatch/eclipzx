@@ -3,7 +3,9 @@ package uk.co.bithatch.eclipz88dk.toolchain;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
@@ -16,8 +18,10 @@ import org.eclipse.cdt.core.settings.model.ICSourceEntry;
 import org.eclipse.cdt.core.settings.model.util.CDataUtil;
 import org.eclipse.cdt.managedbuilder.core.IBuildObject;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IFileInfo;
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineInfo;
 import org.eclipse.cdt.managedbuilder.core.IManagedProject;
+import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.IResourceInfo;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
@@ -36,6 +40,12 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 	private static final ILog LOG = ILog.of(Z88DKCmdLineGen.class);
 	private static final String UK_CO_BITHATCH_ECLIPZ88DK_COMPILER = "uk.co.bithatch.eclipz88dk.compiler";
 
+	private static final String OPT_CODESEG = "uk.co.bithatch.eclipz88dk.compiler.codeseg";
+	private	static final String OPT_CONSTSEG = "uk.co.bithatch.eclipz88dk.compiler.constseg";
+	private static final String OPT_DATASEG = "uk.co.bithatch.eclipz88dk.compiler.dataseg";
+	private static final String OPT_PRAGMA_INCLUDE = "uk.co.bithatch.eclipz88dk.compiler.pragmainclude";
+	private static final String OPT_STARTUP = "uk.co.bithatch.eclipz88dk.compiler.startup";
+
 	@Override
 	public IManagedCommandLineInfo generateCommandLineInfo(
 		      ITool tool,
@@ -53,10 +63,18 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 		if (flags != null)
 			merged.addAll(Arrays.asList(flags));
 
+		/* CDT injects option values into flags[] using the 'command' prefix.
+		 * We handle bank switching (codeseg/constseg/dataseg) per-file and
+		 * linker options (pragma-include/startup) only during the link phase,
+		 * so strip all of them from flags[] — we re-add them ourselves at
+		 * the right point. */
+		stripProgrammaticOptions(tool, merged);
+
 		var pax = Z88DKPreferencesAccess.get();
 		var sdk = pax.getSDK(project).get();
 		
 		command = new File(new File(sdk.location(), "bin"), command).getAbsolutePath();
+		final String cmd = command;
 
 		LOG.info("Z88DK generateCommandLineInfo: tool.getId()=" + tool.getId() + ", buildContext=" + Z88DKBuildContext.get());
 		
@@ -70,6 +88,10 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 				/* Launch build: produce final binary in the requested format */
 				merged.add("-create-app");
 				merged.add("-subtype=" + buildCtx.get().name().toLowerCase());
+				
+				/* Linker options — only emitted during the link/launch build */
+				addStringOption(tool, OPT_PRAGMA_INCLUDE, "-pragma-include:", merged);
+				addStringOption(tool, OPT_STARTUP, "-startup=", merged);
 			}
 			merged.add("+" + pax.getArchitecture(project).name().toLowerCase());
 			merged.add("-clib=" + pax.getCLibrary(project));
@@ -91,47 +113,316 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 			}
 		}
 
-		var result = super.generateCommandLineInfo(
-		        tool,
-		        command,
-		        merged.toArray(String[]::new),
-		        outputFlag,
-		        outputPrefix,
-		        output,
-		        inputResources,
-		        commandLinePattern);
-
-		/* When using --assemble-only, zcc leaves intermediate .c.asm files
-		 * next to the original .c sources.  Append a cleanup command to move
-		 * them into the build output directory so they don't pollute the
-		 * source tree and don't get picked up as source files on subsequent
-		 * builds. */
-		if (merged.contains("--assemble-only") && project != null && inputResources != null) {
-			var cmdLine = result.getCommandLine();
-			var sb = new StringBuilder(cmdLine);
-			for (String inp : inputResources) {
-				if (inp.toLowerCase().endsWith(".c")) {
-					/* The .c.asm is created next to the .c file */
-					String casmPath = inp + ".asm";
-					sb.append(" ; mv -f ").append(casmPath).append(" . 2>/dev/null");
+		/*
+		 * Bank switching support: scan per-resource configurations for files that
+		 * have codeseg/constseg/dataseg options set.  Those files must be compiled
+		 * separately from the main batch because each group needs different
+		 * --codeseg/--constseg/--dataseg flags.
+		 *
+		 * This applies to both compile and link phases:
+		 *  - Compile phase (--assemble-only): bank files compiled separately
+		 *  - Link phase (-create-app): bank files compiled to .o with -c first,
+		 *    then .o files fed into the final link alongside other sources
+		 */
+		var bankGroups = new LinkedHashMap<BankKey, List<String>>();
+		var mainSources = new ArrayList<String>();
+		boolean isLinkPhase = merged.contains("-create-app");
+		boolean isCompilePhase = merged.contains("--assemble-only");
+		
+		if (inputResources != null && project != null && (isCompilePhase || isLinkPhase)) {
+			var cfg = configFromTool(tool);
+			if (cfg != null) {
+				Map<String, BankKey> fileBanks = collectBankSettings(cfg);
+				LOG.info("Z88DK: per-file bank settings: " + fileBanks);
+				
+				for (String src : inputResources) {
+					/* src is like "../src/util.c" — strip leading "../" to get project-relative path */
+					String projRel = src.startsWith("../") ? src.substring(3) : src;
+					BankKey bank = fileBanks.get(projRel);
+					if (bank != null) {
+						bankGroups.computeIfAbsent(bank, k -> new ArrayList<>()).add(src);
+					} else {
+						mainSources.add(src);
+					}
 				}
+			} else {
+				mainSources.addAll(Arrays.asList(inputResources));
 			}
-			var finalCmd = sb.toString();
-			/* Return a wrapper that overrides getCommandLine() */
-			var orig = result;
-			result = new IManagedCommandLineInfo() {
-				@Override public String getCommandLine() { return finalCmd; }
-				@Override public String getCommandLinePattern() { return orig.getCommandLinePattern(); }
-				@Override public String getCommandName() { return orig.getCommandName(); }
-				@Override public String getFlags() { return orig.getFlags(); }
-				@Override public String getOutputFlag() { return orig.getOutputFlag(); }
-				@Override public String getOutputPrefix() { return orig.getOutputPrefix(); }
-				@Override public String getOutput() { return orig.getOutput(); }
-				@Override public String getInputs() { return orig.getInputs(); }
-			};
+		} else if (inputResources != null) {
+			mainSources.addAll(Arrays.asList(inputResources));
 		}
 
+		/*
+		 * For the link phase, all .o files already exist from the compile phase.
+		 * Just use *.o to link them all.
+		 */
+
+		/* Build the compound command line */
+		var sb = new StringBuilder();
+		
+		if (isLinkPhase) {
+			/* Link phase: just link all .o files from the build directory.
+			 * The compile phase already produced them.
+			 * We build the command manually because:
+			 *  - *.o must NOT be quoted (shell glob)
+			 *  - output extension should match the subtype (e.g. .nex) */
+			var buildCtx = Z88DKBuildContext.get();
+			String ext = buildCtx.isPresent() ? buildCtx.get().name().toLowerCase() : "bin";
+			String linkOutput = output.replaceAll("\\.[^.]+$", "." + ext);
+			
+			sb.append(command);
+			for (String f : merged) {
+				sb.append(' ').append(f);
+			}
+			sb.append(' ').append(outputFlag).append(' ').append(linkOutput);
+			sb.append(" *.o");
+			
+			var finalCmd = sb.toString();
+			return new IManagedCommandLineInfo() {
+				@Override public String getCommandLine() { return finalCmd; }
+				@Override public String getCommandLinePattern() { return commandLinePattern; }
+				@Override public String getCommandName() { return cmd; }
+				@Override public String getFlags() { return String.join(" ", merged); }
+				@Override public String getOutputFlag() { return outputFlag; }
+				@Override public String getOutputPrefix() { return outputPrefix; }
+				@Override public String getOutput() { return linkOutput; }
+				@Override public String getInputs() { return "*.o"; }
+			};
+		}
+		
+		/* Compile phase: bank-switched files compiled separately */
+		for (var entry : bankGroups.entrySet()) {
+			var bank = entry.getKey();
+			var srcs = entry.getValue();
+			
+			var bankFlags = new ArrayList<>(merged);
+			if (bank.codeseg != null && !bank.codeseg.isBlank())
+				bankFlags.add("--codeseg" + bank.codeseg.trim());
+			if (bank.constseg != null && !bank.constseg.isBlank())
+				bankFlags.add("--constseg" + bank.constseg.trim());
+			if (bank.dataseg != null && !bank.dataseg.isBlank())
+				bankFlags.add("--dataseg" + bank.dataseg.trim());
+			
+			/* First: --assemble-only pass (produces .c.asm intermediates) */
+			sb.append(command);
+			for (String f : bankFlags) {
+				sb.append(' ').append(f);
+			}
+			for (String src : srcs) {
+				sb.append(' ').append(src);
+			}
+			
+			/* Cleanup .c.asm for bank-switched files */
+			for (String src : srcs) {
+				if (src.toLowerCase().endsWith(".c")) {
+					sb.append(" ; mv -f ").append(src).append(".asm . 2>/dev/null");
+				}
+			}
+			
+			/* Second: -c pass (produces .o files in build dir for linking) */
+			var bankCompileFlags = new ArrayList<>(bankFlags);
+			bankCompileFlags.remove("--assemble-only");
+			bankCompileFlags.add(0, "-c");
+			for (String src : srcs) {
+				String baseName = uniqueOName(src, srcs);
+				sb.append(" && ");
+				sb.append(command);
+				for (String f : bankCompileFlags) {
+					sb.append(' ').append(f);
+				}
+				sb.append(" -o ").append(baseName).append(' ').append(src);
+			}
+			sb.append(" && ");
+		}
+		
+		/* Main compilation (non-bank-switched files) */
+		var mainResult = super.generateCommandLineInfo(
+		        tool, command, merged.toArray(String[]::new),
+		        outputFlag, outputPrefix, output,
+		        mainSources.toArray(String[]::new), commandLinePattern);
+
+		sb.append(mainResult.getCommandLine());
+		
+		/* Cleanup .c.asm files for main sources */
+		if (isCompilePhase && project != null) {
+			for (String inp : mainSources) {
+				if (inp.toLowerCase().endsWith(".c")) {
+					sb.append(" ; mv -f ").append(inp).append(".asm . 2>/dev/null");
+				}
+			}
+			
+			/* Also compile main sources to .o in build dir for the link phase */
+			var compileFlags = new ArrayList<>(merged);
+			compileFlags.remove("--assemble-only");
+			compileFlags.add(0, "-c");
+			for (String src : mainSources) {
+				String baseName = uniqueOName(src, mainSources);
+				sb.append(" && ").append(command);
+				for (String f : compileFlags) {
+					sb.append(' ').append(f);
+				}
+				sb.append(" -o ").append(baseName).append(' ').append(src);
+			}
+		}
+
+		var finalCmd = sb.toString();
+		var orig = mainResult;
+		return new IManagedCommandLineInfo() {
+			@Override public String getCommandLine() { return finalCmd; }
+			@Override public String getCommandLinePattern() { return orig.getCommandLinePattern(); }
+			@Override public String getCommandName() { return orig.getCommandName(); }
+			@Override public String getFlags() { return orig.getFlags(); }
+			@Override public String getOutputFlag() { return orig.getOutputFlag(); }
+			@Override public String getOutputPrefix() { return orig.getOutputPrefix(); }
+			@Override public String getOutput() { return orig.getOutput(); }
+			@Override public String getInputs() { return orig.getInputs(); }
+		};
+	}
+
+	/**
+	 * Compute a unique .o filename for a source file within a group of sources.
+	 * Normally "foo.c" → "foo.o", but if there's also a "foo.asm" in the same
+	 * group, the .asm file becomes "foo_asm.o" to avoid collision.
+	 */
+	private static String uniqueOName(String src, List<String> allSources) {
+		String fileName = src.substring(src.lastIndexOf('/') + 1);
+		String baseName = fileName.replaceAll("\\.[^.]+$", "");
+		String ext = "";
+		int dot = fileName.lastIndexOf('.');
+		if (dot >= 0) ext = fileName.substring(dot + 1).toLowerCase();
+		
+		/* Check if another file in the group has the same base name but different extension */
+		boolean conflict = false;
+		for (String other : allSources) {
+			if (other.equals(src)) continue;
+			String otherFile = other.substring(other.lastIndexOf('/') + 1);
+			String otherBase = otherFile.replaceAll("\\.[^.]+$", "");
+			if (otherBase.equals(baseName)) {
+				conflict = true;
+				break;
+			}
+		}
+		
+		if (conflict) {
+			return baseName + "_" + ext + ".o";
+		}
+		return baseName + ".o";
+	}
+
+	/**
+	 * Key for grouping files by their bank switching settings.
+	 */
+	private record BankKey(String codeseg, String constseg, String dataseg) {}
+	
+	/**
+	 * Scan all per-resource (file-level) configurations in the given CDT
+	 * configuration and collect bank switching option values.
+	 * 
+	 * @return map from project-relative file path to BankKey
+	 */
+	private static Map<String, BankKey> collectBankSettings(IConfiguration cfg) {
+		var result = new LinkedHashMap<String, BankKey>();
+		for (IResourceInfo ri : cfg.getResourceInfos()) {
+			if (ri instanceof IFileInfo fileInfo) {
+				/* Get the project-relative path of this file resource */
+				var path = fileInfo.getPath();
+				if (path == null || path.isEmpty()) continue;
+				/* path typically looks like "src/util.c" */
+				String projRelPath = path.toString();
+				/* Remove leading slash if present */
+				if (projRelPath.startsWith("/")) projRelPath = projRelPath.substring(1);
+				
+				/* Find the compiler tool in this file's resource info */
+				for (ITool fileTool : fileInfo.getTools()) {
+					if (fileTool.getId().startsWith(UK_CO_BITHATCH_ECLIPZ88DK_COMPILER + ".")
+							|| fileTool.getId().equals(UK_CO_BITHATCH_ECLIPZ88DK_COMPILER)) {
+						String codeseg = getStringOptionValue(fileTool, OPT_CODESEG);
+						String constseg = getStringOptionValue(fileTool, OPT_CONSTSEG);
+						String dataseg = getStringOptionValue(fileTool, OPT_DATASEG);
+						
+						if ((codeseg != null && !codeseg.isBlank())
+								|| (constseg != null && !constseg.isBlank())
+								|| (dataseg != null && !dataseg.isBlank())) {
+							result.put(projRelPath, new BankKey(codeseg, constseg, dataseg));
+							LOG.info("Z88DK: bank settings for '" + projRelPath + "': codeseg=" + codeseg 
+									+ " constseg=" + constseg + " dataseg=" + dataseg);
+						}
+					}
+				}
+			}
+		}
 		return result;
+	}
+	
+	/**
+	 * Remove option values that CDT injected into the flags list for options
+	 * we handle programmatically.  CDT emits {@code command + value} as a
+	 * single token (e.g. {@code --codesegPAGE_36}, {@code -pragma-include:zpragma.inc}).
+	 * We strip these because we re-add them ourselves at the correct phase
+	 * (bank switching per-file, linker options only during link).
+	 */
+	private static final String[][] PROGRAMMATIC_OPTION_PREFIXES = {
+		{ OPT_CODESEG,         "--codeseg" },
+		{ OPT_CONSTSEG,        "--constseg" },
+		{ OPT_DATASEG,         "--dataseg" },
+		{ OPT_PRAGMA_INCLUDE,  "-pragma-include:" },
+		{ OPT_STARTUP,         "-startup=" },
+	};
+	
+	private static void stripProgrammaticOptions(ITool tool, List<String> flags) {
+		for (String[] entry : PROGRAMMATIC_OPTION_PREFIXES) {
+			String optId = entry[0];
+			String prefix = entry[1];
+			String val = getStringOptionValue(tool, optId);
+			if (val != null && !val.isBlank()) {
+				flags.remove(prefix + val.trim());
+				/* Also remove bare value in case CDT emitted it without prefix
+				 * (can happen if plugin.xml was cached without command attr) */
+				flags.remove(val.trim());
+			}
+		}
+	}
+
+	/**
+	 * Read a string option value from a tool, returning null if not found or empty.
+	 */
+	private static String getStringOptionValue(ITool tool, String optionId) {
+		try {
+			IOption opt = tool.getOptionBySuperClassId(optionId);
+			if (opt == null) opt = tool.getOptionById(optionId);
+			if (opt != null) {
+				return opt.getStringValue();
+			}
+		} catch (Exception e) {
+			LOG.warn("Z88DK: failed to read option " + optionId, e);
+		}
+		return null;
+	}
+
+	/**
+	 * Read a string option from the tool and add it to the flags with the given
+	 * prefix (e.g. "-pragma-include:" or "-startup="). Does nothing if the
+	 * option is empty or not found.
+	 */
+	private static void addStringOption(ITool tool, String optionId, String prefix, List<String> flags) {
+		String val = getStringOptionValue(tool, optionId);
+		if (val != null && !val.isBlank()) {
+			flags.add(prefix + val.trim());
+		}
+	}
+
+	/**
+	 * Get the IConfiguration from a tool instance.
+	 */
+	private static IConfiguration configFromTool(ITool tool) {
+		IResourceInfo ri = tool.getParentResourceInfo();
+		if (ri != null) return ri.getParent();
+		
+		IBuildObject p = tool.getParent();
+		if (p instanceof IConfiguration cfg) return cfg;
+		if (p instanceof IToolChain tc) return tc.getParent();
+		if (p instanceof IResourceInfo ri2) return ri2.getParent();
+		return null;
 	}
 
 	/**
@@ -330,6 +621,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator{
 		} catch (CoreException e) {
 			LOG.error("Failed to discover source files for project: " + project.getName(), e);
 		}
+		
 		return sources.toArray(String[]::new);
 	}
 

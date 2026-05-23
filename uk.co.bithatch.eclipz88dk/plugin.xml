@@ -49,55 +49,122 @@
                     outputs="bin"
                     primaryOutput="true"> 
               </outputType>
-              <optionCategory
-                    id="uk.co.bithatch.eclipz88dk.compiler.options"
-                    name="General"
-                    owner="uk.co.bithatch.eclipz88dk.compiler">
-              </optionCategory>
-              <optionCategory
-                    id="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
-                    name="Include Path"
-                    owner="uk.co.bithatch.eclipz88dk.compiler">
-              </optionCategory>
-              <optionCategory
-                    id="uk.co.bithatch.eclipz88dk.compiler.libs.options"
-                    name="Libraries"
-                    owner="uk.co.bithatch.eclipz88dk.compiler">
-              </optionCategory>
-              <option
-                    category="uk.co.bithatch.eclipz88dk.compiler.options"
-                    defaultValue=""
-                    id="uk.co.bithatch.eclipz88dk.compiler.other"
-                    name="Other Flags"
-                    resourceFilter="all"
-                    valueType="string">
-              </option>
-              <option
-                    category="uk.co.bithatch.eclipz88dk.compiler.options"
-                    command="-v"
-                    id="uk.co.bithatch.eclipz88dk.compiler.verbose"
-                    name="Verbose"
-                    resourceFilter="all"
-                    valueType="boolean">
-              </option>
-              <option
-                    browseType="directory"
-                    category="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
-                    command="-I"
-                    id="uk.co.bithatch.eclipz88dk.compiler.incpath"
-                    name="Include paths"
-                    resourceFilter="all"
-                    valueType="includePath">
-              </option>
-              <option
-                    browseType="none"
-                    category="uk.co.bithatch.eclipz88dk.compiler.libs.options"
-                    command="-l"
-                    id="uk.co.bithatch.eclipz88dk.compiler.libs"
-                    name="Libraries"
-                    resourceFilter="all"
-                    valueType="libs">
-              </option>
+               <optionCategory
+                     id="uk.co.bithatch.eclipz88dk.compiler.options"
+                     name="General"
+                     owner="uk.co.bithatch.eclipz88dk.compiler">
+               </optionCategory>
+               <optionCategory
+                     id="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                     name="Bank Switching"
+                     owner="uk.co.bithatch.eclipz88dk.compiler">
+               </optionCategory>
+               <optionCategory
+                     id="uk.co.bithatch.eclipz88dk.compiler.linker.options"
+                     name="Linker"
+                     owner="uk.co.bithatch.eclipz88dk.compiler">
+               </optionCategory>
+               <optionCategory
+                     id="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
+                     name="Include Path"
+                     owner="uk.co.bithatch.eclipz88dk.compiler">
+               </optionCategory>
+               <optionCategory
+                     id="uk.co.bithatch.eclipz88dk.compiler.libs.options"
+                     name="Libraries"
+                     owner="uk.co.bithatch.eclipz88dk.compiler">
+               </optionCategory>
+               <!-- General options -->
+               <option
+                     category="uk.co.bithatch.eclipz88dk.compiler.options"
+                     defaultValue=""
+                     command=""
+                     id="uk.co.bithatch.eclipz88dk.compiler.other"
+                     name="Other Flags"
+                     resourceFilter="all"
+                     valueType="string">
+               </option>
+               <option
+                     category="uk.co.bithatch.eclipz88dk.compiler.options"
+                     command="-v"
+                     id="uk.co.bithatch.eclipz88dk.compiler.verbose"
+                     name="Verbose"
+                     resourceFilter="all"
+                     valueType="boolean">
+               </option>
+               <!-- Bank Switching options (per-file via Resource Configurations) -->
+               <option
+                     category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                     command="--codeseg"
+                     defaultValue=""
+                     id="uk.co.bithatch.eclipz88dk.compiler.codeseg"
+                     name="Code Segment (--codeseg)"
+                     tip="Bank name for code segment, e.g. PAGE_36"
+                     resourceFilter="all"
+                     valueType="string">
+               </option>
+               <option
+                     category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                     command="--constseg"
+                     defaultValue=""
+                     id="uk.co.bithatch.eclipz88dk.compiler.constseg"
+                     name="Const Segment (--constseg)"
+                     tip="Bank name for const segment, e.g. PAGE_36"
+                     resourceFilter="all"
+                     valueType="string">
+               </option>
+               <option
+                     category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                     command="--dataseg"
+                     defaultValue=""
+                     id="uk.co.bithatch.eclipz88dk.compiler.dataseg"
+                     name="Data Segment (--dataseg)"
+                     tip="Bank name for data segment, e.g. PAGE_40"
+                     resourceFilter="all"
+                     valueType="string">
+               </option>
+               <!-- Linker options (only used during link/launch build) -->
+               <option
+                     category="uk.co.bithatch.eclipz88dk.compiler.linker.options"
+                     command="-pragma-include:"
+                     defaultValue=""
+                     id="uk.co.bithatch.eclipz88dk.compiler.pragmainclude"
+                     name="Pragma Include File (-pragma-include)"
+                     tip="Path to pragma include file, e.g. src/zpragma.inc"
+                     browseType="file"
+                     resourceFilter="all"
+                     valueType="string">
+               </option>
+               <option
+                     category="uk.co.bithatch.eclipz88dk.compiler.linker.options"
+                     command="-startup="
+                     defaultValue=""
+                     id="uk.co.bithatch.eclipz88dk.compiler.startup"
+                     name="Startup / CRT (-startup)"
+                     tip="Startup CRT number, e.g. 31"
+                     resourceFilter="all"
+                     valueType="string">
+               </option>
+               <!-- Include paths -->
+               <option
+                     browseType="directory"
+                     category="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
+                     command="-I"
+                     id="uk.co.bithatch.eclipz88dk.compiler.incpath"
+                     name="Include paths"
+                     resourceFilter="all"
+                     valueType="includePath">
+               </option>
+               <!-- Libraries -->
+               <option
+                     browseType="file"
+                     category="uk.co.bithatch.eclipz88dk.compiler.libs.options"
+                     command="-l"
+                     id="uk.co.bithatch.eclipz88dk.compiler.libs"
+                     name="Libraries"
+                     resourceFilter="all"
+                     valueType="libs">
+               </option>
            </tool>
            
         </toolChain>
