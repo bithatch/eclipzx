@@ -90,7 +90,7 @@ Just a rough list, there is a lot more to do that this, but these are the ones.
  * The screen editor is relatively immature, but should progress rapidly.
  * Debug support using (e.g. CSpect+DeZOG and others) is immature.
  * A full tracker to supplement the AYFX effects editor (if I get time).
- * Various bugs and problems with product builds.
+ * Various bugs
  
 ## The Future
 
