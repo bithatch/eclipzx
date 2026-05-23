@@ -278,25 +278,36 @@ public final class CdtProjectCreator {
 
 		IManagedProject mproj = ManagedBuildManager.createManagedProject(project, ptype);
 
-		// 6) Clone your extension configurations into the project
-		IConfiguration extDebug = findExtConfigById(ptype, cdtType.debugId);
-		IConfiguration extRelease = findExtConfigById(ptype, cdtType.releaseId);
-		if (extDebug == null || extRelease == null) {
-			throw new CoreException(
-					err("Extension configurations not found under projectType: " + cdtType.projectTypeId));
+		// Clone ALL extension configurations into the project (both primary
+		// and cross-type configs like "Debug (Executable)" on a Library project)
+		IConfiguration projDebugCfg = null;
+		for (IConfiguration extCfg : ptype.getConfigurations()) {
+			String name = extCfg.getName();
+			String artifactType = extCfg.getBuildArtefactType() != null 
+					? extCfg.getBuildArtefactType().getId() 
+					: cdtType.artefactType;
+			String artifactExt = extCfg.getArtifactExtension();
+			if (artifactExt == null || artifactExt.isEmpty()) {
+				artifactExt = cdtType.artefactExt;
+			}
+			
+			IConfiguration cfg = cloneExtConfigIntoProject(projDesc, mproj, extCfg, name, project.getName(),
+					artifactType, artifactExt);
+			
+			// Make the primary Debug config active
+			if (extCfg.getId().equals(cdtType.debugId)) {
+				projDebugCfg = cfg;
+			}
 		}
 
-		IConfiguration projDebugCfg = cloneExtConfigIntoProject(projDesc, mproj, extDebug, "Debug", project.getName(),
-				cdtType.artefactType, cdtType.artefactExt);
-		cloneExtConfigIntoProject(projDesc, mproj, extRelease, "Release", project.getName(), cdtType.artefactType,
-				cdtType.artefactExt);
+		// Make Debug active
+		if (projDebugCfg != null) {
+			ICConfigurationDescription active = projDesc.getConfigurationById(projDebugCfg.getConfigurationData().getId());
+			if (active != null)
+				projDesc.setActiveConfiguration(active);
+		}
 
-		// 7) Make Debug active
-		ICConfigurationDescription active = projDesc.getConfigurationById(projDebugCfg.getConfigurationData().getId());
-		if (active != null)
-			projDesc.setActiveConfiguration(active);
-
-		// 8) Ensure MBS builders are present
+		// Ensure MBS builders are present
 		ensureMbsBuilders(project, pm);
 	}
 

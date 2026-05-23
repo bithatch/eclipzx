@@ -1,5 +1,6 @@
 package uk.co.bithatch.widgetzx;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -171,10 +172,10 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 						new WorkbenchContentProvider());
 
 				var project = resolveProject();
-//				var outputFolder = preferenceAccess.getOutputFolder(project);
+				var langSys =  resolveLanguageOrProjectLanguage(project);
 
 				dialog.setTitle("Select Source File");
-				dialog.setMessage("Choose a .bas or .asm file:");
+				dialog.setMessage("Choose a " + String.join(", ", Arrays.asList(langSys.sourceFileExtensions())) + " file:");
 				dialog.setInput(project); // Root of the selection
 				
 				try {
@@ -187,8 +188,8 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 				dialog.addFilter(new ViewerFilter() {
 					@Override
 					public boolean select(Viewer viewer, Object parentElement, Object element) {
-						if(element instanceof IResource res)
-							return LanguageSystem.languageSystem(project).isLaunchable(res); 
+						if(langSys != null && element instanceof IResource res)
+							return langSys.isLaunchable(res); 
 						else
 							return false;
 					}
@@ -203,6 +204,11 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 
 			}
 		});
+	}
+
+	protected ILanguageSystemProvider resolveLanguageOrProjectLanguage(IProject project) {
+		var lang = resolveLanguage();
+		return lang == null ? LanguageSystem.languageSystem(project) : lang;
 	}
 
 	protected void architectureChanged() {

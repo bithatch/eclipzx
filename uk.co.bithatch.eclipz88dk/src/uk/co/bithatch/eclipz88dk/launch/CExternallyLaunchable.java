@@ -73,7 +73,7 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 				var outputFile = new File(buildDir, artifactName + "." + fmt.extension().toLowerCase());
 
 				/* Invoke the CDT build system (incremental build), passing the
-				 * required output format via thread-local so Z88DKCmdLineGen
+				 * required output format via static context so Z88DKLinkerCmdLineGen
 				 * can pick it up */
 				LOG.info("Building project '" + project.getName() + "' with configuration '" + buildCfg.getName() + "' for format " + fmt.name());
 				Z88DKBuildContext.set(fmt);
@@ -115,7 +115,4 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 		return FileNames.changeExtension(outputFolder.resolve(srcfile.getFileName().toString()),
 				outputFormat.extension().toLowerCase());
 	}
-
-	
-
 }

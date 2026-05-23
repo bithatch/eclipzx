@@ -14,11 +14,16 @@
                 osList="win32,linux,macosx"
                 configurationEnvironmentSupplier="uk.co.bithatch.eclipz88dk.toolchain.Z88DKEnvironmentVariableSupplier">
                
-          <!-- <supportedProperties>
-               <property id="org.eclipse.cdt.build.core.buildArtefactType">
-                <value/>
-               </property>
-           </supportedProperties>-->
+           <supportedProperties>
+                <property id="org.eclipse.cdt.build.core.buildArtefactType">
+                    <value id="org.eclipse.cdt.build.core.buildArtefactType.exe"/>
+                    <value id="org.eclipse.cdt.build.core.buildArtefactType.staticLib"/>
+                </property>
+                <property id="org.eclipse.cdt.build.core.buildType">
+                    <value id="org.eclipse.cdt.build.core.buildType.debug"/>
+                    <value id="org.eclipse.cdt.build.core.buildType.release"/>
+                </property>
+           </supportedProperties>
   
            <builder
                  command="make"
@@ -236,14 +241,6 @@
            
         </toolChain>
          
-         <!--
-         TODO all build types
-         org.eclipse.cdt.build.core.buildArtefactType.exe
-org.eclipse.cdt.build.core.buildArtefactType.staticLib
-org.eclipse.cdt.build.core.buildArtefactType.sharedLib
-org.eclipse.cdt.build.core.buildArtefactType.other
-         -->
-         
       <projectType
             
             buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
@@ -292,6 +289,48 @@ org.eclipse.cdt.build.core.buildArtefactType.other
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
                   targetTool="uk.co.bithatch.eclipz88dk.linker">
+            </toolChain>
+         </configuration>
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.release.exe.lib"
+               name="Release (Library)"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib"
+               buildProperties="
+                  org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib;
+                  org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               artifactName="${ProjName}"
+               artifactExtension="lib">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.release.exe.lib.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Release Library Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.archiver">
+            </toolChain>
+         </configuration>
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.debug.exe.lib"
+               name="Debug (Library)"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib"
+                  buildProperties="
+                      org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib;
+                      org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               artifactName="${ProjName}"
+               artifactExtension="lib">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.debug.exe.lib.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Debug Library Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.archiver">
             </toolChain>
          </configuration>
       </projectType>
@@ -344,6 +383,48 @@ org.eclipse.cdt.build.core.buildArtefactType.other
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
                   targetTool="uk.co.bithatch.eclipz88dk.archiver">
+            </toolChain>
+         </configuration>
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.release.lib.exe"
+               name="Release (Executable)"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
+               buildProperties="
+                  org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe;
+                  org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               artifactName="${ProjName}"
+               artifactExtension="bin">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.release.lib.exe.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Release Executable Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.linker">
+            </toolChain>
+         </configuration>
+         <configuration
+               cleanCommand="rm -f"
+               errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.VCErrorParser"
+               id="uk.co.bithatch.eclipz88dk.debug.lib.exe"
+               name="Debug (Executable)"
+               buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
+                  buildProperties="
+                      org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe;
+                      org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               artifactName="${ProjName}"
+               artifactExtension="bin">
+            <toolChain
+                  id="uk.co.bithatch.eclipz88dk.debug.lib.exe.toolChain"
+                  isAbstract="false"
+                  languageSettingsProviders="uk.co.bithatch.eclipz88dk.languageSettingsProvider"
+                  name="Z88DK Debug Executable Configuration"
+                  osList="win32,linux,macosx"
+                  superClass="uk.co.bithatch.eclipz88dk.toolChain"
+                  targetTool="uk.co.bithatch.eclipz88dk.linker">
             </toolChain>
          </configuration>
       </projectType>

@@ -89,17 +89,15 @@ public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 
 		/* Build context: launch build vs normal build */
 		var buildCtx = Z88DKBuildContext.get();
-		String ext;
+		String linkOutput;
 		if (buildCtx.isPresent()) {
 			merged.add("-create-app");
 			merged.add("-subtype=" + buildCtx.get().name().toLowerCase());
-			ext = buildCtx.get().extension().toLowerCase();
+			String ext = buildCtx.get().extension().toLowerCase();
+			linkOutput = output.replaceAll("\\.[^.]+$", "." + ext);
 		} else {
-			ext = "bin";
+			linkOutput = output;
 		}
-
-		/* Adjust output extension to match the target format */
-		String linkOutput = output.replaceAll("\\.[^.]+$", "." + ext);
 
 		/* Build the command line manually so we can control quoting/globbing.
 		 * CDT passes .o inputs from the mirrored directory structure. */
