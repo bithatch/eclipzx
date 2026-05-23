@@ -126,4 +126,8 @@ public class LocalPreparationTarget extends AbstractPreparationTarget {
 	public void cleanUp() {
 	}
 
+	@Override
+	public String outputPath() {
+		return targetLocation;
+	}
 }

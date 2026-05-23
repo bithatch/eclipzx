@@ -3,6 +3,7 @@ package uk.co.bithatch.eclipz88dk.toolchain;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsEditableProvider;
 import org.eclipse.cdt.core.language.settings.providers.LanguageSettingsSerializableProvider;
@@ -54,13 +55,25 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 			}
 
 			/* Z88DK built-in macros */
-			entries.add(CDataUtil.createCMacroEntry("__z88dk_fastcall", "", ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
-			entries.add(CDataUtil.createCMacroEntry("IM2_DEFINE_ISR(name)", "void name(void)", ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
+			BUILTIN_MACROS.forEach((name, value) -> {
+				entries.add(CDataUtil.createCMacroEntry(name, value, ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
+			});
 
 			return entries;
 		}
 		return Collections.emptyList();
 	}
+	
+	public final static Map<String, String> BUILTIN_MACROS = Map.of(
+		"__z88dk_fastcall", "",
+		"__z88dk_callee", "",
+		"__smallc", "",
+		"__critical", "",
+		"__naked", "",
+		"__interrupt", "",
+		"__preserves_regs", "(...)",
+		"IM2_DEFINE_ISR(name)", "void name(void)"
+	);
 
 	protected void addOptions(Z88DKSDK sdk, ArrayList<ICLanguageSettingEntry> entries, String opt) {
 		if (opt.startsWith("-D")) {

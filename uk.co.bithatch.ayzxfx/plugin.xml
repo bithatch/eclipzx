@@ -96,14 +96,14 @@
     
     <extension point="org.eclipse.ui.newWizards">
       <category
-            id="uk.co.bithatch.drawzx.category"
-            name="AYFX Sound Effects"/>
+            id="uk.co.bithatch.eclipzx.sounds.category"
+            name="Sounds"/>
       
       <wizard
             id="uk.co.bithatch.ayzxfx.wizards.newAFB"
             name="AFB File"
             class="uk.co.bithatch.ayzxfx.wizards.NewAFBFileWizard"
-            category="uk.co.bithatch.ayzxfx.category"
+            category="uk.co.bithatch.eclipzx.sounds.category"
             icon="icons/afb16.png">
         <description>Create a new AYFX bank file.</description>
       </wizard>

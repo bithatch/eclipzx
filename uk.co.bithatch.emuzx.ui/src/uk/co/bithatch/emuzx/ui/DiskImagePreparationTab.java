@@ -47,6 +47,7 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 	protected Text emulatorLocation;
 	private Supplier<IProject> launchTab;
 	private Button noPreparation;
+	private boolean preparationRequired;
 	private List<Button> sourceSelectors = new ArrayList<>();
 	private Map<Button, IPreparationSourceUI> sourceUIs = new HashMap<>();
 	private List<Button> targetSelectors = new ArrayList<>();
@@ -130,6 +131,10 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 		noPreparation.setToolTipText("Do not perform any additional preparation before the launch");
 		noPreparation.setLayoutData(fillDefaults().span(3, 1).grab(true, false).create());
 		noPreparation.addSelectionListener(widgetSelectedAdapter(e -> updateLaunchConfigurationDialog()));
+		if (preparationRequired) {
+			noPreparation.setVisible(false);
+			((org.eclipse.swt.layout.GridData) noPreparation.getLayoutData()).exclude = true;
+		}
 		
 		for(var targetDescriptor : PreparationTargetRegistry.descriptors()) {
 			var customTarget = new Button(targetParent, SWT.RADIO);
@@ -215,9 +220,18 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
     		
     		var target  = configuration.getAttribute(PREPARATION_TARGET, "");
     		if(target.equals("")) {
-    			noPreparation.setSelection(true);
-    			for(var btn : targetSelectors) {
-    				btn.setSelection(false);
+    			if (preparationRequired && !targetSelectors.isEmpty()) {
+    				/* Auto-select the first target when preparation is mandatory */
+    				noPreparation.setSelection(false);
+    				targetSelectors.get(0).setSelection(true);
+    				for (int i = 1; i < targetSelectors.size(); i++) {
+    					targetSelectors.get(i).setSelection(false);
+    				}
+    			} else {
+    				noPreparation.setSelection(true);
+    				for(var btn : targetSelectors) {
+    					btn.setSelection(false);
+    				}
     			}
     		}
     		else {
@@ -293,9 +307,15 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
         configuration.setAttribute(PREPARATION_TARGET, "");
         configuration.setAttribute(PREPARATION_SOURCE_IDS, 
         		defaultDescriptors());
-		folder.setText("${fat_default}");
-		clearBeforeUse.setSelection(false);
-		imageName.setText("${fat_project}.img");
+		if (folder != null) {
+			folder.setText("${fat_default}");
+		}
+		if (clearBeforeUse != null) {
+			clearBeforeUse.setSelection(false);
+		}
+		if (imageName != null) {
+			imageName.setText("${fat_project}.img");
+		}
 	}
 
 	@Override
@@ -334,6 +354,14 @@ public class DiskImagePreparationTab extends AbstractLaunchConfigurationTab impl
 	
 	public void setLaunchTab(Supplier<IProject> launchTab) {
 		this.launchTab = launchTab;
+	}
+
+	/**
+	 * When set to {@code true}, the "No preparation" option is hidden and
+	 * the first available target is selected by default.
+	 */
+	public void setPreparationRequired(boolean preparationRequired) {
+		this.preparationRequired = preparationRequired;
 	}
 	
 	private IPreparationTargetUI getSelectedUI() {

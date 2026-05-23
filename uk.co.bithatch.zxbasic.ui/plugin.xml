@@ -453,11 +453,11 @@
         <builder id="uk.co.bithatch.zxbasic.ZXBasicBuilder" />
     </extension>
     <extension point="org.eclipse.ui.newWizards">
-        <category id="uk.co.bithatch.zxbasic.wizardCategory" name="ZX Basic Projects" />
-        <wizard id="uk.co.bithatch.zxbasic.BasicProjectWizard" name="ZX BASIC Project" class="uk.co.bithatch.zxbasic.ui.wizard.BasicProjectWizard" category="uk.co.bithatch.zxbasic.wizardCategory" icon="icons/bas16.png" project="true">
+        <category id="uk.co.bithatch.eclipzx.projects.category" name="Create ZX and ZX Next Projects" />
+        <wizard id="uk.co.bithatch.zxbasic.BasicProjectWizard" name="ZX BASIC Project" class="uk.co.bithatch.zxbasic.ui.wizard.BasicProjectWizard" category="uk.co.bithatch.eclipzx.projects.category" icon="icons/bas16.png" project="true">
             <description>Create a new ZX BASIC project with .bas file support</description>
         </wizard>
-        <wizard id="uk.co.bithatch.zxbasic.ZXBasicExamplesWizard" name="ZX BASIC Examples" class="uk.co.bithatch.zxbasic.ui.wizard.ZXBasicExamplesWizard" category="uk.co.bithatch.zxbasic.wizardCategory" icon="icons/bas16.png">
+        <wizard id="uk.co.bithatch.zxbasic.ZXBasicExamplesWizard" name="ZX BASIC Examples" class="uk.co.bithatch.zxbasic.ui.wizard.ZXBasicExamplesWizard" category="uk.co.bithatch.eclipzx.projects.category" icon="icons/bas16.png">
             <description>Create a new ZX BASIC project populated with examples</description>
         </wizard>
     </extension>

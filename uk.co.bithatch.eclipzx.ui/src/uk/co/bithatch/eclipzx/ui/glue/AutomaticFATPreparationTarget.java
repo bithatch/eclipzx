@@ -38,6 +38,7 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 	protected URI uri;
 	protected Builder formatter;
 	protected IFolder out;
+	private String imgFullPath;
 	
 	@Override
 	public final IStatus prepare(IProgressMonitor monitor, List<FileSet> files) throws CoreException {
@@ -101,7 +102,7 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 				configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_IMAGE_NAME, "${ProjName}.img"));
 		var outf = out.getFile(outfilename);
 		var imgfile = outf.getLocation().toPath();
-		var imgFullPath = imgfile.toString();
+		imgFullPath = imgfile.toString();
 		var sizeMb = 64;
 		var type = FatType.FAT16;
 
@@ -184,5 +185,9 @@ public class AutomaticFATPreparationTarget extends AbstractFATPreparationTarget 
 	protected final IProject resolveProject(ILaunchConfiguration configuration) throws CoreException {
 		return ResourcesPlugin.getWorkspace().getRoot().getProject(configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, ""));
 	}
-			
+
+	@Override
+	public String outputPath() {
+		return imgFullPath;
+	}
 }

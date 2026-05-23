@@ -94,6 +94,43 @@
             type="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch" />
     </extension>
     
+    <!-- Bundle Application launch configuration (compile + prepare, no emulator) -->
+    <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+        <launchConfigurationType 
+            name="Bundle Application" 
+            delegate="uk.co.bithatch.emuzx.ui.BundleLaunchConfiguration" 
+            modes="run" 
+            id="uk.co.bithatch.emuzx.ui.bundleLaunch" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+        <launchConfigurationTypeImage 
+            configTypeID="uk.co.bithatch.emuzx.ui.bundleLaunch" 
+            icon="icons/bundle16.png" 
+            id="uk.co.bithatch.emuzx.ui.bundleLaunch.image" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+        <launchConfigurationTabGroup 
+            class="uk.co.bithatch.emuzx.ui.BundleLaunchConfigurationTabGroup" 
+            id="uk.co.bithatch.emuzx.ui.bundleLaunchConfigurationTabGroup" 
+            type="uk.co.bithatch.emuzx.ui.bundleLaunch" />
+    </extension>
+    
+    <!-- Export ZX Application wizard -->
+    <extension point="org.eclipse.ui.exportWizards">
+    
+        <category
+            id="uk.co.bithatch.eclipzx.category"
+            name="ZX and ZX Next"/>
+            
+        <wizard id="uk.co.bithatch.emuzx.ui.exportZXApplication"
+            name="Export ZX Application"
+            class="uk.co.bithatch.emuzx.ui.ExportZXApplicationWizard"
+            category="uk.co.bithatch.eclipzx.category"
+            icon="icons/bundle16.png">
+            <description>Export a ZX application by running a Bundle Application launch configuration and optionally archiving the result as a zip.</description>
+        </wizard>
+    </extension>
+    
     <extension point="org.eclipse.debug.ui.launchShortcuts">
         <shortcut class="uk.co.bithatch.emuzx.ui.ExternalEmulatorLaunchShortcut" 
                       icon="icons/chip16.png" 

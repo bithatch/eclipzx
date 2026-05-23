@@ -75,7 +75,7 @@
           point="uk.co.bithatch.emuzx.ui.preparationTarget">
        <preparationTarget
              id="uk.co.bithatch.eclipzx.ui.glue.automaticFATPreparationTarget"
-             name="Automatic FAT Disk Image"
+             name="Blank Automatic FAT Disk Image"
              class="uk.co.bithatch.eclipzx.ui.glue.AutomaticFATPreparationTarget">
        </preparationTarget>
        <preparationTarget

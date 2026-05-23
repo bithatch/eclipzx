@@ -770,7 +770,7 @@
     
     <extension point="org.eclipse.ui.exportWizards">
         <category
-            id="uk.co.bithatch.eclipzx.imageExportCategory"
+            id="uk.co.bithatch.eclipzx.imagesCategory"
             name="Images"/>
         <wizard
             id="uk.co.bithatch.jspeccy.wizards.screenshot"

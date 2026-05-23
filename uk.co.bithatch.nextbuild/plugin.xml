@@ -8,10 +8,10 @@
         <programBuildOptionsFactory class="uk.co.bithatch.nextbuild.FileHeaderProgramBuildOptionsFactory"/>
     </extension>
     <extension point="org.eclipse.ui.newWizards">
-        <category id="uk.co.bithatch.zxbasic.wizardCategory" name="ZX Basic Projects" />
+        <category id="uk.co.bithatch.eclipzx.projects.category" name="Create ZX and ZX Next Projects" />
         <wizard id="uk.co.bithatch.zxbasic.NextBuildExamplesWizard" name="ZX BASIC NextBuild Examples" 
             class="uk.co.bithatch.nextbuild.NextBuildExamplesWizard" 
-            category="uk.co.bithatch.zxbasic.wizardCategory" 
+            category="uk.co.bithatch.eclipzx.projects.category" 
             icon="icons/nextbuild16.png">
             <description>Create a new ZX BASIC project populated with NextBuild examples</description>
         </wizard>

@@ -119,14 +119,16 @@
         </content-type>
     </extension>
     <extension point="org.eclipse.ui.importWizards">
+       
         <category
-            id="uk.co.bithatch.drawzx.category"
-            name="ZX and ZX Next"/>
+            id="uk.co.bithatch.eclipzx.imagesCategory"
+            name="Images"/>
+            
         <wizard
             id="uk.co.bithatch.drawzx.wizards.paletteImport"
             name="Palette File Import"
             class="uk.co.bithatch.drawzx.wizards.PaletteImportWizard"
-            category="uk.co.bithatch.drawzx.category"
+            category="uk.co.bithatch.eclipzx.imagesCategory"
             icon="icons/pal16.png">
             <description>Import other palette formats including Paint.NET, JASC, GIMP and Photoshop and
                          edit them as a ZX Next .pal or .npl palette.</description>
@@ -135,7 +137,7 @@
             id="uk.co.bithatch.drawzx.wizards.fontImport"
             name="Font Import"
             class="uk.co.bithatch.drawzx.wizards.FontImportWizard"
-            category="uk.co.bithatch.drawzx.category"
+            category="uk.co.bithatch.eclipzx.imagesCategory"
             icon="icons/udg16.png">
             <description>Import from a selection of 8 bit monochrome character sets.</description>
         </wizard>
@@ -143,14 +145,14 @@
     
     <extension point="org.eclipse.ui.newWizards">
       <category
-            id="uk.co.bithatch.drawzx.category"
-            name="Graphics Files"/>
+            id="uk.co.bithatch.eclipzx.imagesCategory"
+            name="Images"/>"
       
       <wizard
             id="uk.co.bithatch.drawzx.wizards.newSPR"
             name="Spritesheet"
             class="uk.co.bithatch.drawzx.wizards.NewSPRFileWizard"
-            category="uk.co.bithatch.drawzx.category"
+            category="uk.co.bithatch.eclipzx.imagesCategory"
             icon="icons/sprite16.png">
         <description>Create a new Spritesheet file.</description>
       </wizard>

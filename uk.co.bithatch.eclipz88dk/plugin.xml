@@ -453,11 +453,11 @@ org.eclipse.cdt.build.core.buildArtefactType.other
     </extension> 
     
     <extension point="org.eclipse.ui.newWizards">
-        <category id="uk.co.bithatch.eclipz88dk.wizard.wizardCategory" name="Z88DK Projects" />
-        <wizard id="uk.co.bithatch.eclipz88dk.wizard.Z88DKNewProjectWizard" name="Z88DK C Project" class="uk.co.bithatch.eclipz88dk.wizard.Z88DKNewProjectWizard" category="uk.co.bithatch.eclipz88dk.wizard.wizardCategory" icon="icons/z88dk.png" project="true">
+        <category id="uk.co.bithatch.eclipzx.projects.category" name="Create ZX and ZX Next Projects" />
+        <wizard id="uk.co.bithatch.eclipz88dk.wizard.Z88DKNewProjectWizard" name="Z88DK C Project" class="uk.co.bithatch.eclipz88dk.wizard.Z88DKNewProjectWizard" category="uk.co.bithatch.eclipzx.projects.category" icon="icons/z88dk.png" project="true">
             <description>Create a new ZX Spectrum C project</description>
         </wizard>
-        <wizard id="uk.co.bithatch.eclipz88dk.wizard.Z88DKExamplesWizard" name="Z88DK Examples" class="uk.co.bithatch.eclipz88dk.wizard.Z88DKExamplesWizard" category="uk.co.bithatch.eclipz88dk.wizard.wizardCategory" icon="icons/z88dk.png">
+        <wizard id="uk.co.bithatch.eclipz88dk.wizard.Z88DKExamplesWizard" name="Z88DK Examples" class="uk.co.bithatch.eclipz88dk.wizard.Z88DKExamplesWizard" category="uk.co.bithatch.eclipzx.projects.category" icon="icons/z88dk.png">
             <description>Create a new ZX Spectrum C project populated with examples</description>
         </wizard>
     </extension>

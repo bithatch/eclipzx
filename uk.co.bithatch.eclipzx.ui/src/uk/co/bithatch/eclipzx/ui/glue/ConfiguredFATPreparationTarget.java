@@ -27,6 +27,7 @@ public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget
 
 	private boolean cleanBeforeUse;
 	private URI destUri;
+	private String imagePath;
 
 	@Override
 	public String init(IPreparationContext prepCtx) throws CoreException {
@@ -50,6 +51,7 @@ public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget
 				.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_CLEAR_BEFORE_USE, false);
 
 		var path = FATImageContext.get(FATImageContext.IMAGE, "");
+		imagePath = path;
 		// Build the URI using project context for project-relative paths
 		var mount = new FATDiskImageMount("configured", path, false);
 		var diskImageUri = mount.toURI(project);
@@ -83,5 +85,10 @@ public class ConfiguredFATPreparationTarget extends AbstractFATPreparationTarget
 	@Override
 	public void preparationDone() {
 		closeImage(destUri);
+	}
+
+	@Override
+	public String outputPath() {
+		return imagePath;
 	}
 }

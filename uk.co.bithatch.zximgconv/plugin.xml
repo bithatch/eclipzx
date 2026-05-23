@@ -123,10 +123,10 @@
    <!-- Export wizard -->
    <extension point="org.eclipse.ui.exportWizards">
       <category
-            id="uk.co.bithatch.eclipzx.imageExportCategory"
+            id="uk.co.bithatch.eclipzx.imagesCategory"
             name="Images"/>
       <wizard
-            category="uk.co.bithatch.eclipzx.imageExportCategory"
+            category="uk.co.bithatch.eclipzx.imagesCategory"
             class="uk.co.bithatch.zximgconv.ZXImageExportWizard"
             icon="icons/zximgconv16.png"
             id="uk.co.bithatch.zximgconv.exportWizard"

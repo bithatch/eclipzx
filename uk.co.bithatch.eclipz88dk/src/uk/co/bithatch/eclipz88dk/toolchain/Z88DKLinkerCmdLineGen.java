@@ -30,6 +30,9 @@ import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
  * <p>
  * Linker-specific options ({@code -pragma-include:}, {@code -startup=})
  * are read from the linker tool's options and emitted here.
+ * 
+ * 
+ * TODO more options from https://www.z88dk.org/wiki/doku.php?id=platform:zx
  */
 public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 
