@@ -21,7 +21,7 @@
                     <includeRequiredFeatures>true</includeRequiredFeatures>
                 </configuration>
             </plugin>
-            
+            <!--
             <plugin>
                 <groupId>uk.co.bithatch</groupId>
                 <artifactId>niosync-maven-plugin</artifactId>
@@ -47,9 +47,9 @@
                         <version>4.0</version>
                     </dependency>
                 </dependencies>
-            </plugin>
+            </plugin>-->
             
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -94,7 +94,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
 
         </plugins>
     </build>
