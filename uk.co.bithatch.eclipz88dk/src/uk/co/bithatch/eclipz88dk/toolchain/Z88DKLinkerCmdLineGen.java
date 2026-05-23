@@ -87,17 +87,15 @@ public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 		addStringOption(tool, OPT_PRAGMA_INCLUDE, "-pragma-include:", merged);
 		addStringOption(tool, OPT_STARTUP, "-startup=", merged);
 
-		/* Build context: launch build vs normal build */
+		/* Build context: launch build vs normal build.
+		 * Note: -o must always point to the .bin output — zcc -create-app
+		 * produces the .sna/.tap/.nex alongside it automatically. */
 		var buildCtx = Z88DKBuildContext.get();
-		String linkOutput;
 		if (buildCtx.isPresent()) {
 			merged.add("-create-app");
 			merged.add("-subtype=" + buildCtx.get().name().toLowerCase());
-			String ext = buildCtx.get().extension().toLowerCase();
-			linkOutput = output.replaceAll("\\.[^.]+$", "." + ext);
-		} else {
-			linkOutput = output;
 		}
+		String linkOutput = output;
 
 		/* Build the command line manually so we can control quoting/globbing.
 		 * CDT passes .o inputs from the mirrored directory structure. */
