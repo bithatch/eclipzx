@@ -4,9 +4,17 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
+import org.eclipse.cdt.core.settings.model.ICFolderDescription;
+import org.eclipse.cdt.core.settings.model.ICLanguageSetting;
+import org.eclipse.cdt.core.settings.model.ICLanguageSettingEntry;
+import org.eclipse.cdt.core.settings.model.ICProjectDescription;
+import org.eclipse.cdt.core.settings.model.ICSettingEntry;
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineInfo;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.ManagedCommandLineGenerator;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.ILog;
 
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
@@ -67,6 +75,10 @@ public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 
 		/* Add library paths/libs from referenced projects */
 		Z88DKCmdLineGen.addSettingsFromReferences(project, merged);
+
+		/* Add library paths and libraries from the current project's
+		 * language settings (configured via Paths and Symbols) */
+		addProjectLibrarySettings(project, merged);
 
 		/* Linker-specific options */
 		addStringOption(tool, OPT_PRAGMA_INCLUDE, "-pragma-include:", merged);
@@ -139,6 +151,56 @@ public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 		String val = Z88DKCmdLineGen.getStringOptionValue(tool, optionId);
 		if (val != null && !val.isBlank()) {
 			flags.add(prefix + val.trim());
+		}
+	}
+
+	/**
+	 * Read library paths ({@code -L}) and library files ({@code -l}) from the
+	 * current project's CDT language settings (Paths and Symbols → Libraries /
+	 * Library Paths). These are stored as {@link ICSettingEntry} entries, not as
+	 * tool options.
+	 */
+	private static void addProjectLibrarySettings(IProject project, java.util.List<String> flags) {
+		try {
+			ICProjectDescription projDesc = CoreModel.getDefault().getProjectDescription(project, false);
+			if (projDesc == null) return;
+			ICConfigurationDescription cfgDesc = projDesc.getActiveConfiguration();
+			if (cfgDesc == null) return;
+			ICFolderDescription root = cfgDesc.getRootFolderDescription();
+			if (root == null) return;
+
+			var projLocation = project.getLocation();
+
+			for (ICLanguageSetting lang : root.getLanguageSettings()) {
+				/* Library paths (-L) */
+				for (ICLanguageSettingEntry se : lang.getResolvedSettingEntries(ICSettingEntry.LIBRARY_PATH)) {
+					String value = se.getValue();
+					if (value == null || value.isEmpty()) continue;
+					java.io.File resolved;
+					if (new java.io.File(value).isAbsolute()) {
+						resolved = new java.io.File(value);
+					} else {
+						resolved = new java.io.File(projLocation.toFile(), value);
+					}
+					String flag = "-L" + resolved.getAbsolutePath();
+					if (!flags.contains(flag)) {
+						LOG.info("Z88DK Linker: adding -L from project settings: " + resolved.getAbsolutePath());
+						flags.add(flag);
+					}
+				}
+				/* Library files (-l) */
+				for (ICLanguageSettingEntry se : lang.getResolvedSettingEntries(ICSettingEntry.LIBRARY_FILE)) {
+					String value = se.getValue();
+					if (value == null || value.isEmpty()) continue;
+					String flag = "-l" + value;
+					if (!flags.contains(flag)) {
+						LOG.info("Z88DK Linker: adding -l from project settings: " + value);
+						flags.add(flag);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("Z88DK Linker: failed to read project library settings for: " + project.getName(), e);
 		}
 	}
 }

@@ -23,6 +23,33 @@
             </plugin>
             
             <plugin>
+                <groupId>uk.co.bithatch</groupId>
+                <artifactId>niosync-maven-plugin</artifactId>
+                <version>0.9.0</version>
+                <executions>
+                    <execution>
+                        <id>sync-p2-repo</id>
+                        <goals>
+                            <goal>sync</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                        <configuration>
+                            <source>${basedir}/target/repository</source>
+                            <target>ftp://${build.uploadUsername}:${build.uploadPassword}@${build.uploadHostname}/${build.uploadPath}</target>
+                            <preserveAttributes>false</preserveAttributes>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.robtimus</groupId>
+                        <artifactId>ftp-fs</artifactId>
+                        <version>4.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            
+            <!--<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -67,7 +94,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
         </plugins>
     </build>
