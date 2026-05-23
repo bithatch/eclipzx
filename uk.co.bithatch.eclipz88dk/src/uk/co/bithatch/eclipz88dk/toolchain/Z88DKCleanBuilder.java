@@ -83,47 +83,7 @@ public class Z88DKCleanBuilder extends IncrementalProjectBuilder {
 
 		LOG.info("Z88DK Clean: cleaning build dir '" + buildDir + "' for extensions: " + extensionsToClean);
 
-		var files = buildDir.listFiles();
-		if (files == null) return;
-
-		int deleted = 0;
-		for (File f : files) {
-			if (!f.isFile()) continue;
-			String name = f.getName();
-
-			/* Skip preserved extensions */
-			String ext = getExtension(name);
-			if (ext != null && PRESERVED_EXTENSIONS.contains(ext.toLowerCase())) continue;
-
-			boolean shouldDelete = false;
-
-			/* 1. Match by collected output-format extensions */
-			if (ext != null && extensionsToClean.contains(ext.toLowerCase())) {
-				shouldDelete = true;
-			}
-
-			/* 2. Match *.c.asm */
-			if (name.endsWith(".c.asm")) {
-				shouldDelete = true;
-			}
-
-			/* 3. Match projectName_CODE.bin, projectName_UNASSIGNED.bin, etc.
-			 *    Pattern: anything ending with _SECTIONNAME.bin */
-			if (name.matches(".*_[A-Z]+\\.bin")) {
-				shouldDelete = true;
-			}
-
-			if (shouldDelete) {
-				LOG.info("Z88DK Clean: deleting " + f.getName());
-				if (f.delete()) {
-					deleted++;
-				}
-			}
-		}
-
-		if (deleted > 0) {
-			LOG.info("Z88DK Clean: deleted " + deleted + " extra artifact(s) from build dir");
-		}
+		int deleted = cleanBuildDirRecursive(buildDir, extensionsToClean);
 
 		/* Also clean .c.asm files from the source tree — these are left by
 		 * zcc --assemble-only next to the original .c files */
@@ -164,6 +124,57 @@ public class Z88DKCleanBuilder extends IncrementalProjectBuilder {
 			LOG.warn("Z88DK Clean: could not determine build directory", e);
 		}
 		return null;
+	}
+
+	/**
+	 * Recursively clean the build directory, deleting files matching the
+	 * given extensions and z88dk section binaries.
+	 */
+	private int cleanBuildDirRecursive(File dir, Set<String> extensionsToClean) {
+		var files = dir.listFiles();
+		if (files == null) return 0;
+
+		int deleted = 0;
+		for (File f : files) {
+			if (f.isDirectory()) {
+				deleted += cleanBuildDirRecursive(f, extensionsToClean);
+				continue;
+			}
+			String name = f.getName();
+
+			/* Skip preserved extensions */
+			String ext = getExtension(name);
+			if (ext != null && PRESERVED_EXTENSIONS.contains(ext.toLowerCase())) continue;
+
+			boolean shouldDelete = false;
+
+			/* 1. Match by collected output-format extensions */
+			if (ext != null && extensionsToClean.contains(ext.toLowerCase())) {
+				shouldDelete = true;
+			}
+
+			/* 2. Match *.c.asm */
+			if (name.endsWith(".c.asm")) {
+				shouldDelete = true;
+			}
+
+			/* 3. Match projectName_CODE.bin, projectName_UNASSIGNED.bin, etc. */
+			if (name.matches(".*_[A-Z]+\\.bin")) {
+				shouldDelete = true;
+			}
+
+			if (shouldDelete) {
+				LOG.info("Z88DK Clean: deleting " + f.getAbsolutePath());
+				if (f.delete()) {
+					deleted++;
+				}
+			}
+		}
+
+		if (deleted > 0) {
+			LOG.info("Z88DK Clean: deleted " + deleted + " extra artifact(s) from " + dir);
+		}
+		return deleted;
 	}
 
 	/**

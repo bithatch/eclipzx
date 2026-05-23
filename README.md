@@ -49,6 +49,15 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
  * <img title="UDG Font Import" src="src/web/screenshot-font-import.png" width="200"/>
  * <img title="UDG Editor" src="src/web/screenshot-udgs.png" width="200"/>
  * <img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/>
+ 
+ 
+## Status as of 23/05/2026
+
+**You may need to recreate your Z88DK projects to take advantages of the build improvements. I suggest deleting .project, .cproject and .settings and using the "New Z88DK C Project" wizard**
+
+The Z88DK side of EclipZX has been much improved, and its now possible to manage larger and more complex programs without touching a `makefile`. You can now set per-file compilation and linking options, which is required if you want to make use of [Banking](https://specnext.dev/blog/2024/12/10/everything-you-wanted-to-know-about-z88dk-paging-segmented-memory-addresses-but-were-afraid-to-ask/).
+
+The build directory structure (i.e `Debug` or `Release` folders) now correctly mirrors your source layout, with each source file having its own makefile entry. By using CDT properly in this way, incremental Z88DK builds of your projects will now be *much faster*.
 
 ## Status as of 09/05/2026
 

@@ -83,7 +83,7 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 					Z88DKBuildContext.clear();
 					var buildFolder = project.getFolder(buildCfg.getName());
 					if (buildFolder.exists()) {
-						buildFolder.refreshLocal(IResource.DEPTH_ONE, monitor);
+						buildFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 					}
 				}
 				

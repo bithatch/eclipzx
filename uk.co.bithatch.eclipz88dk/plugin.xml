@@ -27,145 +27,187 @@
                  name="Z88DK Builder"
                   superClass="org.eclipse.cdt.build.core.settings.default.builder">
            </builder>
-           <tool
-                 command="zcc"
-                 icon="icons/z88dk.png"
-                 id="uk.co.bithatch.eclipz88dk.compiler"  
-                 outputFlag="-o"
-                 commandLineGenerator="uk.co.bithatch.eclipz88dk.toolchain.Z88DKCmdLineGen"
-                 name="Z88DK Compiler">
-              <inputType
-                    dependencyContentType="org.eclipse.cdt.core.cHeader"
-                    id="uk.co.bithatch.eclipz88dk.compiler.inputType"
-                    name="Z88DK C Source"
-                    primaryInput="true"
-                    sources="c"
-                    sourceContentType="org.eclipse.cdt.core.cSource">
-              </inputType> 
-              <outputType
-                    buildVariable="BINS"
-                    id="uk.co.bithatch.eclipz88dk.compiler.outputType"
-                    name="Z88DK Binary"
-                    outputs="bin"
-                    primaryOutput="true"> 
-              </outputType>
-               <optionCategory
-                     id="uk.co.bithatch.eclipz88dk.compiler.options"
-                     name="General"
-                     owner="uk.co.bithatch.eclipz88dk.compiler">
-               </optionCategory>
-               <optionCategory
-                     id="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
-                     name="Bank Switching"
-                     owner="uk.co.bithatch.eclipz88dk.compiler">
-               </optionCategory>
-               <optionCategory
-                     id="uk.co.bithatch.eclipz88dk.compiler.linker.options"
-                     name="Linker"
-                     owner="uk.co.bithatch.eclipz88dk.compiler">
-               </optionCategory>
-               <optionCategory
-                     id="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
-                     name="Include Path"
-                     owner="uk.co.bithatch.eclipz88dk.compiler">
-               </optionCategory>
-               <optionCategory
-                     id="uk.co.bithatch.eclipz88dk.compiler.libs.options"
-                     name="Libraries"
-                     owner="uk.co.bithatch.eclipz88dk.compiler">
-               </optionCategory>
-               <!-- General options -->
-               <option
-                     category="uk.co.bithatch.eclipz88dk.compiler.options"
-                     defaultValue=""
-                     command=""
-                     id="uk.co.bithatch.eclipz88dk.compiler.other"
-                     name="Other Flags"
-                     resourceFilter="all"
-                     valueType="string">
-               </option>
-               <option
-                     category="uk.co.bithatch.eclipz88dk.compiler.options"
-                     command="-v"
-                     id="uk.co.bithatch.eclipz88dk.compiler.verbose"
-                     name="Verbose"
-                     resourceFilter="all"
-                     valueType="boolean">
-               </option>
-               <!-- Bank Switching options (per-file via Resource Configurations) -->
-               <option
-                     category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
-                     command="--codeseg"
-                     defaultValue=""
-                     id="uk.co.bithatch.eclipz88dk.compiler.codeseg"
-                     name="Code Segment (--codeseg)"
-                     tip="Bank name for code segment, e.g. PAGE_36"
-                     resourceFilter="all"
-                     valueType="string">
-               </option>
-               <option
-                     category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
-                     command="--constseg"
-                     defaultValue=""
-                     id="uk.co.bithatch.eclipz88dk.compiler.constseg"
-                     name="Const Segment (--constseg)"
-                     tip="Bank name for const segment, e.g. PAGE_36"
-                     resourceFilter="all"
-                     valueType="string">
-               </option>
-               <option
-                     category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
-                     command="--dataseg"
-                     defaultValue=""
-                     id="uk.co.bithatch.eclipz88dk.compiler.dataseg"
-                     name="Data Segment (--dataseg)"
-                     tip="Bank name for data segment, e.g. PAGE_40"
-                     resourceFilter="all"
-                     valueType="string">
-               </option>
-               <!-- Linker options (only used during link/launch build) -->
-               <option
-                     category="uk.co.bithatch.eclipz88dk.compiler.linker.options"
-                     command="-pragma-include:"
-                     defaultValue=""
-                     id="uk.co.bithatch.eclipz88dk.compiler.pragmainclude"
-                     name="Pragma Include File (-pragma-include)"
-                     tip="Path to pragma include file, e.g. src/zpragma.inc"
-                     browseType="file"
-                     resourceFilter="all"
-                     valueType="string">
-               </option>
-               <option
-                     category="uk.co.bithatch.eclipz88dk.compiler.linker.options"
-                     command="-startup="
-                     defaultValue=""
-                     id="uk.co.bithatch.eclipz88dk.compiler.startup"
-                     name="Startup / CRT (-startup)"
-                     tip="Startup CRT number, e.g. 31"
-                     resourceFilter="all"
-                     valueType="string">
-               </option>
-               <!-- Include paths -->
-               <option
-                     browseType="directory"
-                     category="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
-                     command="-I"
-                     id="uk.co.bithatch.eclipz88dk.compiler.incpath"
-                     name="Include paths"
-                     resourceFilter="all"
-                     valueType="includePath">
-               </option>
-               <!-- Libraries -->
-               <option
-                     browseType="file"
-                     category="uk.co.bithatch.eclipz88dk.compiler.libs.options"
-                     command="-l"
-                     id="uk.co.bithatch.eclipz88dk.compiler.libs"
-                     name="Libraries"
-                     resourceFilter="all"
-                     valueType="libs">
-               </option>
-           </tool>
+            <!-- ============== COMPILER TOOL (per-file: .c -> .o, .asm -> .o) ============== -->
+            <tool
+                  command="zcc"
+                  icon="icons/z88dk.png"
+                  id="uk.co.bithatch.eclipz88dk.compiler"  
+                  outputFlag="-o"
+                  commandLineGenerator="uk.co.bithatch.eclipz88dk.toolchain.Z88DKCmdLineGen"
+                  name="Z88DK Compiler">
+               <inputType
+                     dependencyContentType="org.eclipse.cdt.core.cHeader"
+                     id="uk.co.bithatch.eclipz88dk.compiler.inputType.c"
+                     name="Z88DK C Source"
+                     primaryInput="true"
+                     sources="c"
+                     sourceContentType="org.eclipse.cdt.core.cSource">
+               </inputType>
+               <inputType
+                     id="uk.co.bithatch.eclipz88dk.compiler.inputType.asm"
+                     name="Z88DK Assembly Source"
+                     sources="asm"
+                     excludedInputExpressions=".*\.c\.asm">
+               </inputType>
+               <outputType
+                     buildVariable="OBJS"
+                     id="uk.co.bithatch.eclipz88dk.compiler.outputType"
+                     name="Z88DK Object File"
+                     outputs="o"
+                     nameProvider="uk.co.bithatch.eclipz88dk.toolchain.Z88DKOutputNameProvider"
+                     primaryOutput="true"> 
+               </outputType>
+                <optionCategory
+                      id="uk.co.bithatch.eclipz88dk.compiler.options"
+                      name="General"
+                      owner="uk.co.bithatch.eclipz88dk.compiler">
+                </optionCategory>
+                <optionCategory
+                      id="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                      name="Bank Switching"
+                      owner="uk.co.bithatch.eclipz88dk.compiler">
+                </optionCategory>
+                <optionCategory
+                      id="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
+                      name="Include Path"
+                      owner="uk.co.bithatch.eclipz88dk.compiler">
+                </optionCategory>
+                <!-- General options -->
+                <option
+                      category="uk.co.bithatch.eclipz88dk.compiler.options"
+                      defaultValue=""
+                      command=""
+                      id="uk.co.bithatch.eclipz88dk.compiler.other"
+                      name="Other Flags"
+                      resourceFilter="all"
+                      valueType="string">
+                </option>
+                <option
+                      category="uk.co.bithatch.eclipz88dk.compiler.options"
+                      command="-v"
+                      id="uk.co.bithatch.eclipz88dk.compiler.verbose"
+                      name="Verbose"
+                      resourceFilter="all"
+                      valueType="boolean">
+                </option>
+                <!-- Bank Switching options (per-file via Resource Configurations) -->
+                <option
+                      category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                      command="--codeseg"
+                      defaultValue=""
+                      id="uk.co.bithatch.eclipz88dk.compiler.codeseg"
+                      name="Code Segment (--codeseg)"
+                      tip="Bank name for code segment, e.g. PAGE_36"
+                      resourceFilter="all"
+                      valueType="string">
+                </option>
+                <option
+                      category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                      command="--constseg"
+                      defaultValue=""
+                      id="uk.co.bithatch.eclipz88dk.compiler.constseg"
+                      name="Const Segment (--constseg)"
+                      tip="Bank name for const segment, e.g. PAGE_36"
+                      resourceFilter="all"
+                      valueType="string">
+                </option>
+                <option
+                      category="uk.co.bithatch.eclipz88dk.compiler.bankswitching.options"
+                      command="--dataseg"
+                      defaultValue=""
+                      id="uk.co.bithatch.eclipz88dk.compiler.dataseg"
+                      name="Data Segment (--dataseg)"
+                      tip="Bank name for data segment, e.g. PAGE_40"
+                      resourceFilter="all"
+                      valueType="string">
+                </option>
+                <!-- Include paths -->
+                <option
+                      browseType="directory"
+                      category="uk.co.bithatch.eclipz88dk.compiler.incpath.options"
+                      command="-I"
+                      id="uk.co.bithatch.eclipz88dk.compiler.incpath"
+                      name="Include paths"
+                      resourceFilter="all"
+                      valueType="includePath">
+                </option>
+            </tool>
+            
+            <!-- ============== LINKER TOOL (.o -> final binary) ============== -->
+            <tool
+                  command="zcc"
+                  icon="icons/z88dk.png"
+                  id="uk.co.bithatch.eclipz88dk.linker"
+                  outputFlag="-o"
+                  commandLineGenerator="uk.co.bithatch.eclipz88dk.toolchain.Z88DKLinkerCmdLineGen"
+                  name="Z88DK Linker">
+               <inputType
+                     id="uk.co.bithatch.eclipz88dk.linker.inputType"
+                     name="Z88DK Object Files"
+                     primaryInput="true"
+                     sources="o"
+                     multipleOfType="true"
+                     buildVariable="OBJS">
+               </inputType>
+               <outputType
+                     buildVariable="BINS"
+                     id="uk.co.bithatch.eclipz88dk.linker.outputType"
+                     name="Z88DK Binary"
+                     outputs="bin"
+                     primaryOutput="true">
+               </outputType>
+                <optionCategory
+                      id="uk.co.bithatch.eclipz88dk.linker.options"
+                      name="Linker"
+                      owner="uk.co.bithatch.eclipz88dk.linker">
+                </optionCategory>
+                <optionCategory
+                      id="uk.co.bithatch.eclipz88dk.linker.libs.options"
+                      name="Libraries"
+                      owner="uk.co.bithatch.eclipz88dk.linker">
+                </optionCategory>
+                <!-- Linker options -->
+                <option
+                      category="uk.co.bithatch.eclipz88dk.linker.options"
+                      command="-pragma-include:"
+                      defaultValue=""
+                      id="uk.co.bithatch.eclipz88dk.linker.pragmainclude"
+                      name="Pragma Include File (-pragma-include)"
+                      tip="Path to pragma include file, e.g. src/zpragma.inc"
+                      browseType="file"
+                      resourceFilter="all"
+                      valueType="string">
+                </option>
+                <option
+                      category="uk.co.bithatch.eclipz88dk.linker.options"
+                      command="-startup="
+                      defaultValue=""
+                      id="uk.co.bithatch.eclipz88dk.linker.startup"
+                      name="Startup / CRT (-startup)"
+                      tip="Startup CRT number, e.g. 31"
+                      resourceFilter="all"
+                      valueType="string">
+                </option>
+                <option
+                      category="uk.co.bithatch.eclipz88dk.linker.options"
+                      defaultValue=""
+                      command=""
+                      id="uk.co.bithatch.eclipz88dk.linker.other"
+                      name="Other Linker Flags"
+                      resourceFilter="all"
+                      valueType="string">
+                </option>
+                <!-- Libraries -->
+                <option
+                      browseType="file"
+                      category="uk.co.bithatch.eclipz88dk.linker.libs.options"
+                      command="-l"
+                      id="uk.co.bithatch.eclipz88dk.linker.libs"
+                      name="Libraries"
+                      resourceFilter="all"
+                      valueType="libs">
+                </option>
+            </tool>
            
         </toolChain>
          
@@ -203,7 +245,7 @@ org.eclipse.cdt.build.core.buildArtefactType.other
                   name="Z88DK Release Configuration"
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
-                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+                  targetTool="uk.co.bithatch.eclipz88dk.linker">
             </toolChain>
          </configuration>
          <configuration
@@ -224,7 +266,7 @@ org.eclipse.cdt.build.core.buildArtefactType.other
                   name="Z88DK Debug Configuration"
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
-                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+                  targetTool="uk.co.bithatch.eclipz88dk.linker">
             </toolChain>
          </configuration>
       </projectType>
@@ -255,7 +297,7 @@ org.eclipse.cdt.build.core.buildArtefactType.other
                   name="Z88DK Release Configuration"
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
-                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+                  targetTool="uk.co.bithatch.eclipz88dk.linker">
             </toolChain>
          </configuration>
          <configuration
@@ -276,7 +318,7 @@ org.eclipse.cdt.build.core.buildArtefactType.other
                   name="Z88DK Debug Configuration"
                   osList="win32,linux,macosx"
                   superClass="uk.co.bithatch.eclipz88dk.toolChain"
-                  targetTool="uk.co.bithatch.eclipz88dk.compiler">
+                  targetTool="uk.co.bithatch.eclipz88dk.linker">
             </toolChain>
          </configuration>
       </projectType>
