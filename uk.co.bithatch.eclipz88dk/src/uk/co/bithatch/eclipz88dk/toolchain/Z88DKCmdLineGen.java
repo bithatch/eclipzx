@@ -48,10 +48,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 
 	private static final ILog LOG = ILog.of(Z88DKCmdLineGen.class);
 
-	/** CDT calls generateCommandLineInfo twice per file: first with real paths,
-	 *  then with make variables ($<, $@). We cache whether the real input was
-	 *  a C source so the second call can use it. */
-	private boolean lastInputWasCSource = false;
+	/* (removed stale caching field — we now detect C sources from the output name) */
 
 	private static final String OPT_CODESEG = "uk.co.bithatch.eclipz88dk.compiler.codeseg";
 	private static final String OPT_CONSTSEG = "uk.co.bithatch.eclipz88dk.compiler.constseg";
@@ -98,20 +95,12 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 		/* Add bank switching flags from per-resource config */
 		addBankSwitchingFlags(tool, merged);
 
-		/* Determine input file. CDT calls us twice: once with real paths
-		 * (e.g. /full/path/main.c) and once with make variables ($<, $@).
-		 * We need to detect C sources even when input is "$<". When the
-		 * input is a make variable, check the output name — our
-		 * Z88DKOutputNameProvider produces *_c.o for .c files. */
+		/* CDT always passes make automatic variables ($< and $@) as input
+		 * and output, so we cannot detect C vs ASM sources here. Instead,
+		 * for debug builds we emit a shell 'case' conditional that only runs
+		 * the --c-code-in-asm pass when the input file ends in .c.
+		 * Make expands $< to the real filename before the shell sees it. */
 		String input = (inputResources != null && inputResources.length > 0) ? inputResources[0] : "";
-		boolean isCSource;
-		if (input.startsWith("$")) {
-			/* Make variable — use cached result from previous call with real path */
-			isCSource = lastInputWasCSource;
-		} else {
-			isCSource = input.toLowerCase().endsWith(".c");
-			lastInputWasCSource = isCSource;
-		}
 
 		/* Check if this is a Debug configuration */
 		boolean debugCfg = false;
@@ -126,66 +115,39 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 		final boolean isDebug = debugCfg;
 
 		/*
-		 * CDT's makefile generator constructs the recipe from
-		 * ${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}
-		 * using the individual getters, NOT getCommandLine(). CDT appends
-		 * ${INPUTS} (= $< in pattern rules) at the end automatically.
+		 * CDT uses getCommandLine() from the returned IManagedCommandLineInfo
+		 * to construct the makefile recipe.
 		 *
-		 * For Debug .c files, we emit a compound command:
-		 *   zcc --c-code-in-asm flags --assemble-only INPUT && mv INPUT.asm . && zcc flags -c
-		 * CDT appends: -o OUTPUT INPUT
-		 * Result: zcc --c-code-in-asm ... --assemble-only ../main.c && mv ../main.c.asm . && zcc ... -c -o main_c.o ../main.c
+		 * For Debug builds, we emit a compound shell command using 'case' to
+		 * conditionally run the --c-code-in-asm pass only for .c files:
 		 *
-		 * The mv moves the .c.asm from next to the source into the build dir
-		 * (e.g. Debug/) where it won't be picked up as a build candidate.
+		 *   case "$<" in *.c) zcc --c-code-in-asm FLAGS --assemble-only $< && mv $<.asm . ;; esac && zcc FLAGS -c -o $@ $<
 		 *
-		 * For Release .c files or .asm files, just: zcc flags -c
+		 * Make expands $< before the shell runs, so the case matches correctly.
+		 * For .asm files the case block is skipped and only the normal -c compile runs.
+		 *
+		 * For Release builds: zcc FLAGS -c -o $@ $<
 		 */
-		final String flagStr;
-		if (isCSource && isDebug) {
-			var sb = new StringBuilder();
-			/* First pass: --c-code-in-asm --assemble-only to produce annotated .c.asm */
-			sb.append("--c-code-in-asm ");
-			for (String f : merged) {
-				sb.append(f).append(' ');
-			}
-			sb.append("--assemble-only ").append(input);
-			/* Move .c.asm to build dir (. = Debug/) so it's safe from the compiler */
-			sb.append(" && mv ").append(input).append(".asm .");
-			/* Second pass: normal -c compile */
-			sb.append(" && ").append(cmd);
-			for (String f : merged) {
-				sb.append(' ').append(f);
-			}
-			sb.append(" -c");
-			flagStr = sb.toString();
-		} else {
-			/* Release .c or any .asm: single -c pass */
-			var sb = new StringBuilder();
-			for (String f : merged) {
-				sb.append(f).append(' ');
-			}
-			sb.append("-c");
-			flagStr = sb.toString();
-		}
+		final String mergedFlags = String.join(" ", merged);
 
 		return new IManagedCommandLineInfo() {
 			@Override public String getCommandLine() {
-				/* Build the full command explicitly for contexts that DO use it */
-				if (isCSource && isDebug) {
-					return cmd + " --c-code-in-asm " + String.join(" ", merged)
+				if (isDebug) {
+					return "case \"" + input + "\" in *.c) "
+							+ cmd + " --c-code-in-asm " + mergedFlags
 							+ " --assemble-only " + input
 							+ " && mv " + input + ".asm ."
-							+ " && " + cmd + " " + String.join(" ", merged) + " -c "
+							+ " ;; esac && "
+							+ cmd + " " + mergedFlags + " -c "
 							+ outputFlag + " " + output + " " + input;
 				} else {
-					return cmd + " " + String.join(" ", merged) + " -c "
+					return cmd + " " + mergedFlags + " -c "
 							+ outputFlag + " " + output + " " + input;
 				}
 			}
 			@Override public String getCommandLinePattern() { return commandLinePattern; }
 			@Override public String getCommandName() { return cmd; }
-			@Override public String getFlags() { return flagStr; }
+			@Override public String getFlags() { return mergedFlags + " -c"; }
 			@Override public String getOutputFlag() { return outputFlag; }
 			@Override public String getOutputPrefix() { return outputPrefix; }
 			@Override public String getOutput() { return output; }
