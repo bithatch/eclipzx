@@ -36,6 +36,7 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 		String selectedCLibrary = overridePreferences ? page.getCLibrary() : null;
 		CdtType cdtType = page.getProjectCdtType();
 		boolean isLibrary = cdtType == CdtType.LIBRARY;
+		boolean createExample = page.isCreateExampleProgram();
 
 		return (mon, locationURI) -> {
 			var project = CdtProjectCreator.createManagedCProject(cdtType, projectName, locationURI, mon);
@@ -60,7 +61,7 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 			// so it can resolve include paths correctly against the configured SDK/architecture.
 			CdtProjectCreator.enableZ88DKFeatures(project);
 
-			if (!isLibrary) {
+			if (!isLibrary && createExample) {
 				var file = project.getFile("main.c");
 				if (!file.exists()) {
 					if (isZxNext) {

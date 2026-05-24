@@ -27,6 +27,11 @@ public class ZXBasicExamplesWizardPage extends AbstractBasicProjectWizardPage {
 	}
 
 	@Override
+	protected boolean showCreateExampleProgram() {
+		return false;
+	}
+
+	@Override
 	protected void createFields(Composite container) {
 
         var label = new Label(container, SWT.NONE);

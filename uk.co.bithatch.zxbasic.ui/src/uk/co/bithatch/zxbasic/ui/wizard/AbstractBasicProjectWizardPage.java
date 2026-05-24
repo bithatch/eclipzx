@@ -30,6 +30,7 @@ public abstract class AbstractBasicProjectWizardPage extends WizardPage {
 	private Text locationText;
 	private Button browseButton;
 	private Label locationLabel;
+	private Button createExampleProgramButton;
 
 	protected AbstractBasicProjectWizardPage(String pageName, String title, ImageDescriptor titleImage) {
 		super(pageName, title, titleImage);
@@ -100,6 +101,12 @@ public abstract class AbstractBasicProjectWizardPage extends WizardPage {
         
         createFields(container);
 
+        createExampleProgramButton = new Button(container, SWT.CHECK);
+        createExampleProgramButton.setText("Create example program");
+        createExampleProgramButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+        createExampleProgramButton.setSelection(true);
+        createExampleProgramButton.setVisible(showCreateExampleProgram());
+
         setControl(container);
         
         setPageComplete(false);
@@ -117,6 +124,18 @@ public abstract class AbstractBasicProjectWizardPage extends WizardPage {
 	}
 
     protected void createFields(Composite container) {
+	}
+
+	/**
+	 * Override to return {@code false} in wizard pages that should not show
+	 * the "Create example program" checkbox (e.g. examples wizards).
+	 */
+	protected boolean showCreateExampleProgram() {
+		return true;
+	}
+
+	public boolean isCreateExampleProgram() {
+		return createExampleProgramButton.getSelection();
 	}
 
 	public String getProjectName() {
@@ -162,6 +181,7 @@ public abstract class AbstractBasicProjectWizardPage extends WizardPage {
 
     	decoration.hide();
         updateStatus(null);
+        updateCreateExampleDefault();
     }
 
 	private void checkForEmptyProject() {
@@ -181,6 +201,22 @@ public abstract class AbstractBasicProjectWizardPage extends WizardPage {
 	    IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	    IProject project = workspace.getRoot().getProject(projectName);
 	    return project.exists();
+	}
+
+	/**
+	 * Update the "Create example program" checkbox default based on whether the
+	 * resolved project directory already exists and contains files.
+	 */
+	protected void updateCreateExampleDefault() {
+		File projectDir;
+		if (useDefaultLocationButton.getSelection()) {
+			var wsRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
+			projectDir = new File(wsRoot, projectNameText.getText().trim());
+		} else {
+			projectDir = new File(locationText.getText().trim());
+		}
+		boolean hasContent = projectDir.isDirectory() && projectDir.list() != null && projectDir.list().length > 0;
+		createExampleProgramButton.setSelection(!hasContent);
 	}
 
 

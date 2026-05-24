@@ -45,7 +45,7 @@ public class BasicProjectWizard extends AbstractBasicProjectWizard<BasicProjectW
 		}
 
 		var file = project.getFile("main.bas");
-		if (!file.exists()) {
+		if (page.isCreateExampleProgram() && !file.exists()) {
 		    file.create(new ByteArrayInputStream("""
 		    		10 REM ZX Basic knows the meaning of life
 		    		20 PRINT 42
