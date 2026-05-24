@@ -211,6 +211,7 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 				for (int i = 0; i < 60; i++) {
 					try {
 						launch.addDebugTarget(externallyLaunchable.createRemoteDebugTarget(configuration, launch, prepCtx, eclipseProcess));
+						break;
 					} catch (UncheckedIOException ce) {
 						if (ce.getCause() instanceof ConnectException) {
 							try {

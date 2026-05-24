@@ -87,6 +87,17 @@ public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 		addStringOption(tool, OPT_PRAGMA_INCLUDE, "-pragma-include:", merged);
 		addStringOption(tool, OPT_STARTUP, "-startup=", merged);
 
+		/* Debug build: add -m (map file) and -s (symbol file) for debugger support */
+		var ri = tool.getParentResourceInfo();
+		if (ri != null) {
+			var cfg = ri.getParent();
+			if (cfg != null && cfg.getName().toLowerCase().contains("debug")) {
+				merged.add("-m");
+				merged.add("-s");
+				merged.add("--list");
+			}
+		}
+
 		/* Build context: launch build vs normal build.
 		 * Note: -o must always point to the .bin output — zcc -create-app
 		 * produces the .sna/.tap/.nex alongside it automatically. */

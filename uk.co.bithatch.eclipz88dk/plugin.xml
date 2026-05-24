@@ -13,17 +13,6 @@
                 name="Z88DK Toolchain"
                 osList="win32,linux,macosx"
                 configurationEnvironmentSupplier="uk.co.bithatch.eclipz88dk.toolchain.Z88DKEnvironmentVariableSupplier">
-               
-           <supportedProperties>
-                <property id="org.eclipse.cdt.build.core.buildArtefactType">
-                    <value id="org.eclipse.cdt.build.core.buildArtefactType.exe"/>
-                    <value id="org.eclipse.cdt.build.core.buildArtefactType.staticLib"/>
-                </property>
-                <property id="org.eclipse.cdt.build.core.buildType">
-                    <value id="org.eclipse.cdt.build.core.buildType.debug"/>
-                    <value id="org.eclipse.cdt.build.core.buildType.release"/>
-                </property>
-           </supportedProperties>
   
            <builder
                  command="make"
@@ -51,8 +40,7 @@
                <inputType
                      id="uk.co.bithatch.eclipz88dk.compiler.inputType.asm"
                      name="Z88DK Assembly Source"
-                     sources="asm"
-                     excludedInputExpressions=".*\.c\.asm">
+                     sources="asm">
                </inputType>
                <outputType
                      buildVariable="OBJS"

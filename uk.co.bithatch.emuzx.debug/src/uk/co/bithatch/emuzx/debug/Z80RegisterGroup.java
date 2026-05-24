@@ -11,7 +11,7 @@ public final class Z80RegisterGroup extends DelegatingDebugElement implements IR
 
 	private List<Z80Register> registers = new ArrayList<>();
 
-	Z80RegisterGroup(Z80StackFrame delegate) {
+	Z80RegisterGroup(DelegatingDebugElement delegate) {
 		super(delegate);
 	}
 	

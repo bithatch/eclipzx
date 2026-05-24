@@ -91,8 +91,8 @@ public class MAME implements IEmulator {
         configuration.setAttribute(CONFIGURATION_FILE, "");
         configuration.setAttribute(CONFIGURATION_CONTENT, "");
 
-        configuration.setAttribute(PORT, 11000);
-        configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Arrays.asList("-remote"));
+        configuration.setAttribute(PORT, 23946);
+        configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Arrays.asList("-debug", "-debugger", "gdbstub", "-debugger_port", "23946"));
 		
 		
 	}

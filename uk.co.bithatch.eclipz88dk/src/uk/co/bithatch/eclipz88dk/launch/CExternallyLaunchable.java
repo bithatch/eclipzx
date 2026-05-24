@@ -24,10 +24,12 @@ import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKBuildContext;
+import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.DefaultPreparationContext;
 import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
 import uk.co.bithatch.emuzx.debug.DezogDebugTarget;
+import uk.co.bithatch.emuzx.debug.GdbDebugTarget;
 import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTarget;
 
 public class CExternallyLaunchable implements IExternallyLaunchable {
@@ -37,7 +39,18 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 	@Override
 	public IDebugTarget createRemoteDebugTarget(ILaunchConfiguration configuration, ILaunch launch,
 			DefaultPreparationContext prepCtx, IProcess eclipseProcess) throws CoreException {
-		return new DezogDebugTarget(launch, configuration, eclipseProcess);
+
+		var debugArgs = configuration.getAttribute(
+				DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS,
+				java.util.Collections.emptyList());
+		
+		if (debugArgs.stream().anyMatch(a -> a.contains("gdbstub"))) {
+			var binaryFile = prepCtx.binaryFile();
+			var binaryPath = binaryFile != null ? binaryFile.toPath() : null;
+			return new GdbDebugTarget(launch, configuration, eclipseProcess, binaryPath);
+		} else {
+			return new DezogDebugTarget(launch, configuration, eclipseProcess);
+		}
 	}
 
 	@Override
@@ -52,8 +65,6 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 				
 				prepCtx.buildOptions(IProgramBuildOptionsFactory.accumulate(file));
 				
-				
-				/* Get the CDT managed build info for the project */
 				IManagedBuildInfo buildInfo = ManagedBuildManager.getBuildInfo(project);
 				if (buildInfo == null) {
 					throw new CoreException(Status.error("No CDT managed build information found for project: " + project.getName()));
@@ -64,18 +75,13 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 					throw new CoreException(Status.error("No default build configuration found for project: " + project.getName()));
 				}
 				
-				/* Determine the output directory and file from the build configuration.
-				 * The artifact name/extension may have been customised in 
-				 * C/C++ Build -> Settings -> Build Artifact */
 				var buildDir = new File(project.getLocation().toFile(), buildCfg.getName());
 				var artifactName = ManagedBuildManager.getBuildMacroProvider()
 						.resolveValueToMakefileFormat(buildCfg.getArtifactName(), "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildCfg);
 				var outputFile = new File(buildDir, artifactName + "." + fmt.extension().toLowerCase());
 
-				/* Invoke the CDT build system (incremental build), passing the
-				 * required output format via static context so Z88DKLinkerCmdLineGen
-				 * can pick it up */
 				LOG.info("Building project '" + project.getName() + "' with configuration '" + buildCfg.getName() + "' for format " + fmt.name());
+				
 				Z88DKBuildContext.set(fmt);
 				try {
 					project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
@@ -87,9 +93,7 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 					}
 				}
 				
-				/* Set output file for launch. */
 				prepCtx.binaryFile(outputFile);
-				
 			}
 		}
 	}

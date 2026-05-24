@@ -54,4 +54,11 @@ public final class Z88DKSDK implements ISDK {
 		}
 		return configurations;
 	}
+
+	/**
+	 * Returns the path to the z88dk-gdb binary in this SDK.
+	 */
+	public File z88dkGdb() {
+		return new File(new File(location, "bin"), "z88dk-gdb");
+	}
 }

@@ -27,9 +27,10 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
 import uk.co.bithatch.bitzx.Strings;
-import uk.co.bithatch.zyxy.dezog.DezogClient;
 
 public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
+
+	private static final int DEFAULT_GDB_PORT = 23946;
 
 	private Text argsText;
 	private Button variablesButton;
@@ -115,7 +116,7 @@ public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
 	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 //		super.setDefaults(configuration);
-		configuration.setAttribute(PORT, DezogClient.DEFAULT_PORT);
+		configuration.setAttribute(PORT, DEFAULT_GDB_PORT);
 		configuration.setAttribute(START_SUSPENDED, false);
 		configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Collections.emptyList());
 	}
@@ -124,7 +125,7 @@ public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		try {
 			startSuspended.setSelection(configuration.getAttribute(START_SUSPENDED, false));
-			port.setSelection(configuration.getAttribute(PORT, DezogClient.DEFAULT_PORT));
+			port.setSelection(configuration.getAttribute(PORT, DEFAULT_GDB_PORT));
 			argsText.setText(String.join(System.lineSeparator(),
 					configuration.getAttribute(DEBUGGER_EMULATOR_ARGS, Collections.emptyList())));
 		} catch (Exception e) {
