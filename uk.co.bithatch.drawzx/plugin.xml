@@ -55,7 +55,15 @@
             id="uk.co.bithatch.drawzx.editor.TilemapEditor"
             name="ZX Next Tilemap Editor"
             class="uk.co.bithatch.drawzx.editor.TilemapEditor"
-            icon="icons/drawzx16.png"
+            icon="icons/tilemap16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.map.contenttype"/>
+        </editor>
+        <editor
+            id="uk.co.bithatch.drawzx.editor.TileDefEditor"
+            name="ZX Next Tile Definition Editor (4 bit)"
+            class="uk.co.bithatch.drawzx.editor.TileDefEditor"
+            icon="icons/lowColorSprite16.png"
             contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
             <contentTypeBinding contentTypeId="uk.co.bithatch.drawzx.til.contenttype"/>
         </editor>
@@ -114,7 +122,14 @@
             base-type="org.eclipse.core.runtime.text"
             file-extensions="til"
             id="uk.co.bithatch.drawzx.til.contenttype"
-            name="Tilemap File"
+            name="Tile Definition File"
+            priority="normal">
+        </content-type>
+        <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="map"
+            id="uk.co.bithatch.drawzx.map.contenttype"
+            name="Tile Map File"
             priority="normal">
         </content-type>
     </extension>
@@ -155,6 +170,15 @@
             category="uk.co.bithatch.eclipzx.imagesCategory"
             icon="icons/sprite16.png">
         <description>Create a new Spritesheet file.</description>
+      </wizard>
+      
+      <wizard
+            id="uk.co.bithatch.drawzx.wizards.newTilemap"
+            name="Tilemap"
+            class="uk.co.bithatch.drawzx.wizards.NewTilemapWizard"
+            category="uk.co.bithatch.eclipzx.imagesCategory"
+            icon="icons/tilemap16.png">
+        <description>Create a new ZX Next tilemap file (.map). Configure tilemap size, colour depth, and optionally attach tile definitions.</description>
       </wizard>
     </extension>
     
@@ -310,6 +334,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
           </with>
         </activeWhen>
@@ -325,6 +350,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
           </with>
         </activeWhen>
@@ -340,6 +366,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
           </with>
         </activeWhen>
@@ -355,6 +382,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
           </with>
         </activeWhen>
@@ -370,6 +398,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
           </with>
         </activeWhen>
@@ -500,6 +529,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -520,6 +550,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -537,6 +568,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -554,6 +586,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -571,6 +604,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -588,6 +622,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -605,6 +640,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -622,6 +658,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -639,6 +676,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -656,6 +694,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -673,6 +712,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -690,6 +730,7 @@
                         <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                         <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                     </or>
                   </with>
                 </visibleWhen>
@@ -708,6 +749,7 @@
                             <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
                             <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
                             <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                        <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                             <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
                         </or>
                     </with>

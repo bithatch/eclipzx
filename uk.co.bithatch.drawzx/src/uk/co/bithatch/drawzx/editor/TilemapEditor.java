@@ -18,6 +18,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
@@ -45,6 +47,7 @@ import uk.co.bithatch.drawzx.tilemaps.TilemapEntry;
 import uk.co.bithatch.drawzx.widgets.DrawListener;
 import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
 import uk.co.bithatch.drawzx.widgets.TilemapEditorGrid;
+import uk.co.bithatch.drawzx.wizards.NewTilemapWizard;
 
 /**
  * Eclipse editor for ZX Next tilemap files (.til).
@@ -110,8 +113,8 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 				sixteenBit = fileSize > 40 * 32;
 			}
 
-			// Create default tile definitions (256 blank 8x8 1bpp tiles)
-			tileDefinitions = new SpriteSheet(256, 1);
+			// Try to load tile definitions from persistent property
+			tileDefinitions = loadTileDefinitions(file);
 
 			// Load tilemap
 			var bais = new java.io.ByteArrayInputStream(bytes);
@@ -119,6 +122,40 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 
 		} catch (IOException | CoreException e) {
 			throw new PartInitException(Status.error("Failed to load tilemap.", e));
+		}
+	}
+
+	/**
+	 * Load tile definitions from the associated .TIL file (stored as a persistent
+	 * property), or create default blank tile definitions if none is configured.
+	 */
+	private SpriteSheet loadTileDefinitions(IFile mapFile) {
+		try {
+			var tilPath = mapFile.getPersistentProperty(NewTilemapWizard.PROP_TIL_PATH);
+			var bppStr = mapFile.getPersistentProperty(new QualifiedName("uk.co.bithatch.drawzx", "bpp"));
+			int bpp = bppStr != null ? Integer.parseInt(bppStr) : 1;
+
+			if (tilPath != null && !tilPath.isEmpty()) {
+				// Try workspace-relative path first
+				var wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+				var tilFile = wsRoot.getFile(new Path(tilPath));
+				if (tilFile != null && tilFile.exists()) {
+					try (var tilIn = tilFile.getContents()) {
+						return SpriteSheet.load(tilIn, bpp, true);
+					}
+				}
+				// Try as filesystem path
+				var fsPath = java.nio.file.Path.of(tilPath);
+				if (java.nio.file.Files.exists(fsPath)) {
+					return SpriteSheet.load(fsPath, bpp, true);
+				}
+			}
+
+			// Default: 256 blank 8x8 tiles
+			return new SpriteSheet(256, bpp);
+		} catch (Exception e) {
+			// Fallback to default
+			return new SpriteSheet(256, 1);
 		}
 	}
 
