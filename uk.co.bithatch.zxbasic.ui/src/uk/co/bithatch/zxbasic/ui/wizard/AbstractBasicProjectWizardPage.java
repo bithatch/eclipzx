@@ -77,7 +77,10 @@ public abstract class AbstractBasicProjectWizardPage extends WizardPage {
 
         locationText = new Text(container, SWT.BORDER);
         locationText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        locationText.addModifyListener(e -> dialogChanged());
+        locationText.addModifyListener(e -> {
+        	checkForEmptyProject();
+        	dialogChanged(); 
+        });
 
         browseButton = new Button(container, SWT.PUSH);
         browseButton.setText("Browse...");
@@ -160,6 +163,16 @@ public abstract class AbstractBasicProjectWizardPage extends WizardPage {
     	decoration.hide();
         updateStatus(null);
     }
+
+	private void checkForEmptyProject() {
+		if(!useDefaultLocationButton.getSelection()) {
+			String name = projectNameText.getText().trim();
+			String loc = locationText.getText().trim();
+			if (name.isEmpty() && (loc.contains("/") || loc.contains("\\"))) {
+				projectNameText.setText(new File(loc).getName());
+			}
+		}
+	}
 
 	private boolean projectExists(String projectName) {
 	    if (projectName == null || projectName.trim().isEmpty()) {

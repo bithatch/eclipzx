@@ -44,6 +44,10 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 	private volatile boolean suspended = true;
 	private volatile boolean terminated = false;
 
+	void setSuspended(boolean suspended) {
+		this.suspended = suspended;
+	}
+
 	/** Tracks breakpoints by address so we can remove them */
 	private final Map<IBreakpoint, Integer> breakpointAddresses = new HashMap<>();
 
@@ -84,12 +88,43 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 
 		z80thread = new GdbZ80Thread(this, rsp, debugInfo);
 
+		/* Set up source locator so Eclipse can find and highlight source files */
+		if (launch.getSourceLocator() == null) {
+			launch.setSourceLocator(new GdbSourceLocator());
+		}
+
+		/* Install any existing breakpoints from the workspace */
+		var bpManager = DebugPlugin.getDefault().getBreakpointManager();
+		bpManager.addBreakpointListener(this);
+		for (var bp : bpManager.getBreakpoints()) {
+			if (supportsBreakpoint(bp)) {
+				breakpointAdded(bp);
+			}
+		}
+
 		/* Background thread to wait for stop events after continue/step */
 		waitThread = new Thread(this::waitForStopLoop, "gdb-rsp-wait");
 		waitThread.setDaemon(true);
 		waitThread.start();
 
-		DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
+		/* Auto-resume from the initial 0x0000 (ROM) halt.
+		 * We set suspended=false BEFORE firing CREATE events, so Eclipse
+		 * considers the target already running and doesn't attempt to fetch
+		 * the 0x0000 stack frame (which would pop up "Source not found"). */
+		LOG.info("Auto-resuming execution to avoid initial 0x0000 halt");
+		z80thread.setStepping(false);
+
+		try {
+			rsp.continueExecution();
+			suspended = false;
+		} catch (IOException e) {
+			LOG.error("Failed to auto-resume from initial halt", e);
+		}
+
+		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
+		fireEvent(new DebugEvent(z80thread, DebugEvent.CREATE));
+		fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
+
 
 		LOG.info("GDB RSP debug target created successfully"
 				+ (debugInfo.hasDebugInfo() ? " with " + debugInfo.getLineToAddressMap().size() + " line mappings" : " (no debug info)"));
@@ -125,10 +160,10 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 		if (suspended && !terminated) {
 			try {
 				LOG.info("Resuming execution");
-				suspended = false;
 				z80thread.setStepping(false);
-				fireResumeEvent(DebugEvent.CLIENT_REQUEST);
 				rsp.continueExecution();
+				suspended = false;
+				fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
 			} catch (IOException e) {
 				suspended = true;
 				throw new DebugException(Status.error("Failed to resume", e));
@@ -199,7 +234,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 				return;
 			}
 
-			/* Source line breakpoint — resolve via debug info parser */
+			/* Source line breakpoint — resolve via debug info parser. */
 			int lineNumber = marker.getAttribute("lineNumber", -1);
 			var resource = marker.getResource();
 			if (resource != null && lineNumber > 0 && debugInfo.hasDebugInfo()) {
@@ -249,9 +284,9 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 		}
 		if (wasRunning) {
 			LOG.info("Resuming after breakpoint set");
-			suspended = false;
-			fireResumeEvent(DebugEvent.CLIENT_REQUEST);
 			rsp.continueExecution();
+			suspended = false;
+			fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
 		}
 	}
 
@@ -272,9 +307,9 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 				rsp.removeBreakpoint(address);
 				LOG.info("Removed breakpoint at 0x" + Integer.toHexString(address));
 				if (wasRunning && suspended) {
-					suspended = false;
-					fireResumeEvent(DebugEvent.CLIENT_REQUEST);
 					rsp.continueExecution();
+					suspended = false;
+					fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
 				}
 			} catch (IOException e) {
 				LOG.error("Failed to remove breakpoint at 0x" + Integer.toHexString(address), e);
@@ -335,13 +370,18 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 						suspended = true;
 						boolean wasStepping = z80thread.isStepping();
 						z80thread.setStepping(false);
+						/* Fire suspend events from the THREAD, not the debug target.
+						 * Eclipse requires the event source to be the thread
+						 * for proper stack frame selection and source highlighting. */
+						int detail;
 						if (wasStepping) {
-							fireSuspendEvent(DebugEvent.STEP_END);
+							detail = DebugEvent.STEP_END;
 						} else if (stopReply.contains("T05") || stopReply.contains("T02")) {
-							fireSuspendEvent(DebugEvent.BREAKPOINT);
+							detail = DebugEvent.BREAKPOINT;
 						} else {
-							fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+							detail = DebugEvent.CLIENT_REQUEST;
 						}
+						fireEvent(new DebugEvent(z80thread, DebugEvent.SUSPEND, detail));
 					}
 				} catch (IOException e) {
 					if (!terminated) {
@@ -368,9 +408,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 		return debugInfo;
 	}
 
-	/**
-	 * @return the GDB RSP client
-	 */
+
 	GdbRspClient getRspClient() {
 		return rsp;
 	}
@@ -384,4 +422,5 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 		}
 		return bytes;
 	}
+
 }

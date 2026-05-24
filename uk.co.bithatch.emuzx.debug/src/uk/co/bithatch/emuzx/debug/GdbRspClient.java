@@ -27,6 +27,7 @@ public class GdbRspClient implements AutoCloseable {
 	private final OutputStream out;
 
 	private String targetXml;
+	private boolean nextPacketHasDollar = false;
 
 	public GdbRspClient(String host, int port) throws IOException {
 		LOG.info("GDB RSP: connecting to " + host + ":" + port);
@@ -46,8 +47,10 @@ public class GdbRspClient implements AutoCloseable {
 	 * 2. Read target.xml via qXfer to unlock register access
 	 */
 	private void performHandshake() throws IOException {
-		/* Query supported features */
-		var supported = sendCommand("qSupported:multiprocess+;xmlRegisters=i386");
+		/* Query supported features. Do not send xmlRegisters=i386, because MAME 
+		 * interprets this and completely changes the register map layout to x86,
+		 * breaking all our Z80 register parsing offsets! */
+		var supported = sendCommand("qSupported:multiprocess+;");
 		LOG.info("qSupported response: " + supported);
 
 		/* Read target XML — MAME requires this before g/p commands work */
@@ -83,8 +86,10 @@ public class GdbRspClient implements AutoCloseable {
 	 * @return the response data string, or null if no response / error
 	 */
 	public String sendCommand(String command) throws IOException {
-		sendPacket(command);
-		return receivePacket();
+		synchronized (this) {
+			sendPacket(command);
+			return receivePacket();
+		}
 	}
 
 	/**
@@ -107,6 +112,9 @@ public class GdbRspClient implements AutoCloseable {
 		} else if (ack == '-') {
 			LOG.warn("GDB RSP: NACK received, retransmitting");
 			sendPacket(data);
+		} else if (ack == '$') {
+			LOG.warn("GDB RSP: expected ACK, got '$' - target skipped ACK");
+			nextPacketHasDollar = true;
 		} else {
 			LOG.warn("GDB RSP: unexpected ACK byte: " + ack);
 		}
@@ -118,12 +126,16 @@ public class GdbRspClient implements AutoCloseable {
 	 * @return the data portion of the response, or null on error
 	 */
 	private String receivePacket() throws IOException {
-		/* Skip until we find '$' */
-		int b;
-		while ((b = in.read()) != -1) {
-			if (b == '$') break;
+		/* Skip until we find '$' unless we already read it during ACK phase */
+		int b = -1;
+		if (nextPacketHasDollar) {
+			nextPacketHasDollar = false;
+		} else {
+			while ((b = in.read()) != -1) {
+				if (b == '$') break;
+			}
+			if (b == -1) return null;
 		}
-		if (b == -1) return null;
 
 		/* Read until '#' */
 		var sb = new StringBuilder();
@@ -178,7 +190,9 @@ public class GdbRspClient implements AutoCloseable {
 	 * Continue execution.
 	 */
 	public void continueExecution() throws IOException {
-		sendPacket("c");
+		synchronized(this) {
+			sendPacket("c");
+		}
 		/* 'c' doesn't get an immediate response — the target runs until it stops */
 	}
 
@@ -186,7 +200,9 @@ public class GdbRspClient implements AutoCloseable {
 	 * Single step.
 	 */
 	public void step() throws IOException {
-		sendPacket("s");
+		synchronized(this) {
+			sendPacket("s");
+		}
 	}
 
 	/**

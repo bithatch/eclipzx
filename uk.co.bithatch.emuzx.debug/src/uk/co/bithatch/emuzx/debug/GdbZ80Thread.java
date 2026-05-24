@@ -25,11 +25,20 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 	private final GdbRspClient rsp;
 	private final Z88dkDebugInfoParser debugInfo;
 	private volatile boolean stepping = false;
+	
+	/* 
+	 * Eclipse's Debug View requires object identity (or proper equals/hashCode) to maintain
+	 * selection across steps. If we create a new stack frame instance every time,
+	 * the selection "jumps about" because Eclipse thinks all the frames have changed.
+	 * We cache the frame here and invalidate it when resuming.
+	 */
+	private GdbZ80StackFrame currentFrame;
 
 	GdbZ80Thread(IDebugTarget delegate, GdbRspClient rsp, Z88dkDebugInfoParser debugInfo) {
 		super(delegate);
 		this.rsp = rsp;
 		this.debugInfo = debugInfo;
+		this.currentFrame = new GdbZ80StackFrame(this, rsp, debugInfo);
 	}
 
 	private IDebugTarget target() {
@@ -66,10 +75,13 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 	public void stepInto() throws DebugException {
 		if (target().isSuspended() && !target().isTerminated()) {
 			try {
+				LOG.info("Stepping into...");
 				stepping = true;
+				currentFrame = null;
 				DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[] {
 					new DebugEvent(this, DebugEvent.RESUME, DebugEvent.STEP_INTO)
 				});
+				
 				/* Send step and read stop reply synchronously to avoid desync.
 				 * The step command completes very quickly (single instruction). */
 				var stopReply = rsp.sendCommand("s");
@@ -77,8 +89,9 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 				DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[] {
 					new DebugEvent(this, DebugEvent.SUSPEND, DebugEvent.STEP_END)
 				});
+				
 			} catch (IOException e) {
-				stepping = false;
+				stepping = false; /* Failed, undo state */
 				throw new DebugException(Status.error("Failed to step", e));
 			}
 		}
@@ -141,8 +154,13 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 	@Override
 	public IStackFrame getTopStackFrame() throws DebugException {
 		if (isSuspended()) {
+			if (currentFrame != null) {
+				currentFrame.update();
+				return currentFrame;
+			}
 			try {
-				return new GdbZ80StackFrame(this, rsp, debugInfo);
+				currentFrame = new GdbZ80StackFrame(this, rsp, debugInfo);
+				return currentFrame;
 			} catch (Exception e) {
 				LOG.error("Failed to create stack frame", e);
 			}

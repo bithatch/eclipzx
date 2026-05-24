@@ -26,24 +26,31 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 
 	/**
 	 * MAME Z80 GDB stub register numbering.
-	 * From MAME source (gdbstub.cpp), the Z80 register order for 'g' and 'p' is:
-	 * 0=AF, 1=BC, 2=DE, 3=HL, 4=SP, 5=PC, 6=IX, 7=IY,
-	 * 8=AF', 9=BC', 10=DE', 11=HL', 12=I, 13=R
+	 * Based on MAME output (SP=10, PC=11).
+	 * Order: AF, BC, DE, HL, AF', BC', DE', HL', IX, IY, SP, PC
 	 */
 	private static final int REG_AF = 0;
 	private static final int REG_BC = 1;
 	private static final int REG_DE = 2;
 	private static final int REG_HL = 3;
-	private static final int REG_SP = 4;
-	private static final int REG_PC = 5;
-	private static final int REG_IX = 6;
-	private static final int REG_IY = 7;
+	// 4=AF', 5=BC', 6=DE', 7=HL'
+	private static final int REG_IX = 8;
+	private static final int REG_IY = 9;
+	private static final int REG_SP = 10;
+	private static final int REG_PC = 11;
 
 	GdbZ80StackFrame(GdbZ80Thread thread, GdbRspClient rsp, Z88dkDebugInfoParser debugInfo) {
 		super(thread);
 		this.debugInfo = debugInfo;
 		z80registers = new Z80RegisterGroup(this);
+		update(rsp);
+	}
 
+	public void update() {
+		update(((GdbDebugTarget) getThread().getDebugTarget()).getRspClient());
+	}
+
+	private void update(GdbRspClient rsp) {
 		/* Read registers from the GDB stub */
 		readRegisters(rsp);
 
@@ -53,6 +60,9 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 			if (loc != null) {
 				sourceName = loc.fileName();
 				sourceLine = loc.line();
+			} else {
+				sourceName = null;
+				sourceLine = -1;
 			}
 		}
 	}
@@ -75,7 +85,7 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 
 	/**
 	 * Parse the 'g' response. MAME returns registers as little-endian 16-bit values
-	 * concatenated in order: AF, BC, DE, HL, SP, PC, IX, IY, AF', BC', DE', HL', I(8), R(8)
+	 * concatenated in order: AF, BC, DE, HL, AF', BC', DE', HL', IX, IY, SP, PC
 	 */
 	private void parseAllRegisters(String hex) {
 		try {
@@ -84,10 +94,17 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 			int bc = readLE16(hex, 4);
 			int de = readLE16(hex, 8);
 			int hl = readLE16(hex, 12);
-			int sp = readLE16(hex, 16);
-			pc = readLE16(hex, 20);
-			int ix = readLE16(hex, 24);
-			int iy = readLE16(hex, 28);
+			
+			/* Shadow registers */
+			int af_ = readLE16(hex, 16);
+			int bc_ = readLE16(hex, 20);
+			int de_ = readLE16(hex, 24);
+			int hl_ = readLE16(hex, 28);
+			
+			int ix = readLE16(hex, 32);
+			int iy = readLE16(hex, 36);
+			int sp = readLE16(hex, 40);
+			pc = readLE16(hex, 44);
 
 			addReg("PC", "Program Counter", pc);
 			addReg("SP", "Stack Pointer", sp);
@@ -97,18 +114,12 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 			addReg("HL", "Pair", hl);
 			addReg("IX", "Index", ix);
 			addReg("IY", "Index", iy);
-
-			/* Shadow registers if available */
-			if (hex.length() >= 48) {
-				addReg("AF'", "Shadow", readLE16(hex, 32));
-				addReg("BC'", "Shadow", readLE16(hex, 36));
-				addReg("DE'", "Shadow", readLE16(hex, 40));
-				addReg("HL'", "Shadow", readLE16(hex, 44));
-			}
-			if (hex.length() >= 52) {
-				addReg("I", "Interrupt", readLE8(hex, 48));
-				addReg("R", "Refresh", readLE8(hex, 50));
-			}
+			
+			addReg("AF'", "Shadow", af_);
+			addReg("BC'", "Shadow", bc_);
+			addReg("DE'", "Shadow", de_);
+			addReg("HL'", "Shadow", hl_);
+			
 		} catch (Exception e) {
 			LOG.error("Failed to parse register data: " + hex, e);
 		}
@@ -130,7 +141,14 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 			try {
 				var val = rsp.readRegister(Integer.parseInt(def[2]));
 				if (val != null && !val.startsWith("E")) {
-					int value = readLE16(val, 0);
+					/* Note: MAME might return PC padded to 32 bits (8 chars) e.g. "00000000".
+					 * If value length is > 4, readLE16 will only read the first 4 chars.
+					 * For little endian "34120000", that correctly reads "1234".
+					 * If it's big endian padded like "00001234", it needs to read from the end.
+					 * But RSP standard for numerical registers is natively little-endian or zero-padded LE.
+					 * We use our robust readLE function assuming LE packing.
+					 */
+					int value = readLE(val, 0, val.length() / 2);
 					addReg(def[0], def[1], value);
 					if ("PC".equals(def[0])) {
 						pc = value;
@@ -159,6 +177,17 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 		int lo = Integer.parseInt(hex.substring(charOffset, charOffset + 2), 16);
 		int hi = Integer.parseInt(hex.substring(charOffset + 2, charOffset + 4), 16);
 		return (hi << 8) | lo;
+	}
+
+	/** Read a little-endian value of N bytes */
+	private static int readLE(String hex, int charOffset, int bytes) {
+		if (charOffset + (bytes * 2) > hex.length()) return -1;
+		int value = 0;
+		for (int i = 0; i < bytes; i++) {
+			int b = Integer.parseInt(hex.substring(charOffset + (i * 2), charOffset + (i * 2) + 2), 16);
+			value |= (b << (i * 8));
+		}
+		return value;
 	}
 
 	/** Read an 8-bit value from hex string at char offset */
@@ -244,6 +273,22 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 	 */
 	public String getSourceName() {
 		return sourceName;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null || getClass() != obj.getClass()) return false;
+		GdbZ80StackFrame other = (GdbZ80StackFrame) obj;
+		/* Eclipse identifies stack frames primarily by their thread and depth.
+		 * Since we only have a top stack frame (depth 0), we just compare the Thread. 
+		 * Removing PC from equality prevents the selection jumping around in the Debug View when stepping. */
+		return getThread().equals(other.getThread());
+	}
+
+	@Override
+	public int hashCode() {
+		return getThread().hashCode();
 	}
 
 	// ---- Delegation to thread ----

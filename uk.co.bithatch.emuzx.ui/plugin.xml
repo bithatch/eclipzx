@@ -94,6 +94,13 @@
             type="uk.co.bithatch.emuzx.ui.externalEmulatorLaunch" />
     </extension>
     
+    <!-- Debug model presentation for GDB RSP / Z80 debugging -->
+    <extension point="org.eclipse.debug.ui.debugModelPresentations">
+        <debugModelPresentation
+            class="uk.co.bithatch.emuzx.ui.GdbDebugModelPresentation"
+            id="uk.co.bithatch.emuzx.ui" />
+    </extension>
+    
     <!-- Bundle Application launch configuration (compile + prepare, no emulator) -->
     <extension point="org.eclipse.debug.core.launchConfigurationTypes">
         <launchConfigurationType 

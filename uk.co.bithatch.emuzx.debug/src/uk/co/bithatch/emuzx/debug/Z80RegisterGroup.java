@@ -16,6 +16,12 @@ public final class Z80RegisterGroup extends DelegatingDebugElement implements IR
 	}
 	
 	Z80Register addRegister(String name, String type) {
+		for (var r : registers) {
+			try {
+				if (r.getName().equals(name)) return r;
+			} catch (DebugException e) {
+			}
+		}
 		var reg = new Z80Register(name, type, this);
 		registers.add(reg);
 		return reg;

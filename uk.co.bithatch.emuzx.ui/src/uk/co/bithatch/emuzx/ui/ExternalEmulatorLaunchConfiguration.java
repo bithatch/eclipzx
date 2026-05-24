@@ -192,42 +192,50 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDe
 			/* Wrap it as an IProcess so Eclipse can manage it */
 			var eclipseProcess = DebugPlugin.newProcess(launch, process, "External Emulator");
 
-			/* Listen for process termination to clean up preparation context */
-			DebugPlugin.getDefault().addDebugEventListener(new IDebugEventSetListener() {
-				@Override
-				public void handleDebugEvents(DebugEvent[] events) {
-					for (var event : events) {
-						if (event.getKind() == DebugEvent.TERMINATE && event.getSource() == eclipseProcess) {
-							DebugPlugin.getDefault().removeDebugEventListener(this);
-							closeContexts(launchCtx, prepCtx);
-						}
-					}
-				}
-			});
-
-			/* Register a debug target */
-			if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-				/* TODO configurable timeout */
-				for (int i = 0; i < 60; i++) {
-					try {
-						launch.addDebugTarget(externallyLaunchable.createRemoteDebugTarget(configuration, launch, prepCtx, eclipseProcess));
-						break;
-					} catch (UncheckedIOException ce) {
-						if (ce.getCause() instanceof ConnectException) {
-							try {
-								Thread.sleep(500);
-							} catch (InterruptedException e) {
-								throw new IllegalStateException(e);
+			try {
+				/* Listen for process termination to clean up preparation context */
+				DebugPlugin.getDefault().addDebugEventListener(new IDebugEventSetListener() {
+					@Override
+					public void handleDebugEvents(DebugEvent[] events) {
+						for (var event : events) {
+							if (event.getKind() == DebugEvent.TERMINATE && event.getSource() == eclipseProcess) {
+								DebugPlugin.getDefault().removeDebugEventListener(this);
+								closeContexts(launchCtx, prepCtx);
 							}
-						} else {
-							throw ce;
 						}
 					}
+				});
+	
+				/* Register a debug target */
+				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+					/* TODO configurable timeout */
+					Throwable lastException = null;
+					for (int i = 0; i < 60; i++) {
+						try {
+							launch.addDebugTarget(externallyLaunchable.createRemoteDebugTarget(configuration, launch, prepCtx, eclipseProcess));
+							break;
+						} catch (UncheckedIOException ce) {
+							lastException = ce;
+							if (ce.getCause() instanceof ConnectException) {
+								try {
+									Thread.sleep(500);
+								} catch (InterruptedException e) {
+									throw new IllegalStateException(e);
+								}
+							} else {
+								throw ce;
+							}
+						}
+					}
+					if (launch.getDebugTargets().length == 0)
+						throw new CoreException(Status.error("Failed to launch debugger.", lastException));
+				} else {
+					launch.addDebugTarget(externallyLaunchable.createDefaultDebugTarget(launch, prepCtx, eclipseProcess));
 				}
-				if (launch.getDebugTargets().length == 0)
-					throw new CoreException(Status.error("Failed to launch debugger."));
-			} else {
-				launch.addDebugTarget(externallyLaunchable.createDefaultDebugTarget(launch, prepCtx, eclipseProcess));
+			}
+			catch(RuntimeException | CoreException re) {
+				eclipseProcess.terminate();
+				throw re;
 			}
 			
 		} catch (IllegalStateException ise) {

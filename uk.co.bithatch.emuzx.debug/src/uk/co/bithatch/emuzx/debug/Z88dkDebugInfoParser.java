@@ -14,19 +14,10 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.ILog;
 
-/**
- * Parses z88dk {@code .c.asm} files (produced by {@code --c-code-in-asm --assemble-only})
- * and {@code .map} files to build bidirectional mappings between C source
- * file:line and absolute memory addresses.
- * <p>
- * The {@code .c.asm} contains {@code C_LINE} directives mapping assembly to C
- * source lines, and labels (e.g. {@code ._main}, {@code .i_2}) whose absolute
- * addresses are in the {@code .map} file. Assembly instructions between labels
- * are counted to estimate byte offsets for finer-grained line mapping.
- */
 public class Z88dkDebugInfoParser {
 
 	private static final ILog LOG = ILog.of(Z88dkDebugInfoParser.class);
+	private static final int FUZZY_SEARCH_WINDOW = 10;
 
 	public record SourceLocation(String fileName, int line) {
 		@Override
@@ -35,19 +26,20 @@ public class Z88dkDebugInfoParser {
 		}
 	}
 
-	/** Source line → first absolute address on that line */
 	private final Map<SourceLocation, Integer> lineToAddress = new HashMap<>();
-
 	/** Absolute address → source location */
 	private final NavigableMap<Integer, SourceLocation> addressToLine = new TreeMap<>();
 
 	/** Symbol name → address from .map file */
 	private final Map<String, Integer> symbols = new HashMap<>();
 
+	/** Record known offsets deduced from #line directives and fuzzy breakpoint matching. fileName -> (C_LINE -> offset) */
+	private final Map<String, NavigableMap<Integer, Integer>> learnedOffsets = new HashMap<>();
+
 	/**
 	 * Parse debug information from the .map file and .c.asm files.
-	 *
-	 * @param binaryPath path to the compiled binary (e.g. Debug/hello.nex)
+	 * 
+	 * @param binaryPath Path to the binary file (e.g. .zx0 or .zx7 file)
 	 */
 	public void parse(Path binaryPath) {
 		if (binaryPath == null) {
@@ -58,7 +50,6 @@ public class Z88dkDebugInfoParser {
 		var dir = binaryPath.getParent();
 		var baseName = stripExtension(binaryPath.getFileName().toString());
 
-		/* Parse .map file FIRST — we need symbol addresses */
 		var mapFile = dir.resolve(baseName + ".map");
 		if (Files.exists(mapFile)) {
 			LOG.info("Parsing map file: " + mapFile);
@@ -67,9 +58,6 @@ public class Z88dkDebugInfoParser {
 			LOG.warn("No .map file found at: " + mapFile);
 		}
 
-		/* Find and parse .c.asm files.
-		 * The debug info generator tool places them in the build directory
-		 * (e.g. Debug/main.c.asm) or next to the source (../main.c.asm). */
 		findAndParseCasmFiles(dir);
 		var projectDir = dir.getParent();
 		if (projectDir != null && !projectDir.equals(dir)) {
@@ -80,22 +68,14 @@ public class Z88dkDebugInfoParser {
 				+ symbols.size() + " symbols");
 	}
 
-	// ---- .c.asm file parsing ----
-
-	/*
-	 * C_LINE directive, e.g.:
-	 *   C_LINE	9,"/path/to/main.c::main::0::1"
-	 */
 	private static final Pattern C_LINE_DIRECTIVE = Pattern.compile(
 			"^\\s*C_LINE\\s+(\\d+)\\s*,\\s*\"(.+?)\"\\s*$");
-
-	/*
-	 * Label definition, e.g.:
-	 *   ._main
-	 *   .i_2
-	 */
 	private static final Pattern LABEL_DEF = Pattern.compile(
 			"^\\.(\\w+)\\s*$");
+	private static final Pattern HASH_LINE_DIRECTIVE = Pattern.compile(
+			"^;#line\\s+(\\d+)\\s+\"(.+?)\"\\s*$");
+	private static final Pattern ASM_INSTRUCTION = Pattern.compile(
+			"^\\s+(\\w+)\\b.*$");
 
 	private void findAndParseCasmFiles(Path dir) {
 		try {
@@ -109,35 +89,17 @@ public class Z88dkDebugInfoParser {
 		}
 	}
 
-	/*
-	 * Matches a Z80 assembly instruction line (not a directive, label, or comment).
-	 * Used to count instructions for byte-offset estimation.
-	 */
-	private static final Pattern ASM_INSTRUCTION = Pattern.compile(
-			"^\\s+(\\w+)\\b.*$");
-
-	/* Instruction prefixes that indicate 2-extra-byte (IX/IY) instructions */
-	private static final java.util.Set<String> IX_IY_MNEMONICS = java.util.Set.of(
-			"dd", "fd");
-
 	private void parseCasmFile(Path casmFile) {
 		LOG.info("Parsing .c.asm file: " + casmFile);
 
-		/*
-		 * Two-pass approach:
-		 * Pass 1: collect all C_LINE positions, label positions, and count
-		 *         assembly instructions between them for byte-offset estimation.
-		 * Pass 2: resolve each C_LINE to an absolute address using:
-		 *         preceding label address + estimated byte offset.
-		 */
-
-		var clines = new ArrayList<int[]>(); // [fileNameIdx, srcLine, asmLineNum]
-		var labels = new TreeMap<Integer, String>(); // asmLineNum → labelName
+		var clines = new ArrayList<int[]>(); 
+		var labels = new TreeMap<Integer, String>(); 
 		var fileNames = new ArrayList<String>();
 		var fileNameIndex = new HashMap<String, Integer>();
-		/* Track instruction count at each asm line number for offset estimation */
-		var instrCountAtLine = new TreeMap<Integer, Integer>(); // asmLineNum → cumulative instruction count since last label
+		var instrCountAtLine = new TreeMap<Integer, Integer>(); 
 		var labelForLine = new TreeMap<Integer, String>(); // tracks which label is "active" at each line
+
+		var pendingHashLine = new HashMap<String, Integer>(); // normFile → original line from most recent #line
 
 		int asmLineNum = 0;
 		int instrCountSinceLabel = 0;
@@ -147,6 +109,11 @@ public class Z88dkDebugInfoParser {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				asmLineNum++;
+
+				var hlMatch = HASH_LINE_DIRECTIVE.matcher(line);
+				if (hlMatch.matches()) {
+					continue;
+				}
 
 				var clMatch = C_LINE_DIRECTIVE.matcher(line);
 				if (clMatch.matches()) {
@@ -158,6 +125,17 @@ public class Z88dkDebugInfoParser {
 					var normName = normaliseFileName(filePath);
 
 					if (normName.endsWith(".c") && srcLine > 0) {
+						/* If we just saw a #line directive, seed our offset map */
+						if (pendingHashLine.containsKey(normName)) {
+							int origLine = pendingHashLine.remove(normName);
+							/* #line N means next line is N. The current srcLine is the C_LINE.
+							 * So offset = origLine - srcLine. */
+							int offset = origLine - srcLine;
+							var offsets = learnedOffsets.computeIfAbsent(normName, k -> new TreeMap<>());
+							offsets.put(srcLine, offset);
+							LOG.info("Learned initial baseline offset for " + normName + " at C_LINE " + srcLine + ": +" + offset + " (from #line " + origLine + ")");
+						}
+
 						if (!fileNameIndex.containsKey(normName)) {
 							fileNameIndex.put(normName, fileNames.size());
 							fileNames.add(normName);
@@ -175,7 +153,6 @@ public class Z88dkDebugInfoParser {
 				if (labelMatch.matches()) {
 					var labelName = labelMatch.group(1);
 					labels.put(asmLineNum, labelName);
-					/* Only reset instruction count if this label is in .map */
 					var addr = symbols.get(labelName);
 					if (addr == null) addr = symbols.get("_" + labelName);
 					if (addr != null) {
@@ -185,11 +162,9 @@ public class Z88dkDebugInfoParser {
 					continue;
 				}
 
-				/* Count assembly instructions for offset estimation */
 				var instrMatch = ASM_INSTRUCTION.matcher(line);
 				if (instrMatch.matches()) {
 					var mnemonic = instrMatch.group(1).toLowerCase();
-					/* Skip assembler directives */
 					if (!mnemonic.equals("section") && !mnemonic.equals("module")
 							&& !mnemonic.equals("include") && !mnemonic.equals("global")
 							&& !mnemonic.equals("extern") && !mnemonic.equals("defc")
@@ -206,20 +181,14 @@ public class Z88dkDebugInfoParser {
 			return;
 		}
 
-		/*
-		 * Resolve: for each C_LINE, use the preceding label that exists in .map
-		 * and add an estimated byte offset (instruction count * ~2 bytes average).
-		 */
 		int mapped = 0;
 		for (var cl : clines) {
 			var fileName = fileNames.get(cl[0]);
 			int srcLine = cl[1];
 			int clAsmLine = cl[2];
 
-			/* Find the active label for this C_LINE */
 			String resolvedLabel = labelForLine.get(clAsmLine);
 			if (resolvedLabel == null) {
-				/* Fallback: walk backwards through labels to find one in .map */
 				var floorEntry = labels.floorEntry(clAsmLine);
 				while (floorEntry != null) {
 					var lbl = floorEntry.getValue();
@@ -239,7 +208,6 @@ public class Z88dkDebugInfoParser {
 			if (baseAddr == null) baseAddr = symbols.get("_" + resolvedLabel);
 			if (baseAddr == null) continue;
 
-			/* Estimate byte offset: ~2 bytes per Z80 instruction on average */
 			int instrCount = instrCountAtLine.getOrDefault(clAsmLine, 0);
 			int estimatedOffset = instrCount * 2;
 			int addr = baseAddr + estimatedOffset;
@@ -249,13 +217,10 @@ public class Z88dkDebugInfoParser {
 			addressToLine.putIfAbsent(addr, loc);
 			mapped++;
 		}
-
 		LOG.info("Parsed " + casmFile.getFileName() + ": " + clines.size() + " C_LINE directives, "
 				+ labels.size() + " labels, " + mapped + " new mappings ("
 				+ lineToAddress.size() + " total)");
 	}
-
-	// ---- .map file parsing ----
 
 	private static final Pattern MAP_LINE = Pattern.compile(
 			"^\\s*(\\S+)\\s*=\\s*\\$([0-9A-Fa-f]+)\\b.*$");
@@ -273,7 +238,6 @@ public class Z88dkDebugInfoParser {
 							symbols.put(name, (int) addr);
 						}
 					} catch (NumberFormatException e) {
-						/* Skip */
 					}
 				}
 			}
@@ -282,17 +246,64 @@ public class Z88dkDebugInfoParser {
 		}
 	}
 
-	// ---- Public API ----
-
 	public int getAddress(String fileName, int line) {
-		var loc = new SourceLocation(normaliseFileName(fileName), line);
+		var normName = normaliseFileName(fileName);
+		var offsets = learnedOffsets.computeIfAbsent(normName, k -> new TreeMap<>());
+
+		/* We want to find a C_LINE that is close to the requested 'line'.
+		 * We estimate the expected C_LINE based on the closest known offset below the requested line. */
+		var floorOffset = offsets.floorEntry(line);
+		int currentOffset = floorOffset != null ? floorOffset.getValue() : 0;
+		int expectedCLine = line - currentOffset;
+
+		/* Try exact match first */
+		var loc = new SourceLocation(normName, expectedCLine);
 		var addr = lineToAddress.get(loc);
-		return addr != null ? addr : -1;
+		if (addr != null) {
+			offsets.put(expectedCLine, line - expectedCLine);
+			return addr;
+		}
+
+		/* Fuzzy search */
+		for (int delta = 1; delta <= FUZZY_SEARCH_WINDOW; delta++) {
+			/* Search below first */
+			var locBelow = new SourceLocation(normName, expectedCLine - delta);
+			addr = lineToAddress.get(locBelow);
+			if (addr != null) {
+				int matchedCLine = expectedCLine - delta;
+				offsets.put(matchedCLine, line - matchedCLine);
+				LOG.info("Fuzzy breakpoint match: requested line " + line
+						+ " → matched C_LINE " + matchedCLine + " for " + normName + " (learned offset: +" + (line - matchedCLine) + ")");
+				return addr;
+			}
+			/* Search above */
+			var locAbove = new SourceLocation(normName, expectedCLine + delta);
+			addr = lineToAddress.get(locAbove);
+			if (addr != null) {
+				int matchedCLine = expectedCLine + delta;
+				offsets.put(matchedCLine, line - matchedCLine);
+				LOG.info("Fuzzy breakpoint match: requested line " + line
+						+ " → matched C_LINE " + matchedCLine + " for " + normName + " (learned offset: +" + (line - matchedCLine) + ")");
+				return addr;
+			}
+		}
+		return -1;
 	}
 
 	public SourceLocation getSourceLocation(int address) {
 		var entry = addressToLine.floorEntry(address);
-		return entry != null ? entry.getValue() : null;
+		if (entry != null) {
+			var loc = entry.getValue();
+			var offsets = learnedOffsets.get(loc.fileName());
+			if (offsets != null) {
+				var offsetEntry = offsets.floorEntry(loc.line());
+				if (offsetEntry != null) {
+					return new SourceLocation(loc.fileName(), loc.line() + offsetEntry.getValue());
+				}
+			}
+			return loc;
+		}
+		return null;
 	}
 
 	public int getSymbolAddress(String symbolName) {
@@ -311,8 +322,6 @@ public class Z88dkDebugInfoParser {
 	public boolean hasDebugInfo() {
 		return !lineToAddress.isEmpty();
 	}
-
-	// ---- Helpers ----
 
 	private static String normaliseFileName(String name) {
 		var idx = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
