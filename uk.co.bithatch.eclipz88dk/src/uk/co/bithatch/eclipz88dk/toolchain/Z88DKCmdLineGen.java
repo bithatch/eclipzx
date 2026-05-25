@@ -148,7 +148,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 					return "$(if $(filter %.c," + input + "),"
 							+ cmd + " --c-code-in-asm " + mergedFlags
 							+ " --assemble-only " + input
-							+ " && mv " + input + ".asm . &&) "
+							+ " && " + moveCommand() + " " + input + ".asm . &&) "
 							+ cmd + " " + mergedFlags + " -c "
 							+ outputFlag + " " + output + " " + input;
 				} else {
@@ -370,5 +370,13 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 
 		IManagedProject mp = (cfg != null) ? cfg.getManagedProject() : null;
 		return (mp != null) ? (IProject) mp.getOwner() : null;
+	}
+
+	/**
+	 * Return the platform-appropriate move command: {@code move} on Windows,
+	 * {@code mv} elsewhere.
+	 */
+	private static String moveCommand() {
+		return System.getProperty("os.name", "").toLowerCase().contains("win") ? "move" : "mv";
 	}
 }
