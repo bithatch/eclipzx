@@ -148,7 +148,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 					return "$(if $(filter %.c," + input + "),"
 							+ cmd + " --c-code-in-asm " + mergedFlags
 							+ " --assemble-only " + input
-							+ " && " + moveCommand() + " " + input + ".asm . &&) "
+							+ " && " + moveCommand() + " " + moveArg(input + ".asm") + " . &&) "
 							+ cmd + " " + mergedFlags + " -c "
 							+ outputFlag + " " + output + " " + input;
 				} else {
@@ -377,6 +377,19 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 	 * {@code mv} elsewhere.
 	 */
 	private static String moveCommand() {
-		return System.getProperty("os.name", "").toLowerCase().contains("win") ? "move" : "mv";
+		return isWindows() ? "move" : "mv";
+	}
+
+	/**
+	 * Wrap a path argument for the move command. On Windows, {@code move}
+	 * does not accept forward slashes, so we use GNU Make's {@code $(subst)}
+	 * to convert them to backslashes at make-expansion time.
+	 */
+	private static String moveArg(String path) {
+		return isWindows() ? "$(subst /,\\," + path + ")" : path;
+	}
+
+	private static boolean isWindows() {
+		return System.getProperty("os.name", "").toLowerCase().contains("win");
 	}
 }
