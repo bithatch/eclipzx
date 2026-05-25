@@ -5,6 +5,7 @@ import java.util.Objects;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
@@ -26,6 +27,8 @@ public abstract class AbstractSpriteGrid extends Canvas {
 	protected Color selectedColor;
 	private BackgroundType backgroundType = BackgroundType.TRANSPARENT;
 	private int paletteOffset = -1;
+	private Image cachedImage;
+	private boolean cacheDirty = true;
 
 	public AbstractSpriteGrid(Composite parent, int style) {
 		this(parent, DEFAULT_CELL_SIZE, style);
@@ -47,9 +50,29 @@ public abstract class AbstractSpriteGrid extends Canvas {
 		selectedColor = getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
 
 		setSpriteCell(spriteCell);
-		addPaintListener(e -> drawTile(e.gc));
+		addPaintListener(e -> paintCached(e.gc));
+		addListener(SWT.Resize, e -> invalidateCache());
 	}
 	
+	/**
+	 * Mark the cached image as dirty so it will be rebuilt on next paint.
+	 * Subclasses should call this when visual state changes.
+	 */
+	public void invalidateCache() {
+		cacheDirty = true;
+	}
+
+	@Override
+	public void redraw() {
+		invalidateCache();
+		super.redraw();
+	}
+
+	@Override
+	public void redraw(int x, int y, int width, int height, boolean all) {
+		invalidateCache();
+		super.redraw(x, y, width, height, all);
+	}
 
 	public int paletteOffset() {
 		return paletteOffset;
@@ -76,6 +99,7 @@ public abstract class AbstractSpriteGrid extends Canvas {
 
 	@Override
 	public void dispose() {
+		disposeCachedImage();
 		super.dispose();
 	}
 
@@ -100,6 +124,7 @@ public abstract class AbstractSpriteGrid extends Canvas {
 	}
 
 	protected void onPaletteOffsetChanged() {
+		invalidateCache();
 		redraw();
 	}
 
@@ -128,6 +153,37 @@ public abstract class AbstractSpriteGrid extends Canvas {
 
 	protected int calcOffsetY() {
 		return (getClientArea().height - (calPixelSize()* spriteCell.size())) / 2;
+	}
+
+	private void disposeCachedImage() {
+		if (cachedImage != null && !cachedImage.isDisposed()) {
+			cachedImage.dispose();
+			cachedImage = null;
+		}
+	}
+
+	private void paintCached(GC gc) {
+		var area = getClientArea();
+		if (area.width <= 0 || area.height <= 0)
+			return;
+
+		if (cacheDirty || cachedImage == null || cachedImage.isDisposed()
+				|| cachedImage.getBounds().width != area.width
+				|| cachedImage.getBounds().height != area.height) {
+			disposeCachedImage();
+			cachedImage = new Image(getDisplay(), area.width, area.height);
+			var imgGC = new GC(cachedImage);
+			try {
+				// Fill with widget background first
+				imgGC.setBackground(getBackground());
+				imgGC.fillRectangle(0, 0, area.width, area.height);
+				drawTile(imgGC);
+			} finally {
+				imgGC.dispose();
+			}
+			cacheDirty = false;
+		}
+		gc.drawImage(cachedImage, 0, 0);
 	}
 
 	private void drawTile(GC gc) {
@@ -231,10 +287,6 @@ public abstract class AbstractSpriteGrid extends Canvas {
 			return index;
 		else {
 			var r = ( paletteOffset * 16 ) +index;
-			/* TODO remove this when its proved */
-//			if(r >= spriteCell().getPalette().size()) {
-//				throw new IllegalStateException("Out of bounds with offset value in sprite cell");
-//			}
 			return r;
 		}
 	}

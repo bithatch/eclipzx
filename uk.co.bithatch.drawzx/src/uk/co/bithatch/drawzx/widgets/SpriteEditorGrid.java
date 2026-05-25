@@ -49,7 +49,7 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 			dy = sy;
 			sy = a;
 		}
-		
+		 
 		sx = Math.max(0, sx);
 		sy = Math.max(0, sy);
 		dx = Math.min(max - 1, dx);
@@ -66,6 +66,7 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 	private Point selectPoint, normSelectPoint;
 	private boolean shiftDown;
 	private boolean drawWithSecondary;
+	private Point lastDrawnCell;
 	private final List<DrawListener> drawListeners = new ArrayList<>();
 
 	public SpriteEditorGrid(Composite parent, int style) {
@@ -135,10 +136,12 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 					else {
 						resetDragAndSelectPoints();
 						if(e.button == 1) {
-							drawing = true;
-							drawWithSecondary = ( e.stateMask & SWT.CONTROL ) != 0;
-							fireDrawStarted();
-							drawAt(normalize(mouseDownPoint));
+						drawing = true;
+						drawWithSecondary = ( e.stateMask & SWT.CONTROL ) != 0;
+						fireDrawStarted();
+						var cell = normalize(mouseDownPoint);
+						lastDrawnCell = cell;
+						drawAt(cell);
 						}
 					}
 				}
@@ -183,6 +186,7 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 				}
 				var wasDrawing = drawing;
 				drawing = false;
+				lastDrawnCell = null;
 				if (wasDrawing) {
 					fireDrawFinished();
 				}
@@ -199,7 +203,13 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 				else if(mode == SpritePaintMode.DRAW && drawing) {
 					mouseDownPoint = new Point(e.x, e.y);
 					drawWithSecondary = ( e.stateMask & SWT.CONTROL ) != 0;
-					drawAt(normalize(mouseDownPoint));
+					var cell = normalize(mouseDownPoint);
+					if (lastDrawnCell != null && (lastDrawnCell.x != cell.x || lastDrawnCell.y != cell.y)) {
+						interpolateAndDraw(lastDrawnCell, cell);
+					} else {
+						drawAt(cell);
+					}
+					lastDrawnCell = cell;
 				}
 			}
 		});
@@ -504,6 +514,34 @@ public class SpriteEditorGrid extends AbstractSpriteGrid {
 		var drawCol = drawWithSecondary ? secondaryColor : color;
 		if(was != drawCol) {
 			spriteCell().index(point.x, point.y, drawCol);
+			redraw();
+			fireChanged();
+		}
+	}
+
+	private void interpolateAndDraw(Point from, Point to) {
+		int x0 = from.x, y0 = from.y, x1 = to.x, y1 = to.y;
+		int dx = Math.abs(x1 - x0);
+		int dy = -Math.abs(y1 - y0);
+		int sx = x0 < x1 ? 1 : -1;
+		int sy = y0 < y1 ? 1 : -1;
+		int err = dx + dy;
+		var drawCol = drawWithSecondary ? secondaryColor : color;
+		var size = spriteCell().size();
+		boolean changed = false;
+		while (true) {
+			if (x0 >= 0 && x0 < size && y0 >= 0 && y0 < size) {
+				if (spriteCell().index(x0, y0) != drawCol) {
+					spriteCell().index(x0, y0, drawCol);
+					changed = true;
+				}
+			}
+			if (x0 == x1 && y0 == y1) break;
+			int e2 = 2 * err;
+			if (e2 >= dy) { err += dy; x0 += sx; }
+			if (e2 <= dx) { err += dx; y0 += sy; }
+		}
+		if (changed) {
 			redraw();
 			fireChanged();
 		}

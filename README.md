@@ -22,6 +22,7 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
  * Comes with emulator launch templates for MAME, CSpect and Zesarux. 
  * Create, Format and Manage FAT16/FAT32 disk images, for deploying your games on SD 
    cards for the next. The same system is used for launching emulators that support SD card images. 
+ * Application export to Zip your SD card images or directory structures for publishing.
  * For ZX Next support, generated disk images can be based on Next ZXOS. 
  * ZX Next Sprite editor, and UDG / Character set Editors for original Spectrums.
  * ZX Next palette editors.
@@ -29,11 +30,11 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
  * Compress and decompress files using ZX0. 
  * AYFX Effects Editor.
  * Various project creation wizards, imports and exports.
- * Debugging support for internal emulator and external emulators that support DeZOG¹ .
+ * Debugging support for internal emulator and external emulators that support DeZOG and GDB (tested with MAME and CSpect)¹ .
  * Experimental built in ZX Basic interpreter where you can test short pieces of code.
  * Highly configurable globally and at the project level.
  * Infinitely expandable with compatible plugins from the Eclipse Marketplace.
- 
+
 *¹ Under development now*
 
 ## Screenshots

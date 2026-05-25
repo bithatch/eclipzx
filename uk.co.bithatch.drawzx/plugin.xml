@@ -271,6 +271,20 @@
                 id="uk.co.bithatch.drawzx.screens.mode"
                 name="Paint Mode"
                 optional="false" />
+        </command>
+        
+      <category
+            id="uk.co.bithatch.drawzx.tilemaps.commands.category"
+            name="Tilemap Tools" />
+            
+        <command
+            id="uk.co.bithatch.drawzx.tilemaps.commands.mode"
+            name="Tilemap Mode"
+            categoryId="uk.co.bithatch.drawzx.tilemaps.commands.category">
+            <commandParameter
+                id="uk.co.bithatch.drawzx.tilemaps.mode"
+                name="Tilemap Paint Mode"
+                optional="false" />
         </command>                        
             
     </extension>
@@ -289,6 +303,10 @@
       <handler
             class="uk.co.bithatch.drawzx.screens.ZoomOutHandler"
             commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"/>
+      
+      <handler
+            class="uk.co.bithatch.drawzx.tilemaps.TilemapModeHandler"
+            commandId="uk.co.bithatch.drawzx.tilemaps.commands.mode"/>
       
       <handler
             class="uk.co.bithatch.drawzx.sprites.ModeHandler"
@@ -403,6 +421,44 @@
           </with>
         </activeWhen>
       </handler>
+
+      <!-- Tilemap copy/cut/paste/delete handlers -->
+      <handler
+          class="uk.co.bithatch.drawzx.tilemaps.TilemapCopyHandler"
+          commandId="org.eclipse.ui.edit.copy">
+        <activeWhen>
+          <with variable="activeEditorId">
+            <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+          </with>
+        </activeWhen>
+      </handler>
+      <handler
+          class="uk.co.bithatch.drawzx.tilemaps.TilemapCutHandler"
+          commandId="org.eclipse.ui.edit.cut">
+        <activeWhen>
+          <with variable="activeEditorId">
+            <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+          </with>
+        </activeWhen>
+      </handler>
+      <handler
+          class="uk.co.bithatch.drawzx.tilemaps.TilemapPasteHandler"
+          commandId="org.eclipse.ui.edit.paste">
+        <activeWhen>
+          <with variable="activeEditorId">
+            <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+          </with>
+        </activeWhen>
+      </handler>
+      <handler
+          class="uk.co.bithatch.drawzx.tilemaps.TilemapDeleteHandler"
+          commandId="org.eclipse.ui.edit.delete">
+        <activeWhen>
+          <with variable="activeEditorId">
+            <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+          </with>
+        </activeWhen>
+      </handler>
   
     </extension>
     
@@ -492,6 +548,7 @@
                       <with variable="activeEditorId">
                         <or>
                             <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
                         </or>
                       </with>
                     </visibleWhen>
@@ -506,7 +563,54 @@
                       <with variable="activeEditorId">
                         <or>
                             <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
                         </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+              
+              <command
+                    commandId="uk.co.bithatch.drawzx.tilemaps.commands.mode"
+                    icon="icons/select16.png"
+                    label="Select Mode"
+                    tooltip="Use mouse to select tile areas"
+                    style="radio">
+                    <parameter
+                        name="uk.co.bithatch.drawzx.tilemaps.mode"
+                        value="SELECT"/>
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+                      </with>
+                    </visibleWhen>
+              </command>
+              <command
+                    commandId="uk.co.bithatch.drawzx.tilemaps.commands.mode"
+                    icon="icons/draw16.png"
+                    label="Place Mode"
+                    tooltip="Click or drag to place tiles"
+                    style="radio">
+                    <parameter
+                        name="uk.co.bithatch.drawzx.tilemaps.mode"
+                        value="PLACE"/>
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+                      </with>
+                    </visibleWhen>
+              </command>
+              <command
+                    commandId="uk.co.bithatch.drawzx.tilemaps.commands.mode"
+                    icon="icons/fill16.png"
+                    label="Fill Mode"
+                    tooltip="Click to flood fill with the selected tile"
+                    style="radio">
+                    <parameter
+                        name="uk.co.bithatch.drawzx.tilemaps.mode"
+                        value="FILL"/>
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
                       </with>
                     </visibleWhen>
               </command>

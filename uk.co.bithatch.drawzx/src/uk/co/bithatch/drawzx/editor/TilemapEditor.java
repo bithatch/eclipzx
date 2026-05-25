@@ -13,6 +13,10 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.ObjectUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -24,9 +28,14 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -66,6 +75,9 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 	protected TilemapEditorGrid tilemapGrid;
 	protected SpriteSwatch tileSwatch;
 	protected SpriteSheet tileDefinitions;
+	private ScrolledComposite gridScroll;
+	private ScrolledComposite swatchScroll;
+	private IResourceChangeListener resourceChangeListener;
 
 	private boolean dirty;
 	private final IUndoContext undoContext = new ObjectUndoContext(this);
@@ -74,12 +86,19 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 	private RedoActionHandler redoHandler;
 	private TilemapEntry[][] pendingSnapshot;
 
-	// Info labels
+	// Tile property controls
+	private org.eclipse.swt.widgets.Spinner palOffsetSpinner;
+	private org.eclipse.swt.widgets.Button mirrorXCheck;
+	private org.eclipse.swt.widgets.Button mirrorYCheck;
+	private org.eclipse.swt.widgets.Button rotateCheck;
+	private org.eclipse.swt.widgets.Button ulaOverCheck;
+	private boolean updatingTileProps; // guard against recursive updates
+	private org.eclipse.swt.graphics.Rectangle selectedEntryCell; // col,row of single-cell selection	// Info labels
 	private Label tilemapModeLabel;
 	private Label tilemapSizeLabel;
 	private Label tilemapByteSizeLabel;
 	private Label selectedTileLabel;
-	private Combo modeCombo;
+	private org.eclipse.swt.widgets.Link tilDefPathLink;
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
@@ -133,7 +152,7 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		try {
 			var tilPath = mapFile.getPersistentProperty(NewTilemapWizard.PROP_TIL_PATH);
 			var bppStr = mapFile.getPersistentProperty(new QualifiedName("uk.co.bithatch.drawzx", "bpp"));
-			int bpp = bppStr != null ? Integer.parseInt(bppStr) : 1;
+			int bpp = bppStr != null ? Integer.parseInt(bppStr) : 4;
 
 			if (tilPath != null && !tilPath.isEmpty()) {
 				// Try workspace-relative path first
@@ -155,7 +174,7 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 			return new SpriteSheet(256, bpp);
 		} catch (Exception e) {
 			// Fallback to default
-			return new SpriteSheet(256, 1);
+			return new SpriteSheet(256, 4);
 		}
 	}
 
@@ -175,7 +194,12 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		swatchGroup.setLayout(new GridLayout(1, false));
 		swatchGroup.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).hint(200, SWT.DEFAULT).create());
 
-		var swatchScroll = new ScrolledComposite(swatchGroup, SWT.V_SCROLL | SWT.BORDER);
+		tilDefPathLink = new org.eclipse.swt.widgets.Link(swatchGroup, SWT.WRAP);
+		tilDefPathLink.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		tilDefPathLink.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> openTilFile()));
+		updateTilDefPathLabel();
+
+		swatchScroll = new ScrolledComposite(swatchGroup, SWT.V_SCROLL | SWT.BORDER);
 		swatchScroll.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
 		swatchScroll.setExpandHorizontal(true);
 		swatchScroll.setExpandVertical(true);
@@ -183,6 +207,9 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		tileSwatch = new SpriteSwatch(swatchScroll, tileDefinitions, 20, 8, SWT.NONE);
 		swatchScroll.setContent(tileSwatch);
 		swatchScroll.setMinSize(tileSwatch.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+		// Set up drag-and-drop for .til files
+		setupTilDropTarget(swatchGroup, swatchScroll);
 
 		tileSwatch.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 			var idx = tileSwatch.selected();
@@ -194,14 +221,16 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		}));
 
 		// Center: tilemap grid in a scrolled composite
-		var gridScroll = new ScrolledComposite(root, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+		gridScroll = new ScrolledComposite(root, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		gridScroll.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
-		gridScroll.setExpandHorizontal(true);
-		gridScroll.setExpandVertical(true);
+		gridScroll.setExpandHorizontal(false);
+		gridScroll.setExpandVertical(false);
+		gridScroll.setBackground(root.getBackground());
 
 		tilemapGrid = new TilemapEditorGrid(gridScroll, tilemap, 16, SWT.NONE);
+		tilemapGrid.setBackground(root.getBackground());
 		gridScroll.setContent(tilemapGrid);
-		gridScroll.setMinSize(tilemapGrid.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		updateGridSize();
 
 		tilemapGrid.addModifyListener(e -> {
 			markDirty();
@@ -233,6 +262,10 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		updateInfo();
 
 		getSite().getWorkbenchWindow().getPartService().addPartListener(this);
+
+		// Listen for .til file changes
+		resourceChangeListener = this::handleResourceChanged;
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener, IResourceChangeEvent.POST_CHANGE);
 	}
 
 	private void createInfoPanel(Composite parent) {
@@ -254,24 +287,18 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		new Label(tilemapInfo, SWT.NONE).setText("Bytes:");
 		tilemapByteSizeLabel = new Label(tilemapInfo, SWT.BOLD);
 
-		// Paint mode
-		var toolGroup = new Group(parent, SWT.NONE);
-		toolGroup.setText("Tool");
-		toolGroup.setLayout(new GridLayout(2, false));
-		toolGroup.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-
-		new Label(toolGroup, SWT.NONE).setText("Mode:");
-		modeCombo = new Combo(toolGroup, SWT.READ_ONLY);
-		modeCombo.setItems("Select", "Place Tile", "Fill");
-		modeCombo.select(1); // Default to Place
-		tilemapGrid.mode(TilemapEditorGrid.TilemapPaintMode.PLACE);
-		modeCombo.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-			switch (modeCombo.getSelectionIndex()) {
-			case 0 -> tilemapGrid.mode(TilemapEditorGrid.TilemapPaintMode.SELECT);
-			case 1 -> tilemapGrid.mode(TilemapEditorGrid.TilemapPaintMode.PLACE);
-			case 2 -> tilemapGrid.mode(TilemapEditorGrid.TilemapPaintMode.FILL);
+		// Restore last mode from persistent property, default to SELECT
+		var savedMode = TilemapEditorGrid.TilemapPaintMode.SELECT;
+		try {
+			var modeStr = getFile().getPersistentProperty(
+				new QualifiedName("uk.co.bithatch.drawzx", "tilemapMode"));
+			if (modeStr != null) {
+				savedMode = TilemapEditorGrid.TilemapPaintMode.valueOf(modeStr);
 			}
-		}));
+		} catch (Exception e) {
+			// ignore
+		}
+		tilemapGrid.mode(savedMode);
 
 		// Selected tile info
 		var tileInfo = new Group(parent, SWT.NONE);
@@ -283,6 +310,97 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		selectedTileLabel = new Label(tileInfo, SWT.BOLD);
 		selectedTileLabel.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
 		selectedTileLabel.setText("0");
+
+		// Entry properties group
+		var propsGroup = new Group(parent, SWT.NONE);
+		propsGroup.setText("Entry Properties");
+		propsGroup.setLayout(new GridLayout(2, false));
+		propsGroup.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+
+		new Label(propsGroup, SWT.NONE).setText("Palette Offset:");
+		palOffsetSpinner = new org.eclipse.swt.widgets.Spinner(propsGroup, SWT.BORDER);
+		palOffsetSpinner.setMinimum(0);
+		palOffsetSpinner.setMaximum(15);
+		palOffsetSpinner.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		palOffsetSpinner.setEnabled(false);
+		palOffsetSpinner.addModifyListener(e -> onEntryPropertyChanged());
+
+		mirrorXCheck = new org.eclipse.swt.widgets.Button(propsGroup, SWT.CHECK);
+		mirrorXCheck.setText("Mirror X");
+		mirrorXCheck.setLayoutData(GridDataFactory.fillDefaults().span(2, 1).create());
+		mirrorXCheck.setEnabled(false);
+		mirrorXCheck.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> onEntryPropertyChanged()));
+
+		mirrorYCheck = new org.eclipse.swt.widgets.Button(propsGroup, SWT.CHECK);
+		mirrorYCheck.setText("Mirror Y");
+		mirrorYCheck.setLayoutData(GridDataFactory.fillDefaults().span(2, 1).create());
+		mirrorYCheck.setEnabled(false);
+		mirrorYCheck.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> onEntryPropertyChanged()));
+
+		rotateCheck = new org.eclipse.swt.widgets.Button(propsGroup, SWT.CHECK);
+		rotateCheck.setText("Rotate");
+		rotateCheck.setLayoutData(GridDataFactory.fillDefaults().span(2, 1).create());
+		rotateCheck.setEnabled(false);
+		rotateCheck.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> onEntryPropertyChanged()));
+
+		ulaOverCheck = new org.eclipse.swt.widgets.Button(propsGroup, SWT.CHECK);
+		ulaOverCheck.setText("ULA over Tilemap");
+		ulaOverCheck.setLayoutData(GridDataFactory.fillDefaults().span(2, 1).create());
+		ulaOverCheck.setEnabled(false);
+		ulaOverCheck.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> onEntryPropertyChanged()));
+
+		// Listen for grid selection changes to populate the properties
+		tilemapGrid.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+			var sel = tilemapGrid.selection();
+			if (sel != null && sel.width == 1 && sel.height == 1) {
+				selectedEntryCell = sel;
+				updateEntryProperties();
+			} else {
+				selectedEntryCell = null;
+				setEntryPropsEnabled(false);
+			}
+		}));
+	}
+
+	private void updateEntryProperties() {
+		if (selectedEntryCell == null) return;
+		updatingTileProps = true;
+		try {
+			var entry = tilemap.entry(selectedEntryCell.x, selectedEntryCell.y);
+			palOffsetSpinner.setSelection(entry.paletteOffset());
+			mirrorXCheck.setSelection(entry.mirrorX());
+			mirrorYCheck.setSelection(entry.mirrorY());
+			rotateCheck.setSelection(entry.rotate());
+			ulaOverCheck.setSelection(entry.ulaOverTilemap());
+			selectedTileLabel.setText(String.valueOf(entry.tileIndex()));
+			setEntryPropsEnabled(true);
+		} finally {
+			updatingTileProps = false;
+		}
+	}
+
+	private void setEntryPropsEnabled(boolean enabled) {
+		palOffsetSpinner.setEnabled(enabled);
+		mirrorXCheck.setEnabled(enabled);
+		mirrorYCheck.setEnabled(enabled);
+		rotateCheck.setEnabled(enabled);
+		ulaOverCheck.setEnabled(enabled);
+	}
+
+	private void onEntryPropertyChanged() {
+		if (updatingTileProps || selectedEntryCell == null) return;
+		var before = tilemap.snapshot();
+		var entry = tilemap.entry(selectedEntryCell.x, selectedEntryCell.y);
+		entry.paletteOffset(palOffsetSpinner.getSelection());
+		entry.mirrorX(mirrorXCheck.getSelection());
+		entry.mirrorY(mirrorYCheck.getSelection());
+		entry.rotate(rotateCheck.getSelection());
+		entry.ulaOverTilemap(ulaOverCheck.getSelection());
+		var after = tilemap.snapshot();
+		execute(new TilemapDrawOperation(before, after));
+		tilemapGrid.invalidateCache();
+		tilemapGrid.redraw();
+		markDirty();
 	}
 
 	private void updateInfo() {
@@ -328,6 +446,9 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 
 	@Override
 	public void dispose() {
+		if (resourceChangeListener != null) {
+			ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
+		}
 		super.dispose();
 		history.dispose(undoContext, true, true, true);
 		getSite().getWorkbenchWindow().getPartService().removePartListener(this);
@@ -415,6 +536,7 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 			tilemap.restore(before);
 			tilemapGrid.notifyDataChanged();
 			markDirty();
+			updateEntryProperties();
 			return Status.OK_STATUS;
 		}
 
@@ -423,7 +545,330 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 			tilemap.restore(after);
 			tilemapGrid.notifyDataChanged();
 			markDirty();
+			updateEntryProperties();
 			return Status.OK_STATUS;
+		}
+	}
+
+	public void zoomIn() {
+		var current = tilemapGrid.cellPixelSize();
+		tilemapGrid.cellPixelSize(current + 4);
+		updateGridSize();
+	}
+
+	public void zoomOut() {
+		var current = tilemapGrid.cellPixelSize();
+		if (current > 4) {
+			tilemapGrid.cellPixelSize(current - 4);
+			updateGridSize();
+		}
+	}
+
+	public void setMode(TilemapEditorGrid.TilemapPaintMode mode) {
+		tilemapGrid.mode(mode);
+		try {
+			getFile().setPersistentProperty(
+				new QualifiedName("uk.co.bithatch.drawzx", "tilemapMode"), mode.name());
+		} catch (Exception e) {
+			// ignore
+		}
+		var cmdService = getSite().getService(org.eclipse.ui.commands.ICommandService.class);
+		if (cmdService != null) {
+			cmdService.refreshElements("uk.co.bithatch.drawzx.tilemaps.commands.mode", null);
+		}
+	}
+
+	public TilemapEditorGrid.TilemapPaintMode getMode() {
+		return tilemapGrid.mode();
+	}
+
+	public boolean hasSelection() {
+		return tilemapGrid.hasSelection();
+	}
+
+	/**
+	 * Clipboard format: TILEMAP_CLIP:cols:rows\n
+	 * Each row is comma-separated entries, rows separated by newlines.
+	 * Each entry: tileIndex:attrByte (hex)
+	 */
+	public void copySelectionToClipboard() {
+		var sel = tilemapGrid.selection();
+		if (sel == null) return;
+		var sb = new StringBuilder();
+		sb.append("TILEMAP_CLIP:").append(sel.width).append(':').append(sel.height).append('\n');
+		for (var r = 0; r < sel.height; r++) {
+			for (var c = 0; c < sel.width; c++) {
+				if (c > 0) sb.append(',');
+				var entry = tilemap.entry(sel.x + c, sel.y + r);
+				var encoded = entry.encode16bit();
+				sb.append(String.format("%02X%02X", encoded[0] & 0xFF, encoded[1] & 0xFF));
+			}
+			sb.append('\n');
+		}
+		var clipboard = new org.eclipse.swt.dnd.Clipboard(getSite().getShell().getDisplay());
+		try {
+			clipboard.setContents(
+				new Object[] { sb.toString() },
+				new org.eclipse.swt.dnd.Transfer[] { org.eclipse.swt.dnd.TextTransfer.getInstance() }
+			);
+		} finally {
+			clipboard.dispose();
+		}
+	}
+
+	public void cutSelectionToClipboard() {
+		copySelectionToClipboard();
+		deleteSelection();
+	}
+
+	public void deleteSelection() {
+		var sel = tilemapGrid.selection();
+		if (sel == null) return;
+		pendingSnapshot = tilemap.snapshot();
+		for (var r = 0; r < sel.height; r++) {
+			for (var c = 0; c < sel.width; c++) {
+				var entry = tilemap.entry(sel.x + c, sel.y + r);
+				entry.tileIndex(0);
+				entry.mirrorX(false);
+				entry.mirrorY(false);
+				entry.rotate(false);
+				entry.ulaOverTilemap(false);
+				entry.paletteOffset(0);
+			}
+		}
+		var after = tilemap.snapshot();
+		execute(new TilemapDrawOperation(pendingSnapshot, after));
+		pendingSnapshot = null;
+		tilemapGrid.invalidateCache();
+		tilemapGrid.redraw();
+		markDirty();
+	}
+
+	public void pasteFromClipboard() {
+		var clipboard = new org.eclipse.swt.dnd.Clipboard(getSite().getShell().getDisplay());
+		try {
+			var text = (String) clipboard.getContents(org.eclipse.swt.dnd.TextTransfer.getInstance());
+			if (text == null || !text.startsWith("TILEMAP_CLIP:")) return;
+
+			var lines = text.split("\n");
+			var header = lines[0];
+			var parts = header.split(":");
+			if (parts.length < 3) return;
+			var cols = Integer.parseInt(parts[1]);
+			var rows = Integer.parseInt(parts[2]);
+
+			var entries = new uk.co.bithatch.drawzx.tilemaps.TilemapEntry[rows][cols];
+			for (var r = 0; r < rows && r + 1 < lines.length; r++) {
+				var cells = lines[r + 1].split(",");
+				for (var c = 0; c < cols && c < cells.length; c++) {
+					var hex = cells[c].trim();
+					if (hex.length() >= 4) {
+						var attr = Integer.parseInt(hex.substring(0, 2), 16);
+						var tile = Integer.parseInt(hex.substring(2, 4), 16);
+						entries[r][c] = uk.co.bithatch.drawzx.tilemaps.TilemapEntry.decode16bit(attr, tile);
+					} else {
+						entries[r][c] = new uk.co.bithatch.drawzx.tilemaps.TilemapEntry(0);
+					}
+				}
+				// Fill remaining columns with empty
+				for (var c = cells.length; c < cols; c++) {
+					entries[r][c] = new uk.co.bithatch.drawzx.tilemaps.TilemapEntry(0);
+				}
+			}
+
+			// Show paste preview - user clicks to place
+			tilemapGrid.showPastePreview(entries, cols, rows);
+		} finally {
+			clipboard.dispose();
+		}
+	}
+
+	private void updateGridSize() {
+		var size = tilemapGrid.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		tilemapGrid.setSize(size);
+		gridScroll.setMinSize(size);
+		gridScroll.layout(true, true);
+	}
+
+	private void handleResourceChanged(IResourceChangeEvent event) {
+		if (event.getDelta() == null) return;
+		try {
+			var tilPath = getFile().getPersistentProperty(NewTilemapWizard.PROP_TIL_PATH);
+			if (tilPath == null || tilPath.isEmpty()) return;
+
+			event.getDelta().accept(new IResourceDeltaVisitor() {
+				@Override
+				public boolean visit(IResourceDelta delta) {
+					if (delta.getKind() == IResourceDelta.CHANGED
+							&& (delta.getFlags() & IResourceDelta.CONTENT) != 0
+							&& delta.getResource() instanceof IFile changedFile) {
+						var changedPath = changedFile.getFullPath().toString();
+						if (changedPath.equals(tilPath) || (changedFile.getLocation() != null
+								&& changedFile.getLocation().toOSString().equals(tilPath))) {
+							getSite().getShell().getDisplay().asyncExec(() -> reloadTileDefinitions());
+						}
+					}
+					return true;
+				}
+			});
+		} catch (Exception e) {
+			// Ignore
+		}
+	}
+
+	private void reloadTileDefinitions() {
+		if (tilemapGrid == null || tilemapGrid.isDisposed()) return;
+		try {
+			var newDefs = loadTileDefinitions(getFile());
+			tileDefinitions = newDefs;
+			tilemap.tileDefinitions(tileDefinitions);
+
+			// Rebuild the swatch
+			tileSwatch.dispose();
+			tileSwatch = new SpriteSwatch(swatchScroll, tileDefinitions, 20, 8, SWT.NONE);
+			swatchScroll.setContent(tileSwatch);
+			swatchScroll.setMinSize(tileSwatch.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			tileSwatch.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+				var idx = tileSwatch.selected();
+				tilemapGrid.selectedTileIndex(idx);
+				if (selectedTileLabel != null) {
+					selectedTileLabel.setText(String.valueOf(idx));
+					selectedTileLabel.getParent().layout(true);
+				}
+			}));
+
+			// Refresh tilemap grid
+			tilemapGrid.invalidateAllCaches();
+			tilemapGrid.redraw();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void updateTilDefPathLabel() {
+		try {
+			var tilPath = getFile().getPersistentProperty(NewTilemapWizard.PROP_TIL_PATH);
+			if (tilPath != null && !tilPath.isEmpty()) {
+				var name = java.nio.file.Path.of(tilPath).getFileName().toString();
+				tilDefPathLink.setText("<a>" + name + "</a>");
+				tilDefPathLink.setToolTipText(tilPath);
+			} else {
+				tilDefPathLink.setText("Drop .til file here");
+				tilDefPathLink.setToolTipText("Drag and drop a .til tile definition file to assign it to this tilemap");
+			}
+		} catch (CoreException e) {
+			tilDefPathLink.setText("Drop .til file here");
+		}
+	}
+
+	private void openTilFile() {
+		try {
+			var tilPath = getFile().getPersistentProperty(NewTilemapWizard.PROP_TIL_PATH);
+			if (tilPath == null || tilPath.isEmpty()) return;
+
+			// Try workspace-relative path first
+			var wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+			var tilFile = wsRoot.getFile(new Path(tilPath));
+			if (tilFile != null && tilFile.exists()) {
+				var page = getSite().getPage();
+				org.eclipse.ui.ide.IDE.openEditor(page, tilFile);
+				return;
+			}
+
+			// Try as filesystem path - find workspace file by URI
+			var fsPath = java.nio.file.Path.of(tilPath);
+			if (java.nio.file.Files.exists(fsPath)) {
+				var wsFiles = wsRoot.findFilesForLocationURI(fsPath.toUri());
+				if (wsFiles != null && wsFiles.length > 0) {
+					var page = getSite().getPage();
+					org.eclipse.ui.ide.IDE.openEditor(page, wsFiles[0]);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void setupTilDropTarget(Group swatchGroup, ScrolledComposite swatchScroll) {
+		var fileTransfer = FileTransfer.getInstance();
+		var dropTarget = new DropTarget(swatchGroup, DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_DEFAULT);
+		dropTarget.setTransfer(new Transfer[] { fileTransfer });
+		dropTarget.addDropListener(new DropTargetAdapter() {
+			@Override
+			public void dragEnter(DropTargetEvent event) {
+				if (event.detail == DND.DROP_DEFAULT) {
+					event.detail = DND.DROP_COPY;
+				}
+			}
+
+			@Override
+			public void drop(DropTargetEvent event) {
+				if (fileTransfer.isSupportedType(event.currentDataType)) {
+					var files = (String[]) event.data;
+					if (files != null && files.length > 0) {
+						var path = files[0];
+						if (path.toLowerCase().endsWith(".til")) {
+							applyTilFile(path, swatchScroll);
+						}
+					}
+				}
+			}
+		});
+	}
+
+	private void applyTilFile(String fsPath, ScrolledComposite swatchScroll) {
+		try {
+			var tilPath = java.nio.file.Path.of(fsPath);
+			if (!java.nio.file.Files.exists(tilPath)) return;
+
+			// Determine BPP from existing property or default
+			var mapFile = getFile();
+			var bppStr = mapFile.getPersistentProperty(new QualifiedName("uk.co.bithatch.drawzx", "bpp"));
+			int bpp = bppStr != null ? Integer.parseInt(bppStr) : 4;
+
+			// Load new tile definitions
+			var newDefs = SpriteSheet.load(tilPath, bpp, true);
+
+			// Try to find workspace-relative path
+			var wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+			var wsFiles = wsRoot.findFilesForLocationURI(tilPath.toUri());
+			String storedPath;
+			if (wsFiles != null && wsFiles.length > 0) {
+				storedPath = wsFiles[0].getFullPath().toString();
+			} else {
+				storedPath = fsPath;
+			}
+
+			// Store the association
+			mapFile.setPersistentProperty(NewTilemapWizard.PROP_TIL_PATH, storedPath);
+
+			// Update in-memory state
+			tileDefinitions = newDefs;
+			tilemap.tileDefinitions(tileDefinitions);
+
+			// Rebuild the swatch
+			tileSwatch.dispose();
+			tileSwatch = new SpriteSwatch(swatchScroll, tileDefinitions, 20, 8, SWT.NONE);
+			swatchScroll.setContent(tileSwatch);
+			swatchScroll.setMinSize(tileSwatch.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			tileSwatch.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+				var idx = tileSwatch.selected();
+				tilemapGrid.selectedTileIndex(idx);
+				if (selectedTileLabel != null) {
+					selectedTileLabel.setText(String.valueOf(idx));
+					selectedTileLabel.getParent().layout(true);
+				}
+			}));
+
+			// Update label
+			updateTilDefPathLabel();
+
+			// Refresh tilemap grid
+			tilemapGrid.invalidateAllCaches();
+			tilemapGrid.redraw();
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

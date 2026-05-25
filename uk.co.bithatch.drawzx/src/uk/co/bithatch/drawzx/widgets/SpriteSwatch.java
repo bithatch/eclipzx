@@ -63,6 +63,17 @@ public class SpriteSwatch extends Composite {
 	}
 
 	@Override
+	public void redraw() {
+		super.redraw();
+		// Also redraw all child sprite grids to invalidate their caches
+		for (var grid : spriteCells) {
+			if (!grid.isDisposed()) {
+				grid.redraw();
+			}
+		}
+	}
+
+	@Override
 	public void dispose() {
 		super.dispose();
 	}

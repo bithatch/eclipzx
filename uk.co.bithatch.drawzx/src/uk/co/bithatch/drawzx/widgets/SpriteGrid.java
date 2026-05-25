@@ -32,6 +32,7 @@ public class SpriteGrid extends AbstractSpriteGrid {
 		addListener(SWT.MouseDown, event -> {
 
 			selected = true;
+			invalidateCache();
 			redraw();
 			
 			var ue = new Event();
@@ -61,6 +62,7 @@ public class SpriteGrid extends AbstractSpriteGrid {
 	public void setSelection(boolean selected) {
 		if(selected != this.selected) {
 			this.selected = selected;
+			invalidateCache();
 			redraw();
 		}
 	}
