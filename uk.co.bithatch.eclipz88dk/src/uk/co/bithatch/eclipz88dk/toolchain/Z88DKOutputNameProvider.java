@@ -22,10 +22,17 @@ public class Z88DKOutputNameProvider implements IManagedOutputNameProvider {
 			return new IPath[0];
 		}
 
-		IPath[] outputs = new IPath[primaryInputNames.length];
+		var outputList = new java.util.ArrayList<IPath>();
 		for (int i = 0; i < primaryInputNames.length; i++) {
 			IPath input = primaryInputNames[i];
 			String fileName = input.lastSegment();
+
+			/* Skip .c.asm files — these are generated intermediate files
+			 * from the --c-code-in-asm debug pass and must NOT be compiled
+			 * as separate sources */
+			if (fileName.endsWith(".c.asm")) {
+				continue;
+			}
 
 			/* Strip the extension and build basename_ext.o */
 			String ext = input.getFileExtension();
@@ -43,8 +50,8 @@ public class Z88DKOutputNameProvider implements IManagedOutputNameProvider {
 
 			/* Return just the filename — CDT handles the directory mirroring
 			 * (e.g. placing it under Debug/src/) itself */
-			outputs[i] = new Path(outputName);
+			outputList.add(new Path(outputName));
 		}
-		return outputs;
+		return outputList.toArray(new IPath[0]);
 	}
 }

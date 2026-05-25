@@ -43,6 +43,11 @@ import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
  * </ul>
  * Bank switching flags ({@code --codeseg}, {@code --constseg}, {@code --dataseg})
  * are read from the per-resource configuration and added to the per-file command.
+ * <p>
+ * Since CDT always passes make automatic variables ({@code $<}, {@code $@})
+ * rather than real filenames, we use GNU Make's {@code $(filter)} function
+ * to conditionally emit the {@code --c-code-in-asm} pass only for {@code .c}
+ * files. This is cross-platform (evaluated by make, not the shell).
  */
 public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 
@@ -118,13 +123,20 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 		 * CDT uses getCommandLine() from the returned IManagedCommandLineInfo
 		 * to construct the makefile recipe.
 		 *
-		 * For Debug builds, we emit a compound shell command using 'case' to
-		 * conditionally run the --c-code-in-asm pass only for .c files:
+		 * For Debug builds we need to run an extra --c-code-in-asm pass for
+		 * .c files (but not .asm files). Since CDT always passes $< and $@
+		 * (make automatic variables) we cannot detect the source type in Java.
 		 *
-		 *   case "$<" in *.c) zcc --c-code-in-asm FLAGS --assemble-only $< && mv $<.asm . ;; esac && zcc FLAGS -c -o $@ $<
+		 * We use GNU Make's $(filter) function to conditionally prepend the
+		 * extra pass. $(filter) is evaluated by make itself (cross-platform,
+		 * no shell dependency), and $< is expanded before the filter runs:
 		 *
-		 * Make expands $< before the shell runs, so the case matches correctly.
-		 * For .asm files the case block is skipped and only the normal -c compile runs.
+		 *   $(if $(filter %.c,$<),zcc --c-code-in-asm FLAGS --assemble-only $< &&) zcc FLAGS -c -o $@ $<
+		 *
+		 * For .c files: the filter matches, so the --c-code-in-asm pass runs
+		 *   first, then the normal -c compile.
+		 * For .asm files: the filter doesn't match, so only the normal compile
+		 *   runs (the $(if) expands to nothing).
 		 *
 		 * For Release builds: zcc FLAGS -c -o $@ $<
 		 */
@@ -133,11 +145,10 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 		return new IManagedCommandLineInfo() {
 			@Override public String getCommandLine() {
 				if (isDebug) {
-					return "case \"" + input + "\" in *.c) "
+					return "$(if $(filter %.c," + input + "),"
 							+ cmd + " --c-code-in-asm " + mergedFlags
 							+ " --assemble-only " + input
-							+ " && mv " + input + ".asm ."
-							+ " ;; esac && "
+							+ " && mv " + input + ".asm . &&) "
 							+ cmd + " " + mergedFlags + " -c "
 							+ outputFlag + " " + output + " " + input;
 				} else {
