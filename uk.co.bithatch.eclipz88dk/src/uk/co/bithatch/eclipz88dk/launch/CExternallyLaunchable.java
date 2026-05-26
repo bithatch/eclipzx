@@ -22,15 +22,15 @@ import org.eclipse.debug.core.model.IProcess;
 import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.IOutputFormat;
+import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKBuildContext;
 import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.DefaultPreparationContext;
 import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
-import uk.co.bithatch.emuzx.debug.DezogDebugTarget;
-import uk.co.bithatch.emuzx.debug.GdbDebugTarget;
 import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTarget;
+import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTargetRegistry;
 
 public class CExternallyLaunchable implements IExternallyLaunchable {
 	
@@ -40,17 +40,17 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 	public IDebugTarget createRemoteDebugTarget(ILaunchConfiguration configuration, ILaunch launch,
 			DefaultPreparationContext prepCtx, IProcess eclipseProcess) throws CoreException {
 
-		var debugArgs = configuration.getAttribute(
-				DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS,
-				java.util.Collections.emptyList());
-		
-		if (debugArgs.stream().anyMatch(a -> a.contains("gdbstub"))) {
-			var binaryFile = prepCtx.binaryFile();
-			var binaryPath = binaryFile != null ? binaryFile.toPath() : null;
-			return new GdbDebugTarget(launch, configuration, eclipseProcess, binaryPath);
-		} else {
-			return new DezogDebugTarget(launch, configuration, eclipseProcess);
+		var debugger = configuration.getAttribute(DebugLaunchConfigurationAttributes.DEBUGGER, "");
+		if(debugger.equals("")) {
+			LOG.warn("No debugger specified, using default emulator debug target.");
+			return new ExternalEmulatorDebugTarget(launch, eclipseProcess);
 		}
+
+		var binaryFile = prepCtx.binaryFile();
+		var binaryPath = binaryFile != null ? binaryFile.toPath() : null;
+		var debugInfo = LanguageSystem.languageSystem(prepCtx.programFile()).createSourceAddressMap(binaryPath);
+		
+		return ExternalEmulatorDebugTargetRegistry.get(debugger).createDebugTargetFactory().createDebugTarget(launch, configuration, eclipseProcess, debugInfo);
 	}
 
 	@Override

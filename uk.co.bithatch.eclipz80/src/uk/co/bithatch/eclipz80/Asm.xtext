@@ -1,0 +1,419 @@
+grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
+
+/*
+ * Z80 Grammar that covers Z88DK Assembler and Boriels ZX Basic assembler (and 
+ * maybe others, i've no idea!)
+ * 
+ * TODO: Missing Standard Z80 Instructions:
+ * - BIT, CPD, CPDR, CPI, CPIR, DAA, DJNZ, HALT, IND, INDR, INI, INIR, 
+ * - LDD, LDDR, LDI, LDIR, NOP, OTDR, OTIR, OUTD, OUTI, 
+ * - RL, RLC, RLCA, RLD, RR, RRC, RRCA, RRD, RETI, RETN, SCF, SRA, SRL, IM.
+ * 
+ * TODO: Missing Z80N (ZX Spectrum Next) Instructions:
+ * - ADD HL,A / ADD DE,A / ADD BC,A (special 1-byte opcodes)
+ * - PUSH <constant>
+ * - LDIX, LDDX, LDIRX, LDDRX
+ * - LDI2R, LDI2RX
+ * - LDWS
+ * - MIRROR
+ * - MUL
+ * - PIXELDN, PIXELAD, SETAE
+ * - SWAPNIL, SWAPNB
+ * - TEST n
+ * - BRK
+ * 
+ * TODO: Others that are appearing in generated files
+ * - BSRL, BSLA
+ */
+
+generate asm "http://www.co.uk/bithatch/eclipz80/Asm"
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+AsmProgram:
+    lines+=AsmLine*;
+
+//AsmLine:
+//    (label=ID ':')? mnemonic=ID (operands+=ID | operands+=STRING)*;
+    
+    // ─────────────── ASM ───────────────
+
+AsmLine:
+    AsmLabelEQULine | AsmLocalLine | AsmDefcLine | AsmLabelOnlyLine | AsmStatementLine;
+    
+AsmLabelEQULine:
+    {LabelEQULine}
+    label=ID ':'? 'EQU' value=AsmOperand;
+    
+AsmDefcLine:
+    {AsmDefcLine}
+    'DEFC' name=ID '=' value=AsmOperand;
+    
+AsmLocalLine:
+    {AsmLocalLine}
+    'LOCAL' labels+=ID (',' labels+=ID)*;
+
+AsmLabelOnlyLine:
+    {LabelOnlyLine}
+    label=ID ':'?;
+
+AsmStatementLine:
+    {AsmStatementLine}
+    (label=ID ':'?)?
+    statements+=AsmStatement (':' statements+=AsmStatement)*;
+    
+AsmStatement:
+    AsmOrg | 
+    AsmCLINE | 
+    AsmCall | 
+    AsmInclude | 
+    AsmModule | 
+    AsmSection | 
+    AsmNextReg | 
+    AsmEIStatement | 
+    AsmEXStatement | 
+    AsmJpStatement | 
+    AsmJrStatement | 
+    AsmLdStatement | 
+    AsmDIStatement | 
+    AsmDBStatement | 
+    AsmPopStatement |
+    AsmAndStatement |
+    AsmOrStatement |
+    AsmXorStatement |
+    AsmCpStatement |
+    AsmCplStatement |
+    AsmNegStatement |
+    AsmAddStatement |
+    AsmDecStatement |
+    AsmSubStatement |
+    AsmIncStatement |
+    AsmSbcStatement |
+    AsmInStatement |
+    AsmOutStatement |
+    AsmSetStatement |
+    AsmResStatement |
+    AsmExxStatement |
+    AsmRlaStatement |
+    AsmCcfStatement |
+    AsmRraStatement |
+    AsmRetStatement |
+    AsmRstStatement |
+    AsmProcStatement |
+    AsmSlaStatement |
+    AsmBinaryStatement |
+    AsmPushStatement
+    ;
+    
+AsmDBStatement:
+    {DB} ( 'DB' | 'DW' | 'DEFB' | 'DEFW' | 'DEFS' | 'DEFM' )  data+=AsmOperand (',' data+=AsmOperand)*
+;
+
+AsmEIStatement:
+    {EI} 'EI'
+;
+
+AsmDIStatement:
+    {DI} 'DI'
+;
+AsmLdStatement:
+    {Ld} 'LD' name=AsmOperand ',' value=AsmOperand
+;
+AsmEXStatement:
+    {Ld} 'EX' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmSbcStatement:
+    {Ld} 'SBC' name=AsmOperand (',' value=AsmOperand)?
+;
+
+AsmInStatement:
+    {Ld} 'IN' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmOutStatement:
+    {Ld} 'OUT' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmSetStatement:
+    {Ld} 'SET' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmResStatement:
+    {Ld} 'RES' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmExxStatement:
+    {Ld} 'EXX'
+;
+
+AsmRlaStatement:
+    {Ld} 'RLA'
+;
+
+AsmCcfStatement:
+    {Ld} 'CCF'
+;
+
+AsmRraStatement:
+    {Ld} 'RRA'
+;
+
+AsmAndStatement:
+    {Ld} 'AND' name=AsmOperand
+;
+
+AsmOrStatement:
+    {Ld} 'OR' name=AsmOperand
+;
+
+AsmXorStatement:
+    {Ld} 'XOR' name=AsmOperand
+;
+
+AsmCpStatement:
+    {Ld} 'CP' name=AsmOperand
+;
+
+AsmCplStatement:
+    {Ld} 'CPL'
+;
+
+AsmNegStatement:
+    {Ld} 'NEG'
+;
+
+AsmAddStatement:
+    {Ld} 'ADD' name=AsmOperand (',' value=AsmOperand)?
+;
+
+AsmDecStatement:
+    {Ld} 'DEC' name=AsmOperand
+;
+
+AsmSubStatement:
+    {Ld} 'SUB' name=AsmOperand (',' value=AsmOperand)?
+;
+
+AsmIncStatement:
+    {Ld} 'INC' name=AsmOperand
+;
+
+AsmSlaStatement:
+    {Sla} 'SLA' name=AsmOperand
+;
+
+AsmPopStatement:
+    {Pop} 'POP' register=AsmOperand
+;
+AsmPushStatement:
+    {Pop} 'PUSH' register=AsmOperand
+;
+
+AsmJpStatement:
+    {Jp} 'JP' (condition=AsmCondition ',')? value=AsmOperand
+;
+
+AsmJrStatement:
+    {Jr} 'JR' (condition=AsmCondition ',')? value=AsmOperand
+;
+
+AsmRetStatement:
+    {Ret} 'RET' condition=AsmCondition?
+;
+
+AsmRstStatement:
+    {Rst} 'RST' value=IntegralLiteral
+;
+
+AsmProcStatement:
+    {Proc} 'PROC'
+;
+
+/*
+AsmOperand:
+    {AsmOperand} ('+'|'-') '(' inner=AsmOperandExpr ')'
+  | {AsmOperand} '(' inner=AsmOperandExpr ')'
+  | {AsmOperand} expr=AsmOperandExpr
+;
+
+AsmOperandExpr:
+    parts+=AsmOperandPart ((op+=AsmOperator parts+=AsmOperandPart))*
+;
+
+AsmOperandPart:
+    register=AsmRegisterName | literal=IntegralLiteral | id=ID
+;
+
+*/
+/*
+AsmOperand:
+    parts+=AsmOperandPart ((op+=AsmOperator parts+=AsmOperandPart))*;
+    
+AsmOperandPart:
+    {AsmOperand} ('+'|'-') '(' inner=AsmOperand ')'
+  | {AsmOperand} '(' inner=AsmOperand ')'
+  | {AsmOperand} value = AsmOperandValue
+;
+
+AsmOperandValue:
+    name=AsmRegisterName | literal=IntegralLiteral | id=ID
+;
+
+AsmOperator:
+    name=('+'|'-'|'%'|'<<'|'>>')
+;
+* */
+
+
+AsmOperand:
+    AsmAddExpr;
+
+AsmAddExpr returns AsmOperand:
+    AsmSubtractExpr => ({BinaryExpr.left=current} => op='+' right=AsmAddExpr)?;
+    
+AsmSubtractExpr returns AsmOperand:
+    AsmMulExpr  => ({BinaryExpr.left=current} => op='-' right=AsmSubtractExpr)?;
+
+AsmMulExpr returns AsmOperand:
+    AsmDivExpr  => ({BinaryExpr.left=current} => op='*' right=AsmMulExpr)?;
+
+AsmDivExpr returns AsmOperand:
+    AsmModExpr  => ({BinaryExpr.left=current} => op='/' right=AsmDivExpr)?;
+
+AsmModExpr returns AsmOperand:
+    AsmShrExpr  => ({BinaryExpr.left=current} => op='%' right=AsmModExpr)?;
+
+AsmShrExpr returns AsmOperand:
+    AsmShlExpr  => ({BinaryExpr.left=current} => op='>>' right=AsmShrExpr)?;
+
+AsmShlExpr returns AsmOperand:
+    AsmPrimary  => ({BinaryExpr.left=current} => op='<<' right=AsmShlExpr)?;
+    
+AsmNotExpr:
+    '!' expr=AsmOperand
+;
+AsmSignedExpr:
+    ('-'|'+') expr=AsmOperand
+;
+
+AsmPrimary returns AsmOperand:
+    =>  '(' AsmOperand ')'
+    |
+    =>  AsmSignedExpr
+    |
+    => AsmRegisterName
+    |
+    => IntegralLiteral
+    |
+    => AsmLabel
+    |
+    =>  AsmNotExpr
+    /*
+    |
+    =>  AsmOperandValue
+    |
+    =>  AsmNotExpr
+    */
+;
+
+AsmLabel:
+    name = ID
+;
+
+/*
+AsmOperandValue:
+    name=AsmRegisterName | literal=IntegralLiteral | id=ID
+;
+*/
+
+
+AsmRegisterName:
+    name=('A' | 'B' | 'D' | 'H'| 'C' | 'E' | 'L' | 'AF' |'BC' | 'DE' | 'HL' | 'SP' | 'PC' | 'IX' | 'IY' | 'IXL' | 'IXH' | 'IYL' | 'IYH' |'I' |'R'| 'AF\'' | 'BC\'' | 'DE\'' | 'HL\'')
+;
+
+AsmCondition:
+    name=('NZ' | 'Z' | 'NC' | 'C' | 'PO' | 'PE' | 'P' | 'M')
+;
+
+// Boriel Specific
+
+AsmNextReg:
+    'NEXTREG'  name=AsmOperand ',' value=AsmOperand; 
+    
+// Z88DK Specific
+AsmBinaryStatement:
+   {Binary} 'BINARY' name=StringLiteral
+;
+
+    
+AsmOrg:
+   {Org} 'ORG' value=IntegralLiteral
+;
+
+AsmCLINE:
+    'C_LINE' value=IntegralLiteral ',' name=STRING
+;
+
+AsmModule:
+    'MODULE' name=ID
+;
+
+AsmCall:
+    'CALL' (condition=AsmCondition ',')? name=AsmOperand
+;
+
+AsmInclude:
+    'INCLUDE' name=STRING
+;
+
+AsmSection:
+    'SECTION' name=ID
+;
+
+// ─────────────── EXPRESSIONS ───────────────
+AsmDbExpr:
+    IntegralLiteral | StringLiteral | id=ID;
+    
+// ─────────────── MODEL ELEMENTS ───────────────
+
+IntegralLiteral:
+    value=INT | litvalue=HEX_LITERAL | litvalue=BIN_LITERAL;
+
+StringLiteral:
+    value=STRING;
+
+
+// ─────────────── TERMINALS ───────────────
+
+terminal HEX_LITERAL:
+    ( ('$'|'0x') ('0'..'9' | 'a'..'f' | 'A'..'F')+)
+  | (('0'..'9' | 'a'..'f' | 'A'..'F')+ ('h' | 'H'));
+
+terminal BIN_LITERAL:
+    ('%' ('0' | '1')+)
+  | (('0' | '1')+ ('b' | 'B'));
+
+@Override
+terminal SL_COMMENT     : (';' | '#') !('\n'|'\r')*;
+
+@Override
+terminal ML_COMMENT: "/'" -> "'/";
+
+@Override
+terminal STRING: '"' ( '\\' . | !('\\' | '"') )* '"';
+
+@Override
+terminal INT returns ecore::EInt: ('0'..'9')+;
+
+@Override
+terminal ID: ('@'|'.')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?
+           | ('@'|'.') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?;
+             
+@Override
+terminal WS:
+    (' ' | '\t' | '\r' | '\n' | '\\' '\r'? '\n')+;
+
+
+@Override
+terminal ANY_OTHER: . ;

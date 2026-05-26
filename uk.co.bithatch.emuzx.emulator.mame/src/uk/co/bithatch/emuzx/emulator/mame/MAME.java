@@ -1,5 +1,6 @@
 package uk.co.bithatch.emuzx.emulator.mame;
 
+import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT;
@@ -92,7 +93,8 @@ public class MAME implements IEmulator {
         configuration.setAttribute(CONFIGURATION_CONTENT, "");
 
         configuration.setAttribute(PORT, 23946);
-        configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Arrays.asList("-debug", "-debugger", "gdbstub", "-debugger_port", "23946"));
+        configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Arrays.asList("-debug", "-debugger", "gdbstub", "-debugger_port", "${ee_debug_port}"));
+        configuration.setAttribute(DEBUGGER, "uk.co.bithatch.emuzx.debug.gdb");
 		
 		
 	}

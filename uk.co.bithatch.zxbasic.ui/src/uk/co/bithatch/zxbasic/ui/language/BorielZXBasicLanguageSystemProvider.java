@@ -1,8 +1,12 @@
 package uk.co.bithatch.zxbasic.ui.language;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -17,7 +21,9 @@ import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
+import uk.co.bithatch.bitzx.ISourceAdressMap;
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
+import uk.co.bithatch.bitzx.SourceLocation;
 import uk.co.bithatch.emuzx.DefaultPreparationContext;
 import uk.co.bithatch.zxbasic.ui.builder.ZXBasicBuilder;
 import uk.co.bithatch.zxbasic.ui.builder.ZXBasicNature;
@@ -78,6 +84,43 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 	@Override
 	public String[] sourceFileExtensions() {
 		return new String[] { "bas", "zxbasic" };
+	}
+
+	@Override
+	public ISourceAdressMap createSourceAddressMap(Path file) {
+		// TODO
+		return new ISourceAdressMap() {
+
+			@Override
+			public int getAddress(String fileName, int line) {
+				return 0;
+			}
+
+			@Override
+			public SourceLocation getSourceLocation(int address) {
+				return null;
+			}
+
+			@Override
+			public NavigableMap<Integer, SourceLocation> getAddressToLineMap() {
+				return Collections.emptyNavigableMap();
+			}
+
+			@Override
+			public Map<SourceLocation, Integer> getLineToAddressMap() {
+				return Collections.emptyMap();
+			}
+
+			@Override
+			public int getSymbolAddress(String symbolName) {
+				return 0;
+			}
+
+			@Override
+			public boolean hasDebugInfo() {
+				return false;
+			}
+		};
 	}
 
 }

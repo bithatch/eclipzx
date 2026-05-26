@@ -1,6 +1,7 @@
 package uk.co.bithatch.bitzx;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 public interface ILanguageSystemProvider {
+	
+	ISourceAdressMap createSourceAddressMap(Path file);
 
 	List<? extends IArchitecture> architectures(IResource resource);
 

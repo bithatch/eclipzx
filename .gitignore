@@ -17,3 +17,4 @@ test-workspaces/**
 /flatpak/workspace/
 /packages/.flatpak-builder/
 /packages/workspace/
+/build.log

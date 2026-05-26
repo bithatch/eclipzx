@@ -100,7 +100,7 @@ public class SourceMap {
 	private final Map<String, String> defines = new HashMap<>();
 
 	public void addSegment(Segment segment) {
-    	System.out.println("Adding segment " + segment);
+//    	System.out.println("Adding segment " + segment);
 		segments.add(segment);
 	}
 

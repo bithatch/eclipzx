@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="uk.co.bithatch.emuzx.ui"
+    xmlns="http://www.w3.org/2001/XMLSchema">
+    
+    <annotation>
+        <appInfo>
+            <meta.schema plugin="uk.co.bithatch.emuzx.ui" id="externalEmulatorDebugTarget" name="External Emulator Debug Target"/>
+        </appInfo>
+        <documentation>
+            Emulators may support different Debug protocols such as GDB or DeZOG. Implementations
+            of this extension provide those services.  
+        </documentation>
+    </annotation>
+
+    <element name="extension">
+        <complexType>
+            <sequence>
+                <element ref="externalEmulatorDebugTarget" minOccurs="1" maxOccurs="unbounded"/>
+            </sequence>>
+             <attribute name="point" type="string" use="required">
+                <annotation>
+                   <documentation>
+                      A fully qualified identifier of the target extension point.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="id" type="string">
+                <annotation>
+                   <documentation>
+                      An optional identifier of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+             <attribute name="name" type="string">
+                <annotation>
+                   <documentation>
+                      An optional name of the extension instance.
+                   </documentation>
+                </annotation>
+             </attribute>
+        </complexType>
+    </element>
+    
+    <element name="externalEmulatorDebugTarget">
+        <complexType>
+            <attribute name="id" type="string" use="required">
+                <annotation><documentation>ID of the language specific external emulator debug target.</documentation></annotation>
+            </attribute>
+            <attribute name="name" type="string" use="required">
+                <annotation><documentation>Name of the language specific external emulator debug target.</documentation></annotation>
+            </attribute>
+            <attribute name="class" type="string" use="required">
+                <annotation><documentation>Class of object that implements IExternalEmulatorDebugTarget.</documentation></annotation>
+            </attribute>
+            <attribute name="plugin" type="string" use="optional">
+                <annotation><documentation>Plugin ID. Defaults to declaring plugin.</documentation></annotation>
+            </attribute>
+        </complexType>
+    </element>
+
+</schema>

@@ -4,4 +4,10 @@
     <extension point="uk.co.bithatch.emuzx.ui.externalEmulatorLaunchTabFactory">
         <externalEmulatorLaunchTabFactory class="uk.co.bithatch.emuzx.debug.DebugConfigurationTabFactory"/>
     </extension>
+    <extension point="uk.co.bithatch.emuzx.ui.externalEmulatorDebugTarget">
+        <externalEmulatorDebugTarget id="uk.co.bithatch.emuzx.debug.gdb" name="GDB" class="uk.co.bithatch.emuzx.debug.GdbDebugTargetFactory"/>
+    </extension>
+    <extension point="uk.co.bithatch.emuzx.ui.externalEmulatorDebugTarget">
+        <externalEmulatorDebugTarget id="uk.co.bithatch.emuzx.debug.dezog" name="DeZOG" class="uk.co.bithatch.emuzx.debug.DezogDebugTargetFactory"/>
+    </extension>
 </plugin>

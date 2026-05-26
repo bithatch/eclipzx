@@ -1,5 +1,9 @@
 package uk.co.bithatch.emuzx.debug;
 
+import java.io.IOException;
+
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -8,10 +12,7 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
-import java.io.IOException;
-
-import org.eclipse.core.runtime.ILog;
-import org.eclipse.core.runtime.Status;
+import uk.co.bithatch.bitzx.ISourceAdressMap;
 
 /**
  * Z80 thread implementation for GDB-based debugging.
@@ -23,7 +24,7 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 	private static final ILog LOG = ILog.of(GdbZ80Thread.class);
 
 	private final GdbRspClient rsp;
-	private final Z88dkDebugInfoParser debugInfo;
+	private final ISourceAdressMap debugInfo;
 	private volatile boolean stepping = false;
 	
 	/* 
@@ -34,7 +35,7 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 	 */
 	private GdbZ80StackFrame currentFrame;
 
-	GdbZ80Thread(IDebugTarget delegate, GdbRspClient rsp, Z88dkDebugInfoParser debugInfo) {
+	GdbZ80Thread(IDebugTarget delegate, GdbRspClient rsp, ISourceAdressMap debugInfo) {
 		super(delegate);
 		this.rsp = rsp;
 		this.debugInfo = debugInfo;

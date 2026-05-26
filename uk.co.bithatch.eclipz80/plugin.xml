@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+	<extension point="org.eclipse.emf.ecore.generated_package">
+		<package
+			uri = "http://www.co.uk/bithatch/eclipz80/Asm"
+			class = "uk.co.bithatch.eclipz80.asm.AsmPackage"
+			genModel = "model/generated/Asm.genmodel" />
+	</extension>
+</plugin>

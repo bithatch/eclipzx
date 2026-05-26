@@ -1,10 +1,13 @@
 package uk.co.bithatch.emuzx.debug;
 
+
+import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.START_SUSPENDED;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -20,6 +23,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -27,15 +31,17 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
 import uk.co.bithatch.bitzx.Strings;
+import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTargetDescriptor;
+import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTargetRegistry;
 
 public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
-
-	private static final int DEFAULT_GDB_PORT = 23946;
 
 	private Text argsText;
 	private Button variablesButton;
 	private Spinner port;
 	private Button startSuspended;
+
+	private Combo debugger;
 
 
 	@Override
@@ -88,6 +94,13 @@ public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
 		debuggerLayout.horizontalSpacing = emulatorLayout.verticalSpacing = 8;
 		debuggerParent.setLayout(debuggerLayout);
 		
+		var debuggerLabel = new Label(debuggerParent, SWT.NONE);
+		debuggerLabel.setText("Debugger:");
+		
+		debugger = new Combo(debuggerParent, SWT.DROP_DOWN | SWT.READ_ONLY);
+		debugger.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(2, 1).create());
+		debugger.setItems(ExternalEmulatorDebugTargetRegistry.descriptors().stream().map(d -> d.name()).toArray(String[]::new));
+		
 		var portLabel = new Label(debuggerParent, SWT.NONE);
 		portLabel.setText("Port:");
 		
@@ -116,7 +129,8 @@ public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
 	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 //		super.setDefaults(configuration);
-		configuration.setAttribute(PORT, DEFAULT_GDB_PORT);
+		configuration.setAttribute(PORT, 0);
+		configuration.setAttribute(DEBUGGER, "");
 		configuration.setAttribute(START_SUSPENDED, false);
 		configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Collections.emptyList());
 	}
@@ -125,7 +139,10 @@ public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		try {
 			startSuspended.setSelection(configuration.getAttribute(START_SUSPENDED, false));
-			port.setSelection(configuration.getAttribute(PORT, DEFAULT_GDB_PORT));
+			port.setSelection(configuration.getAttribute(PORT, 0));
+			var descriptors = ExternalEmulatorDebugTargetRegistry.descriptors();
+			var selected = configuration.getAttribute(DEBUGGER, "");
+			debugger.select(descriptors.stream().map(ExternalEmulatorDebugTargetDescriptor::id).toList().indexOf(selected));
 			argsText.setText(String.join(System.lineSeparator(),
 					configuration.getAttribute(DEBUGGER_EMULATOR_ARGS, Collections.emptyList())));
 		} catch (Exception e) {
@@ -137,6 +154,9 @@ public class DebugConfigurationTab extends AbstractLaunchConfigurationTab {
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 		configuration.setAttribute(START_SUSPENDED, startSuspended.getSelection());
 		configuration.setAttribute(PORT, port.getSelection());
+		configuration.setAttribute(DEBUGGER,
+				debugger.getSelectionIndex() == -1 ? "" :
+				ExternalEmulatorDebugTargetRegistry.descriptors().stream().map(ExternalEmulatorDebugTargetDescriptor::id).toList().get(debugger.getSelectionIndex()));
 		configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, 
 				Strings.separatedList(argsText.getText().trim(), System.lineSeparator()));
 	}

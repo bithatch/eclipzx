@@ -330,9 +330,12 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 		var wasSel = architectureCombo.getText();
 		List<String> newItems = List.of();
 		if(proj != null) {
-			var arch = resolveLanguage().preferenceAccess().getArchitecture(proj);
-			if(arch != null) {
-				newItems = List.of(arch).stream().map(a -> a.fullDescription()).toList();
+			var lang = resolveLanguage();
+			if(lang != null) {
+				var arch = lang.preferenceAccess().getArchitecture(proj);
+				if(arch != null) {
+					newItems = List.of(arch).stream().map(a -> a.fullDescription()).toList();
+				}
 			}
 		}
 		architectureCombo.setItems(newItems.toArray(new String[0]));

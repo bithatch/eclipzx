@@ -5,7 +5,6 @@ import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.ConnectException;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +23,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
+import uk.co.bithatch.bitzx.ISourceAdressMap;
 import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTarget;
 
 /**
@@ -40,7 +40,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 	private final GdbRspClient rsp;
 	private final GdbZ80Thread z80thread;
 	private final Thread waitThread;
-	private final Z88dkDebugInfoParser debugInfo;
+	private final ISourceAdressMap debugInfo;
 	private volatile boolean suspended = true;
 	private volatile boolean terminated = false;
 
@@ -52,14 +52,11 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 	private final Map<IBreakpoint, Integer> breakpointAddresses = new HashMap<>();
 
 	public GdbDebugTarget(ILaunch launch, ILaunchConfiguration configuration,
-			IProcess emulatorProcess, Path binaryPath) throws CoreException {
+			IProcess emulatorProcess, ISourceAdressMap debugInfo) throws CoreException {
 		super(launch, emulatorProcess);
 
 		/* Parse debug info from .lis / .map files */
-		debugInfo = new Z88dkDebugInfoParser();
-		if (binaryPath != null) {
-			debugInfo.parse(binaryPath);
-		}
+		this.debugInfo = debugInfo;
 
 		int port = 23946;
 		try {
@@ -404,7 +401,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 	/**
 	 * @return the debug info parser (for use by other components)
 	 */
-	public Z88dkDebugInfoParser getDebugInfo() {
+	public ISourceAdressMap getDebugInfo() {
 		return debugInfo;
 	}
 

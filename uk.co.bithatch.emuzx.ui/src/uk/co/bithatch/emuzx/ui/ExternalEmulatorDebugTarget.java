@@ -10,7 +10,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
-public class ExternalEmulatorDebugTarget extends DebugElement implements IDebugTarget {
+public class ExternalEmulatorDebugTarget extends DebugElement implements IDebugTarget, IExternalEmulatorDebugTarget {
 
     private final IProcess process;
     private final ILaunch launch;

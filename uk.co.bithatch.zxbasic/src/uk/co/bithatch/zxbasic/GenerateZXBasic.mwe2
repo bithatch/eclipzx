@@ -25,30 +25,6 @@ Workflow {
         }
 
         language = StandardLanguage {
-            name = "uk.co.bithatch.zxbasic.Asm"
-            fileExtensions = "asm"
-            serializer = {
-                generateStub = false
-            }    
-            parserGenerator = {
-                debugGrammar = true
-              options = {
-                ignoreCase = true
-              }
-            }
-            validator = {
-                generateDeprecationValidation = true
-            }
-            generator = {
-                generateStub = true
-                generateXtendStub = false
-            }
-            junitSupport = {
-                junitVersion = "5"
-            }
-        }
-
-        language = StandardLanguage {
             name = "uk.co.bithatch.zxbasic.Basic"
             fileExtensions = "bas"
             serializer = {

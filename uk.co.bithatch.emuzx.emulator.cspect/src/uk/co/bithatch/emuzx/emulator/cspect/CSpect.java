@@ -1,5 +1,6 @@
 package uk.co.bithatch.emuzx.emulator.cspect;
 
+import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT;
@@ -55,6 +56,7 @@ public class CSpect implements IEmulator {
         configuration.setAttribute(CONFIGURATION_CONTENT, "");
 
         configuration.setAttribute(PORT, 11000);
+        configuration.setAttribute(DEBUGGER, "uk.co.bithatch.emuzx.debug.dezog");
         configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Arrays.asList("-remote"));
 		
 		

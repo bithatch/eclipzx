@@ -10,6 +10,7 @@ import org.eclipse.ui.PlatformUI;
 
 import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LaunchContext;
+import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
 
@@ -23,7 +24,10 @@ public class ExternalEmulatorVariableResolver implements IDynamicVariableResolve
 			var projectName = cfg.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROJECT, "");
 			var programName = cfg.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.PROGRAM, "");
 			
-			if (variable.getName().equals("ee_program_path")) {
+			if (variable.getName().equals("ee_debug_port")) {
+				return String.valueOf(cfg.getAttribute(DebugLaunchConfigurationAttributes.PORT, 0));
+			} 
+			else if (variable.getName().equals("ee_program_path")) {
 				return programName;
 			} else if (variable.getName().equals("ee_program_name")) {
 				return stripExtension(basename(programName));

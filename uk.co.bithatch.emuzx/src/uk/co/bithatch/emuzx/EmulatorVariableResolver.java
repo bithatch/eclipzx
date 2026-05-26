@@ -27,7 +27,9 @@ public class EmulatorVariableResolver implements IDynamicVariableResolver {
 					return configFile;
 				}
 				
-				var content = lc.config().getAttribute(ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT, "");
+				var content = 
+						lc.config().getAttribute(ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT, "");
+				
 				var cfgfile = (Path)lc.attr(EMULATOR_CONFIG_FILE);
 				if(cfgfile == null) {
 					cfgfile = lc.tempFile(".cfg");

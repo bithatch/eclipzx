@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="4.35"?>
 <plugin> 
+    <extension-point id="uk.co.bithatch.emuzx.ui.externalEmulatorDebugTarget" name="External Emulator Launcher Tab Factory" schema="schema/uk.co.bithatch.emuzx.ui.externalEmulatorDebugTarget.exsd" />
     <extension-point id="uk.co.bithatch.emuzx.ui.externalEmulatorLaunchTabFactory" name="External Emulator Launcher Tab Factory" schema="schema/uk.co.bithatch.emuzx.ui.externalEmulatorLaunchTabFactory.exsd" />
     <extension-point id="uk.co.bithatch.emuzx.ui.externallyLaunchable" name="Language Specific External Launcher Support" schema="schema/uk.co.bithatch.emuzx.ui.externallyLaunchable.exsd" />
     <extension-point id="uk.co.bithatch.emuzx.ui.preparationTarget" name="External Emulator Preparation Target" schema="schema/uk.co.bithatch.emuzx.ui.preparationTarget.exsd" />
@@ -73,6 +74,7 @@
         <variable name="ee_launch_path" supportsArgument="false" description="Workspace relative path to the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
         <variable name="ee_launch_loc" supportsArgument="false" description="Absolute path to the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
         <variable name="ee_launch_name" supportsArgument="false" description="The base name of the launched output file (e.g. .nex, .bin, .sna etc)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
+        <variable name="ee_debug_port" supportsArgument="false" description="The port number configured for the emulator debug channel (if supported)." resolver="uk.co.bithatch.emuzx.ui.ExternalEmulatorVariableResolver" />
     </extension> 
     
     <extension point="org.eclipse.debug.core.launchConfigurationTypes">

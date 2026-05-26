@@ -5,7 +5,6 @@
     <extension-point id="uk.co.bithatch.zxbasic.sdk" name="ZX Basic SDK" schema="schema/uk.co.bithatch.zxbasic.sdk.exsd" />
     <extension point="org.eclipse.ui.editors">
         <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" default="true" extensions="bas" icon="icons/bas16.png" id="uk.co.bithatch.zxbasic.Basic" name="ZX Basic Editor" />
-        <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" extensions="asm" icon="icons/asm16.png" id="uk.co.bithatch.zxbasic.Asm" name="Z80 Assembler Editor" />
         <editor name="ZX Storage Viewer" icon="icons/bas16.png" extensions="bas" class="org.eclipse.ui.editors.text.TextEditor" id="uk.co.bithatch.zxbasic.ui.storageEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor">
             <contentTypeBinding contentTypeId="org.eclipse.core.runtime.text" />
         </editor>
@@ -201,7 +200,6 @@
     </extension>
     <extension point="org.eclipse.core.contenttype.contentTypes">
         <content-type base-type="org.eclipse.core.runtime.text" file-extensions="bas" id="uk.co.bithatch.zxbasic.Basic.contenttype" name="ZXBasic File" priority="normal" />
-        <content-type base-type="org.eclipse.core.runtime.text" file-extensions="asm" id="uk.co.bithatch.zxbasic.Asm.contenttype" name="Z80 Assembler File" priority="normal" />
     </extension>
     <!-- adding resource factories -->
     <extension point="org.eclipse.emf.ecore.extension_parser">
@@ -363,25 +361,15 @@
         <viewer id="uk.co.bithatch.zxbasic.Basic.compare.contentViewers" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="bas" />
         <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Basic.contenttype" contentViewerId="uk.co.bithatch.zxbasic.Basic.compare.contentViewers" />
     </extension>
-    <extension point="org.eclipse.compare.contentViewers">
-        <viewer id="uk.co.bithatch.zxbasic.Asm.compare.contentViewers" class="uk.co.bithatch.zxbasic.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="bas" />
-        <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Asm.contenttype" contentViewerId="uk.co.bithatch.zxbasic.Asm.compare.contentViewers" />
-    </extension>
     <extension point="org.eclipse.compare.contentMergeViewers">
         <viewer id="uk.co.bithatch.zxbasic.Basic.compare.contentMergeViewers" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="bas" label="ZX Basic Compare" />
         <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Basic.contenttype" contentMergeViewerId="uk.co.bithatch.zxbasic.Basic.compare.contentMergeViewers" />
     </extension>
-    <extension point="org.eclipse.compare.contentMergeViewers">
-        <viewer id="uk.co.bithatch.zxbasic.Asm.compare.contentMergeViewers" class="uk.co.bithatch.zxbasic.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator" extensions="asm" label="ASM Compare" />
-        <contentTypeBinding contentTypeId="uk.co.bithatch.zxbasic.Asm.contenttype" contentMergeViewerId="uk.co.bithatch.zxbasic.Asm.compare.contentMergeViewers" />
-    </extension>
     <extension point="org.eclipse.ui.editors.documentProviders">
         <provider id="uk.co.bithatch.zxbasic.Basic.editors.documentProviders" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider" extensions="bas" />
-        <provider id="uk.co.bithatch.zxbasic.Basic.editors.documentProviders" class="uk.co.bithatch.zxbasic.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider" extensions="asm" />
     </extension>
     <extension point="org.eclipse.team.core.fileTypes">
         <fileTypes extension="bas" type="text" />
-        <fileTypes extension="asm" type="text" />
     </extension>
     <extension point="org.eclipse.debug.core.launchConfigurationTypes">
         <launchConfigurationType name="ZX BASIC Interpreter (Experimental)" delegate="uk.co.bithatch.zxbasic.ui.launch.InterpreterLaunchConfiguration" modes="run,debug" id="uk.co.bithatch.zxbasic.ui.launch.interpreterLaunch" />

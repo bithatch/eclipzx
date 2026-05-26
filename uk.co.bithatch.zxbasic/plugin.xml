@@ -7,14 +7,5 @@
 			class = "uk.co.bithatch.zxbasic.basic.BasicPackage"
 			genModel = "model/generated/Basic.genmodel" />
 			
-        <package
-            uri = "http://bithatch.co.uk/Asm"
-            class = "uk.co.bithatch.zxbasic.asm.AsmPackage"
-            genModel = "model/generated/Asm.genmodel" />
-            
-       <!-- <package
-            uri = "http://bithatch.co.uk/Asm"
-            class = "uk.co.bithatch.zxbasic.preprocessor.PreprocessorPackage"
-            genModel = "model/generated/Preprocessor.genmodel" />-->
 	</extension>
 </plugin>

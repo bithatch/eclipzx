@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: uk.co.bithatch.eclipz80.ide
+Bundle-ManifestVersion: 2
+Bundle-Name: uk.co.bithatch.eclipz80.ide
+Bundle-Vendor: Bithatch
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: uk.co.bithatch.eclipz80.ide; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: uk.co.bithatch.eclipz80,
+ org.eclipse.xtext.ide,
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Export-Package: uk.co.bithatch.eclipz80.ide.contentassist.antlr.lexer,
+ uk.co.bithatch.eclipz80.ide.contentassist.antlr,
+ uk.co.bithatch.eclipz80.ide.contentassist.antlr.internal

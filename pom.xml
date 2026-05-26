@@ -37,6 +37,9 @@
 		<module>uk.co.bithatch.zxbasic</module>
 		<module>uk.co.bithatch.zxbasic.ide</module>
 		<module>uk.co.bithatch.zxbasic.ui</module>
+        <module>uk.co.bithatch.eclipz80</module>
+        <module>uk.co.bithatch.eclipz80.ide</module>
+        <module>uk.co.bithatch.eclipz80.ui</module>
 		<module>uk.co.bithatch.emuzx</module>
 		<module>uk.co.bithatch.emuzx.ui</module>
         <module>uk.co.bithatch.nextzxos</module>

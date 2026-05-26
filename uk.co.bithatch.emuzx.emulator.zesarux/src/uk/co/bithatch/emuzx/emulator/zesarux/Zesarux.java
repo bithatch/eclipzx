@@ -1,5 +1,8 @@
 package uk.co.bithatch.emuzx.emulator.zesarux;
 
+import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER;
+import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS;
+import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_FILE;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CUSTOM_WORKING_DIRECTORY;
@@ -9,6 +12,7 @@ import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.WORKING_DIRECTORY_LOCATION;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -93,6 +97,9 @@ public class Zesarux implements IEmulator {
         configuration.setAttribute(CONFIGURATION_FILE, "");
         configuration.setAttribute(CUSTOM_WORKING_DIRECTORY, true);
 		configuration.setAttribute(WORKING_DIRECTORY_LOCATION, home.toString());
+        configuration.setAttribute(DEBUGGER, "uk.co.bithatch.emuzx.debug.zrpc");
+        configuration.setAttribute(PORT, 10000);
+        configuration.setAttribute(DEBUGGER_EMULATOR_ARGS, Arrays.asList("--enable-remoteprotocol", "--remoteprotocol-port", "${ee_debug_port}"));
 	}
 
 }

@@ -12,4 +12,7 @@
             author="Cesar Hernandez Baño"
             class="uk.co.bithatch.emuzx.emulator.zesarux.Zesarux"/>
     </extension>
+    <extension point="uk.co.bithatch.emuzx.ui.externalEmulatorDebugTarget">
+        <externalEmulatorDebugTarget id="uk.co.bithatch.emuzx.debug.zrpc" name="ZRPC (Zesarux)" class="uk.co.bithatch.emuzx.emulator.zesarux.ZRPCDebugTarget"/>
+    </extension>
 </plugin> 

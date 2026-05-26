@@ -1,6 +1,7 @@
 package uk.co.bithatch.eclipz88dk;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -21,9 +22,11 @@ import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
+import uk.co.bithatch.bitzx.ISourceAdressMap;
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
+import uk.co.bithatch.eclipz88dk.launch.Z88dkDebugInfoParser;
 import uk.co.bithatch.eclipz88dk.preferences.PreferenceConstants;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile;
@@ -174,5 +177,14 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	@Override
 	public String[] sourceFileExtensions() {
 		return SOURCE_FILE_EXTENSIONS;
+	}
+
+	@Override
+	public ISourceAdressMap createSourceAddressMap(Path file) {
+		var debugInfo = new Z88dkDebugInfoParser();
+		if (file != null) {
+			debugInfo.parse(file);
+		}
+		return debugInfo;
 	}
 }

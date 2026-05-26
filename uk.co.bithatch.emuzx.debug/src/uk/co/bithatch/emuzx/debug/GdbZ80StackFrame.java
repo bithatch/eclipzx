@@ -9,6 +9,8 @@ import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
+import uk.co.bithatch.bitzx.ISourceAdressMap;
+
 /**
  * Stack frame for GDB RSP-based Z80 debugging.
  * Reads registers via individual {@code p<n>} packets from MAME's GDB stub,
@@ -19,7 +21,7 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 	private static final ILog LOG = ILog.of(GdbZ80StackFrame.class);
 
 	private final Z80RegisterGroup z80registers;
-	private final Z88dkDebugInfoParser debugInfo;
+	private final ISourceAdressMap debugInfo;
 	private int pc = -1;
 	private String sourceName;
 	private int sourceLine = -1;
@@ -39,7 +41,7 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 	private static final int REG_SP = 10;
 	private static final int REG_PC = 11;
 
-	GdbZ80StackFrame(GdbZ80Thread thread, GdbRspClient rsp, Z88dkDebugInfoParser debugInfo) {
+	GdbZ80StackFrame(GdbZ80Thread thread, GdbRspClient rsp, ISourceAdressMap debugInfo) {
 		super(thread);
 		this.debugInfo = debugInfo;
 		z80registers = new Z80RegisterGroup(this);
