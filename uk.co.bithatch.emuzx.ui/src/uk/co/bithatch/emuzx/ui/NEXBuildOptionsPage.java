@@ -1,16 +1,16 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.emuzx.ui;
 
 import static org.eclipse.jface.layout.GridDataFactory.swtDefaults;
 import static org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BANK;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_CORE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_OVERRIDE_PROJECT;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_PC;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_SP;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_SYSVARS;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_SYSVARS_LOCATION;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.getProperty;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.setProperty;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BANK;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_CORE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_OVERRIDE_PROJECT;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_PC;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_SP;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_SYSVARS;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_SYSVARS_LOCATION;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.getProperty;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.setProperty;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -24,6 +24,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PropertyPage;
+
+import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
 
 
 public class NEXBuildOptionsPage extends PropertyPage {
@@ -135,7 +137,7 @@ public class NEXBuildOptionsPage extends PropertyPage {
 		entryBankOverride.setSelection(entryBankVal > -1);
 
 		core.setText(getProperty(file, NEX_CORE, ""));
-		core.setMessage(ZXBasicPreferencesAccess.get().getNEXCore(file.getProject()));
+		core.setMessage(EmuZXPreferencesAccess.get().getNEXCore(file.getProject()));
 
 		alternativeLocation.setText(getProperty(file, NEX_SYSVARS_LOCATION, ""));
 		includeSysVar.setSelection(getProperty(file, NEX_SYSVARS, true));

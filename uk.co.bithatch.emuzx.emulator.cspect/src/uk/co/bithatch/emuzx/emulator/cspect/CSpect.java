@@ -40,8 +40,8 @@ public class CSpect implements IEmulator {
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""
 					-zxnext
 					-nextrom
-					-mmc=SD/cspect-next-1gb.img
-					-sd2=${fat_image}
+					-mmc=${fat_image}
+					-mouse
 					""", System.lineSeparator()));
 		}
 		else {

@@ -1,19 +1,19 @@
-package uk.co.bithatch.zxbasic.ui.builder;
+package uk.co.bithatch.emuzx;
 
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_ADDRESS;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BANK;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BUNDLE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BUNDLE_TYPE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_OTHER_TRIGGER_PROGRAMS;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_TRIGGER_PROGRAMS_IN_THIS_FOLDER;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_DO_NOT_SAVE_PALETTE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_USE_8_BIT_PALETTE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_BORDER;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_BAR_1;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_BAR_2;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_DELAY_1;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_DELAY_2;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.getProperty;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_ADDRESS;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BANK;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BUNDLE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BUNDLE_TYPE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_OTHER_TRIGGER_PROGRAMS;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_TRIGGER_PROGRAMS_IN_THIS_FOLDER;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_DO_NOT_SAVE_PALETTE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_USE_8_BIT_PALETTE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_BORDER;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_BAR_1;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_BAR_2;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_DELAY_1;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_DELAY_2;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.getProperty;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -22,15 +22,14 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 
-import uk.co.bithatch.zxbasic.tools.NexConverter.NexConfiguration;
-import uk.co.bithatch.zxbasic.ui.api.BundleType;
-import uk.co.bithatch.zxbasic.ui.api.INEXConfigurer;
+import uk.co.bithatch.emuzx.api.BundleType;
+import uk.co.bithatch.emuzx.api.INEXConfigurer;
 
 public class WorkspaceNEXConfigurer implements INEXConfigurer {
 	public final static ILog LOG = ILog.of(WorkspaceNEXConfigurer.class);
 
 	@Override
-	public void configure(IFile file, NexConfiguration nexConfiguration) throws CoreException {
+	public void configure(IFile file, INEXConfiguration nexConfiguration) throws CoreException {
 		var project = file.getProject();
 		project.accept(resource -> {
 			if(resource instanceof IFile ifile &&
@@ -84,18 +83,34 @@ public class WorkspaceNEXConfigurer implements INEXConfigurer {
 							nexConfiguration.slr(ifile.getLocation().toPath());
 							break;
 						}
-						else if(ifile.getFileExtension().toLowerCase().equals("bmp")) {
-							LOG.info(String.format("Adding BMP file %s", ifile.getLocation().toPath()));
-							nexConfiguration.bmp(
-									ifile.getLocation().toPath(), 
-									getProperty(file, NEX_BMP_DO_NOT_SAVE_PALETTE, false), 
-									getProperty(file, NEX_BMP_USE_8_BIT_PALETTE, false), 
+						else {
+							if(ifile.getFileExtension().toLowerCase().equals("sl2")) {
+								LOG.info(String.format("Adding SL2 file %s", ifile.getLocation().toPath()));
+								nexConfiguration.sl2(ifile.getLocation().toPath());
+								break;
+							}
+							else if(ifile.getFileExtension().toLowerCase().equals("nxi")) {
+								LOG.info(String.format("Adding NXI file %s", ifile.getLocation().toPath()));
+								nexConfiguration.nxi(ifile.getLocation().toPath());
+								break;
+							}
+							else if(ifile.getFileExtension().toLowerCase().equals("bmp")) {
+								LOG.info(String.format("Adding BMP file %s", ifile.getLocation().toPath()));
+								nexConfiguration.bmp(
+										ifile.getLocation().toPath(), 
+										getProperty(file, NEX_BMP_DO_NOT_SAVE_PALETTE, false), 
+										getProperty(file, NEX_BMP_USE_8_BIT_PALETTE, false));
+							}
+							else {
+								break;
+							}
+							
+							nexConfiguration.loading(
 									getProperty(file, NEX_BMP_BORDER, 0), 
 									getProperty(file, NEX_BMP_BAR_1, 0), 
 									getProperty(file, NEX_BMP_BAR_2, 0), 
 									getProperty(file, NEX_BMP_DELAY_1, 0), 
 									getProperty(file, NEX_BMP_DELAY_2, 0));
-							break;
 						}
 						break;
 					case FILE:

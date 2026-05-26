@@ -3,7 +3,6 @@
 <plugin>
     <extension-point id="uk.co.bithatch.zxbasic.library" name="ZX Basic Library" schema="schema/uk.co.bithatch.zxbasic.library.exsd" />
     <extension-point id="uk.co.bithatch.zxbasic.sdk" name="ZX Basic SDK" schema="schema/uk.co.bithatch.zxbasic.sdk.exsd" />
-    <extension-point id="uk.co.bithatch.zxbasic.nexConfigurer" name="NEX Configuration Contribution" schema="schema/uk.co.bithatch.zxbasic.nexConfigurer.exsd" />
     <extension point="org.eclipse.ui.editors">
         <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" default="true" extensions="bas" icon="icons/bas16.png" id="uk.co.bithatch.zxbasic.Basic" name="ZX Basic Editor" />
         <editor class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor" contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor" extensions="asm" icon="icons/asm16.png" id="uk.co.bithatch.zxbasic.Asm" name="Z80 Assembler Editor" />
@@ -82,48 +81,8 @@
             </and>
         </definition>
     </extension>
-    <extension point="org.eclipse.ui.propertyPages">
-        <page class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage" id="uk.co.bithatch.zxbasic.Basic" name="ZXBasic">
-            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
-            <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IProject" />
-            </enabledWhen>
-            <filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature" />
-        </page>
-        <page id="uk.co.bithatch.zxbasic.ui.builder.programBuildOptions" name="ZX Basic Compiler" class="uk.co.bithatch.zxbasic.ui.preferences.WorkspaceFileProgramBuildOptionsPage">
-            <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IFile">
-                    <or>
-                        <test property="org.eclipse.core.resources.extension" value="asm" />
-                        <test property="org.eclipse.core.resources.extension" value="bas" />
-                    </or>
-                </adapt>
-            </enabledWhen>
-        </page>
-        <page id="uk.co.bithatch.zxbasic.ui.builder.nexBundlingOptions" name="NEX Bundling" class="uk.co.bithatch.zxbasic.ui.preferences.NEXBundlingOptionsPage">
-            <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IFile" />
-            </enabledWhen>
-        </page>
-        <page id="uk.co.bithatch.zxbasic.ui.builder.nexBuildOptions" name="NEX Build" class="uk.co.bithatch.zxbasic.ui.preferences.NEXBuildOptionsPage">
-            <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IFile">
-                    <or>
-                        <test property="org.eclipse.core.resources.extension" value="asm" />
-                        <test property="org.eclipse.core.resources.extension" value="bas" />
-                    </or>
-                </adapt>
-            </enabledWhen>
-        </page>
-        <page id="uk.co.bithatch.zxbasic.ui.builder.nexBundlingTriggerOptions" name="Triggers" category="uk.co.bithatch.zxbasic.ui.builder.nexBundlingOptions" class="uk.co.bithatch.zxbasic.ui.preferences.NEXBundlingTriggerOptionsPage">
-            <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IFile" />
-            </enabledWhen>
-        </page>
-    </extension>
     <extension point="org.eclipse.ui.keywords">
         <keyword id="uk.co.bithatch.zxbasic.ui.keyword_Basic" label="ZX Basic" />
-        <keyword id="uk.co.bithatch.zxbasic.ui.keyword_NEX" label="NEX" />
         <keyword id="uk.co.bithatch.zxbasic.ui.keyword_Defines" label="Defines" />
         <keyword id="uk.co.bithatch.zxbasic.ui.keyword_UserLibraries" label="User Libraries" />
         <keyword id="uk.co.bithatch.zxbasic.ui.keyword_ContributedLibraries" label="Contributed Libraries" />
@@ -316,13 +275,6 @@
         </page>
     </extension>
     <extension point="org.eclipse.ui.propertyPages">
-        <page class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.NEXBuildProjectPropertiesPage" id="uk.co.bithatch.zxbasic.Basic.nex.propertyPage" name="NEX Build">
-            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_NEX" />
-            <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IProject" />
-            </enabledWhen>
-            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
-        </page>
         <page category="uk.co.bithatch.zxbasic.Basic" class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.preferences.CompilerPreferencePage" id="uk.co.bithatch.zxbasic.Basic.compiler.propertyPage" name="Compiler">
             <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
             <enabledWhen>
@@ -371,6 +323,23 @@
                 <adapt type="org.eclipse.core.resources.IProject" />
             </enabledWhen>
             <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+        </page>
+        <page class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage" id="uk.co.bithatch.zxbasic.Basic" name="ZXBasic">
+            <keywordReference id="uk.co.bithatch.zxbasic.ui.keyword_Basic" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature" />
+        </page>
+        <page id="uk.co.bithatch.zxbasic.ui.builder.programBuildOptions" name="ZX Basic Compiler" class="uk.co.bithatch.zxbasic.ui.preferences.WorkspaceFileProgramBuildOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile">
+                    <or>
+                        <test property="org.eclipse.core.resources.extension" value="asm" />
+                        <test property="org.eclipse.core.resources.extension" value="bas" />
+                    </or>
+                </adapt>
+            </enabledWhen>
         </page>
     </extension>
     <!-- Quick Outline -->

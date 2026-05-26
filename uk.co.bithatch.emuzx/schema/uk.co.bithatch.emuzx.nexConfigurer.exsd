@@ -4,7 +4,7 @@
     
     <annotation>
         <appInfo>
-            <meta.schema plugin="uk.co.bithatch.zxbasic" id="nexConfigurer" name="NEX Configurer"/>
+            <meta.schema plugin="uk.co.bithatch.emuzx" id="nexConfigurer" name="NEX Configurer"/>
         </appInfo>
         <documentation>
             Implementations can contribute to the NEX generation processing (producing a final binary

@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.emuzx.ui;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
@@ -10,7 +10,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 
-import uk.co.bithatch.zxbasic.tools.NexConverter;
+import uk.co.bithatch.emuzx.EmuZXPreferenceConstants;
+import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
+import uk.co.bithatch.emuzx.NexConverter;
 
 public class NEXBuildProjectPropertiesPage extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
@@ -20,7 +22,7 @@ public class NEXBuildProjectPropertiesPage extends FieldEditorPreferencePage imp
 	private StringFieldEditor core;
 
 	{
-		setPreferenceStore(ZXBasicPreferencesAccess.get().getPreferenceStore());
+		setPreferenceStore(EmuZXPreferencesAccess.get().getPreferenceStore());
 	}
 
 	public NEXBuildProjectPropertiesPage() {
@@ -29,11 +31,11 @@ public class NEXBuildProjectPropertiesPage extends FieldEditorPreferencePage imp
 
 	@Override
 	protected void createFieldEditors() {
-		core = new StringFieldEditor(ZXBasicPreferenceConstants.NEX_CORE, "Core", getFieldEditorParent());
+		core = new StringFieldEditor(EmuZXPreferenceConstants.NEX_CORE, "Core", getFieldEditorParent());
 		core.setEmptyStringAllowed(false);
 		addField(core);
 
-		includeSysVar = new BooleanFieldEditor(ZXBasicPreferenceConstants.NEX_INCLUDE_SYSVAR, "Include sysvar.bin",
+		includeSysVar = new BooleanFieldEditor(EmuZXPreferenceConstants.NEX_INCLUDE_SYSVAR, "Include sysvar.bin",
 				getFieldEditorParent()) {
 			@Override
 			protected void valueChanged(boolean oldValue, boolean newValue) {
@@ -43,7 +45,7 @@ public class NEXBuildProjectPropertiesPage extends FieldEditorPreferencePage imp
 		};
 		addField(includeSysVar);
 
-		location = new FileFieldEditor(ZXBasicPreferenceConstants.NEX_SYSVAR_LOCATION, "Alternative Location:",
+		location = new FileFieldEditor(EmuZXPreferenceConstants.NEX_SYSVAR_LOCATION, "Alternative Location:",
 				getFieldEditorParent()) {
 
 			@Override
@@ -83,7 +85,7 @@ public class NEXBuildProjectPropertiesPage extends FieldEditorPreferencePage imp
 	@Override
 	public void setElement(IAdaptable selected) {
 		project = selected.getAdapter(IProject.class);
-		setPreferenceStore(ZXBasicPreferencesAccess.get().getPreferenceStore(project));
+		setPreferenceStore(EmuZXPreferencesAccess.get().getPreferenceStore(project));
 	}
 
 	private void updateAvailableState() {

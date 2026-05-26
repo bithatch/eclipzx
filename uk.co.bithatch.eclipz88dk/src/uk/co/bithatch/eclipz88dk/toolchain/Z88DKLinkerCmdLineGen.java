@@ -14,10 +14,15 @@ import org.eclipse.cdt.core.settings.model.ICSettingEntry;
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineInfo;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.ManagedCommandLineGenerator;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 
+import uk.co.bithatch.bitzx.WellKnownOutputFormat;
+import uk.co.bithatch.eclipz88dk.launch.Z88DKNEXConfiguration;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
+import uk.co.bithatch.emuzx.api.INEXConfigurer;
 
 /**
  * Linker command line generator. CDT invokes this once with all {@code .o}
@@ -105,6 +110,33 @@ public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 		if (buildCtx.isPresent()) {
 			merged.add("-create-app");
 			merged.add("-subtype=" + buildCtx.get().name().toLowerCase());
+			
+			/* NEX bundling: if the output format is NEX, we need to inspect the project
+			 * for any resources marked for bundling and add them as arguments to
+			 * the linker */
+			if(WellKnownOutputFormat.NEX == buildCtx.get().wellKnown().orElse(null)) {
+				var nexConfig = new Z88DKNEXConfiguration();
+				try {
+					project.accept(resource -> {
+						if (resource instanceof IFile ifile && ifile.getLocation() != null) {
+							try {
+								INEXConfigurer.accumulate(ifile, nexConfig);
+							} catch (Exception e) {
+								LOG.error("Error processing file for NEX bundling: " + ifile.getFullPath(), e);
+							}
+						}
+						return true;
+					});
+				} catch (CoreException e) {
+					throw new RuntimeException("Error traversing project resources for NEX bundling", e);
+				}
+				
+				if(nexConfig.hasContent()) {
+					LOG.info("Z88DK Linker: adding NEX bundling options from project resources: " + nexConfig);
+					merged.addAll(nexConfig.toCommandLineArgs());
+				}
+			}
+			
 		}
 		String linkOutput = output;
 

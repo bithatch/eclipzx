@@ -397,7 +397,6 @@ public class TilemapEditorGrid extends Canvas {
 		}
 		gc.setAlpha(255);
 		
-		System.out.println("Painted tilemap in " + (System.currentTimeMillis() - started) + "ms");
 	}
 
 	private void paintSelectionOverlay(GC gc) {

@@ -148,7 +148,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		} else if (res instanceof IContainer container) {
 			return false;
 //			return !container.getFullPath()
-//					.equals(PreferencesAccess.get().getOutputFolder(res.getProject()).getFullPath());
+//					.equals(EmuZXPreferencesAccess.get().getOutputFolder(res.getProject()).getFullPath());
 		} else {
 			return false;
 		}

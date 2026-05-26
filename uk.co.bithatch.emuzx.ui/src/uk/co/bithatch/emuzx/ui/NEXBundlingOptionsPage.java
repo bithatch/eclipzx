@@ -1,20 +1,20 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.emuzx.ui;
 
 import static org.eclipse.jface.layout.GridDataFactory.swtDefaults;
 import static org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_ADDRESS;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BANK;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_BAR_1;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_BAR_2;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_BORDER;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_DELAY_1;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_DELAY_2;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_DO_NOT_SAVE_PALETTE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BMP_USE_8_BIT_PALETTE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BUNDLE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_BUNDLE_TYPE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.getProperty;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.setProperty;
+import static uk.co.bithatch.bitzx.AbstractResourceProperties.getProperty;
+import static uk.co.bithatch.bitzx.AbstractResourceProperties.setProperty;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_ADDRESS;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BANK;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_BAR_1;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_BAR_2;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_BORDER;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_DELAY_1;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_DELAY_2;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_DO_NOT_SAVE_PALETTE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BMP_USE_8_BIT_PALETTE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BUNDLE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_BUNDLE_TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +29,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.ui.dialogs.PropertyPage;
 
-import uk.co.bithatch.zxbasic.ui.api.BundleType;
-import uk.co.bithatch.zxbasic.ui.builder.ResourceProperties;
+import uk.co.bithatch.emuzx.api.BundleType;
+import uk.co.bithatch.emuzx.api.IResourceProperties;
 
 
 public class NEXBundlingOptionsPage extends PropertyPage  {
@@ -62,7 +62,7 @@ public class NEXBundlingOptionsPage extends PropertyPage  {
 		composite.setLayout(layout);
 
 		includeInNEX = new Button(composite, SWT.CHECK);
-		includeInNEX.setText("Include in NEX (currently only ZX Basic programs)");
+		includeInNEX.setText("Include in NEX");
 		includeInNEX.setLayoutData(swtDefaults().
 				align(SWT.FILL, SWT.CENTER).
 				grab(true, false).
@@ -232,10 +232,10 @@ public class NEXBundlingOptionsPage extends PropertyPage  {
 				create());
 		address.addSelectionListener(widgetSelectedAdapter(evt -> updateState()));
 		
-		includeInNEX.setSelection(ResourceProperties.getProperty(file, ResourceProperties.NEX_BUNDLE, false));
-		setSelectedType(BundleType.valueOf(ResourceProperties.getProperty(file, ResourceProperties.NEX_BUNDLE_TYPE, BundleType.defaultForFilename(file.getName()).name())));
-		var bankVal = ResourceProperties.getProperty(file, ResourceProperties.NEX_BANK, -1);
-		var addressVal = ResourceProperties.getProperty(file, ResourceProperties.NEX_ADDRESS, -1);
+		includeInNEX.setSelection(IResourceProperties.getProperty(file, ResourceProperties.NEX_BUNDLE, false));
+		setSelectedType(BundleType.valueOf(IResourceProperties.getProperty(file, ResourceProperties.NEX_BUNDLE_TYPE, BundleType.defaultForFilename(file.getName()).name())));
+		var bankVal = IResourceProperties.getProperty(file, ResourceProperties.NEX_BANK, -1);
+		var addressVal = IResourceProperties.getProperty(file, ResourceProperties.NEX_ADDRESS, -1);
 		setBank.setSelection(bankVal > -1);
 		setAddress.setSelection(addressVal > -1);
 		bank.setSelection(Math.max(bankVal, 0));

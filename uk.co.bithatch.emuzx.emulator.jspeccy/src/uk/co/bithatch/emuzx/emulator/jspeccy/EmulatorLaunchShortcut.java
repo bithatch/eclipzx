@@ -35,7 +35,7 @@ public class EmulatorLaunchShortcut extends AbstractEmulatorLaunchShortcut {
 //		
 //		ILaunchConfiguration lcfg = manager.getLaunchConfiguration(cfg);
 //		if(lcfg == null) {
-//			var workingCopy = type.newInstance(PreferencesAccess.getOutputFolder(file.getProject()), cfg);
+//			var workingCopy = type.newInstance(EmuZXPreferencesAccess.getOutputFolder(file.getProject()), cfg);
 //			workingCopy.setAttribute(EmulatorLaunchConfigurationAttributes.PROGRAM, file.getName());
 //			workingCopy.setAttribute(EmulatorLaunchConfigurationAttributes.PROJECT, file.getProject().getName());
 ////			workingCopy.setAttribute(EmulatorLaunchConfigurationAttributes.PROJECT, file.getProject().getName());

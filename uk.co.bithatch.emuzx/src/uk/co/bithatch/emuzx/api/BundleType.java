@@ -1,11 +1,11 @@
-package uk.co.bithatch.zxbasic.ui.api;
+package uk.co.bithatch.emuzx.api;
 
 import uk.co.bithatch.bitzx.FileNames;
 
 public enum BundleType {
 	BY_FILE_TYPE, MMU, FILE, EXTRA;
 	
-	public final static String[] SUPPORTED_FILE_TYPES = { "scr", "slr", "shr", "shc", "bmp" };
+	public final static String[] SUPPORTED_FILE_TYPES = { "scr", "slr", "sl2", "shr", "shc", "bmp", "nxi" };
 	
 	public boolean supportsBankAddress() {
 		switch(this) {

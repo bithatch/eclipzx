@@ -42,10 +42,6 @@ public interface ZXBasicPreferenceConstants extends LanguageSystemPreferenceCons
 	String DEBUG_ARRAYS = "debug.arrays";
 	String DEBUG_MEMORY = "debug.memory";
 	String DEBUG_LEVEL = "debug.level";
-
-    String NEX_CORE = "nex.core";
-    String NEX_INCLUDE_SYSVAR = "nex.includeSysVar";
-    String NEX_SYSVAR_LOCATION = "nex.sysVarLocation";
     
     
 //    @Deprecated

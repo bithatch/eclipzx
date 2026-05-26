@@ -4,10 +4,10 @@ import static org.eclipse.jface.layout.GridDataFactory.defaultsFor;
 import static org.eclipse.jface.layout.GridDataFactory.fillDefaults;
 import static org.eclipse.jface.resource.JFaceResources.getFontRegistry;
 import static org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter;
-import static uk.co.bithatch.emuzx.PreferenceConstants.EXTERNAL_EMULATOR_EXECUTABLE;
-import static uk.co.bithatch.emuzx.PreferenceConstants.EXTERNAL_EMULATOR_HOME;
-import static uk.co.bithatch.emuzx.PreferenceConstants.EXTERNAL_EMULATOR_LEADING_OPTIONS;
-import static uk.co.bithatch.emuzx.PreferenceConstants.EXTERNAL_EMULATOR_TRAILING_OPTIONS;
+import static uk.co.bithatch.emuzx.EmuZXPreferenceConstants.EXTERNAL_EMULATOR_EXECUTABLE;
+import static uk.co.bithatch.emuzx.EmuZXPreferenceConstants.EXTERNAL_EMULATOR_HOME;
+import static uk.co.bithatch.emuzx.EmuZXPreferenceConstants.EXTERNAL_EMULATOR_LEADING_OPTIONS;
+import static uk.co.bithatch.emuzx.EmuZXPreferenceConstants.EXTERNAL_EMULATOR_TRAILING_OPTIONS;
 
 import java.io.File;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 
 import uk.co.bithatch.emuzx.EmulatorRegistry;
-import uk.co.bithatch.emuzx.PreferencesAccess;
+import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
 import uk.co.bithatch.emuzx.api.EmulatorDescriptor;
 
 public class ExternalEmulatorsPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, ISelectionChangedListener {
@@ -72,7 +72,7 @@ public class ExternalEmulatorsPreferencePage extends PreferencePage implements I
 	
 	@Override
 	public void init(IWorkbench workbench) {
-		setPreferenceStore(PreferencesAccess.get().getPreferenceStore());
+		setPreferenceStore(EmuZXPreferencesAccess.get().getPreferenceStore());
 	}
 
 	@Override

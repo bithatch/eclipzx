@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="4.35"?>
 <plugin>   
-    <extension point="uk.co.bithatch.zxbasic.nexConfigurer">
+    <extension point="uk.co.bithatch.emuzx.nexConfigurer">
         <nexConfigurer class="uk.co.bithatch.nextbuild.FileContentNEXConfigurer"/>
     </extension>
      <extension point="uk.co.bithatch.emuzx.programBuildOptionsFactory">

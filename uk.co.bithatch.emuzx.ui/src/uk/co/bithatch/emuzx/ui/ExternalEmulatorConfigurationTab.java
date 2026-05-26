@@ -37,8 +37,8 @@ import org.eclipse.swt.widgets.Text;
 
 import uk.co.bithatch.bitzx.Strings;
 import uk.co.bithatch.emuzx.EmulatorRegistry;
-import uk.co.bithatch.emuzx.PreferenceConstants;
-import uk.co.bithatch.emuzx.PreferencesAccess;
+import uk.co.bithatch.emuzx.EmuZXPreferenceConstants;
+import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
 
 public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfigurationTab {
 
@@ -177,6 +177,11 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 					? configuration.getAttribute(WORKING_DIRECTORY_LOCATION, System.getProperty("user.home"))
 					: null);
 
+			/* Auto-open the emulator selector if no emulator is configured yet */
+			if (emulatorLocation.getText().isEmpty()) {
+				emulatorLocation.getDisplay().asyncExec(this::selectEmulator);
+			}
+
 		} catch (Exception e) {
 			setErrorMessage("Could not initialize fields: " + e.getMessage());
 		}
@@ -254,15 +259,15 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 					cfg.getAttribute(EMULATOR_ARGS, separatedList(argsText.getText(), lineSeparator())));
 			var leading = new ArrayList<>(
 					separatedList(
-							PreferencesAccess.get().getPreferences()
+							EmuZXPreferencesAccess.get().getPreferences()
 									.get(sel.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "."
-											+ PreferenceConstants.EXTERNAL_EMULATOR_LEADING_OPTIONS, ""),
+											+ EmuZXPreferenceConstants.EXTERNAL_EMULATOR_LEADING_OPTIONS, ""),
 							lineSeparator()));
 			var trailing = new ArrayList<>(
 					separatedList(
-							PreferencesAccess.get().getPreferences()
+							EmuZXPreferencesAccess.get().getPreferences()
 									.get(sel.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "."
-											+ PreferenceConstants.EXTERNAL_EMULATOR_TRAILING_OPTIONS, ""),
+											+ EmuZXPreferenceConstants.EXTERNAL_EMULATOR_TRAILING_OPTIONS, ""),
 							lineSeparator()));
 
 			leading.removeAll(preconfigured);

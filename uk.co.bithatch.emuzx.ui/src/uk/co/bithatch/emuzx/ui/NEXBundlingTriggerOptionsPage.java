@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.emuzx.ui;
 
 import static org.eclipse.jface.layout.GridDataFactory.fillDefaults;
 import static org.eclipse.jface.layout.GridDataFactory.swtDefaults;
@@ -29,7 +29,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ui.dialogs.ResourceSelectionDialog;
 
 import uk.co.bithatch.bitzx.AbstractResourceProperties.Listener;
-import uk.co.bithatch.zxbasic.ui.builder.ResourceProperties;
+import uk.co.bithatch.emuzx.api.IResourceProperties;
 
 
 public class NEXBundlingTriggerOptionsPage extends PropertyPage implements Listener {
@@ -97,12 +97,12 @@ public class NEXBundlingTriggerOptionsPage extends PropertyPage implements Liste
 		});
         
 
-		programs.setText(String.join(System.lineSeparator(), ResourceProperties.getProperty(file, ResourceProperties.NEX_OTHER_TRIGGER_PROGRAMS, Collections.emptySet())));
-		programsInThisFolder.setSelection(ResourceProperties.getProperty(file, ResourceProperties.NEX_TRIGGER_PROGRAMS_IN_THIS_FOLDER, true));
+		programs.setText(String.join(System.lineSeparator(), IResourceProperties.getProperty(file, IResourceProperties.NEX_OTHER_TRIGGER_PROGRAMS, Collections.emptySet())));
+		programsInThisFolder.setSelection(IResourceProperties.getProperty(file, IResourceProperties.NEX_TRIGGER_PROGRAMS_IN_THIS_FOLDER, true));
         
 		updateState();
 
-		ResourceProperties.addListener(this);
+		IResourceProperties.addListener(this);
 
 		return composite;
 	}
@@ -115,7 +115,7 @@ public class NEXBundlingTriggerOptionsPage extends PropertyPage implements Liste
 	@Override
 	public void dispose() {
 		super.dispose();
-		ResourceProperties.removeListener(this);
+		IResourceProperties.removeListener(this);
 	}
 
 	@Override
@@ -135,8 +135,8 @@ public class NEXBundlingTriggerOptionsPage extends PropertyPage implements Liste
 	public boolean performOk() {
 		var file = getElement().getAdapter(IResource.class);
 
-		setProperty(file, ResourceProperties.NEX_OTHER_TRIGGER_PROGRAMS, getCurrentTriggerPrograms());
-		setProperty(file, ResourceProperties.NEX_TRIGGER_PROGRAMS_IN_THIS_FOLDER, programsInThisFolder.getSelection());
+		setProperty(file, IResourceProperties.NEX_OTHER_TRIGGER_PROGRAMS, getCurrentTriggerPrograms());
+		setProperty(file, IResourceProperties.NEX_TRIGGER_PROGRAMS_IN_THIS_FOLDER, programsInThisFolder.getSelection());
 		return true;
 	}
 
@@ -152,7 +152,7 @@ public class NEXBundlingTriggerOptionsPage extends PropertyPage implements Liste
 	private void updateState() {
 //		var sel = includeInNEX.getSelection();
 		var file = getElement().getAdapter(IResource.class);
-		var sel = ResourceProperties.getProperty(file, ResourceProperties.NEX_BUNDLE, false); // TODO
+		var sel = IResourceProperties.getProperty(file, IResourceProperties.NEX_BUNDLE, false); // TODO
 		programsInThisFolder.setEnabled(sel);
 		selectPrograms.setEnabled(sel);
 		programs.setEnabled(sel);

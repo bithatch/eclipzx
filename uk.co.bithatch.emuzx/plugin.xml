@@ -2,8 +2,12 @@
 <?eclipse version="4.35"?>
 <plugin>
     <extension-point id="uk.co.bithatch.emuzx.emulator" name="External Emulator" schema="schema/uk.co.bithatch.emuzx.emulator.exsd" />
-    <extension-point id="uk.co.bithatch.emuzx.programBuildOptionsFactory" name="Program Build Options Factory Contribution" schema="schema/uk.co.bithatch.emuzx.programBuildOptionsFactory.exsd" />
+    <extension-point id="uk.co.bithatch.emuzx.programBuildOptionsFactory" name="Program Build Options Factory Contribution" schema="schema/uk.co.bithatch.emuzx.programBuildOptionsFactory.exsd" />    
+    <extension-point id="uk.co.bithatch.emuzx.nexConfigurer" name="NEX Configuration Contribution" schema="schema/uk.co.bithatch.emuzx.nexConfigurer.exsd" />
     
+    <extension point="uk.co.bithatch.emuzx.nexConfigurer">
+        <nexConfigurer class="uk.co.bithatch.emuzx.WorkspaceNEXConfigurer"/>
+    </extension>
     <extension point="org.eclipse.core.variables.dynamicVariables">
        <variable
              name="emulator_config_file"

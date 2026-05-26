@@ -18,7 +18,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
-import uk.co.bithatch.zxbasic.tools.NexConverter;
 import uk.co.bithatch.zxbasic.ui.ZXBasicUiActivator;
 import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicLanguageSystemProvider;
 import uk.co.bithatch.zxbasic.ui.library.ContributedLibraryRegistry;
@@ -42,18 +41,6 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 	
 	public String getPython() {
 		return getPreferences().get(ZXBasicPreferenceConstants.SDK_PYTHON_LOCATION, "");
-	}
-
-	public String getNEXCore(IProject project) {
-		return getPreferences(project).get(ZXBasicPreferenceConstants.NEX_CORE, NexConverter.DEFAULT_CORE_STR);
-	}
-
-	public String getNEXSysvarLocation(IProject project) {
-		return getPreferences(project).get(ZXBasicPreferenceConstants.NEX_SYSVAR_LOCATION, "");
-	}
-
-	public boolean isNEXIncludeSysvar(IProject project) {
-		return getPreferences(project).getBoolean(ZXBasicPreferenceConstants.NEX_INCLUDE_SYSVAR, true);
 	}
 
 	@Override

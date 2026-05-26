@@ -1058,6 +1058,9 @@
                             value="slr" />
                         <test
                             property="org.eclipse.core.resources.extension"
+                            value="sl2" />
+                        <test
+                            property="org.eclipse.core.resources.extension"
                             value="shr" />
                         <test
                             property="org.eclipse.core.resources.extension"

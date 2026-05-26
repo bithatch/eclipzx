@@ -1,15 +1,10 @@
 package uk.co.bithatch.zxbasic.ui.editor;
 
-import java.io.IOException;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.text.ITextSelection;
@@ -24,9 +19,7 @@ import org.eclipse.xtext.parser.IParseResult;
 import org.eclipse.xtext.ui.editor.XtextEditor;
 import org.eclipse.xtext.ui.editor.model.IXtextDocument;
 
-import uk.co.bithatch.zxbasic.ui.builder.ZXBasicBuilder;
-import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
-import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
+import uk.co.bithatch.zxbasic.ui.builder.ZXDebugBuild;
 
 public class OpenGeneratedFileHandler extends AbstractHandler {
 
@@ -73,35 +66,7 @@ public class OpenGeneratedFileHandler extends AbstractHandler {
         var sourcePath = new Path(resource.getURI().toPlatformString(true));
         var sourceFile = root.getFile(sourcePath);
         
-        var project = sourceFile.getProject();
-		var bldr = ZXBasicBuilder.builderForProject(project);
-		
-        bldr.withMemoryMap(false);
-        bldr.withOutputFormat(BorielZXBasicOutputFormat.ASM);
-        
-        var zxbc = bldr.build();
-        var nativeFile = sourceFile.getLocation().toFile();
-		if(zxbc.isNeedsProcessing(nativeFile)) {
-        	try {
-				zxbc.compile(nativeFile);
-			} catch (IOException e) {
-				throw new IllegalStateException("Failed to generate ASM.");
-			}
-        }
-		
-		try {
-			ZXBasicPreferencesAccess.get().getOutputFolder(project).refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
-		}
-		
-		var outputPath = zxbc.targetFile(nativeFile).toPath();
-		var res = root.findFilesForLocationURI(outputPath.toUri());
-		if(res != null && res.length > 0) {
-			return res[0];
-		}
-		else
-			return null;
+        return ZXDebugBuild.generateAsm(sourceFile);
     }
 
     private void openInEditor(IFile file) {

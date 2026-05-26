@@ -8,7 +8,8 @@
     
     <extension point="org.eclipse.ui.keywords">
         <keyword id="uk.co.bithatch.emuzx.ui.keyword_ExternalEmulators" label="External Emulators" />
-    </extension> 
+        <keyword id="uk.co.bithatch.emuzx.ui.keyword_NEX" label="NEX" />
+    </extension>
       
     <extension point="org.eclipse.ui.preferencePages">
         <page class="uk.co.bithatch.emuzx.ui.ExternalEmulatorsPreferencePage" 
@@ -24,6 +25,38 @@
                     <adapt type="org.eclipse.core.resources.IFile" />
                     <adapt type="org.eclipse.core.resources.IFolder" />
                 </or>
+            </enabledWhen>
+        </page>
+        
+        <page id="uk.co.bithatch.emuzx.ui.nexBundlingOptions" name="NEX Content" class="uk.co.bithatch.emuzx.ui.NEXBundlingOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile" />
+            </enabledWhen>
+        </page>
+        
+        <page id="uk.co.bithatch.emuzx.ui.nexBundlingTriggerOptions" name="Triggers" category="uk.co.bithatch.emuzx.ui.nexBundlingOptions" class="uk.co.bithatch.emuzx.ui.NEXBundlingTriggerOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile" />
+            </enabledWhen>
+        </page>
+        
+        <page class="uk.co.bithatch.emuzx.ui.NEXBuildProjectPropertiesPage" id="uk.co.bithatch.emuzx.ui.nex.propertyPage" name="NEX Application">
+            <keywordReference id="uk.co.bithatch.emuzx.ui.keyword_NEX" />
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject" />
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+            <filter name="projectNature" value="uk.co.bithatch.eclipz88dk.Z88DKNature" />
+        </page>
+        <page id="uk.co.bithatch.zxbasic.ui.builder.nexBuildOptions" name="NEX Build" class="uk.co.bithatch.emuzx.ui.NEXBuildOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile">
+                    <or>
+                        <test property="org.eclipse.core.resources.extension" value="asm" />
+                        <test property="org.eclipse.core.resources.extension" value="bas" />
+                        <test property="org.eclipse.core.resources.extension" value="c" />
+                    </or>
+                </adapt>
             </enabledWhen>
         </page>
     </extension>

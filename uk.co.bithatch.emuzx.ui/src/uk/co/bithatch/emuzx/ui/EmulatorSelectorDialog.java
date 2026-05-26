@@ -35,8 +35,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ListDialog;
 
 import uk.co.bithatch.emuzx.EmulatorRegistry;
-import uk.co.bithatch.emuzx.PreferenceConstants;
-import uk.co.bithatch.emuzx.PreferencesAccess;
+import uk.co.bithatch.emuzx.EmuZXPreferenceConstants;
+import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
 import uk.co.bithatch.emuzx.api.EmulatorDescriptor;
 
 public class EmulatorSelectorDialog extends ListDialog implements ISelectionChangedListener {
@@ -163,8 +163,8 @@ public class EmulatorSelectorDialog extends ListDialog implements ISelectionChan
 		selectedEmulator = calcSelectedEmulator();
 		if (selectedEmulator != null) {
 			
-			var defEmuExe = PreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + PreferenceConstants.EXTERNAL_EMULATOR_EXECUTABLE, "");
-			var defEmuHome = PreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + PreferenceConstants.EXTERNAL_EMULATOR_HOME, "");
+			var defEmuExe = EmuZXPreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + EmuZXPreferenceConstants.EXTERNAL_EMULATOR_EXECUTABLE, "");
+			var defEmuHome = EmuZXPreferencesAccess.get().getPreferences().get(selectedEmulator.getIdOrDefault(EmuZXUIActivator.PLUGIN_ID) + "." + EmuZXPreferenceConstants.EXTERNAL_EMULATOR_HOME, "");
 			
 			if(defEmuExe.equals("") || defEmuHome.equals("")) {
 				File found = null;

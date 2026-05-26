@@ -1,12 +1,12 @@
 package uk.co.bithatch.zxbasic.ui.builder;
 
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_CORE;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_OVERRIDE_PROJECT;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_PC;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_SP;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_SYSVARS;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.NEX_SYSVARS_LOCATION;
-import static uk.co.bithatch.zxbasic.ui.builder.ResourceProperties.getProperty;
+import static uk.co.bithatch.bitzx.AbstractResourceProperties.getProperty;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_CORE;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_OVERRIDE_PROJECT;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_PC;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_SP;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_SYSVARS;
+import static uk.co.bithatch.emuzx.api.IResourceProperties.NEX_SYSVARS_LOCATION;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,10 +36,12 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 
 import uk.co.bithatch.bitzx.FileNames;
+import uk.co.bithatch.emuzx.DefaultNEXConfiguration;
+import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
+import uk.co.bithatch.emuzx.NexConverter;
+import uk.co.bithatch.emuzx.api.INEXConfigurer;
 import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
 import uk.co.bithatch.emuzx.api.IWritablePreparationContext;
-import uk.co.bithatch.zxbasic.tools.NexConverter;
-import uk.co.bithatch.zxbasic.ui.api.INEXConfigurer;
 import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 import uk.co.bithatch.zxbasic.ui.tools.ToolMessage;
@@ -85,6 +87,11 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 		
 		if (FileNames.hasExtensions(sourceFile, ZXBasicBuilder.EXTENSIONS)) {
 			if (project != null) {
+				
+				if(mode.equals("debug")) {
+					ZXDebugBuild.generateAsm(file);
+				}
+				
 				var outputDir = ZXBasicPreferencesAccess.get().getOutputFolder(project).getLocation().toFile();
 				var relFile = fullProjectDir.toPath().relativize(sourceFile.toPath()).toFile();
 				
@@ -120,7 +127,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 					switch(fmt) {
 					case BorielZXBasicOutputFormat.NEX:
 						var org = prepCtx.buildOptions().orgOrDefault();
-						var cfg = new NexConverter.NexConfiguration();
+						var cfg = new DefaultNEXConfiguration();
 						var pc = getPc(file, org); 
 						var sp = getSp(file, org - 2);//
 						
@@ -171,7 +178,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 			val = getProperty(file, NEX_CORE, "");
 		}
 		if(val.equals("")) {
-			val = ZXBasicPreferencesAccess.get().getNEXCore(file.getProject());
+			val = EmuZXPreferencesAccess.get().getNEXCore(file.getProject());
 		}
 		return val;
 	}
@@ -184,8 +191,8 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 			sysvarLocation = getProperty(file, NEX_SYSVARS_LOCATION, "");
 		}
 		else {
-			includeSysVars = ZXBasicPreferencesAccess.get().isNEXIncludeSysvar(file.getProject());
-			sysvarLocation = ZXBasicPreferencesAccess.get().getNEXSysvarLocation(file.getProject());
+			includeSysVars = EmuZXPreferencesAccess.get().isNEXIncludeSysvar(file.getProject());
+			sysvarLocation = EmuZXPreferencesAccess.get().getNEXSysvarLocation(file.getProject());
 		}
 		if(includeSysVars) {
 			if(sysvarLocation.equals("")) {
