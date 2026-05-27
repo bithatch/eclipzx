@@ -18,3 +18,4 @@ test-workspaces/**
 /packages/.flatpak-builder/
 /packages/workspace/
 /build.log
+/test-nio-deploy.sh

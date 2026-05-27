@@ -3,6 +3,26 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
 /*
  * Z80 Grammar that covers Z88DK Assembler and Boriels ZX Basic assembler (and 
  * maybe others, i've no idea!)
+ * 
+ * TODO - Remaining Z88DK directives (https://github.com/z88dk/z88dk/wiki/Tool---z80asm---directives).
+ * Note, some crossover here with preprocessor, not sure what means for us just yet
+ * 
+ *  - FLOAT
+ *  - FPP
+ *  - GLOBAL
+ *  - IF ELIF ELSE ENDIF
+ *  - IFDEF ELIFDEF ELSE ENDIF
+ *  - IFNDEF ELIFNDEF ELSE ENDIF
+ *  - INCLUDE
+ *  - INVOKE
+ *  - LSTOFF
+ *  - LSTON
+ *  - MODULE
+ *  - PHASE
+ *  - PUBLIC | XDEF | XLIB
+ *  - SECTION
+ *  - SETFLOAT
+ *  - UNDEFINE
  */
 
 generate asm "http://www.co.uk/bithatch/eclipz80/Asm"
@@ -27,11 +47,11 @@ AsmNumericLabelLine:
     
 AsmLabelEQULine:
     {LabelEQULine}
-    label=ID ':'? 'EQU' value=AsmOperand;
+    label=ID ':'? 'EQU' value=AsmExpression;
     
 AsmDefcLine:
     {AsmDefcLine}
-    'DEFC' name=ID '=' value=AsmOperand;
+    'DEFC' name=ID '=' value=AsmExpression;
     
 AsmLocalLine:
     {AsmLocalLine}
@@ -60,9 +80,26 @@ AsmStatement:
     AsmJrStatement | 
     AsmLdStatement | 
     AsmDIStatement | 
+    AsmAlignDirective |
+    AsmAssumeDirective |
+    AsmCallOzDirective |
+    AsmCallPkgDirective |
+//    AsmBinaryDirective |
+    AsmCopperWaitDirective |
+    AsmCopperMoveDirective |
+    AsmCopperStopDirective |
+    AsmCopperNopDirective |
     AsmDataDirective |
     AsmDataDefineGroup |
     AsmDataDefineVars |
+    AsmDMAWR0Directive |
+    AsmDMAWR1Directive |
+    AsmDMAWR2Directive |
+    AsmDMAWR3Directive |
+    AsmDMAWR4Directive |
+    AsmDMAWR5Directive |
+    AsmDMAWR6Directive |
+    AsmExternDirective |
     AsmPopStatement |
     AsmAndStatement |
     AsmOrStatement |
@@ -87,7 +124,7 @@ AsmStatement:
     AsmRstStatement |
     AsmProcStatement |
     AsmSlaStatement |
-    AsmBinaryStatement |
+    AsmBinaryDirective |
     AsmPushStatement |
     AsmBitStatement |
     AsmCpdStatement |
@@ -146,7 +183,7 @@ AsmStatement:
     AsmBrkStatement |
     AsmMmuStatement
     ;
-  
+    
 AsmDataDirective:
     {StringDataDirective} (
         'DEFB'|'DB'|'DEFM'|'DM'|'BYTE'|
@@ -157,7 +194,7 @@ AsmDataDirective:
         'DEFS' | 'DS' |
         'DEFC' | 'DC' |
         'DEFINE'
-    )  data+=AsmOperand (',' data+=AsmOperand)*
+    )  data+=AsmExpression (',' data+=AsmExpression)*
 ;
   
 AsmDataDefineGroup:
@@ -167,7 +204,7 @@ AsmDataDefineGroup:
 ;
 
 AsmGroupedDefine:
-    name = ID ( '=' data = AsmOperand )
+    name = ID ( '=' data = AsmExpression )
 ;
 
 AsmDataDefineVars:
@@ -188,30 +225,30 @@ AsmDIStatement:
     {DI} 'DI'
 ;
 AsmLdStatement:
-    {Ld} 'LD' name=AsmOperand ',' value=AsmOperand
+    {Ld} 'LD' name=AsmExpression ',' value=AsmExpression
 ;
 AsmEXStatement:
-    {Ex} 'EX' name=AsmOperand ',' value=AsmOperand
+    {Ex} 'EX' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmSbcStatement:
-    {Sbc} 'SBC' name=AsmOperand (',' value=AsmOperand)?
+    {Sbc} 'SBC' name=AsmExpression (',' value=AsmExpression)?
 ;
 
 AsmInStatement:
-    {InInst} 'IN' name=AsmOperand ',' value=AsmOperand
+    {InInst} 'IN' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmOutStatement:
-    {OutInst} 'OUT' name=AsmOperand ',' value=AsmOperand
+    {OutInst} 'OUT' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmSetStatement:
-    {SetInst} 'SET' name=AsmOperand ',' value=AsmOperand
+    {SetInst} 'SET' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmResStatement:
-    {Res} 'RES' name=AsmOperand ',' value=AsmOperand
+    {Res} 'RES' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmExxStatement:
@@ -231,19 +268,19 @@ AsmRraStatement:
 ;
 
 AsmAndStatement:
-    {And} 'AND' name=AsmOperand
+    {And} 'AND' name=AsmExpression
 ;
 
 AsmOrStatement:
-    {OrInst} 'OR' name=AsmOperand
+    {OrInst} 'OR' name=AsmExpression
 ;
 
 AsmXorStatement:
-    {Xor} 'XOR' name=AsmOperand
+    {Xor} 'XOR' name=AsmExpression
 ;
 
 AsmCpStatement:
-    {Cp} 'CP' name=AsmOperand
+    {Cp} 'CP' name=AsmExpression
 ;
 
 AsmCplStatement:
@@ -255,38 +292,38 @@ AsmNegStatement:
 ;
 
 AsmAddStatement:
-    {Add} 'ADD' name=AsmOperand (',' value=AsmOperand)?
+    {Add} 'ADD' name=AsmExpression (',' value=AsmExpression)?
 ;
 
 AsmDecStatement:
-    {Dec} 'DEC' name=AsmOperand
+    {Dec} 'DEC' name=AsmExpression
 ;
 
 AsmSubStatement:
-    {Sub} 'SUB' name=AsmOperand (',' value=AsmOperand)?
+    {Sub} 'SUB' name=AsmExpression (',' value=AsmExpression)?
 ;
 
 AsmIncStatement:
-    {Inc} 'INC' name=AsmOperand
+    {Inc} 'INC' name=AsmExpression
 ;
 
 AsmSlaStatement:
-    {Sla} 'SLA' name=AsmOperand
+    {Sla} 'SLA' name=AsmExpression
 ;
 
 AsmPopStatement:
-    {Pop} 'POP' register=AsmOperand
+    {Pop} 'POP' register=AsmExpression
 ;
 AsmPushStatement:
-    {Push} 'PUSH' register=AsmOperand
+    {Push} 'PUSH' register=AsmExpression
 ;
 
 AsmJpStatement:
-    {Jp} 'JP' (condition=AsmCondition ',')? value=AsmOperand
+    {Jp} 'JP' (condition=AsmCondition ',')? value=AsmExpression
 ;
 
 AsmJrStatement:
-    {Jr} 'JR' (condition=AsmCondition ',')? value=AsmOperand
+    {Jr} 'JR' (condition=AsmCondition ',')? value=AsmExpression
 ;
 
 AsmRetStatement:
@@ -304,7 +341,7 @@ AsmProcStatement:
 // ─────────────── Missing Standard Z80 Instructions ───────────────
 
 AsmBitStatement:
-    {Bit} 'BIT' name=AsmOperand ',' value=AsmOperand
+    {Bit} 'BIT' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmCpdStatement:
@@ -328,7 +365,7 @@ AsmDaaStatement:
 ;
 
 AsmDjnzStatement:
-    {Djnz} 'DJNZ' value=AsmOperand
+    {Djnz} 'DJNZ' value=AsmExpression
 ;
 
 AsmHaltStatement:
@@ -388,11 +425,11 @@ AsmOutiStatement:
 ;
 
 AsmRlStatement:
-    {Rl} 'RL' name=AsmOperand
+    {Rl} 'RL' name=AsmExpression
 ;
 
 AsmRlcStatement:
-    {Rlc} 'RLC' name=AsmOperand
+    {Rlc} 'RLC' name=AsmExpression
 ;
 
 AsmRlcaStatement:
@@ -404,11 +441,11 @@ AsmRldStatement:
 ;
 
 AsmRrStatement:
-    {Rr} 'RR' name=AsmOperand
+    {Rr} 'RR' name=AsmExpression
 ;
 
 AsmRrcStatement:
-    {Rrc} 'RRC' name=AsmOperand
+    {Rrc} 'RRC' name=AsmExpression
 ;
 
 AsmRrcaStatement:
@@ -432,11 +469,11 @@ AsmScfStatement:
 ;
 
 AsmSraStatement:
-    {Sra} 'SRA' name=AsmOperand
+    {Sra} 'SRA' name=AsmExpression
 ;
 
 AsmSrlStatement:
-    {Srl} 'SRL' name=AsmOperand
+    {Srl} 'SRL' name=AsmExpression
 ;
 
 AsmImStatement:
@@ -498,27 +535,27 @@ AsmLdwsStatement:
 ;
 
 AsmBslaStatement:
-    {Bsla} 'BSLA' name=AsmOperand ',' value=AsmOperand
+    {Bsla} 'BSLA' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmBsraStatement:
-    {Bsra} 'BSRA' name=AsmOperand ',' value=AsmOperand
+    {Bsra} 'BSRA' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmBsrlStatement:
-    {Bsrl} 'BSRL' name=AsmOperand ',' value=AsmOperand
+    {Bsrl} 'BSRL' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmBsrfStatement:
-    {Bsrf} 'BSRF' name=AsmOperand ',' value=AsmOperand
+    {Bsrf} 'BSRF' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmBrlcStatement:
-    {Brlc} 'BRLC' name=AsmOperand ',' value=AsmOperand
+    {Brlc} 'BRLC' name=AsmExpression ',' value=AsmExpression
 ;
 
 AsmTestStatement:
-    {Test} 'TEST' value=AsmOperand
+    {Test} 'TEST' value=AsmExpression
 ;
 
 AsmBrkStatement:
@@ -526,37 +563,37 @@ AsmBrkStatement:
 ;
 
 AsmMmuStatement:
-    {Mmu} ('MMU' name=AsmOperand ',' value=AsmOperand
-          | ('MMU0'|'MMU1'|'MMU2'|'MMU3'|'MMU4'|'MMU5'|'MMU6'|'MMU7') value=AsmOperand)
+    {Mmu} ('MMU' name=AsmExpression ',' value=AsmExpression
+          | ('MMU0'|'MMU1'|'MMU2'|'MMU3'|'MMU4'|'MMU5'|'MMU6'|'MMU7') value=AsmExpression)
 ;
 
 /*
-AsmOperand:
-    {AsmOperand} ('+'|'-') '(' inner=AsmOperandExpr ')'
-  | {AsmOperand} '(' inner=AsmOperandExpr ')'
-  | {AsmOperand} expr=AsmOperandExpr
+AsmExpression:
+    {AsmExpression} ('+'|'-') '(' inner=AsmExpressionExpr ')'
+  | {AsmExpression} '(' inner=AsmExpressionExpr ')'
+  | {AsmExpression} expr=AsmExpressionExpr
 ;
 
-AsmOperandExpr:
-    parts+=AsmOperandPart ((op+=AsmOperator parts+=AsmOperandPart))*
+AsmExpressionExpr:
+    parts+=AsmExpressionPart ((op+=AsmOperator parts+=AsmExpressionPart))*
 ;
 
-AsmOperandPart:
+AsmExpressionPart:
     register=AsmRegisterName | literal=IntegralLiteral | id=ID
 ;
 
 */
 /*
-AsmOperand:
-    parts+=AsmOperandPart ((op+=AsmOperator parts+=AsmOperandPart))*;
+AsmExpression:
+    parts+=AsmExpressionPart ((op+=AsmOperator parts+=AsmExpressionPart))*;
     
-AsmOperandPart:
-    {AsmOperand} ('+'|'-') '(' inner=AsmOperand ')'
-  | {AsmOperand} '(' inner=AsmOperand ')'
-  | {AsmOperand} value = AsmOperandValue
+AsmExpressionPart:
+    {AsmExpression} ('+'|'-') '(' inner=AsmExpression ')'
+  | {AsmExpression} '(' inner=AsmExpression ')'
+  | {AsmExpression} value = AsmExpressionValue
 ;
 
-AsmOperandValue:
+AsmExpressionValue:
     name=AsmRegisterName | literal=IntegralLiteral | id=ID
 ;
 
@@ -565,39 +602,39 @@ AsmOperator:
 ;
 * */
 
-AsmOperand:
+AsmExpression:
     AsmAddExpr;
 
-AsmAddExpr returns AsmOperand:
+AsmAddExpr returns AsmExpression:
     AsmSubtractExpr => ({BinaryExpr.left=current} => op='+' right=AsmAddExpr)?;
     
-AsmSubtractExpr returns AsmOperand:
+AsmSubtractExpr returns AsmExpression:
     AsmMulExpr  => ({BinaryExpr.left=current} => op='-' right=AsmSubtractExpr)?;
 
-AsmMulExpr returns AsmOperand:
+AsmMulExpr returns AsmExpression:
     AsmDivExpr  => ({BinaryExpr.left=current} => op='*' right=AsmMulExpr)?;
 
-AsmDivExpr returns AsmOperand:
+AsmDivExpr returns AsmExpression:
     AsmModExpr  => ({BinaryExpr.left=current} => op='/' right=AsmDivExpr)?;
 
-AsmModExpr returns AsmOperand:
+AsmModExpr returns AsmExpression:
     AsmShrExpr  => ({BinaryExpr.left=current} => op='%' right=AsmModExpr)?;
 
-AsmShrExpr returns AsmOperand:
+AsmShrExpr returns AsmExpression:
     AsmShlExpr  => ({BinaryExpr.left=current} => op='>>' right=AsmShrExpr)?;
 
-AsmShlExpr returns AsmOperand:
+AsmShlExpr returns AsmExpression:
     AsmPrimary  => ({BinaryExpr.left=current} => op='<<' right=AsmShlExpr)?;
     
 AsmNotExpr:
-    '!' expr=AsmOperand
+    '!' expr=AsmExpression
 ;
 AsmSignedExpr:
-    ('-'|'+') expr=AsmOperand
+    ('-'|'+') expr=AsmExpression
 ;
 
-AsmPrimary returns AsmOperand:
-    =>  '(' AsmOperand ')'
+AsmPrimary returns AsmExpression:
+    =>  AsmIndirect
     |
     =>  AsmSignedExpr
     |
@@ -610,12 +647,10 @@ AsmPrimary returns AsmOperand:
     => AsmLabel
     |
     =>  AsmNotExpr
-    /*
-    |
-    =>  AsmOperandValue
-    |
-    =>  AsmNotExpr
-    */
+;
+
+AsmIndirect:
+    {AsmIndirect} '(' expr=AsmExpression ')'
 ;
 
 AsmLabel:
@@ -623,7 +658,7 @@ AsmLabel:
 ;
 
 /*
-AsmOperandValue:
+AsmExpressionValue:
     name=AsmRegisterName | literal=IntegralLiteral | id=ID
 ;
 */
@@ -637,23 +672,94 @@ AsmCondition:
     name=('NZ' | 'Z' | 'NC' | 'C' | 'PO' | 'PE' | 'P' | 'M')
 ;
 
-// Boriel Specific
+// Z88DK+Z80N Specific
 
-AsmNextReg:
-    'NEXTREG'  name=AsmOperand ',' value=AsmOperand; 
-    
-// Z88DK Specific
-AsmBinaryStatement:
-   {Binary} 'BINARY' name=StringLiteral
-;
 
-    
-AsmOrg:
-   {Org} 'ORG' value=IntegralLiteral
+AsmALINE:
+    {ALine} 'LINE' value=IntegralLiteral ',' name=STRING
 ;
 
 AsmCLINE:
-    'C_LINE' value=IntegralLiteral ',' name=STRING
+    {CLine} 'C_LINE' value=IntegralLiteral ',' name=STRING
+;
+
+AsmCallOzDirective:
+    {CallOz} 'CALL_OZ' expr=AsmExpression
+;
+
+AsmCallPkgDirective:
+    {CallPkg} 'CALL_PKG' expr=AsmExpression
+;
+
+AsmBinaryDirective:
+    {IncBin} ('BINARY' |'INCBIN') file=StringLiteral
+;
+
+AsmAssumeDirective:
+    {Assume} '.ASSUME' 'ADL' '=' expr=AsmExpression
+;
+
+AsmCopperWaitDirective:
+    {CuWait} 'CU.WAIT' ver=AsmExpression ',' hor=AsmExpression
+;
+
+AsmCopperMoveDirective:
+    {CuMove} 'CU.MOVE' reg=AsmExpression ',' val=AsmExpression
+;
+
+AsmCopperStopDirective:
+    {CuStop} 'CU.STOP'
+;
+
+AsmCopperNopDirective:
+    {CuNo} 'CU.NOP'
+;
+
+AsmDMAWR0Directive:
+    {DMAWR0} 'DMA.WR0' data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDMAWR1Directive:
+    {DMAWR1} 'DMA.WR1' data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDMAWR2Directive:
+    {DMAWR2} 'DMA.WR2' data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDMAWR3Directive:
+    {DMAWR3} 'DMA.WR3' data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDMAWR4Directive:
+    {DMAWR4} 'DMA.WR4' data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDMAWR5Directive:
+    {DMAWR5} 'DMA.WR5' data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDMAWR6Directive:
+    {DMAWR6} ( 'DMA.WR6'|'DMA.CMD') data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmExternDirective:
+    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=ID (',' name+=ID)*
+;
+
+// ─────────────── Boriel Specific ───────────────
+
+AsmNextReg:
+    {NextReg} 'NEXTREG'  name=AsmExpression ',' value=AsmExpression; 
+    
+// ─────────────── Z88DK Specific ───────────────
+AsmAlignDirective:
+    {AlignDirective} 
+    'ALIGN' expression=AsmExpression (',' filler=AsmExpression )?
+    ; 
+    
+AsmOrg:
+   {Org} 'ORG' value=IntegralLiteral
 ;
 
 AsmModule:
@@ -661,7 +767,7 @@ AsmModule:
 ;
 
 AsmCall:
-    'CALL' (condition=AsmCondition ',')? name=AsmOperand
+    'CALL' (condition=AsmCondition ',')? name=AsmExpression
 ;
 
 AsmInclude:
@@ -671,10 +777,6 @@ AsmInclude:
 AsmSection:
     'SECTION' name=ID
 ;
-
-// ─────────────── EXPRESSIONS ───────────────
-AsmDbExpr:
-    IntegralLiteral | StringLiteral | id=ID;
     
 // ─────────────── MODEL ELEMENTS ───────────────
 
