@@ -2,8 +2,11 @@ package uk.co.bithatch.zxbasic.ui.tools;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -569,6 +572,11 @@ public class ZXBC extends AbstractTool {
 					f.setLastModified(lastMod);
 				});
 			}
+			
+			var asmFile= new File(outfile.getParentFile(), FileNames.changeExtension(outfile.getName(), "asm"));
+			if(asmFile.exists()) {
+				fixASM(asmFile);
+			}
 		}
 		catch(InterruptedException ie) {
 			throw new IOException("Interrupted.", ie);
@@ -576,6 +584,104 @@ public class ZXBC extends AbstractTool {
 		
 		return outfile;
 	} 
+
+	private void fixASM(File outfile) {
+		/**
+		 * The compiler produces ASM that contains "jr " instructions that the grammar
+		 * cannot parse because it is too ambiguous.
+		 * 
+		 * <pre>
+		 * <code>
+		 * jr nz, 1f
+		 * jr 4f
+		 * </pre></code>
+		 * 
+		 * TODO raise a ticket to fix the compiler to produce "jr nz, 1fh" and "jr 4fh"
+		 * respectively, which is unambiguous and can be parsed by the grammar. In the
+		 * meantime, this method reads the generated ASM file and adds "h" suffixes to
+		 * any plain hex numbers in "jr " instructions.
+		 * 
+		 */
+		var tmpFile= new File(outfile.getParentFile(), FileNames.changeExtension(outfile.getName(), "asm.tmp"));
+		var buf = new ArrayList<String>();
+		var changed = false;
+		PrintWriter pw = null;
+		
+		try(var rdr = new BufferedReader(new FileReader(outfile))) {
+			String line = null;
+			while( ( line = rdr.readLine() ) != null) {
+				var trmline = line.trim();
+				if(trmline.startsWith("jr ")) {
+					var parts = trmline.split("\\s+", 3);
+					var match = false;
+					if(parts.length == 2 && isPlainHEX(parts[1])) {
+						parts[1]  = parts[1] + "h";
+						match = true;
+					}
+					else if(parts.length == 3 && isPlainHEX(parts[2])) {
+						parts[2]  = parts[2] + "h";
+						match = true;
+					}
+					if(match) {
+						line = line.substring(0, line.length() - trmline.length()) + String.join(" ", parts);
+						changed = true;
+					}
+				}
+				
+				if(changed) {
+					if(pw == null) {
+						pw = new PrintWriter(tmpFile);
+						for(var ln : buf) {
+							pw.println(ln);
+						}
+						buf = null;
+					}
+					pw.println(line);
+				}
+				else {
+					buf.add(line);
+				}
+				
+			}
+		}
+		catch(RuntimeException re) {
+			if(pw != null) {
+				pw.close();
+				tmpFile.delete();
+			}
+			throw re;
+		}
+		catch(IOException ioe) {
+			throw new UncheckedIOException(ioe);
+		}
+		
+		if(pw != null) {
+			try {
+				pw.flush();
+			}
+			finally {
+				pw.close();
+			}
+			var mod = outfile.lastModified();
+			if(!outfile.delete()) {
+				throw new UncheckedIOException(new IOException("Failed to delete " + outfile));
+			}
+			if(!tmpFile.renameTo(outfile)) {
+				throw new UncheckedIOException(new IOException("Failed to rename " + tmpFile + " to " + outfile));
+			}
+			tmpFile.setLastModified(mod);
+		}
+	}
+
+	private static boolean isPlainHEX(String string) {
+		try {
+			Integer.parseInt(string, 16);
+			return true;
+		}
+		catch(NumberFormatException nfe) {
+			return false;
+		}
+	}
 
 	public static ZXBC create(File home) {
 		return create(home.toPath());

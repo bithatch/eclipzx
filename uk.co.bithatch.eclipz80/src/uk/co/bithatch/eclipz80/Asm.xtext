@@ -3,21 +3,6 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
 /*
  * Z80 Grammar that covers Z88DK Assembler and Boriels ZX Basic assembler (and 
  * maybe others, i've no idea!)
- * 
- * TODO: Missing Z80N (ZX Spectrum Next) Instructions:
- * - ADD HL,A / ADD DE,A / ADD BC,A (special 1-byte opcodes)
- * - PUSH <constant>
- * - LDIX, LDDX, LDIRX, LDDRX
- * - LDI2R, LDI2RX
- * - LDWS
- * - MIRROR
- * - MUL
- * - PIXELDN, PIXELAD, SETAE
- * - SWAPNIL, SWAPNB
- * - TEST n
- * - BRK
- *   MMU7 (not sure on this, are there others?)
- * - Barrel shifts: BSLA, BSRA, BSRL, BSRF, BRLC
  */
 
 generate asm "http://www.co.uk/bithatch/eclipz80/Asm"
@@ -33,7 +18,12 @@ AsmProgram:
     // ─────────────── ASM ───────────────
 
 AsmLine:
-    AsmLabelEQULine | AsmLocalLine | AsmDefcLine | AsmLabelOnlyLine | AsmStatementLine;
+    AsmNumericLabelLine | AsmLabelEQULine | AsmLocalLine | AsmDefcLine | AsmLabelOnlyLine | AsmStatementLine;
+
+AsmNumericLabelLine:
+    {AsmNumericLabelLine}
+    label=NUMERIC_LABEL;
+
     
 AsmLabelEQULine:
     {LabelEQULine}
@@ -133,7 +123,28 @@ AsmStatement:
     AsmScfStatement |
     AsmSraStatement |
     AsmSrlStatement |
-    AsmImStatement
+    AsmImStatement |
+    AsmSwapnibStatement |
+    AsmMirrorStatement |
+    AsmMulStatement |
+    AsmPixeldnStatement |
+    AsmPixeladStatement |
+    AsmSetaeStatement |
+    AsmOutinbStatement |
+    AsmLdixStatement |
+    AsmLddxStatement |
+    AsmLdirxStatement |
+    AsmLddrxStatement |
+    AsmLdpirxStatement |
+    AsmLdwsStatement |
+    AsmBslaStatement |
+    AsmBsraStatement |
+    AsmBsrlStatement |
+    AsmBsrfStatement |
+    AsmBrlcStatement |
+    AsmTestStatement |
+    AsmBrkStatement |
+    AsmMmuStatement
     ;
   
 AsmDataDirective:
@@ -146,7 +157,7 @@ AsmDataDirective:
         'DEFS' | 'DS' |
         'DEFC' | 'DC' |
         'DEFINE'
-    )  data+=AsmOperandOrString (',' data+=AsmOperandOrString)*
+    )  data+=AsmOperand (',' data+=AsmOperand)*
 ;
   
 AsmDataDefineGroup:
@@ -432,6 +443,93 @@ AsmImStatement:
     {Im} 'IM' value=IntegralLiteral
 ;
 
+// ─────────────── Z80N (ZX Spectrum Next) Instructions ───────────────
+
+AsmSwapnibStatement:
+    {Swapnib} 'SWAPNIB'
+;
+
+AsmMirrorStatement:
+    {Mirror} 'MIRROR'
+;
+
+AsmMulStatement:
+    {Mul} 'MUL'
+;
+
+AsmPixeldnStatement:
+    {Pixeldn} 'PIXELDN'
+;
+
+AsmPixeladStatement:
+    {Pixelad} 'PIXELAD'
+;
+
+AsmSetaeStatement:
+    {Setae} 'SETAE'
+;
+
+AsmOutinbStatement:
+    {Outinb} 'OUTINB'
+;
+
+AsmLdixStatement:
+    {Ldix} 'LDIX'
+;
+
+AsmLddxStatement:
+    {Lddx} 'LDDX'
+;
+
+AsmLdirxStatement:
+    {Ldirx} 'LDIRX'
+;
+
+AsmLddrxStatement:
+    {Lddrx} 'LDDRX'
+;
+
+AsmLdpirxStatement:
+    {Ldpirx} 'LDPIRX'
+;
+
+AsmLdwsStatement:
+    {Ldws} 'LDWS'
+;
+
+AsmBslaStatement:
+    {Bsla} 'BSLA' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmBsraStatement:
+    {Bsra} 'BSRA' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmBsrlStatement:
+    {Bsrl} 'BSRL' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmBsrfStatement:
+    {Bsrf} 'BSRF' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmBrlcStatement:
+    {Brlc} 'BRLC' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmTestStatement:
+    {Test} 'TEST' value=AsmOperand
+;
+
+AsmBrkStatement:
+    {Brk} 'BRK'
+;
+
+AsmMmuStatement:
+    {Mmu} ('MMU' name=AsmOperand ',' value=AsmOperand
+          | ('MMU0'|'MMU1'|'MMU2'|'MMU3'|'MMU4'|'MMU5'|'MMU6'|'MMU7') value=AsmOperand)
+;
+
 /*
 AsmOperand:
     {AsmOperand} ('+'|'-') '(' inner=AsmOperandExpr ')'
@@ -466,10 +564,6 @@ AsmOperator:
     name=('+'|'-'|'%'|'<<'|'>>')
 ;
 * */
-
-AsmOperandOrString:
-    expr = AsmAddExpr | str = StringLiteral
-;
 
 AsmOperand:
     AsmAddExpr;
@@ -510,6 +604,8 @@ AsmPrimary returns AsmOperand:
     => AsmRegisterName
     |
     => IntegralLiteral
+    |
+    => StringLiteral
     |
     => AsmLabel
     |
@@ -590,6 +686,9 @@ StringLiteral:
 
 
 // ─────────────── TERMINALS ───────────────
+terminal NUMERIC_LABEL:
+    ('0' .. '9')+ ':'
+;
 
 terminal HEX_LITERAL:
     ( ('$'|'0x') ('0'..'9' | 'a'..'f' | 'A'..'F')+)
@@ -597,7 +696,8 @@ terminal HEX_LITERAL:
 
 terminal BIN_LITERAL:
     ('%' ('0' | '1')+)
-  | (('0' | '1')+ ('b' | 'B'));
+  | (('0' | '1')+ ('b' | 'B'))
+  | (('0b') ('0' | '1')+);
 
 @Override
 terminal SL_COMMENT     : (';' | '#') !('\n'|'\r')*;
@@ -606,14 +706,16 @@ terminal SL_COMMENT     : (';' | '#') !('\n'|'\r')*;
 terminal ML_COMMENT: "/'" -> "'/";
 
 @Override
-terminal STRING: '"' ( '\\' . | !('\\' | '"') )* '"';
+terminal STRING: ( '"' ( '\\' . | !('\\' | '"') )* '"' ) | 
+                 ( '\'' ( '\\' . | !('\\' | '\'') )* '\'' )
+;
 
 @Override
 terminal INT returns ecore::EInt: ('0'..'9')+;
 
 @Override
-terminal ID: ('@'|'.')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?
-           | ('@'|'.') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?;
+terminal ID: '$' | ( ('@'|'.')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?
+           | ('@'|'.') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?);
              
 @Override
 terminal WS:
