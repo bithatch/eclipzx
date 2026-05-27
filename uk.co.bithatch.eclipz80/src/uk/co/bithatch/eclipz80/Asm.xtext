@@ -4,11 +4,6 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * Z80 Grammar that covers Z88DK Assembler and Boriels ZX Basic assembler (and 
  * maybe others, i've no idea!)
  * 
- * TODO: Missing Standard Z80 Instructions:
- * - BIT, CPD, CPDR, CPI, CPIR, DAA, DJNZ, HALT, IND, INDR, INI, INIR, 
- * - LDD, LDDR, LDI, LDIR, NOP, OTDR, OTIR, OUTD, OUTI, 
- * - RL, RLC, RLCA, RLD, RR, RRC, RRCA, RRD, RETI, RETN, SCF, SRA, SRL, IM.
- * 
  * TODO: Missing Z80N (ZX Spectrum Next) Instructions:
  * - ADD HL,A / ADD DE,A / ADD BC,A (special 1-byte opcodes)
  * - PUSH <constant>
@@ -21,9 +16,8 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * - SWAPNIL, SWAPNB
  * - TEST n
  * - BRK
- * 
- * TODO: Others that are appearing in generated files
- * - BSRL, BSLA
+ *   MMU7 (not sure on this, are there others?)
+ * - Barrel shifts: BSLA, BSRA, BSRL, BSRF, BRLC
  */
 
 generate asm "http://www.co.uk/bithatch/eclipz80/Asm"
@@ -76,7 +70,9 @@ AsmStatement:
     AsmJrStatement | 
     AsmLdStatement | 
     AsmDIStatement | 
-    AsmDBStatement | 
+    AsmDataDirective |
+    AsmDataDefineGroup |
+    AsmDataDefineVars |
     AsmPopStatement |
     AsmAndStatement |
     AsmOrStatement |
@@ -102,11 +98,75 @@ AsmStatement:
     AsmProcStatement |
     AsmSlaStatement |
     AsmBinaryStatement |
-    AsmPushStatement
+    AsmPushStatement |
+    AsmBitStatement |
+    AsmCpdStatement |
+    AsmCpdrStatement |
+    AsmCpiStatement |
+    AsmCpirStatement |
+    AsmDaaStatement |
+    AsmDjnzStatement |
+    AsmHaltStatement |
+    AsmIndStatement |
+    AsmIndrStatement |
+    AsmIniStatement |
+    AsmInirStatement |
+    AsmLddStatement |
+    AsmLddrStatement |
+    AsmLdiStatement |
+    AsmLdirStatement |
+    AsmNopStatement |
+    AsmOtdrStatement |
+    AsmOtirStatement |
+    AsmOutdStatement |
+    AsmOutiStatement |
+    AsmRlStatement |
+    AsmRlcStatement |
+    AsmRlcaStatement |
+    AsmRldStatement |
+    AsmRrStatement |
+    AsmRrcStatement |
+    AsmRrcaStatement |
+    AsmRrdStatement |
+    AsmRetiStatement |
+    AsmRetnStatement |
+    AsmScfStatement |
+    AsmSraStatement |
+    AsmSrlStatement |
+    AsmImStatement
     ;
-    
-AsmDBStatement:
-    {DB} ( 'DB' | 'DW' | 'DEFB' | 'DEFW' | 'DEFS' | 'DEFM' )  data+=AsmOperand (',' data+=AsmOperand)*
+  
+AsmDataDirective:
+    {StringDataDirective} (
+        'DEFB'|'DB'|'DEFM'|'DM'|'BYTE'|
+        'DW' | 'DEFW' | 'WORD'| 
+        'DEFW_BE' | 'DW_BE' | 'DEFDB' | 'DDB'|
+        'DEFP' | 'DP' | 'PTR' |
+        'DEFQ' | 'DQ' | 'DWORD' |
+        'DEFS' | 'DS' |
+        'DEFC' | 'DC' |
+        'DEFINE'
+    )  data+=AsmOperandOrString (',' data+=AsmOperandOrString)*
+;
+  
+AsmDataDefineGroup:
+    {DataDefineGroup} ( 'DEFGROUP' ) '{'
+        defines += AsmGroupedDefine 
+    '}'
+;
+
+AsmGroupedDefine:
+    name = ID ( '=' data = AsmOperand )
+;
+
+AsmDataDefineVars:
+    {DataDefineGroup} ( 'DEFVARS' ) name=ID '{'
+        defines += AsmVarDefine 
+    '}'
+;
+
+AsmVarDefine:
+    (name = ID)? size = ID count = IntegralLiteral
 ;
 
 AsmEIStatement:
@@ -120,83 +180,83 @@ AsmLdStatement:
     {Ld} 'LD' name=AsmOperand ',' value=AsmOperand
 ;
 AsmEXStatement:
-    {Ld} 'EX' name=AsmOperand ',' value=AsmOperand
+    {Ex} 'EX' name=AsmOperand ',' value=AsmOperand
 ;
 
 AsmSbcStatement:
-    {Ld} 'SBC' name=AsmOperand (',' value=AsmOperand)?
+    {Sbc} 'SBC' name=AsmOperand (',' value=AsmOperand)?
 ;
 
 AsmInStatement:
-    {Ld} 'IN' name=AsmOperand ',' value=AsmOperand
+    {InInst} 'IN' name=AsmOperand ',' value=AsmOperand
 ;
 
 AsmOutStatement:
-    {Ld} 'OUT' name=AsmOperand ',' value=AsmOperand
+    {OutInst} 'OUT' name=AsmOperand ',' value=AsmOperand
 ;
 
 AsmSetStatement:
-    {Ld} 'SET' name=AsmOperand ',' value=AsmOperand
+    {SetInst} 'SET' name=AsmOperand ',' value=AsmOperand
 ;
 
 AsmResStatement:
-    {Ld} 'RES' name=AsmOperand ',' value=AsmOperand
+    {Res} 'RES' name=AsmOperand ',' value=AsmOperand
 ;
 
 AsmExxStatement:
-    {Ld} 'EXX'
+    {Exx} 'EXX'
 ;
 
 AsmRlaStatement:
-    {Ld} 'RLA'
+    {Rla} 'RLA'
 ;
 
 AsmCcfStatement:
-    {Ld} 'CCF'
+    {Ccf} 'CCF'
 ;
 
 AsmRraStatement:
-    {Ld} 'RRA'
+    {Rra} 'RRA'
 ;
 
 AsmAndStatement:
-    {Ld} 'AND' name=AsmOperand
+    {And} 'AND' name=AsmOperand
 ;
 
 AsmOrStatement:
-    {Ld} 'OR' name=AsmOperand
+    {OrInst} 'OR' name=AsmOperand
 ;
 
 AsmXorStatement:
-    {Ld} 'XOR' name=AsmOperand
+    {Xor} 'XOR' name=AsmOperand
 ;
 
 AsmCpStatement:
-    {Ld} 'CP' name=AsmOperand
+    {Cp} 'CP' name=AsmOperand
 ;
 
 AsmCplStatement:
-    {Ld} 'CPL'
+    {Cpl} 'CPL'
 ;
 
 AsmNegStatement:
-    {Ld} 'NEG'
+    {Neg} 'NEG'
 ;
 
 AsmAddStatement:
-    {Ld} 'ADD' name=AsmOperand (',' value=AsmOperand)?
+    {Add} 'ADD' name=AsmOperand (',' value=AsmOperand)?
 ;
 
 AsmDecStatement:
-    {Ld} 'DEC' name=AsmOperand
+    {Dec} 'DEC' name=AsmOperand
 ;
 
 AsmSubStatement:
-    {Ld} 'SUB' name=AsmOperand (',' value=AsmOperand)?
+    {Sub} 'SUB' name=AsmOperand (',' value=AsmOperand)?
 ;
 
 AsmIncStatement:
-    {Ld} 'INC' name=AsmOperand
+    {Inc} 'INC' name=AsmOperand
 ;
 
 AsmSlaStatement:
@@ -207,7 +267,7 @@ AsmPopStatement:
     {Pop} 'POP' register=AsmOperand
 ;
 AsmPushStatement:
-    {Pop} 'PUSH' register=AsmOperand
+    {Push} 'PUSH' register=AsmOperand
 ;
 
 AsmJpStatement:
@@ -228,6 +288,148 @@ AsmRstStatement:
 
 AsmProcStatement:
     {Proc} 'PROC'
+;
+
+// ─────────────── Missing Standard Z80 Instructions ───────────────
+
+AsmBitStatement:
+    {Bit} 'BIT' name=AsmOperand ',' value=AsmOperand
+;
+
+AsmCpdStatement:
+    {Cpd} 'CPD'
+;
+
+AsmCpdrStatement:
+    {Cpdr} 'CPDR'
+;
+
+AsmCpiStatement:
+    {Cpi} 'CPI'
+;
+
+AsmCpirStatement:
+    {Cpir} 'CPIR'
+;
+
+AsmDaaStatement:
+    {Daa} 'DAA'
+;
+
+AsmDjnzStatement:
+    {Djnz} 'DJNZ' value=AsmOperand
+;
+
+AsmHaltStatement:
+    {Halt} 'HALT'
+;
+
+AsmIndStatement:
+    {Ind} 'IND'
+;
+
+AsmIndrStatement:
+    {Indr} 'INDR'
+;
+
+AsmIniStatement:
+    {Ini} 'INI'
+;
+
+AsmInirStatement:
+    {Inir} 'INIR'
+;
+
+AsmLddStatement:
+    {Ldd} 'LDD'
+;
+
+AsmLddrStatement:
+    {Lddr} 'LDDR'
+;
+
+AsmLdiStatement:
+    {Ldi} 'LDI'
+;
+
+AsmLdirStatement:
+    {Ldir} 'LDIR'
+;
+
+AsmNopStatement:
+    {Nop} 'NOP'
+;
+
+AsmOtdrStatement:
+    {Otdr} 'OTDR'
+;
+
+AsmOtirStatement:
+    {Otir} 'OTIR'
+;
+
+AsmOutdStatement:
+    {Outd} 'OUTD'
+;
+
+AsmOutiStatement:
+    {Outi} 'OUTI'
+;
+
+AsmRlStatement:
+    {Rl} 'RL' name=AsmOperand
+;
+
+AsmRlcStatement:
+    {Rlc} 'RLC' name=AsmOperand
+;
+
+AsmRlcaStatement:
+    {Rlca} 'RLCA'
+;
+
+AsmRldStatement:
+    {Rld} 'RLD'
+;
+
+AsmRrStatement:
+    {Rr} 'RR' name=AsmOperand
+;
+
+AsmRrcStatement:
+    {Rrc} 'RRC' name=AsmOperand
+;
+
+AsmRrcaStatement:
+    {Rrca} 'RRCA'
+;
+
+AsmRrdStatement:
+    {Rrd} 'RRD'
+;
+
+AsmRetiStatement:
+    {Reti} 'RETI'
+;
+
+AsmRetnStatement:
+    {Retn} 'RETN'
+;
+
+AsmScfStatement:
+    {Scf} 'SCF'
+;
+
+AsmSraStatement:
+    {Sra} 'SRA' name=AsmOperand
+;
+
+AsmSrlStatement:
+    {Srl} 'SRL' name=AsmOperand
+;
+
+AsmImStatement:
+    {Im} 'IM' value=IntegralLiteral
 ;
 
 /*
@@ -265,6 +467,9 @@ AsmOperator:
 ;
 * */
 
+AsmOperandOrString:
+    expr = AsmAddExpr | str = StringLiteral
+;
 
 AsmOperand:
     AsmAddExpr;
