@@ -89,7 +89,13 @@ AsmStatement:
     AsmCopperMoveDirective |
     AsmCopperStopDirective |
     AsmCopperNopDirective |
-    AsmDataDirective |
+    AsmDefByteDirective |
+    AsmDefWordDirective |
+    AsmDefWordBEDirective |
+    AsmDefPointerDirective |
+    AsmDefDWordDirective |
+    AsmDefTermStringDirective |
+    AsmDefSpaceDirective |
     AsmDataDefineGroup |
     AsmDataDefineVars |
     AsmDMAWR0Directive |
@@ -184,17 +190,32 @@ AsmStatement:
     AsmMmuStatement
     ;
     
-AsmDataDirective:
-    {StringDataDirective} (
-        'DEFB'|'DB'|'DEFM'|'DM'|'BYTE'|
-        'DW' | 'DEFW' | 'WORD'| 
-        'DEFW_BE' | 'DW_BE' | 'DEFDB' | 'DDB'|
-        'DEFP' | 'DP' | 'PTR' |
-        'DEFQ' | 'DQ' | 'DWORD' |
-        'DEFS' | 'DS' |
-        'DEFC' | 'DC' |
-        'DEFINE'
-    )  data+=AsmExpression (',' data+=AsmExpression)*
+AsmDefByteDirective:
+    {DefByte} ('DEFB'|'DB'|'DEFM'|'DM'|'BYTE') data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDefWordDirective:
+    {DefWord} ('DEFW'|'DW'|'WORD') data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDefWordBEDirective:
+    {DefWordBE} ('DEFW_BE'|'DW_BE'|'DEFDB'|'DDB') data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDefPointerDirective:
+    {DefPointer} ('DEFP'|'DP'|'PTR') data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDefDWordDirective:
+    {DefDWord} ('DEFQ'|'DQ'|'DWORD') data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDefTermStringDirective:
+    {DefTermString} 'DC' data+=AsmExpression (',' data+=AsmExpression)*
+;
+
+AsmDefSpaceDirective:
+    {DefSpace} ('DEFS'|'DS') count=AsmExpression (',' fill=AsmExpression)?
 ;
   
 AsmDataDefineGroup:

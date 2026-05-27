@@ -294,6 +294,36 @@ public class Z80Assembler {
 			return;
 		}
 
+		// ── Data directives ──
+		if (stmt instanceof DefByte) {
+			assembleDefByte((DefByte) stmt, out);
+			return;
+		}
+		if (stmt instanceof DefWord) {
+			assembleDefWord((DefWord) stmt, out);
+			return;
+		}
+		if (stmt instanceof DefWordBE) {
+			assembleDefWordBE((DefWordBE) stmt, out);
+			return;
+		}
+		if (stmt instanceof DefPointer) {
+			assembleDefPointer((DefPointer) stmt, out);
+			return;
+		}
+		if (stmt instanceof DefDWord) {
+			assembleDefDWord((DefDWord) stmt, out);
+			return;
+		}
+		if (stmt instanceof DefTermString) {
+			assembleDefTermString((DefTermString) stmt, out);
+			return;
+		}
+		if (stmt instanceof DefSpace) {
+			assembleDefSpace((DefSpace) stmt, out);
+			return;
+		}
+
 		// ── Zero-operand instructions ──
 		if (stmt instanceof Nop)  { emit8(out, 0x00); return; }
 		if (stmt instanceof Halt) { emit8(out, 0x76); return; }
@@ -826,6 +856,109 @@ public class Z80Assembler {
 		emit8(out, baseOpcode + bit * 8 + r);
 	}
 
+	// ─────────────── Data directive assembly ───────────────
+
+	/**
+	 * DEFB / DB / DEFM / DM / BYTE — emit 1 byte per numeric expression,
+	 * or each character of a string as a separate byte.
+	 */
+	private void assembleDefByte(DefByte directive, ByteArrayOutputStream out) {
+		for (AsmExpression expr : directive.getData()) {
+			String str = resolveString(expr);
+			if (str != null) {
+				for (int i = 0; i < str.length(); i++) {
+					emit8(out, str.charAt(i) & 0xFF);
+				}
+			} else {
+				emit8(out, resolveImmediate(expr) & 0xFF);
+			}
+		}
+	}
+
+	/**
+	 * DEFW / DW / WORD — emit 2 bytes little-endian per expression.
+	 */
+	private void assembleDefWord(DefWord directive, ByteArrayOutputStream out) {
+		for (AsmExpression expr : directive.getData()) {
+			emit16LE(out, resolveImmediate(expr));
+		}
+	}
+
+	/**
+	 * DEFW_BE / DW_BE / DEFDB / DDB — emit 2 bytes big-endian per expression.
+	 */
+	private void assembleDefWordBE(DefWordBE directive, ByteArrayOutputStream out) {
+		for (AsmExpression expr : directive.getData()) {
+			int val = resolveImmediate(expr);
+			emit8(out, (val >> 8) & 0xFF);
+			emit8(out, val & 0xFF);
+		}
+	}
+
+	/**
+	 * DEFP / DP / PTR — emit 3 bytes little-endian per expression.
+	 */
+	private void assembleDefPointer(DefPointer directive, ByteArrayOutputStream out) {
+		for (AsmExpression expr : directive.getData()) {
+			int val = resolveImmediate(expr);
+			emit8(out, val & 0xFF);
+			emit8(out, (val >> 8) & 0xFF);
+			emit8(out, (val >> 16) & 0xFF);
+		}
+	}
+
+	/**
+	 * DEFQ / DQ / DWORD — emit 4 bytes little-endian per expression.
+	 */
+	private void assembleDefDWord(DefDWord directive, ByteArrayOutputStream out) {
+		for (AsmExpression expr : directive.getData()) {
+			int val = resolveImmediate(expr);
+			emit8(out, val & 0xFF);
+			emit8(out, (val >> 8) & 0xFF);
+			emit8(out, (val >> 16) & 0xFF);
+			emit8(out, (val >> 24) & 0xFF);
+		}
+	}
+
+	/**
+	 * DC — emit string characters as bytes, with bit 7 set on the last byte.
+	 */
+	private void assembleDefTermString(DefTermString directive, ByteArrayOutputStream out) {
+		// Collect all bytes first so we know which is last
+		List<Integer> bytes = new ArrayList<>();
+		for (AsmExpression expr : directive.getData()) {
+			String str = resolveString(expr);
+			if (str != null) {
+				for (int i = 0; i < str.length(); i++) {
+					bytes.add(str.charAt(i) & 0xFF);
+				}
+			} else {
+				bytes.add(resolveImmediate(expr) & 0xFF);
+			}
+		}
+		for (int i = 0; i < bytes.size(); i++) {
+			int b = bytes.get(i);
+			if (i == bytes.size() - 1) {
+				b |= 0x80; // Set bit 7 on last byte
+			}
+			emit8(out, b);
+		}
+	}
+
+	/**
+	 * DEFS / DS — emit 'count' bytes, each filled with 'fill' (default 0x00).
+	 */
+	private void assembleDefSpace(DefSpace directive, ByteArrayOutputStream out) {
+		int count = resolveImmediate(directive.getCount());
+		int fill = 0x00;
+		if (directive.getFill() != null) {
+			fill = resolveImmediate(directive.getFill()) & 0xFF;
+		}
+		for (int i = 0; i < count; i++) {
+			emit8(out, fill);
+		}
+	}
+
 	// ─────────────── Operand resolution helpers ───────────────
 
 	/**
@@ -925,15 +1058,77 @@ public class Z80Assembler {
 	}
 
 	/**
-	 * Resolve an operand to an integer value. Handles IntegralLiteral
-	 * (decimal via getValue(), hex/bin via getLitvalue()).
+	 * Resolve an operand to an integer value. Recursively evaluates
+	 * expressions including binary operators, unary sign/not, literals,
+	 * strings (first char ordinal), and labels (stub — warns and returns 0).
 	 */
 	private int resolveImmediate(AsmExpression operand) {
 		if (operand instanceof IntegralLiteral) {
 			return resolveIntegralLiteral((IntegralLiteral) operand);
 		}
+		if (operand instanceof BinaryExpr) {
+			BinaryExpr bin = (BinaryExpr) operand;
+			int left = resolveImmediate(bin.getLeft());
+			int right = resolveImmediate(bin.getRight());
+			switch (bin.getOp()) {
+				case "+":  return left + right;
+				case "-":  return left - right;
+				case "*":  return left * right;
+				case "/":
+					if (right == 0) { warn("Division by zero"); return 0; }
+					return left / right;
+				case "%":
+					if (right == 0) { warn("Modulo by zero"); return 0; }
+					return left % right;
+				case "<<": return left << right;
+				case ">>": return left >> right;
+				default:
+					warn("Unknown operator: " + bin.getOp());
+					return 0;
+			}
+		}
+		if (operand instanceof AsmSignedExpr) {
+			AsmSignedExpr signed = (AsmSignedExpr) operand;
+			int val = resolveImmediate(signed.getExpr());
+			// Determine the sign from the source text node
+			INode node = NodeModelUtils.getNode(signed);
+			if (node != null && node.getText().trim().startsWith("-")) {
+				return -val;
+			}
+			return val;
+		}
+		if (operand instanceof AsmNotExpr) {
+			int val = resolveImmediate(((AsmNotExpr) operand).getExpr());
+			return val == 0 ? 1 : 0;
+		}
+		if (operand instanceof StringLiteral) {
+			String s = resolveString(operand);
+			if (s != null && !s.isEmpty()) {
+				return s.charAt(0) & 0xFF;
+			}
+			return 0;
+		}
+		if (operand instanceof AsmLabel) {
+			warn("Label resolution not yet implemented: " + ((AsmLabel) operand).getName());
+			return 0;
+		}
+		if (operand instanceof AsmIndirect) {
+			// In immediate contexts (e.g. LD A,(nn)), resolve the inner expression
+			return resolveImmediate(((AsmIndirect) operand).getExpr());
+		}
 		warn("Cannot resolve operand to immediate value: " + operand.eClass().getName());
 		return 0;
+	}
+
+	/**
+	 * Resolve a StringLiteral to its raw string value (quotes stripped).
+	 * Returns null if the operand is not a StringLiteral.
+	 */
+	private String resolveString(AsmExpression operand) {
+		if (operand instanceof StringLiteral) {
+			return ((StringLiteral) operand).getValue();
+		}
+		return null;
 	}
 
 	/**
@@ -953,28 +1148,28 @@ public class Z80Assembler {
 		s = s.trim();
 		// Hex: $XXXX or 0xXXXX
 		if (s.startsWith("$")) {
-			return Integer.parseInt(s.substring(1), 16);
+			return (int) Long.parseLong(s.substring(1), 16);
 		}
 		if (s.toLowerCase().startsWith("0x")) {
-			return Integer.parseInt(s.substring(2), 16);
+			return (int) Long.parseLong(s.substring(2), 16);
 		}
 		// Hex: XXXXh or XXXXH
 		if (s.endsWith("h") || s.endsWith("H")) {
-			return Integer.parseInt(s.substring(0, s.length() - 1), 16);
+			return (int) Long.parseLong(s.substring(0, s.length() - 1), 16);
 		}
 		// Binary: %XXXX or 0bXXXX
 		if (s.startsWith("%")) {
-			return Integer.parseInt(s.substring(1), 2);
+			return (int) Long.parseLong(s.substring(1), 2);
 		}
 		if (s.toLowerCase().startsWith("0b")) {
-			return Integer.parseInt(s.substring(2), 2);
+			return (int) Long.parseLong(s.substring(2), 2);
 		}
 		// Binary: XXXXb or XXXXB
 		if (s.endsWith("b") || s.endsWith("B")) {
-			return Integer.parseInt(s.substring(0, s.length() - 1), 2);
+			return (int) Long.parseLong(s.substring(0, s.length() - 1), 2);
 		}
 		// Fallback decimal
-		return Integer.parseInt(s);
+		return (int) Long.parseLong(s);
 	}
 
 	// ─────────────── Byte emission helpers ───────────────

@@ -49,6 +49,39 @@
     ; Unconditional jump
     JP $8000            ; C3 00 80
 
+    ; ── Data directives ──
+
+    ; DEFB / DB — single bytes and expressions
+    DEFB 1, 2, $80+1   ; 01 02 81
+    DB $FF              ; FF
+
+    ; DEFB / DB — string data (each char emitted as a byte)
+    DB "Hello"          ; 48 65 6C 6C 6F
+
+    ; DEFW / DW — 16-bit words, little-endian
+    DEFW $1234          ; 34 12
+    DW 256*2            ; 00 02
+
+    ; DEFW_BE / DW_BE — 16-bit words, big-endian
+    ; NOTE: z88dk z80asm does not recognise DW_BE or DEFW_BE despite wiki docs
+    ; Uncomment to test with our assembler only:
+    ; DW_BE $AABB         ; AA BB
+
+    ; DEFP — 24-bit pointer, little-endian
+    DEFP $123456        ; 56 34 12
+
+    ; DEFQ — 32-bit dword, little-endian
+    DEFQ $DEADBEEF      ; EF BE AD DE
+
+    ; DEFS / DS — reserve space (filled bytes)
+    DEFS 4, $FF         ; FF FF FF FF
+    DEFS 3              ; 00 00 00
+
+    ; DC — terminated string (bit 7 set on last char)
+    ; NOTE: z88dk z80asm does not recognise DC despite wiki docs
+    ; Uncomment to test with our assembler only:
+    ; DC "abc"            ; 61 62 E3
+
     ; Halt and return
     HALT                ; 76
     RET                 ; C9
