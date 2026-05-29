@@ -9,7 +9,7 @@
 	<artifactId>uk.co.bithatch.zxbasic</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
-	<build>
+	<!--<build>
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -35,7 +35,7 @@
 					</arguments>
 					<classpathScope>compile</classpathScope>
 					<includePluginDependencies>true</includePluginDependencies>
-					<cleanupDaemonThreads>false</cleanupDaemonThreads><!-- see https://bugs.eclipse.org/bugs/show_bug.cgi?id=475098#c3 -->
+					<cleanupDaemonThreads>false</cleanupDaemonThreads> see https://bugs.eclipse.org/bugs/show_bug.cgi?id=475098#c3 
 				</configuration>
 				<dependencies>
 					<dependency>
@@ -95,6 +95,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	</build>-->
 
 </project>

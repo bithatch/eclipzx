@@ -24,14 +24,6 @@ public abstract class AbstractPreferencesAccess {
 		}
 	}
 	
-	public static File resolve(IProject project, String path) {
-		if (path.startsWith(File.separator)) {
-			return new File(path);
-		} else {
-			return new File(project.getLocation().toFile(), path);
-		}
-	}
-	
 	private final String activatorId;
 	
 	protected AbstractPreferencesAccess(String activatorId) {

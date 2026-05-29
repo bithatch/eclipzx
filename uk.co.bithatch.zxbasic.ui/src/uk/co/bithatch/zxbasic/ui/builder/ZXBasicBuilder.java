@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -325,7 +326,8 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 
 	private static boolean isInOutputFolder(IFile file) {
 		var outdir = ZXBasicPreferencesAccess.get().getOutputFolder(file.getProject());
-		return outdir.getLocation().isPrefixOf(file.getLocation());
+		var loc = file.getLocation();
+		return loc != null && outdir.getLocation().isPrefixOf(loc);
 	}
 
 	class ZXBasicResourceVisitor implements IResourceVisitor {
@@ -371,7 +373,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 		}
 		
 		/* Just ignore folders entirely, but continue looking */
-		if(resource instanceof IFolder || resource instanceof IProject) {
+		if(resource instanceof IFolder || resource instanceof IProject || resource.getLocation() == null) {
 			return BuildResult.CONTINUE;
 		}
 		

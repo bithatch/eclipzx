@@ -19,7 +19,6 @@ Export-Package:
  uk.co.bithatch.fatexplorer.wizards
 Import-Package: de.waldheinz.fs,
  de.waldheinz.fs.fat,
- de.waldheinz.fs.util,
  uk.co.bithatch.zyxy.lib;version="0.0.0",
  uk.co.bithatch.zyxy.mmc;version="0.0.0"
 Bundle-Activator: uk.co.bithatch.fatexplorer.Activator

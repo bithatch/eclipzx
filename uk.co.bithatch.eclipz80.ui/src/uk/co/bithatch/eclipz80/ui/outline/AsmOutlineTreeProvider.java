@@ -3,13 +3,135 @@
  */
 package uk.co.bithatch.eclipz80.ui.outline;
 
+import org.eclipse.xtext.ui.editor.outline.IOutlineNode;
 import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider;
+
+import uk.co.bithatch.eclipz80.asm.*;
 
 /**
  * Customization of the default outline structure.
+ *
+ * Excludes Z80 CPU instructions from the outline, keeping only structural
+ * elements: labels, directives, modules, sections, includes, etc.
  *
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#outline
  */
 public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
 
+	/**
+	 * Create children for the program root. Iterates lines and only creates nodes
+	 * for lines that contain structural elements (labels, directives).
+	 */
+	protected void _createChildren(IOutlineNode parentNode, AsmProgram program) {
+		for (AsmLine line : program.getLines()) {
+			if (isOutlineWorthy(line)) {
+				createNode(parentNode, line);
+			}
+		}
+	}
+
+	/**
+	 * Statement lines are always leaves in the outline (no need to drill into
+	 * instruction details).
+	 */
+	protected boolean _isLeaf(AsmStatementLine line) {
+		return true;
+	}
+
+	protected boolean _isLeaf(LabelOnlyLine line) {
+		return true;
+	}
+
+	protected boolean _isLeaf(LabelEQULine line) {
+		return true;
+	}
+
+	protected boolean _isLeaf(AsmDefcLine line) {
+		return true;
+	}
+
+	protected boolean _isLeaf(AsmNumericLabelLine line) {
+		return true;
+	}
+
+	protected boolean _isLeaf(AsmLocalLine line) {
+		return true;
+	}
+
+	/**
+	 * Determines whether an AsmLine should appear in the outline.
+	 */
+	private boolean isOutlineWorthy(AsmLine line) {
+		// Label-only lines, EQU lines, DEFC lines, LOCAL lines, numeric labels - always show
+		if (line instanceof LabelOnlyLine
+				|| line instanceof LabelEQULine
+				|| line instanceof AsmDefcLine
+				|| line instanceof AsmLocalLine
+				|| line instanceof AsmNumericLabelLine) {
+			return true;
+		}
+
+		// Statement lines - show if they have a label or contain a directive
+		if (line instanceof AsmStatementLine) {
+			AsmStatementLine stmtLine = (AsmStatementLine) line;
+
+			// Has a label? Always show
+			if (stmtLine.getLabelDef() != null) {
+				return true;
+			}
+
+			// Contains at least one directive? Show
+			for (AsmStatement stmt : stmtLine.getStatements()) {
+				if (isDirective(stmt)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Determines whether an AsmStatement is a directive (structural) rather than
+	 * a Z80 CPU instruction. Directives are shown in the outline; instructions
+	 * are not.
+	 */
+	private boolean isDirective(AsmStatement stmt) {
+		return stmt instanceof AsmOrg
+				|| stmt instanceof AsmInclude
+				|| stmt instanceof AsmModule
+				|| stmt instanceof AsmSection
+				|| stmt instanceof AsmCLINE
+				|| stmt instanceof AsmAlignDirective
+				|| stmt instanceof AsmAssumeDirective
+				|| stmt instanceof AsmCallOzDirective
+				|| stmt instanceof AsmCallPkgDirective
+				|| stmt instanceof AsmBinaryDirective
+				|| stmt instanceof AsmCopperWaitDirective
+				|| stmt instanceof AsmCopperMoveDirective
+				|| stmt instanceof AsmCopperStopDirective
+				|| stmt instanceof AsmCopperNopDirective
+				|| stmt instanceof AsmDefByteDirective
+				|| stmt instanceof AsmDefWordDirective
+				|| stmt instanceof AsmDefWordBEDirective
+				|| stmt instanceof AsmDefPointerDirective
+				|| stmt instanceof AsmDefDWordDirective
+				|| stmt instanceof AsmDefTermStringDirective
+				|| stmt instanceof AsmDefSpaceDirective
+				|| stmt instanceof AsmDataDefineGroup
+				|| stmt instanceof AsmDataDefineVars
+				|| stmt instanceof AsmDMAWR0Directive
+				|| stmt instanceof AsmDMAWR1Directive
+				|| stmt instanceof AsmDMAWR2Directive
+				|| stmt instanceof AsmDMAWR3Directive
+				|| stmt instanceof AsmDMAWR4Directive
+				|| stmt instanceof AsmDMAWR5Directive
+				|| stmt instanceof AsmDMAWR6Directive
+				|| stmt instanceof AsmExternDirective
+				|| stmt instanceof AsmNextReg
+				|| stmt instanceof AsmMmuStatement
+				|| stmt instanceof AsmProcStatement;
+	}
 }

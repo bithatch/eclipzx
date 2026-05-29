@@ -8,7 +8,6 @@ Bundle-Activator: uk.co.bithatch.bitzx.Activator
 Bundle-Vendor: Bithatch
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.core.resources,
  org.eclipse.debug.core
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.bitzx

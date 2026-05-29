@@ -1,5 +1,6 @@
 package uk.co.bithatch.eclipz80.ui;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.osgi.framework.BundleContext;
@@ -16,16 +17,7 @@ public class AsmUiActivator extends Eclipz80Activator {
 	
 	@Override
 	public void start(BundleContext context) throws Exception {
-		
-//        EPackage.Registry.INSTANCE.put(AsmPackage.eNS_URI, AsmPackage.eINSTANCE);
-//        ResourcesPlugin.getWorkspace().addResourceChangeListener(new ZXBasicResourceListener());
-        
-        /* TODO Find a better way. Triggers early preference initialization. */
-//		ZXBasicPreferencesAccess.get().getPreferenceStore().getString(ZXBasicPreferenceConstants.ARCHITECTURE);
-		
-//		Platform.getAdapterManager().loadAdapter(new LibraryFileNode(null, new File("/tmp/foo.bas")), IStorage.class.getName());
-
-		
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(new AsmResourceListener());
         super.start(context);
     }
 

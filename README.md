@@ -14,26 +14,29 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
 
  * Boriel ZX Basic support. Write your games and applications in a modern ZX Basic that compiles to machine code.
  * Z88DK C support. Write your games and applications in C.
+ * Z80 Assembly Language support (Z88DK/ZX Basic assembler compatible).  Write your games and applications in pure Z80.
+ * Mix all 3 languages in a single project, view and navigate generated assembler for high level languages.
  * Define multiple SDKs for both ZX Basic and Z88DK and select the one to use with your project. E.g. A recent version of Boriels SDK will be bundled, but you can always download your own.
- * Adds concept of User Libraries to ZX Basic that you can share with others to use in their EclipZX projects. Comes with one example implementation, the great NextLib.
+ * EclipZX adds concept of User Libraries to ZX Basic that you can share with others to use in their EclipZX projects. Comes with one example implementation, the great NextLib.
  * Deploy to any number of common formats such as NEX, TGZ, TAP, SNA and more.
  * Fully featured built in emulator based on JSpeccy (Original ZX Spectrum family only)
  * Click+Run your source file, it will be built and deployed to your chosen emulator.
  * Comes with emulator launch templates for MAME, CSpect and Zesarux. 
+ * Debugging support for internal emulator and external emulators that support DeZOG and GDB (tested with MAME and CSpect)¹ .
  * Create, Format and Manage FAT16/FAT32 disk images, for deploying your games on SD 
    cards for the next. The same system is used for launching emulators that support SD card images. 
  * Application export to Zip your SD card images or directory structures for publishing.
  * For ZX Next support, generated disk images can be based on Next ZXOS. 
  * ZX Next Sprite editor, and UDG / Character set Editors for original Spectrums.
- * ZX Next palette editors.
+ * ZX Next palette editor.
+ * ZX Next tilemap editor.
  * A screen editor supporting .SCR for original video modes, and all new ZX Next modes¹ .
  * Compress and decompress files using ZX0. 
  * AYFX Effects Editor.
  * Various project creation wizards, imports and exports.
- * Debugging support for internal emulator and external emulators that support DeZOG and GDB (tested with MAME and CSpect)¹ .
- * Experimental built in ZX Basic interpreter where you can test short pieces of code.
  * Highly configurable globally and at the project level.
  * Infinitely expandable with compatible plugins from the Eclipse Marketplace.
+ * Experimental built in ZX Basic interpreter where you can test short pieces of code¹.
 
 *¹ Under development now*
 

@@ -4,6 +4,13 @@
 package uk.co.bithatch.eclipz80.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.xtext.ide.editor.syntaxcoloring.ISemanticHighlightingCalculator;
+
+import uk.co.bithatch.eclipz80.IAsmIncludeSource;
+import uk.co.bithatch.eclipz80.ui.library.AsmLibraryIncludeSource;
+import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmHighlightingConfiguration;
+import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmSemanticHighlightingCalculator;
+import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmTokenToAttributeMapper;
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
@@ -12,5 +19,21 @@ public class AsmUiModule extends AbstractAsmUiModule {
 
 	public AsmUiModule(AbstractUIPlugin plugin) {
 		super(plugin);
+	}
+
+	public Class<? extends IAsmIncludeSource> bindIAsmIncludeSource() {
+	    return AsmLibraryIncludeSource.class;
+	}
+
+	public Class<? extends ISemanticHighlightingCalculator> bindISemanticHighlightingCalculator() {
+	    return AsmSemanticHighlightingCalculator.class;
+	}
+
+	public Class<? extends org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration> bindIHighlightingConfiguration() {
+		return AsmHighlightingConfiguration.class;
+	}
+
+	public Class<? extends org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
+		return AsmTokenToAttributeMapper.class;
 	}
 }

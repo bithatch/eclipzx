@@ -3,11 +3,15 @@ package uk.co.bithatch.eclipz88dk;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.cdt.core.CProjectNature;
+import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -186,5 +190,66 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			debugInfo.parse(file);
 		}
 		return debugInfo;
+	}
+
+	@Override
+	public Set<String> findIncludeSourcePaths(IFile baseFile) {
+		var prj = baseFile.getProject();
+		var sdk = Z88DKPreferencesAccess.get().getSDK(prj).orElse(null);
+		if(sdk != null) {
+			var paths = new java.util.LinkedHashSet<Path>();
+			
+			/* Collect include paths from the project itself and referenced projects */
+			collectIncludePathsFromProject(prj, paths);
+			
+			/* Collect include paths from referenced projects */
+			var projDesc = CoreModel.getDefault().getProjectDescription(prj, false);
+			if (projDesc != null) {
+				var cfgDesc = projDesc.getActiveConfiguration();
+				if (cfgDesc != null) {
+					var refMap = cfgDesc.getReferenceInfo();
+					for (var entry : refMap.entrySet()) {
+						var refProjName = entry.getKey();
+						var refProject = prj.getWorkspace().getRoot().getProject(refProjName);
+						if (refProject != null && refProject.isAccessible()) {
+							collectIncludePathsFromProject(refProject, paths);
+						}
+					}
+				}
+			}
+
+			return paths.stream().map(Path::toString).collect(Collectors.toCollection(LinkedHashSet::new));
+		}
+
+		return Collections.emptySet();
+	}
+
+	private void collectIncludePathsFromProject(IProject project, java.util.Set<Path> paths) {
+		var projDesc = CoreModel.getDefault().getProjectDescription(project, false);
+		if (projDesc == null) return;
+
+		var cfgDesc = projDesc.getActiveConfiguration();
+		if (cfgDesc == null) return;
+
+		var root = cfgDesc.getRootFolderDescription();
+		if (root == null) return;
+
+		var projectLocation = project.getLocation();
+
+		for (var lang : root.getLanguageSettings()) {
+			for (var se : lang.getResolvedSettingEntries(org.eclipse.cdt.core.settings.model.ICSettingEntry.INCLUDE_PATH)) {
+				var value = se.getValue();
+				if (value == null || value.isEmpty()) continue;
+
+				var file = new File(value);
+				if (!file.isAbsolute() && projectLocation != null) {
+					file = new File(projectLocation.toFile(), value);
+				}
+
+				if (file.isDirectory()) {
+					paths.add(file.toPath());
+				}
+			}
+		}
 	}
 }

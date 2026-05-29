@@ -3,9 +3,29 @@
  */
 package uk.co.bithatch.eclipz80;
 
+import org.eclipse.xtext.generator.IOutputConfigurationProvider;
+import org.eclipse.xtext.scoping.IGlobalScopeProvider;
+import org.eclipse.xtext.scoping.impl.ImportUriResolver;
+
+import uk.co.bithatch.eclipz80.generator.AsmOutputConfigurationProvider;
+import uk.co.bithatch.eclipz80.scoping.AsmGlobalScopeProvider;
+import uk.co.bithatch.eclipz80.scoping.AsmUriResolver;
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 public class AsmRuntimeModule extends AbstractAsmRuntimeModule {
+
+	public Class<? extends ImportUriResolver> bindImportUriResolver() {
+		return AsmUriResolver.class;
+	}
+	
+	@Override
+	public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
+		return AsmGlobalScopeProvider.class;
+	}
+
+	public Class<? extends IOutputConfigurationProvider> bindIOutputConfigurationProvider() {
+		return AsmOutputConfigurationProvider.class;
+	}
 }

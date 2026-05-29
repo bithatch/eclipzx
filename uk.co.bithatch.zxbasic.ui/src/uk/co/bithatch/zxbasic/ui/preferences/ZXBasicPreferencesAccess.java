@@ -14,8 +14,10 @@ import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.emf.common.util.URI;
 
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
 import uk.co.bithatch.zxbasic.ui.ZXBasicUiActivator;
@@ -165,10 +167,37 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 				.orElseGet(() -> ContributedSDKRegistry.getDefaultSDKOr().orElse(null)));
 	}
 
+	public List<URI> getExternalLibURIs(IProject project) {
+		return getConfiguredLibraryPaths(project).
+				stream().
+				filter(p -> p.length() > 0).
+				map(p -> {
+					if (p.startsWith("/") || p.startsWith("\\")) {
+						return URI.createURI(new File(p).toURI().toString());
+					} else {
+						IResource member = project.findMember(p);
+						if (member == null) {
+							return null;
+						}
+						else {
+							return URI.createURI(member.getLocationURI().toString());
+						}
+					}
+				}).filter(o -> o != null).toList();
+	}
+
 	public List<File> getExternalLibs(IProject project) {
 		return getConfiguredLibraryPaths(project).stream().filter(p -> p.length() > 0).map(p -> {
 			return resolve(project, p);
 		}).toList();
+	}
+	
+	private static File resolve(IProject project, String path) {
+		if (path.startsWith(File.separator)) {
+			return new File(path);
+		} else {
+			return new File(project.getLocation().toFile(), path);
+		}
 	}
 
 	public List<String> getConfiguredLibraryPaths(IProject project) {
@@ -186,18 +215,36 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 		else
 			return Arrays.asList(str.split(Pattern.quote(File.pathSeparator)));
 	}
-
-	public List<File> getAllLibs(IProject project) {
-		return Stream
-				.concat(Stream.concat(getProjectReferencesAndLibs(project).stream(), getExternalLibs(project).stream()),
-						getContributedLibs(project).stream())
-				.distinct().toList();
+	
+	public List<URI> getAllLibURIs(IProject project) {
+		return Stream.concat(
+			Stream.concat(
+				getProjectReferencesAndLibURIs(project).stream(), 
+				getExternalLibURIs(project).stream()
+			),
+			getContributedLibURIs(project).stream()
+		).distinct().toList();
 	}
 
-	public List<File> getProjectReferencesAndLibs(IProject project) {
+	public List<File> getAllLibs(IProject project) {
+		return Stream.concat(
+			Stream.concat(
+				getProjectReferencesAndLibs(project).stream(), 
+				getExternalLibs(project).stream()
+			),
+			getContributedLibs(project).stream()
+		).distinct().toList();
+	}
+
+	public List<URI> getProjectReferencesAndLibURIs(IProject project) {
 		try {
-			return Arrays.asList(project.getDescription().getReferencedProjects()).stream()
-					.flatMap(prj -> Stream.concat(Stream.of(prj.getLocation().toFile()), getAllLibs(prj).stream()))
+			return Arrays.asList(project.getDescription().getReferencedProjects()).
+					stream().
+					flatMap(prj -> 
+						Stream.concat(
+							Stream.of(URI.createURI(prj.getLocationURI().toString())), 
+							getAllLibURIs(prj).stream())
+						)
 					.toList();
 
 		} catch (CoreException e) {
@@ -205,9 +252,35 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 		}
 	}
 
+	public List<File> getProjectReferencesAndLibs(IProject project) {
+		try {
+			return Arrays.asList(project.getDescription().getReferencedProjects()).stream()
+					.flatMap(prj -> Stream.concat(Stream.of(prj.getLocation().toFile()), getAllLibs(prj).stream()))
+					.distinct()
+					.toList();
+
+		} catch (CoreException e) {
+			return Collections.emptyList();
+		}
+	}
+
+	public List<URI> getContributedLibURIs(IProject project) {
+		return ContributedLibraryRegistry.getAllLibraries(project).
+				stream().
+				filter(l -> isValid(project, l)).
+				map(ZXLibrary::location).
+				map(f -> URI.createURI(f.toURI().toString())).
+				distinct().
+				toList();
+	}
+
 	public List<File> getContributedLibs(IProject project) {
-		return ContributedLibraryRegistry.getAllLibraries(project).stream().filter(l -> isValid(project, l))
-				.map(ZXLibrary::location).toList();
+		var allLibs = ContributedLibraryRegistry.getAllLibraries(project);
+		return allLibs.stream().
+				filter(l -> isValid(project, l)).
+				map(ZXLibrary::location).
+				distinct().
+				toList();
 	}
 
 	private boolean isValid(IProject project, ZXLibrary lib) {

@@ -146,6 +146,8 @@
 			name="Copy Qualified Name">
 		</command>
         <command id="uk.co.bithatch.eclipz80.ui.debug.toggleBreakpoint" name="Toggle Breakpoint" />
+		<category id="uk.co.bithatch.eclipz80.ui.AsmNature.category" name="Assembly Nature commands" />
+		<command categoryId="uk.co.bithatch.eclipz80.ui.AsmNature.category" defaultHandler="uk.co.bithatch.eclipz80.ui.builder.AddRemoveAsmNatureHandler" id="uk.co.bithatch.eclipz80.ui.addRemoveAsmNature" name="Add/Remove Assembly Nature" />
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 	
@@ -276,6 +278,13 @@
 		<super type="org.eclipse.xtext.ui.check.expensive"/>
 		<persistent value="true"/>
 	</extension>
+	<extension
+			id="asmProblem"
+			name="Assembler Problem"
+			point="org.eclipse.core.resources.markers">
+		<super type="org.eclipse.core.resources.problemmarker"/>
+		<persistent value="true"/>
+	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
 			category="uk.co.bithatch.eclipz80.Asm"
@@ -293,23 +302,41 @@
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
 			category="uk.co.bithatch.eclipz80.Asm"
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmCompilerPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.compiler.preferencePage"
 			name="Compiler">
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+		</page>
+		<page
+			category="uk.co.bithatch.eclipz80.Asm"
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmDefinesPreferencePage"
+			id="uk.co.bithatch.eclipz80.Asm.defines.preferencePage"
+			name="Defines">
 			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.ui.propertyPages">
 		<page
 			category="uk.co.bithatch.eclipz80.Asm"
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmCompilerPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.compiler.propertyPage"
 			name="Compiler">
 			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
-			<filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature"/>
+			<filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature"/>
+		</page>
+		<page
+			category="uk.co.bithatch.eclipz80.Asm"
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmDefinesPreferencePage"
+			id="uk.co.bithatch.eclipz80.Asm.defines.propertyPage"
+			name="Defines">
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<enabledWhen>
+				<adapt type="org.eclipse.core.resources.IProject"/>
+			</enabledWhen>
+			<filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.ui.menus">
@@ -458,4 +485,80 @@
 			type="text">
 		</fileTypes>
 	</extension>
+	<extension
+		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+		<hyperlinkDetector
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.hyperlinking.AsmIncBinHyperlinkDetector"
+			id="uk.co.bithatch.eclipz80.ui.IncBinHyperlinkDetector"
+			name="INCBIN File Hyperlink"
+			targetId="org.eclipse.ui.DefaultTextEditor">
+		</hyperlinkDetector>
+	</extension>
+	<!-- Assembly Nature -->
+	<extension id="AsmNature" name="Assembly Nature" point="org.eclipse.core.resources.natures">
+		<runtime>
+			<run class="uk.co.bithatch.eclipz80.ui.builder.AsmNature" />
+		</runtime>
+		<builder id="uk.co.bithatch.eclipz80.ui.AsmBuilder" />
+	</extension>
+	<extension id="AsmBuilder" name="Assembly Builder" point="org.eclipse.core.resources.builders">
+		<builder hasNature="true">
+			<run class="uk.co.bithatch.eclipz80.ui.builder.AsmBuilder" />
+		</builder>
+	</extension>
+	<extension point="org.eclipse.ui.ide.projectNatureImages">
+		<image id="uk.co.bithatch.eclipz80.ui.AsmNature.image" natureId="uk.co.bithatch.eclipz80.ui.AsmNature" icon="icons/nature8.png" />
+	</extension>
+	<extension point="org.eclipse.ui.menus">
+		<menuContribution locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+			<command commandId="uk.co.bithatch.eclipz80.ui.addRemoveAsmNature" label="Disable Assembly Nature" style="push">
+				<visibleWhen checkEnabled="false">
+					<with variable="selection">
+						<count value="1" />
+						<iterate>
+							<adapt type="org.eclipse.core.resources.IProject">
+								<test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature" />
+							</adapt>
+						</iterate>
+					</with>
+				</visibleWhen>
+			</command>
+			<command commandId="uk.co.bithatch.eclipz80.ui.addRemoveAsmNature" label="Enable Assembly Nature" style="push">
+				<visibleWhen checkEnabled="false">
+					<with variable="selection">
+						<count value="1" />
+						<iterate>
+							<adapt type="org.eclipse.core.resources.IProject">
+								<not>
+									<test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature" />
+								</not>
+							</adapt>
+						</iterate>
+					</with>
+				</visibleWhen>
+			</command>
+		</menuContribution>
+	</extension>
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer class="uk.co.bithatch.eclipz80.ui.preferences.AsmPreferenceInitializer" />
+	</extension>
+	<extension point="org.eclipse.ui.newWizards">
+		<category id="uk.co.bithatch.eclipzx.projects.category" name="Create ZX and ZX Next Projects" />
+		<wizard
+			id="uk.co.bithatch.eclipz80.AsmProjectWizard"
+			name="Z80 Assembly Project"
+			class="uk.co.bithatch.eclipz80.ui.wizard.AsmProjectWizard"
+			category="uk.co.bithatch.eclipzx.projects.category"
+			icon="icons/asm16.png"
+			project="true">
+			<description>Create a new Z80 assembly project with .asm file support</description>
+		</wizard>
+	</extension>
+	
+    <extension point="uk.co.bithatch.bitzx.languageSystemProvider">
+        <languageSystemProvider 
+            id="uk.co.bithatch.eclipz80.ui.langageSystemProvider.asm" 
+            name="EclipZ80 Assembler" 
+            class="uk.co.bithatch.eclipz80.ui.language.AsmLanguageSystemProvider"/> 
+    </extension>     
 </plugin>

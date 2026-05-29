@@ -14,8 +14,6 @@ Require-Bundle: uk.co.bithatch.zxbasic;visibility:=reexport,
  org.eclipse.ui;visibility:=reexport,
  org.eclipse.jface;visibility:=reexport,
  org.eclipse.compare,
- org.eclipse.debug.ui,
- org.eclipse.core.runtime,
  org.eclipse.core.resources;visibility:=reexport,
  org.eclipse.xtext.builder;visibility:=reexport,
  uk.co.bithatch.zxbasic.ide;bundle-version="1.0.0";visibility:=reexport,
@@ -25,13 +23,9 @@ Require-Bundle: uk.co.bithatch.zxbasic;visibility:=reexport,
  uk.co.bithatch.jspeccy;bundle-version="1.0.0",
  org.eclipse.core.variables;bundle-version="3.6.500",
  uk.co.bithatch.widgetzx;bundle-version="1.0.0";visibility:=reexport,
- uk.co.bithatch.emuzx;bundle-version="1.0.0",
  uk.co.bithatch.emuzx.ui;bundle-version="1.0.0",
- uk.co.bithatch.emuzx.emulator.jspeccy;bundle-version="1.0.0",
  uk.co.bithatch.emuzx.debug;bundle-version="1.0.0"
-Import-Package: jakarta.inject;version="[2.0.0,3.0.0)",
- org.apache.log4j,
- uk.co.bithatch.zyxy.dezog
+Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Export-Package: uk.co.bithatch.zxbasic.ui;
   uses:="com.google.inject,

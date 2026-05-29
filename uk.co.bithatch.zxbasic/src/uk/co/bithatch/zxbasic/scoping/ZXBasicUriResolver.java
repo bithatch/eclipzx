@@ -6,14 +6,18 @@ import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
 import com.google.inject.Inject;
 
-import uk.co.bithatch.zxbasic.IIncludeSource;
+import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.basic.PPInclude;
 
+
+/**
+ * TODO share code with AsmBasicUriResolver
+ */
 
 public class ZXBasicUriResolver  extends ImportUriResolver {
 
 	@Inject(optional = true)
-	private IIncludeSource includeSource;
+	private ZxBasicIncludeSource includeSource;
 	
 	
 	@Inject

@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -38,6 +40,7 @@ public class Z80AssemblerCLI {
 		boolean farAddresses = false;
 		String inputArg = null;
 		String outputArg = null;
+		Map<String, String> defs = new LinkedHashMap<>();
 
 		for (String arg : args) {
 			if ("--map".equals(arg)) {
@@ -47,6 +50,11 @@ public class Z80AssemblerCLI {
 				mapPath = Paths.get(arg.substring("--map=".length())).toAbsolutePath();
 			} else if ("--far".equals(arg)) {
 				farAddresses = true;
+			} else if(arg.startsWith("-D")) {
+				String name = arg.substring(2);
+				int idx = arg.indexOf('=');
+				String value = idx == -1 ? null : arg.substring(idx + 1);
+				defs.put(name, value);
 			} else if (inputArg == null) {
 				inputArg = arg;
 			} else if (outputArg == null) {
@@ -108,6 +116,9 @@ public class Z80AssemblerCLI {
 		if (farAddresses) {
 			builder.withFarAddresses();
 		}
+		
+		defs.forEach(builder::withDefine);
+		
 		Z80Assembler assembler = builder.build();
 
 		// ── Assemble ──

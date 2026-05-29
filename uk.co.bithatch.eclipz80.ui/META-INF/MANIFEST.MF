@@ -11,14 +11,21 @@ Require-Bundle: uk.co.bithatch.eclipz80,
  org.eclipse.xtext.ui,
  org.eclipse.xtext.ui.shared,
  org.eclipse.xtext.ui.codetemplates.ui,
- org.eclipse.ui.editors;bundle-version="3.14.300",
- org.eclipse.ui.ide;bundle-version="3.18.500",
- org.eclipse.ui,
  org.eclipse.compare,
- org.eclipse.xtext.builder
+ org.eclipse.xtext.builder,
+ org.eclipse.ui,
+ org.eclipse.ui.editors,
+ org.eclipse.core.filesystem,
+ org.eclipse.ui.ide,
+ org.eclipse.core.resources,
+ uk.co.bithatch.bitzx;bundle-version="[1.0.0,2.0.0)",
+ uk.co.bithatch.widgetzx;bundle-version="[1.0.0,2.0.0)"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Export-Package: uk.co.bithatch.eclipz80.ui.contentassist,
  uk.co.bithatch.eclipz80.ui.quickfix,
- uk.co.bithatch.eclipz80.ui.internal
+ uk.co.bithatch.eclipz80.ui.internal,
+ uk.co.bithatch.eclipz80.ui.builder,
+ uk.co.bithatch.eclipz80.ui.preferences,
+ uk.co.bithatch.eclipz80.ui.wizard
 Bundle-Activator: uk.co.bithatch.eclipz80.ui.AsmUiActivator

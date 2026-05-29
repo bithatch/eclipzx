@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -51,4 +52,6 @@ public interface ILanguageSystemProvider {
 	String[] sourceFileExtensions();
 
 	List<? extends IArchitecture> architectures(IProject project, String sdkName);
+	
+	Set<String> findIncludeSourcePaths(IFile baseFile);
 }

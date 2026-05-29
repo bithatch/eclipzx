@@ -12,7 +12,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.osgi.framework.BundleContext;
 
-import uk.co.bithatch.zxbasic.asm.AsmPackage;
 import uk.co.bithatch.zxbasic.basic.BasicPackage;
 import uk.co.bithatch.zxbasic.ui.internal.ZxbasicActivator;
 import uk.co.bithatch.zxbasic.ui.navigator.LibraryFileNode;
@@ -57,7 +56,6 @@ public class ZXBasicUiActivator extends ZxbasicActivator {
 		catch(Exception e) { 
 		}
 		
-        EPackage.Registry.INSTANCE.put(AsmPackage.eNS_URI, AsmPackage.eINSTANCE);
         EPackage.Registry.INSTANCE.put(BasicPackage.eNS_URI, BasicPackage.eINSTANCE);
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new ZXBasicResourceListener());
         

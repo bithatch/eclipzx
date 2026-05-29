@@ -12,12 +12,16 @@ import org.eclipse.xtext.util.IAcceptor;
 
 import com.google.inject.Inject;
 
-import uk.co.bithatch.zxbasic.IIncludeSource;
+import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.ILanguageSettings;
 import uk.co.bithatch.zxbasic.basic.Group;
 import uk.co.bithatch.zxbasic.basic.PPInclude;
 import uk.co.bithatch.zxbasic.basic.Program;
 import uk.co.bithatch.zxbasic.basic.Referable;
+
+/**
+ * TODO share code with AsmResourceDescriptionStrategy
+ */
 
 public class ZXBasicResourceDescriptionStrategy  extends DefaultResourceDescriptionStrategy {
 	public static final String INCLUDES = "includes";
@@ -27,7 +31,7 @@ public class ZXBasicResourceDescriptionStrategy  extends DefaultResourceDescript
 	@Inject
 	private ILanguageSettings languageSettings;
 	@Inject(optional = true)
-	private IIncludeSource includeSource;
+	private ZxBasicIncludeSource includeSource;
 
 	@Override
 	public boolean createEObjectDescriptions(EObject eObject, IAcceptor<IEObjectDescription> acceptor) {

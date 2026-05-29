@@ -10,9 +10,6 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  *  - FLOAT
  *  - FPP
  *  - GLOBAL
- *  - IF ELIF ELSE ENDIF
- *  - IFDEF ELIFDEF ELSE ENDIF
- *  - IFNDEF ELIFNDEF ELSE ENDIF
  *  - INCLUDE
  *  - INVOKE
  *  - LSTOFF
@@ -44,14 +41,16 @@ AsmNumericLabelLine:
     {AsmNumericLabelLine}
     label=NUMERIC_LABEL;
 
+AsmLabelDef:
+    name=ID;
     
 AsmLabelEQULine:
     {LabelEQULine}
-    label=ID ':'? 'EQU' value=AsmExpression;
+    labelDef=AsmLabelDef ':'? 'EQU' value=AsmExpression;
     
 AsmDefcLine:
     {AsmDefcLine}
-    'DEFC' name=ID '=' value=AsmExpression;
+    'DEFC' labelDef=AsmLabelDef '=' value=AsmExpression;
     
 AsmLocalLine:
     {AsmLocalLine}
@@ -59,11 +58,11 @@ AsmLocalLine:
 
 AsmLabelOnlyLine:
     {LabelOnlyLine}
-    label=ID ':'?;
+    labelDef=AsmLabelDef ':'?;
 
 AsmStatementLine:
     {AsmStatementLine}
-    (label=ID ':'?)?
+    (labelDef=AsmLabelDef ':'?)?
     statements+=AsmStatement (':' statements+=AsmStatement)*;
     
 AsmStatement:
@@ -96,6 +95,7 @@ AsmStatement:
     AsmDefDWordDirective |
     AsmDefTermStringDirective |
     AsmDefSpaceDirective |
+    AsmDefineDirective |
     AsmDataDefineGroup |
     AsmDataDefineVars |
     AsmDMAWR0Directive |
@@ -106,6 +106,9 @@ AsmStatement:
     AsmDMAWR5Directive |
     AsmDMAWR6Directive |
     AsmExternDirective |
+    AsmIfDirective |
+    AsmIfDefDirective |
+    AsmIfNDefDirective | 
     AsmPopStatement |
     AsmAndStatement |
     AsmOrStatement |
@@ -224,6 +227,10 @@ AsmDataDefineGroup:
     '}'
 ;
 
+AsmDefineDirective:
+    {Define} 'DEFINE' defines += AsmGroupedDefine (',' defines += AsmGroupedDefine)
+;
+
 AsmGroupedDefine:
     name = ID ( '=' data = AsmExpression )
 ;
@@ -236,6 +243,30 @@ AsmDataDefineVars:
 
 AsmVarDefine:
     (name = ID)? size = ID count = IntegralLiteral
+;
+
+AsmIfDirective:
+    {AsmIf} 'IF' condition=AsmExpression
+        program=AsmProgram
+        ('ELIF' elifCondition+=AsmExpression elifProgram+=AsmProgram)* 
+        ('ELSE' elseProgram=AsmProgram)?
+         'ENDIF'
+;
+
+AsmIfDefDirective:
+    {AsmIfDef} 'IFDEF' name=ID
+        program=AsmProgram
+        ('ELIFDEF' elifName+=ID elifProgram+=AsmProgram)* 
+        ('ELSE' elseProgram=AsmProgram)?
+         'ENDIF'
+;
+
+AsmIfNDefDirective:
+    {AsmIfNDef} 'IFNDEF' name=ID
+        program=AsmProgram
+        ('ELIFNDEF' elifName+=ID elifProgram+=AsmProgram)* 
+        ('ELSE' elseProgram=AsmProgram)?
+         'ENDIF'
 ;
 
 AsmEIStatement:
@@ -358,8 +389,6 @@ AsmRstStatement:
 AsmProcStatement:
     {Proc} 'PROC'
 ;
-
-// ─────────────── Missing Standard Z80 Instructions ───────────────
 
 AsmBitStatement:
     {Bit} 'BIT' name=AsmExpression ',' value=AsmExpression
@@ -675,7 +704,7 @@ AsmIndirect:
 ;
 
 AsmLabel:
-    name = ID
+    ref=[AsmLabelDef]
 ;
 
 /*
@@ -713,7 +742,7 @@ AsmCallPkgDirective:
 ;
 
 AsmBinaryDirective:
-    {IncBin} ('BINARY' |'INCBIN') file=StringLiteral
+    {IncBin} ('BINARY' |'INCBIN') file=STRING
 ;
 
 AsmAssumeDirective:
@@ -792,7 +821,7 @@ AsmCall:
 ;
 
 AsmInclude:
-    'INCLUDE' name=STRING
+    'INCLUDE' importURI=FileSpec
 ;
 
 AsmSection:
@@ -806,6 +835,9 @@ IntegralLiteral:
 
 StringLiteral:
     value=STRING;
+
+FileSpec returns ecore::EString:
+    STRING;
 
 
 // ─────────────── TERMINALS ───────────────

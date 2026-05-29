@@ -9,7 +9,7 @@ import org.eclipse.xtext.resource.ILocationInFileProvider;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.ui.editor.outline.IOutlineTreeProvider;
 
-import uk.co.bithatch.zxbasic.IIncludeSource;
+import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.ILanguageSettings;
 import uk.co.bithatch.zxbasic.IReferenceIndex;
 import uk.co.bithatch.zxbasic.ui.contentassist.BasicReferenceIndex;
@@ -67,7 +67,7 @@ public class BasicUiModule extends AbstractBasicUiModule {
 	    return BasicReferenceIndex.class;
 	}
 
-	public Class<? extends IIncludeSource> bindIIncludeSource() {
+	public Class<? extends ZxBasicIncludeSource> bindIIncludeSource() {
 	    return ZXBasicLibraryIncludeSource.class;
 	}
 	

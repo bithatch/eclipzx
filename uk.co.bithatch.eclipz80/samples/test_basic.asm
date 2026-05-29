@@ -85,3 +85,10 @@
     ; Halt and return
     HALT                ; 76
     RET                 ; C9
+
+
+    ; Some trailing data
+    INCBIN "testbin.dat"
+    INCLUDE "inc.asm"
+
+    DEFP external_thing

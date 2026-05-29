@@ -7,12 +7,110 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
-import uk.co.bithatch.eclipz80.asm.*;
+import uk.co.bithatch.eclipz80.asm.Add;
+import uk.co.bithatch.eclipz80.asm.And;
+import uk.co.bithatch.eclipz80.asm.AsmCall;
+import uk.co.bithatch.eclipz80.asm.AsmCondition;
+import uk.co.bithatch.eclipz80.asm.AsmExpression;
+import uk.co.bithatch.eclipz80.asm.AsmGroupedDefine;
+import uk.co.bithatch.eclipz80.asm.AsmIf;
+import uk.co.bithatch.eclipz80.asm.AsmIfDef;
+import uk.co.bithatch.eclipz80.asm.AsmIfNDef;
+import uk.co.bithatch.eclipz80.asm.AsmIndirect;
+import uk.co.bithatch.eclipz80.asm.AsmLabel;
+import uk.co.bithatch.eclipz80.asm.AsmLabelDef;
+import uk.co.bithatch.eclipz80.asm.AsmLine;
+import uk.co.bithatch.eclipz80.asm.AsmNotExpr;
+import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipz80.asm.AsmRegisterName;
+import uk.co.bithatch.eclipz80.asm.AsmSignedExpr;
+import uk.co.bithatch.eclipz80.asm.AsmStatement;
+import uk.co.bithatch.eclipz80.asm.AsmStatementLine;
+import uk.co.bithatch.eclipz80.asm.BinaryExpr;
+import uk.co.bithatch.eclipz80.asm.Bit;
+import uk.co.bithatch.eclipz80.asm.Ccf;
+import uk.co.bithatch.eclipz80.asm.Cp;
+import uk.co.bithatch.eclipz80.asm.Cpd;
+import uk.co.bithatch.eclipz80.asm.Cpdr;
+import uk.co.bithatch.eclipz80.asm.Cpi;
+import uk.co.bithatch.eclipz80.asm.Cpir;
+import uk.co.bithatch.eclipz80.asm.Cpl;
+import uk.co.bithatch.eclipz80.asm.DI;
+import uk.co.bithatch.eclipz80.asm.Daa;
+import uk.co.bithatch.eclipz80.asm.DataDefineGroup;
+import uk.co.bithatch.eclipz80.asm.Dec;
+import uk.co.bithatch.eclipz80.asm.DefByte;
+import uk.co.bithatch.eclipz80.asm.DefDWord;
+import uk.co.bithatch.eclipz80.asm.DefPointer;
+import uk.co.bithatch.eclipz80.asm.DefSpace;
+import uk.co.bithatch.eclipz80.asm.DefTermString;
+import uk.co.bithatch.eclipz80.asm.DefWord;
+import uk.co.bithatch.eclipz80.asm.DefWordBE;
+import uk.co.bithatch.eclipz80.asm.Define;
+import uk.co.bithatch.eclipz80.asm.Djnz;
+import uk.co.bithatch.eclipz80.asm.EI;
+import uk.co.bithatch.eclipz80.asm.Ex;
+import uk.co.bithatch.eclipz80.asm.Exx;
+import uk.co.bithatch.eclipz80.asm.Halt;
+import uk.co.bithatch.eclipz80.asm.Im;
+import uk.co.bithatch.eclipz80.asm.Inc;
+import uk.co.bithatch.eclipz80.asm.Ind;
+import uk.co.bithatch.eclipz80.asm.Indr;
+import uk.co.bithatch.eclipz80.asm.Ini;
+import uk.co.bithatch.eclipz80.asm.Inir;
+import uk.co.bithatch.eclipz80.asm.IntegralLiteral;
+import uk.co.bithatch.eclipz80.asm.Jp;
+import uk.co.bithatch.eclipz80.asm.Jr;
+import uk.co.bithatch.eclipz80.asm.Ld;
+import uk.co.bithatch.eclipz80.asm.Ldd;
+import uk.co.bithatch.eclipz80.asm.Lddr;
+import uk.co.bithatch.eclipz80.asm.Ldi;
+import uk.co.bithatch.eclipz80.asm.Ldir;
+import uk.co.bithatch.eclipz80.asm.Neg;
+import uk.co.bithatch.eclipz80.asm.Nop;
+import uk.co.bithatch.eclipz80.asm.OrInst;
+import uk.co.bithatch.eclipz80.asm.Org;
+import uk.co.bithatch.eclipz80.asm.Otdr;
+import uk.co.bithatch.eclipz80.asm.Otir;
+import uk.co.bithatch.eclipz80.asm.Outd;
+import uk.co.bithatch.eclipz80.asm.Outi;
+import uk.co.bithatch.eclipz80.asm.Pop;
+import uk.co.bithatch.eclipz80.asm.Push;
+import uk.co.bithatch.eclipz80.asm.Res;
+import uk.co.bithatch.eclipz80.asm.Ret;
+import uk.co.bithatch.eclipz80.asm.Reti;
+import uk.co.bithatch.eclipz80.asm.Retn;
+import uk.co.bithatch.eclipz80.asm.Rl;
+import uk.co.bithatch.eclipz80.asm.Rla;
+import uk.co.bithatch.eclipz80.asm.Rlc;
+import uk.co.bithatch.eclipz80.asm.Rlca;
+import uk.co.bithatch.eclipz80.asm.Rld;
+import uk.co.bithatch.eclipz80.asm.Rr;
+import uk.co.bithatch.eclipz80.asm.Rra;
+import uk.co.bithatch.eclipz80.asm.Rrc;
+import uk.co.bithatch.eclipz80.asm.Rrca;
+import uk.co.bithatch.eclipz80.asm.Rrd;
+import uk.co.bithatch.eclipz80.asm.Rst;
+import uk.co.bithatch.eclipz80.asm.Sbc;
+import uk.co.bithatch.eclipz80.asm.Scf;
+import uk.co.bithatch.eclipz80.asm.SetInst;
+import uk.co.bithatch.eclipz80.asm.Sla;
+import uk.co.bithatch.eclipz80.asm.Sra;
+import uk.co.bithatch.eclipz80.asm.Srl;
+import uk.co.bithatch.eclipz80.asm.StringLiteral;
+import uk.co.bithatch.eclipz80.asm.Sub;
+import uk.co.bithatch.eclipz80.asm.Xor;
 
 /**
  * A simple Z80 assembler that walks an Xtext-parsed {@link AsmProgram} AST and
@@ -34,8 +132,39 @@ import uk.co.bithatch.eclipz80.asm.*;
  */
 public class Z80Assembler {
 
+	/**
+	 * Callback for non-fatal warnings emitted during assembly.
+	 */
+	@FunctionalInterface
+	public interface WarningCallback {
+		void warn(String filename, int line, String warning);
+	}
+
+	/**
+	 * Thrown when the assembler encounters a fatal error (e.g. an
+	 * unimplemented instruction or directive).
+	 */
+	public static class AssemblyException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+		private final String filename;
+		private final int line;
+
+		public AssemblyException(String filename, int line, String message) {
+			super(filename + ":" + line + ": " + message);
+			this.filename = filename;
+			this.line = line;
+		}
+
+		public String getFilename() { return filename; }
+		public int getLine() { return line; }
+	}
+
 	private final List<String> warnings = new ArrayList<>();
+	private final Map<String, String> defines;
 	private int currentAddress = 0;
+	private String effectiveSource;
+	private int currentLine = -1;
+	private WarningCallback warningCallback;
 
 	private Path mapFile;
 	private final boolean mapEnabled;
@@ -70,6 +199,8 @@ public class Z80Assembler {
 		private boolean mapEnabled;
 		private boolean farAddresses;
 		private String sourceFileName;
+		private final Map<String, String> defines = new LinkedHashMap<>();
+		private WarningCallback warningCallback;
 
 		private Builder() {}
 
@@ -112,6 +243,58 @@ public class Z80Assembler {
 			return this;
 		}
 
+		/**
+		 * Set a single defines given its name and value. Value
+		 * may be indicating it will evaluated to true but won't
+		 * expand to anything.
+		 * 
+		 * @param name name
+		 * @param value value
+		 */
+		public Builder withDefine(String name, String value) {
+			defines.put(name, value);
+			return this;
+		}
+		
+
+		/**
+		 * Set the defines. Each string can be either just the 
+		 * key, or key=value format. The former will result in a 
+		 * an empty define (i.e. still evaluates to true).
+		 * 
+		 * @param defineSpecs define specs
+		 */
+		public Builder withDefines(String... defines) {
+			return withDefines(Arrays.asList(defines));
+		}
+
+		/**
+		 * Set the defines. Each string can be either just the 
+		 * key, or key=value format. The former will result in a 
+		 * an empty define (i.e. still evaluates to true).
+		 * 
+		 * @param defineSpecs define specs
+		 */
+		public Builder withDefines(Collection<String> defineSpecs) {
+			defineSpecs.forEach(d -> {
+				var idx = d.indexOf('=');
+				defines.put(
+					idx == -1 ? d : d.substring(0, idx), 
+					idx == -1 ? null : d.substring(idx + 1)
+				);
+			});
+			return this;
+		}
+
+		/**
+		 * Set a callback that receives non-fatal warnings during assembly,
+		 * including the source filename and line number.
+		 */
+		public Builder withWarningCallback(WarningCallback warningCallback) {
+			this.warningCallback = warningCallback;
+			return this;
+		}
+
 		public Z80Assembler build() {
 			return new Z80Assembler(this);
 		}
@@ -132,6 +315,7 @@ public class Z80Assembler {
 		this.mapEnabled = false;
 		this.farAddresses = false;
 		this.sourceFileName = null;
+		this.defines = new LinkedHashMap<>();
 	}
 
 	private Z80Assembler(Builder builder) {
@@ -139,6 +323,8 @@ public class Z80Assembler {
 		this.mapEnabled = builder.mapEnabled;
 		this.farAddresses = builder.farAddresses;
 		this.sourceFileName = builder.sourceFileName;
+		this.defines = new LinkedHashMap<>(builder.defines);
+		this.warningCallback = builder.warningCallback;
 	}
 
 	/**
@@ -175,24 +361,9 @@ public class Z80Assembler {
 		if (effectiveSource == null) {
 			effectiveSource = "unknown";
 		}
+		this.effectiveSource = effectiveSource;
 
-		for (AsmLine line : program.getLines()) {
-			if (line instanceof AsmStatementLine) {
-				AsmStatementLine stmtLine = (AsmStatementLine) line;
-
-				// Record line-to-address mapping before emitting
-				int lineNumber = getLineNumber(stmtLine);
-				String lineFile = getSourceFile(stmtLine, effectiveSource);
-				if (lineNumber > 0) {
-					mapEntries.add(new MapEntry(lineFile, lineNumber, currentAddress & addressMask()));
-				}
-
-				for (AsmStatement stmt : stmtLine.getStatements()) {
-					assembleStatement(stmt, baos);
-				}
-			}
-			// Other line types (labels, EQU, etc.) are ignored for now
-		}
+		assembleLines(program, baos);
 
 		try {
 			baos.writeTo(out);
@@ -285,6 +456,34 @@ public class Z80Assembler {
 		}
 	}
 
+	// ─────────────── Program / line assembly ───────────────
+
+	/**
+	 * Walk the lines of an {@link AsmProgram} and assemble each statement.
+	 * Used both for the top-level program and for conditional branch bodies.
+	 */
+	private void assembleLines(AsmProgram program, ByteArrayOutputStream out) {
+		for (AsmLine line : program.getLines()) {
+			if (line instanceof AsmStatementLine) {
+				AsmStatementLine stmtLine = (AsmStatementLine) line;
+
+				// Record line-to-address mapping before emitting
+				int lineNumber = getLineNumber(stmtLine);
+				String lineFile = getSourceFile(stmtLine, effectiveSource);
+				this.currentLine = lineNumber;
+
+				if (lineNumber > 0) {
+					mapEntries.add(new MapEntry(lineFile, lineNumber, currentAddress & addressMask()));
+				}
+
+				for (AsmStatement stmt : stmtLine.getStatements()) {
+					assembleStatement(stmt, out);
+				}
+			}
+			// Other line types (labels, EQU, etc.) are ignored for now
+		}
+	}
+
 	// ─────────────── Statement dispatch ───────────────
 
 	private void assembleStatement(AsmStatement stmt, ByteArrayOutputStream out) {
@@ -321,6 +520,28 @@ public class Z80Assembler {
 		}
 		if (stmt instanceof DefSpace) {
 			assembleDefSpace((DefSpace) stmt, out);
+			return;
+		}
+		if(stmt instanceof Define) {
+			assembleDefine((Define) stmt, out);
+			return;
+		}
+		if (stmt instanceof DataDefineGroup) {
+			assembleDefineGroup((DataDefineGroup) stmt, out);
+			return;
+		}
+
+		// ── Conditional compilation ──
+		if (stmt instanceof AsmIf) {
+			assembleIf((AsmIf) stmt, out);
+			return;
+		}
+		if (stmt instanceof AsmIfDef) {
+			assembleIfDef((AsmIfDef) stmt, out);
+			return;
+		}
+		if (stmt instanceof AsmIfNDef) {
+			assembleIfNDef((AsmIfNDef) stmt, out);
 			return;
 		}
 
@@ -598,8 +819,9 @@ public class Z80Assembler {
 			return;
 		}
 
-		// If we get here, the instruction is not yet supported
-		warn("Unsupported instruction: " + stmt.eClass().getName());
+		// If we get here, the instruction/directive is not yet supported — hard fail
+		throw new AssemblyException(effectiveSource, currentLine,
+				"Unsupported instruction/directive: " + stmt.eClass().getName());
 	}
 
 	// ─────────────── LD encoding ───────────────
@@ -959,6 +1181,114 @@ public class Z80Assembler {
 		}
 	}
 
+	/**
+	 * DEFINE name[=constr-expression] - Define set of symbols
+	 */
+	private void assembleDefine(Define directive, ByteArrayOutputStream out) {
+		for(var def : directive.getDefines()) {
+			var name = def.getName();
+			var val = resolveConstExpressionAsString(def.getData());
+			defines.put(name, val);
+		}
+	}
+
+	/**
+	 * DEFGROUP { name[=expr] ... } — define a group of symbols.
+	 * Only processes {@link AsmGroupedDefine} entries (ignores AsmVarDefine from DEFVARS).
+	 */
+	private void assembleDefineGroup(DataDefineGroup directive, ByteArrayOutputStream out) {
+		for (EObject entry : directive.getDefines()) {
+			if (entry instanceof AsmGroupedDefine def) {
+				var name = def.getName();
+				var val = resolveConstExpressionAsString(def.getData());
+				defines.put(name, val);
+			}
+		}
+	}
+
+	// ─────────────── Conditional compilation ───────────────
+
+	/**
+	 * IF condition ... ELIF ... ELSE ... ENDIF
+	 * Evaluates expression conditions; a non-zero result is true.
+	 */
+	private void assembleIf(AsmIf directive, ByteArrayOutputStream out) {
+		// Check the primary IF condition
+		if (resolveImmediate(directive.getCondition()) != 0) {
+			assembleLines(directive.getProgram(), out);
+			return;
+		}
+
+		// Check ELIF branches
+		EList<AsmExpression> elifConditions = directive.getElifCondition();
+		EList<AsmProgram> elifPrograms = directive.getElifProgram();
+		for (int i = 0; i < elifConditions.size(); i++) {
+			if (resolveImmediate(elifConditions.get(i)) != 0) {
+				assembleLines(elifPrograms.get(i), out);
+				return;
+			}
+		}
+
+		// ELSE fallback
+		if (directive.getElseProgram() != null) {
+			assembleLines(directive.getElseProgram(), out);
+		}
+	}
+
+	/**
+	 * IFDEF name ... ELIFDEF ... ELSE ... ENDIF
+	 * Checks whether a symbol is present in the defines map.
+	 */
+	private void assembleIfDef(AsmIfDef directive, ByteArrayOutputStream out) {
+		// Check the primary IFDEF name
+		if (defines.containsKey(directive.getName())) {
+			assembleLines(directive.getProgram(), out);
+			return;
+		}
+
+		// Check ELIFDEF branches
+		EList<String> elifNames = directive.getElifName();
+		EList<AsmProgram> elifPrograms = directive.getElifProgram();
+		for (int i = 0; i < elifNames.size(); i++) {
+			if (defines.containsKey(elifNames.get(i))) {
+				assembleLines(elifPrograms.get(i), out);
+				return;
+			}
+		}
+
+		// ELSE fallback
+		if (directive.getElseProgram() != null) {
+			assembleLines(directive.getElseProgram(), out);
+		}
+	}
+
+	/**
+	 * IFNDEF name ... ELIFNDEF ... ELSE ... ENDIF
+	 * Checks whether a symbol is <em>not</em> present in the defines map.
+	 */
+	private void assembleIfNDef(AsmIfNDef directive, ByteArrayOutputStream out) {
+		// Check the primary IFNDEF name
+		if (!defines.containsKey(directive.getName())) {
+			assembleLines(directive.getProgram(), out);
+			return;
+		}
+
+		// Check ELIFNDEF branches
+		EList<String> elifNames = directive.getElifName();
+		EList<AsmProgram> elifPrograms = directive.getElifProgram();
+		for (int i = 0; i < elifNames.size(); i++) {
+			if (!defines.containsKey(elifNames.get(i))) {
+				assembleLines(elifPrograms.get(i), out);
+				return;
+			}
+		}
+
+		// ELSE fallback
+		if (directive.getElseProgram() != null) {
+			assembleLines(directive.getElseProgram(), out);
+		}
+	}
+
 	// ─────────────── Operand resolution helpers ───────────────
 
 	/**
@@ -1108,8 +1438,10 @@ public class Z80Assembler {
 			}
 			return 0;
 		}
-		if (operand instanceof AsmLabel) {
-			warn("Label resolution not yet implemented: " + ((AsmLabel) operand).getName());
+		if (operand instanceof AsmLabel label) {
+			AsmLabelDef def = label.getRef();
+			String labelName = (def != null && !def.eIsProxy()) ? def.getName() : "?";
+			warn("Label resolution not yet implemented: " + labelName);
 			return 0;
 		}
 		if (operand instanceof AsmIndirect) {
@@ -1118,6 +1450,20 @@ public class Z80Assembler {
 		}
 		warn("Cannot resolve operand to immediate value: " + operand.eClass().getName());
 		return 0;
+	}
+	
+	/**
+	 * Resolve a constant expression
+	 * Returns null if the operand is not a constant.
+	 */
+	private String resolveConstExpressionAsString(AsmExpression operand) {
+		if (operand instanceof StringLiteral) {
+			return ((StringLiteral) operand).getValue();
+		}
+		else if (operand instanceof IntegralLiteral lv) {
+			return String.valueOf(resolveIntegralLiteral(lv));
+		}
+		return null;
 	}
 
 	/**
@@ -1187,5 +1533,8 @@ public class Z80Assembler {
 
 	private void warn(String message) {
 		warnings.add(message);
+		if (warningCallback != null && currentLine > 0) {
+			warningCallback.warn(effectiveSource, currentLine, message);
+		}
 	}
 }

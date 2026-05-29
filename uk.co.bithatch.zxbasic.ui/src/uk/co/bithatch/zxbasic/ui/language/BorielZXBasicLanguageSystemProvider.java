@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -121,6 +123,12 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 				return false;
 			}
 		};
+	}
+
+	@Override
+	public Set<String> findIncludeSourcePaths(IFile file) {
+		var allLibs = ZXBasicPreferencesAccess.get().getAllLibURIs(file.getProject());
+		return allLibs.stream().map(p -> p.toString()).collect(Collectors.toSet());
 	}
 
 }

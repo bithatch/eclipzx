@@ -6,10 +6,10 @@ import java.nio.file.Path;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.emf.ecore.resource.Resource;
 
-import uk.co.bithatch.zxbasic.IIncludeSource;
+import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
-public class ZXBasicLibraryIncludeSource implements IIncludeSource {
+public class ZXBasicLibraryIncludeSource implements ZxBasicIncludeSource {
 
 	@Override
 	public Path find(Resource resource, String importURI) {
