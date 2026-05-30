@@ -3,6 +3,7 @@ package uk.co.bithatch.emuzx;
 import org.eclipse.core.resources.IProject;
 
 import uk.co.bithatch.bitzx.AbstractPreferencesAccess;
+import uk.co.bithatch.bitzx.NEXBuilder;
 
 public class EmuZXPreferencesAccess extends AbstractPreferencesAccess {
 
@@ -19,7 +20,7 @@ public class EmuZXPreferencesAccess extends AbstractPreferencesAccess {
 	}
 
 	public String getNEXCore(IProject project) {
-		return getPreferences(project).get(EmuZXPreferenceConstants.NEX_CORE, NexConverter.DEFAULT_CORE_STR);
+		return getPreferences(project).get(EmuZXPreferenceConstants.NEX_CORE, NEXBuilder.DEFAULT_CORE_STR);
 	}
 
 	public String getNEXSysvarLocation(IProject project) {

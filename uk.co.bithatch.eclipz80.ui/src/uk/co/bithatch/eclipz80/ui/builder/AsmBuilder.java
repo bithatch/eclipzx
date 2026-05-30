@@ -1,6 +1,12 @@
 package uk.co.bithatch.eclipz80.ui.builder;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -15,10 +21,12 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 
+import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
 import uk.co.bithatch.eclipz80.generator.Z80Assembler;
 import uk.co.bithatch.eclipz80.ui.internal.Eclipz80Activator;
@@ -97,11 +105,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		// Parse the .asm file via Xtext
 		AsmProgram program;
 		try {
-			var injector = Eclipz80Activator.getInstance()
-					.getInjector(Eclipz80Activator.UK_CO_BITHATCH_ECLIPZ80_ASM);
-			var resourceSet = injector.getInstance(ResourceSet.class);
-			var resource = resourceSet.getResource(
-					URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
+			var resource = parseFile(file);
 
 			// Report parse errors as markers
 			if (resource.getErrors() != null && !resource.getErrors().isEmpty()) {
@@ -121,8 +125,9 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		// Configure the assembler with project defines
 		var defines = prefs.getDefines(project);
 		var assembler = Z80Assembler.builder()
-				.withSourceFileName(file.getName())
 				.withDefines(defines)
+				.withOutputDir(prefs.getOutputFolder(project).getLocation().toPath())
+				.withMap(prefs.isGenerateMap(project))
 				.withWarningCallback((filename, line, warning) -> {
 					try {
 						addMarker(file, warning, line, IMarker.SEVERITY_WARNING);
@@ -133,9 +138,9 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 				.build();
 
 		// Assemble
-		byte[] binary;
+		var out = new ByteArrayOutputStream();
 		try {
-			binary = assembler.assemble(program);
+			assembler.assemble(file.getName(), program, out);
 		} catch (Z80Assembler.AssemblyException e) {
 			addMarker(file, e.getMessage(), e.getLine(), IMarker.SEVERITY_ERROR);
 			return;
@@ -154,7 +159,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		if (dot >= 0) baseName = baseName.substring(0, dot);
 		IFile outputFile = outputFolder.getFile(baseName + ".bin");
 
-		try (var bais = new ByteArrayInputStream(binary)) {
+		try (var bais = new ByteArrayInputStream(out.toByteArray())) {
 			if (outputFile.exists()) {
 				outputFile.setContents(bais, IResource.FORCE, monitor);
 			} else {
@@ -164,6 +169,14 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 			addMarker(file, "Failed to write output: " + e.getMessage(), 1, IMarker.SEVERITY_ERROR);
 			LOG.error("Failed to write output for " + file.getFullPath(), e);
 		}
+	}
+
+	public static Resource parseFile(IFile file) throws CoreException {
+		var injector = Eclipz80Activator.getInstance()
+				.getInjector(Eclipz80Activator.UK_CO_BITHATCH_ECLIPZ80_ASM);
+		var resourceSet = injector.getInstance(ResourceSet.class);
+		return resourceSet.getResource(
+				URI.createPlatformResourceURI(file.getFullPath().toString(), true), true);
 	}
 
 	private void removeOutput(IFile file) throws CoreException {
@@ -223,5 +236,42 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 			}
 			folder.create(true, true, monitor);
 		}
+	}
+
+	public static Path prepareForGenericLaunch(IFile file, String mode) throws CoreException {
+		var project = file.getProject();
+		var prefs = AsmPreferencesAccess.get();
+		var outputFolder = prefs.getOutputFolder(project).getLocation().toPath();
+		
+		// TODO just BIN at the moment
+		var sourceFileName = file.getLocation().toPath().getFileName();
+		var mapFile =  outputFolder.resolve(FileNames.changeExtension(sourceFileName, "zmap"));
+		var outputBin = outputFolder.resolve(FileNames.changeExtension(sourceFileName, "bin"));
+		var needMap = mode.equals("debug") || prefs.isGenerateMap(project);
+		
+		if(!Files.exists(outputBin) || (needMap && !Files.exists(mapFile))) {
+			var resource = parseFile(file);
+	
+			// Report parse errors as markers
+			if (resource.getErrors() != null && !resource.getErrors().isEmpty()) {
+				throw new CoreException(Status.error("Failed to prepare for launch, parser reported " + resource.getErrors().size() + " errors"));
+			}
+	
+			var program = (AsmProgram) resource.getContents().get(0);
+			
+			var defines = prefs.getDefines(project);
+			var assembler = Z80Assembler.builder()
+					.withDefines(defines)
+					.withMap(mapFile)
+					.build();
+	
+			try(var outstr = Files.newOutputStream(outputBin)) {
+				assembler.assemble(file.getName(), program, outstr);
+			}
+			catch(IOException ioe) {
+				throw new CoreException(Status.error("Failed to prepare for launch, failed to assemble.", ioe));
+			}
+		}
+		return outputBin;
 	}
 }

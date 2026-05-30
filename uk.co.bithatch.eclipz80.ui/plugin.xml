@@ -560,5 +560,21 @@
             id="uk.co.bithatch.eclipz80.ui.langageSystemProvider.asm" 
             name="EclipZ80 Assembler" 
             class="uk.co.bithatch.eclipz80.ui.language.AsmLanguageSystemProvider"/> 
+    </extension>
+    
+    <extension point="uk.co.bithatch.emuzx.ui.externallyLaunchable">
+        <externallyLaunchable 
+            id="uk.co.bithatch.eclipz80.ui.launch.externallyLaunchable" 
+            name="Asm Externally Launchable" 
+            class="uk.co.bithatch.eclipz80.ui.launch.AsmLaunchable" 
+            extensions="asm"/>
+    </extension>
+    
+    <extension point="uk.co.bithatch.emuzx.ui.internallyLaunchable">
+        <internallyLaunchable 
+            id="uk.co.bithatch.eclipz80.ui.launch.internallyLaunchable" 
+            name="Asm Internally Launchable" 
+            class="uk.co.bithatch.eclipz80.ui.launch.AsmLaunchable" 
+            extensions="asm"/>
     </extension>     
 </plugin>

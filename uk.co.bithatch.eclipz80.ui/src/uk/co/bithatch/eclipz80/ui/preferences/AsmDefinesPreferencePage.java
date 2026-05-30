@@ -1,6 +1,7 @@
 package uk.co.bithatch.eclipz80.ui.preferences;
 
 import uk.co.bithatch.widgetzx.preferences.AbstractProjectSpecificPreferencePage;
+import uk.co.bithatch.widgetzx.preferences.DefinesTableFieldEditor;
 
 /**
  * Preference / property page for managing preprocessor defines.
@@ -17,7 +18,7 @@ public class AsmDefinesPreferencePage extends AbstractProjectSpecificPreferenceP
 	protected void createFieldEditors() {
 		super.createFieldEditors();
 
-		addField(new DefinesFieldEditor(
+		addField(new DefinesTableFieldEditor(
 				AsmPreferenceConstants.DEFINES,
 				"Preprocessor Defines:",
 				getFieldEditorParent()));

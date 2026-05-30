@@ -2,10 +2,10 @@ package uk.co.bithatch.emuzx.ui;
 
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CUSTOM_WORKING_DIRECTORY;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.EMULATOR_ARGS;
-import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
-import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PROGRAM;
-import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PROJECT;
+import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.EMULATOR_EXECUTABLE;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.WORKING_DIRECTORY_LOCATION;
+import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.PROGRAM;
+import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.PROJECT;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +14,7 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Optional;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -30,240 +31,154 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 
-import uk.co.bithatch.bitzx.FileSet;
-import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LaunchContext;
-import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
 import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
-import uk.co.bithatch.emuzx.DefaultPreparationContext;
-import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
-import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
+import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
+import uk.co.bithatch.emuzx.api.IPreparationTarget;
+import uk.co.bithatch.emuzx.api.IWritablePreparationContext;
 
-public class ExternalEmulatorLaunchConfiguration extends AbstractConfigurationDelegate {
+public class ExternalEmulatorLaunchConfiguration extends AbstractPreparedLaunchConfigurationDelegate<IExternallyLaunchable> {
 	private final static ILog LOG = ILog.of(ExternalEmulatorLaunchConfiguration.class);
 
 	public ExternalEmulatorLaunchConfiguration() {
-		super(PROJECT, PROGRAM);
+		super(PROJECT, PROGRAM, IExternallyLaunchable.class);
 	}
 
 	@Override
-	public final void launch(IFile file, ILaunchConfiguration configuration, String mode, ILaunch launch,
-			IProgressMonitor monitor) throws CoreException {
+	protected void preparedLaunch(ILaunchConfiguration configuration, ILaunch launch, IProgressMonitor monitor,
+			Optional<IPreparationTarget> preparationTarget, String mode, IFile file, 
+			IWritablePreparationContext prepCtx, 
+			IExternallyLaunchable launchable,
+			LaunchContext launchCtx) throws CoreException {
+		/* Emulator */
 		var strmgr = VariablesPlugin.getDefault().getStringVariableManager();
-		var prepCtx = new DefaultPreparationContext(configuration, file);
-		var externallyLaunchable = ExternallyLaunchableRegistry.externallyLaunchableFor(file);
+		var emulator = strmgr.performStringSubstitution(
+				configuration.getAttribute(EMULATOR_EXECUTABLE, ""));
 
-		/*
-		 * Initialise preparation target if there is one. Don't do preparation just yet,
-		 * just set up context for dynamic variables etc
-		 */
-		var preparationTarget = PreparationTargetRegistry.targetFor(configuration);
-		if (preparationTarget.isPresent()) {
-			prepCtx.preparedBinaryFilePath(preparationTarget.get().init(prepCtx));
+		/* Build up command line */
+		var cmd = new ArrayList<String>();
+
+		/* C# emulators on Posix, i.e. CSpect on Linux can't be run directly */
+		/* TODO better exposed configuration of this */
+		if (emulator.toLowerCase().endsWith(".exe")
+				&& (Boolean.getBoolean("eclipzx.useFrontEndForExternalEmulators")
+						|| (!Platform.getOS().equals("win32")
+								&& !Boolean.getBoolean("eclipzx.dontUseFrontEndForExternalEmulators")))) {
+			cmd.add(System.getProperty("eclipzx.externalEmulatorFrontEnd", "mono"));
 		}
-		var launchCtx = LaunchContext.set(configuration);
+		cmd.add(emulator);
+
+		/* Emulator arguments */
+		cmd.addAll(configuration.getAttribute(EMULATOR_ARGS, Collections.emptyList()).stream().map(s -> {
+			try {
+				return strmgr.performStringSubstitution(s);
+			} catch (CoreException e) {
+				throw new IllegalStateException(e);
+			}
+		}).toList());
+
+		/* Debug args */
+		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+			cmd.addAll(configuration
+					.getAttribute(DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS, Collections.emptyList())
+					.stream().map(s -> {
+						try {
+							return strmgr.performStringSubstitution(s);
+						} catch (CoreException e) {
+							throw new IllegalStateException(e);
+						}
+					}).toList());
+		}
+
+		/* Build the process */
+		var pb = new ProcessBuilder(cmd);
+
+		/* Environment */
+		var map = configuration.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES,
+				new HashMap<String, String>());
+		if (!configuration.getAttribute(ILaunchManager.ATTR_APPEND_ENVIRONMENT_VARIABLES, true)) {
+			pb.environment().clear();
+			;
+		}
+		pb.environment().putAll(map);
+
+		/* Working directory */
+		var customWorkingDir = configuration.getAttribute(CUSTOM_WORKING_DIRECTORY, false);
+		File workingDir;
+		if (customWorkingDir) {
+			workingDir = new File(strmgr.performStringSubstitution(
+					configuration.getAttribute(WORKING_DIRECTORY_LOCATION, System.getProperty("user.dir"))));
+		} else {
+			workingDir = file.getProject().getLocation().toFile();
+		}
+		pb.directory(workingDir);
+
+		/* Start the process */
+
+		LOG.info(String.format("Emulator working directory: %s", workingDir));
+		LOG.info(String.format("Emulator Launch Command: %s", String.join(" ", cmd)));
+
+		Process process = null;
 		try {
+			process = pb.start();
+		} catch (IOException e) {
+			closeContexts(launchCtx, prepCtx);
+			throw new CoreException(
+					new Status(IStatus.ERROR, "uk.co.bithatch.zxbasic", "Failed to start emulator", e));
+		}
 
-			/* Pick the best format to use */
-			
-			var launchFmt = configuration.getAttribute(OUTPUT_FORMAT, "");
-			var prj = file.getProject();
-			var prjFmt = externallyLaunchable.getOutputFormat(prj);
-			var actualFormat = launchFmt.equals("") ? prjFmt : LanguageSystem.outputFormatOrDefault(prj, launchFmt);
-			
-			prepCtx.outputFormat(actualFormat);
+		/* Wrap it as an IProcess so Eclipse can manage it */
+		var eclipseProcess = DebugPlugin.newProcess(launch, process, "External Emulator");
 
-			/* Compile to the chosen format for the launch. */
-			externallyLaunchable.compileForLaunch(mode, prepCtx, monitor);
-			launchCtx.attr(LaunchContext.BINARY_FILE, prepCtx.binaryFile());
-
-			/* If there is preparation to do, do it now */
-			if (preparationTarget.isPresent()) {
-
-				var externalFiles = new ArrayList<FileSet>();
-
-				/* Do the prep */
-				try {
-					/* Plugins that can find more resources to contribute */
-					var enabled = PreparationSourceRegistry.getSourceIds(configuration);
-					for (var desc : PreparationSourceRegistry.descriptors()) {
-						if(enabled.contains(desc.id())) {
-							LOG.info(String.format("Contributing preparation source %s", desc.id()));
-							desc.createSource().contribute(prepCtx, externalFiles, monitor);
-						}
-						else {
-							LOG.info(String.format("Preparation source %s is not enabled, skipping.", desc.id()));
+		try {
+			/* Listen for process termination to clean up preparation context */
+			DebugPlugin.getDefault().addDebugEventListener(new IDebugEventSetListener() {
+				@Override
+				public void handleDebugEvents(DebugEvent[] events) {
+					for (var event : events) {
+						if (event.getKind() == DebugEvent.TERMINATE && event.getSource() == eclipseProcess) {
+							DebugPlugin.getDefault().removeDebugEventListener(this);
+							closeContexts(launchCtx, prepCtx);
 						}
 					}
-					
-					var status = preparationTarget.get().prepare(monitor, externalFiles);
-					if (!status.isOK()) {
-						throw new CoreException(status);
-					}
 				}
-				catch (CoreException ce) {
-					closeContexts(launchCtx, prepCtx);
-					throw ce;
-				}
-				catch(Exception e) {
-					closeContexts(launchCtx, prepCtx);
-					throw new CoreException(Status.error("Failed to prepare for launch.", e));
-				}
-				
-				preparationTarget.get().preparationDone();
-			}
+			});
 
-			/* Emulator */
-			var emulator = strmgr.performStringSubstitution(
-					configuration.getAttribute(ExternalEmulatorLaunchConfigurationAttributes.EMULATOR_EXECUTABLE, ""));
-
-			/* Build up command line */
-			var cmd = new ArrayList<String>();
-
-			/* C# emulators on Posix, i.e. CSpect on Linux can't be run directly */
-			/* TODO better exposed configuration of this */
-			if (emulator.toLowerCase().endsWith(".exe")
-					&& (Boolean.getBoolean("eclipzx.useFrontEndForExternalEmulators")
-							|| (!Platform.getOS().equals("win32")
-									&& !Boolean.getBoolean("eclipzx.dontUseFrontEndForExternalEmulators")))) {
-				cmd.add(System.getProperty("eclipzx.externalEmulatorFrontEnd", "mono"));
-			}
-			cmd.add(emulator);
-
-			/* Emulator arguments */
-			cmd.addAll(configuration.getAttribute(EMULATOR_ARGS, Collections.emptyList()).stream().map(s -> {
-				try {
-					return strmgr.performStringSubstitution(s);
-				} catch (CoreException e) {
-					throw new IllegalStateException(e);
-				}
-			}).toList());
-
-			/* Debug args */
+			/* Register a debug target */
 			if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-				cmd.addAll(configuration
-						.getAttribute(DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS, Collections.emptyList())
-						.stream().map(s -> {
+				/* TODO configurable timeout */
+				Throwable lastException = null;
+				for (int i = 0; i < 60; i++) {
+					try {
+						launch.addDebugTarget(launchable.createRemoteDebugTarget(configuration, launch, prepCtx, eclipseProcess));
+						break;
+					} catch (UncheckedIOException ce) {
+						lastException = ce;
+						if (ce.getCause() instanceof ConnectException) {
 							try {
-								return strmgr.performStringSubstitution(s);
-							} catch (CoreException e) {
+								Thread.sleep(500);
+							} catch (InterruptedException e) {
 								throw new IllegalStateException(e);
 							}
-						}).toList());
-			}
-
-			/* Build the process */
-			var pb = new ProcessBuilder(cmd);
-
-			/* Environment */
-			var map = configuration.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES,
-					new HashMap<String, String>());
-			if (!configuration.getAttribute(ILaunchManager.ATTR_APPEND_ENVIRONMENT_VARIABLES, true)) {
-				pb.environment().clear();
-				;
-			}
-			pb.environment().putAll(map);
-
-			/* Working directory */
-			var customWorkingDir = configuration.getAttribute(CUSTOM_WORKING_DIRECTORY, false);
-			File workingDir;
-			if (customWorkingDir) {
-				workingDir = new File(strmgr.performStringSubstitution(
-						configuration.getAttribute(WORKING_DIRECTORY_LOCATION, System.getProperty("user.dir"))));
-			} else {
-				workingDir = prj.getLocation().toFile();
-			}
-			pb.directory(workingDir);
-
-			/* Start the process */
-
-			LOG.info(String.format("Emulator working directory: %s", workingDir));
-			LOG.info(String.format("Emulator Launch Command: %s", String.join(" ", cmd)));
-
-			Process process = null;
-			try {
-				process = pb.start();
-			} catch (IOException e) {
-				closeContexts(launchCtx, prepCtx);
-				throw new CoreException(
-						new Status(IStatus.ERROR, "uk.co.bithatch.zxbasic", "Failed to start emulator", e));
-			}
-
-			/* Wrap it as an IProcess so Eclipse can manage it */
-			var eclipseProcess = DebugPlugin.newProcess(launch, process, "External Emulator");
-
-			try {
-				/* Listen for process termination to clean up preparation context */
-				DebugPlugin.getDefault().addDebugEventListener(new IDebugEventSetListener() {
-					@Override
-					public void handleDebugEvents(DebugEvent[] events) {
-						for (var event : events) {
-							if (event.getKind() == DebugEvent.TERMINATE && event.getSource() == eclipseProcess) {
-								DebugPlugin.getDefault().removeDebugEventListener(this);
-								closeContexts(launchCtx, prepCtx);
-							}
+						} else {
+							throw ce;
 						}
 					}
-				});
-	
-				/* Register a debug target */
-				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-					/* TODO configurable timeout */
-					Throwable lastException = null;
-					for (int i = 0; i < 60; i++) {
-						try {
-							launch.addDebugTarget(externallyLaunchable.createRemoteDebugTarget(configuration, launch, prepCtx, eclipseProcess));
-							break;
-						} catch (UncheckedIOException ce) {
-							lastException = ce;
-							if (ce.getCause() instanceof ConnectException) {
-								try {
-									Thread.sleep(500);
-								} catch (InterruptedException e) {
-									throw new IllegalStateException(e);
-								}
-							} else {
-								throw ce;
-							}
-						}
-					}
-					if (launch.getDebugTargets().length == 0)
-						throw new CoreException(Status.error("Failed to launch debugger.", lastException));
-				} else {
-					launch.addDebugTarget(externallyLaunchable.createDefaultDebugTarget(launch, prepCtx, eclipseProcess));
 				}
-			}
-			catch(RuntimeException | CoreException re) {
-				eclipseProcess.terminate();
-				throw re;
-			}
-			
-		} catch (IllegalStateException ise) {
-			closeContexts(launchCtx, prepCtx);
-			if (ise.getCause() instanceof CoreException ce) {
-				throw ce;
+				if (launch.getDebugTargets().length == 0)
+					throw new CoreException(Status.error("Failed to launch debugger.", lastException));
 			} else {
-				throw ise;
+				launch.addDebugTarget(launchable.createDefaultDebugTarget(launch, prepCtx, eclipseProcess));
 			}
-		} finally {
-			/*
-			 * Clean up preparation if there is any (remove any context from dynamic
-			 * variables that are based on launch attributes). This should NOT
-			 * close the preparation context as the debug target may still want to access it, but it
-			 */
-			try {
-				if (preparationTarget.isPresent()) {
-					preparationTarget.get().cleanUp();
-				}
-			}
-			finally {
-				/* Un-set the thread local (does not remove temp files yet) */
-				LaunchContext.clear();
-			}
+		}
+		catch(RuntimeException | CoreException re) {
+			eclipseProcess.terminate();
+			throw re;
 		}
 	}
 
-	protected void closeContexts(LaunchContext launchCtx, DefaultPreparationContext prepCtx) {
+	@Override
+	protected void closeContexts(LaunchContext launchCtx, IWritablePreparationContext prepCtx) {
 		try {
 			prepCtx.close();
 		} catch (Exception e) {

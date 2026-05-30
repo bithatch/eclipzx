@@ -1,4 +1,4 @@
-package uk.co.bithatch.emuzx;
+package uk.co.bithatch.bitzx;
 
 import java.nio.file.Path;
 import java.util.Optional;

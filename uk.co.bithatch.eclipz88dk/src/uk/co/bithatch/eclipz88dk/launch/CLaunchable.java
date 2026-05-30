@@ -1,6 +1,5 @@
 package uk.co.bithatch.eclipz88dk.launch;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -26,19 +25,20 @@ import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKBuildContext;
 import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
-import uk.co.bithatch.emuzx.DefaultPreparationContext;
 import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
+import uk.co.bithatch.emuzx.api.IInternallyLaunchable;
 import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
+import uk.co.bithatch.emuzx.api.IWritablePreparationContext;
 import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTarget;
 import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTargetRegistry;
 
-public class CExternallyLaunchable implements IExternallyLaunchable {
+public class CLaunchable implements IExternallyLaunchable, IInternallyLaunchable {
 	
-	public final static ILog LOG = ILog.of(CExternallyLaunchable.class);
+	public final static ILog LOG = ILog.of(CLaunchable.class);
 
 	@Override
 	public IDebugTarget createRemoteDebugTarget(ILaunchConfiguration configuration, ILaunch launch,
-			DefaultPreparationContext prepCtx, IProcess eclipseProcess) throws CoreException {
+			IWritablePreparationContext prepCtx, IProcess eclipseProcess) throws CoreException {
 
 		var debugger = configuration.getAttribute(DebugLaunchConfigurationAttributes.DEBUGGER, "");
 		if(debugger.equals("")) {
@@ -46,15 +46,15 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 			return new ExternalEmulatorDebugTarget(launch, eclipseProcess);
 		}
 
-		var binaryFile = prepCtx.binaryFile();
-		var binaryPath = binaryFile != null ? binaryFile.toPath() : null;
+		var binaryFile = prepCtx.launchFile();
+		var binaryPath = binaryFile != null ? binaryFile : null;
 		var debugInfo = LanguageSystem.languageSystem(prepCtx.programFile()).createSourceAddressMap(binaryPath);
 		
 		return ExternalEmulatorDebugTargetRegistry.get(debugger).createDebugTargetFactory().createDebugTarget(launch, configuration, eclipseProcess, debugInfo);
 	}
 
 	@Override
-	public void compileForLaunch(String mode, DefaultPreparationContext prepCtx, IProgressMonitor monitor) throws CoreException {
+	public void compileForLaunch(String mode, IWritablePreparationContext prepCtx, IProgressMonitor monitor) throws CoreException {
 		var file = prepCtx.programFile();
 		var project = file.getProject();
 		var sourceFile = file.getLocation().toFile();	
@@ -75,10 +75,10 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 					throw new CoreException(Status.error("No default build configuration found for project: " + project.getName()));
 				}
 				
-				var buildDir = new File(project.getLocation().toFile(), buildCfg.getName());
+				var buildDir = project.getLocation().toPath().resolve(buildCfg.getName());
 				var artifactName = ManagedBuildManager.getBuildMacroProvider()
 						.resolveValueToMakefileFormat(buildCfg.getArtifactName(), "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildCfg);
-				var outputFile = new File(buildDir, artifactName + "." + fmt.extension().toLowerCase());
+				var outputFile = buildDir.resolve(artifactName + "." + fmt.extension().toLowerCase());
 
 				LOG.info("Building project '" + project.getName() + "' with configuration '" + buildCfg.getName() + "' for format " + fmt.name());
 				
@@ -93,7 +93,7 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 					}
 				}
 				
-				prepCtx.binaryFile(outputFile);
+				prepCtx.launchFile(outputFile);
 			}
 		}
 	}
@@ -104,7 +104,7 @@ public class CExternallyLaunchable implements IExternallyLaunchable {
 	}
 
 	@Override
-	public IDebugTarget createDefaultDebugTarget(ILaunch launch, DefaultPreparationContext prepCtx,
+	public IDebugTarget createDefaultDebugTarget(ILaunch launch, IWritablePreparationContext prepCtx,
 			IProcess eclipseProcess) {
 		return new ExternalEmulatorDebugTarget(launch, eclipseProcess);
 	}

@@ -10,9 +10,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 
+import uk.co.bithatch.bitzx.NEXBuilder;
 import uk.co.bithatch.emuzx.EmuZXPreferenceConstants;
 import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
-import uk.co.bithatch.emuzx.NexConverter;
 
 public class NEXBuildProjectPropertiesPage extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
@@ -62,7 +62,7 @@ public class NEXBuildProjectPropertiesPage extends FieldEditorPreferencePage imp
     @Override
 	protected void performDefaults() {
 		super.performDefaults();
-		core.setStringValue(NexConverter.DEFAULT_CORE_STR);
+		core.setStringValue(NEXBuilder.DEFAULT_CORE_STR);
 	}
 
 	@Override

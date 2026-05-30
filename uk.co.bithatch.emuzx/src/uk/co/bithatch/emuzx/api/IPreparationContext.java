@@ -1,7 +1,7 @@
 package uk.co.bithatch.emuzx.api;
 
 import java.io.Closeable;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import org.eclipse.core.resources.IFile;
@@ -24,7 +24,7 @@ public interface IPreparationContext extends Closeable {
 	
 	IFile programFile();
 	
-	File binaryFile();
+	Path launchFile();
 	
 	Optional<String> preparedBinaryFilePath();
 }

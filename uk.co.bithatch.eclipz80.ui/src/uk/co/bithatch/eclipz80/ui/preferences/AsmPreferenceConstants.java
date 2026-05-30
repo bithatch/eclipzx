@@ -5,6 +5,7 @@ public interface AsmPreferenceConstants {
 	String OUTPUT_PATH = "compiler.outputPath";
 	String ASSEMBLER_MODE = "compiler.assemblerMode";
 	String EXTERNAL_COMMAND = "compiler.externalCommand";
+	String GENERATE_MAP = "compiler.generateMap";
 	String DEFINES = "compiler.defines";
 
 	String ASSEMBLER_MODE_BUILTIN = "builtin";

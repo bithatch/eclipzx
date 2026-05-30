@@ -102,7 +102,7 @@ public class LanguageSystem {
 		for (var d : descriptors()) {
 			var dsc = createHandler(d);
 			for (var a : dsc.outputFormats(project)) {
-				if (a.name().equals(fmtName))
+				if (fmtName == null || fmtName.equals("") || a.name().equals(fmtName))
 					return a;
 			}
 			hndlrs.add(dsc);

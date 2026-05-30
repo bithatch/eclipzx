@@ -22,6 +22,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 
+import uk.co.bithatch.bitzx.INEXConfiguration;
 import uk.co.bithatch.emuzx.api.BundleType;
 import uk.co.bithatch.emuzx.api.INEXConfigurer;
 
@@ -55,7 +56,7 @@ public class WorkspaceNEXConfigurer implements INEXConfigurer {
 					}
 				}
 				
-				/* The file is a match, add it the NexConverter configuration */
+				/* The file is a match, add it the NEXBuilder configuration */
 				if(match) {
 					var bankVal = emptyIfMinusOne(getProperty(file, NEX_BANK, -1));
 					var addressVal = emptyIfMinusOne(getProperty(file, NEX_ADDRESS, -1));

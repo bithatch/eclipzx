@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.widgetzx.preferences;
 
 import java.util.ArrayList;
 import java.util.List;

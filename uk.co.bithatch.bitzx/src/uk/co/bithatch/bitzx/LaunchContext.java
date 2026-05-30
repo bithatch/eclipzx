@@ -15,7 +15,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 public class LaunchContext implements Closeable {
 	private static final ThreadLocal<LaunchContext> currentConfig = new ThreadLocal<>();
 
-	public static final String BINARY_FILE = "attr.binaryFile";
+	public static final String LAUNCH_FILE = "attr.launchFile";
 
 	private final ILaunchConfiguration config;
 	private List<Path> tempFiles = new ArrayList<>();

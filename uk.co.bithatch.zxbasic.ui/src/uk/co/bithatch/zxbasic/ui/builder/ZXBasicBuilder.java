@@ -31,15 +31,14 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 
+import uk.co.bithatch.bitzx.DefaultNEXConfiguration;
 import uk.co.bithatch.bitzx.FileNames;
-import uk.co.bithatch.emuzx.DefaultNEXConfiguration;
+import uk.co.bithatch.bitzx.NEXBuilder;
 import uk.co.bithatch.emuzx.EmuZXPreferencesAccess;
-import uk.co.bithatch.emuzx.NexConverter;
 import uk.co.bithatch.emuzx.api.INEXConfigurer;
 import uk.co.bithatch.emuzx.api.IProgramBuildOptionsFactory;
 import uk.co.bithatch.emuzx.api.IWritablePreparationContext;
@@ -119,7 +118,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 					firstPassOutput = zxbc.targetFile(sourceFile);
 				}
 				
-				prepCtx.binaryFile(firstPassOutput);
+				prepCtx.launchFile(firstPassOutput.toPath());
 				
 				var outputFile = FileNames.changeExtension(new File(outputDir, relFile.getPath()),
 						fmt.name().toLowerCase());
@@ -146,7 +145,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 						LOG.info(String.format("Adding output %s to NEX", firstPassOutput));
 						cfg.addFile(firstPassOutput.toPath(), Optional.of(prepCtx.buildOptions().bankForOrg()), Optional.of(prepCtx.buildOptions().codestart()));
 						
-						var gen = new NexConverter.NexGenerator(cfg);
+						var gen = new NEXBuilder.NexGenerator(cfg);
 						gen.reporting(msg -> {
 							errHandler.accept(new ToolMessage(file.toString(), 0, ToolMessageLevel.INFO, msg));
 						});
@@ -158,7 +157,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 				}
 
 				sourceFile = outputFile;
-				prepCtx.binaryFile(outputFile);
+				prepCtx.launchFile(outputFile.toPath());
 			}
 		}
 	}

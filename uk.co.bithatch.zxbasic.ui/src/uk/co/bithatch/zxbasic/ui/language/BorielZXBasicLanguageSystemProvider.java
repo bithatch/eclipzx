@@ -1,12 +1,9 @@
 package uk.co.bithatch.zxbasic.ui.language;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,12 +46,11 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 	}
 
 	@Override
-	public File prepareForLaunch(IOutputFormat fmt, IFile file, ILaunchConfiguration configuration, String mode,
+	public Path prepareForInternalLaunch(IOutputFormat fmt, IFile file, ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
-
 		var ctx = new DefaultPreparationContext(configuration, file, fmt);
 		ZXBasicBuilder.compileForLaunch(ctx, mode, ZXBasicBuilder.DEFAULT_REPORTER);
-		return ctx.binaryFile();
+		return ctx.launchFile();
 	}
 
 	@Override
@@ -104,16 +100,6 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 			}
 
 			@Override
-			public NavigableMap<Integer, SourceLocation> getAddressToLineMap() {
-				return Collections.emptyNavigableMap();
-			}
-
-			@Override
-			public Map<SourceLocation, Integer> getLineToAddressMap() {
-				return Collections.emptyMap();
-			}
-
-			@Override
 			public int getSymbolAddress(String symbolName) {
 				return 0;
 			}
@@ -129,6 +115,11 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 	public Set<String> findIncludeSourcePaths(IFile file) {
 		var allLibs = ZXBasicPreferencesAccess.get().getAllLibURIs(file.getProject());
 		return allLibs.stream().map(p -> p.toString()).collect(Collectors.toSet());
+	}
+
+	@Override
+	public Map<String, String> findDefines(IFile baseFile) {
+		throw new UnsupportedOperationException("TODO");
 	}
 
 }

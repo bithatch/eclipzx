@@ -327,7 +327,7 @@
             <enabledWhen>
                 <adapt type="org.eclipse.core.resources.IProject" />
             </enabledWhen>
-            <filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature" />
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
         </page>
         <page id="uk.co.bithatch.zxbasic.ui.builder.programBuildOptions" name="ZX Basic Compiler" class="uk.co.bithatch.zxbasic.ui.preferences.WorkspaceFileProgramBuildOptionsPage">
             <enabledWhen>
@@ -338,6 +338,7 @@
                     </or>
                 </adapt>
             </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
         </page>
     </extension>
     <!-- Quick Outline -->
@@ -531,7 +532,7 @@
         <externallyLaunchable 
             id="uk.co.bithatch.zxbasic.ui.launch.externallyLaunchable" 
             name="ZXBasic Externally Launchable" 
-            class="uk.co.bithatch.zxbasic.ui.launch.ZXBasicExternallyLaunchable" 
+            class="uk.co.bithatch.zxbasic.ui.launch.ZXBasicLaunchable" 
             extensions="bas"/>
     </extension>
 

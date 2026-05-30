@@ -1,4 +1,4 @@
-package uk.co.bithatch.emuzx;
+package uk.co.bithatch.bitzx;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,7 +13,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
-public final class NexConverter {
+
+public final class NEXBuilder {
 
 	public static final int[] DEFAULT_CORE = new int[] { 3,0,0 };
 	public static final String DEFAULT_CORE_STR = String.join(".", IntStream.of(DEFAULT_CORE).mapToObj(String::valueOf).toList());
@@ -31,7 +32,7 @@ public final class NexConverter {
 		}
 	}
 	
-	private NexConverter() {
+	private NEXBuilder() {
 	}
 
 	public static class NexHeader {
@@ -100,7 +101,7 @@ public final class NexConverter {
 
 	public static void main(String[] args) {
 		if (args.length < 2) {
-			System.out.println("Usage: java NexConverter <FILEIN> <FILEOUT> [--ram-required MB]");
+			System.out.println("Usage: java NEXBuilder <FILEIN> <FILEOUT> [--ram-required MB]");
 			return;
 		}
 

@@ -8,7 +8,7 @@ import java.util.Optional;
 
 import org.eclipse.core.runtime.ILog;
 
-import uk.co.bithatch.emuzx.AbstractNEXConfiguration;
+import uk.co.bithatch.bitzx.AbstractNEXConfiguration;
 
 /**
  * A NEX configuration that is built up by the Z88DK launch configuration, and

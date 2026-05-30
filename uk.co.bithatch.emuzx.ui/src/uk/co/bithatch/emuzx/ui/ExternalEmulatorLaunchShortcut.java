@@ -15,7 +15,8 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.ui.PlatformUI;
 
 import uk.co.bithatch.emuzx.AbstractEmulatorLaunchShortcut;
-import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
+import uk.co.bithatch.emuzx.LaunchableRegistry;
+import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 
 public final class ExternalEmulatorLaunchShortcut extends AbstractEmulatorLaunchShortcut {
 
@@ -68,7 +69,7 @@ public final class ExternalEmulatorLaunchShortcut extends AbstractEmulatorLaunch
 
 	@Override
 	protected String[] getSupportedExtensions() {
-		return ExternallyLaunchableRegistry.descriptors().stream().flatMap(d -> d.extensions().stream()).distinct().toArray(String[]::new);
+		return LaunchableRegistry.descriptors(IExternallyLaunchable.class).stream().flatMap(d -> d.extensions().stream()).distinct().toArray(String[]::new);
 	}
 
 }

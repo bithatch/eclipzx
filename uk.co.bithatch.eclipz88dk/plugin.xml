@@ -584,7 +584,7 @@
         <externallyLaunchable 
             id="uk.co.bithatch.eclipz88dk.launch.externallyLaunchable" 
             name="C Externally Launchable" 
-            class="uk.co.bithatch.eclipz88dk.launch.CExternallyLaunchable"
+            class="uk.co.bithatch.eclipz88dk.launch.CLaunchable"
             extensions="c,asm"/>
     </extension>
 </plugin>

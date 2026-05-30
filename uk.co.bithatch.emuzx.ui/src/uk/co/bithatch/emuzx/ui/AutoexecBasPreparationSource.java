@@ -13,7 +13,7 @@ import uk.co.bithatch.bitzx.FileItem;
 import uk.co.bithatch.bitzx.FileSet;
 import uk.co.bithatch.bitzx.FileSet.Purpose;
 import uk.co.bithatch.bitzx.Plus3DosFile;
-import uk.co.bithatch.bitzx.Txt2NextBasicConverter;
+import uk.co.bithatch.bitzx.SimpleZXNextBasicCompileer;
 import uk.co.bithatch.emuzx.api.IPreparationContext;
 import uk.co.bithatch.emuzx.api.IPreparationSource;
 
@@ -28,13 +28,13 @@ public class AutoexecBasPreparationSource implements IPreparationSource {
 			
 			switch(ctx.outputFormat().wellKnown().orElseThrow(() -> new CoreException(Status.error("Autoexec.bas is only appropriate whem outpput format is well known (e.g. NEX).")))) {
 			case NEX:
-				basicProg = Txt2NextBasicConverter.encodeProgram(replaceVariables(ctx, """
+				basicProg = SimpleZXNextBasicCompileer.encodeProgram(replaceVariables(ctx, """
 				10 CD "[binaryPath]"
 				20 .NEXLOAD [binaryFile]
 				"""));
 				break;
 			case BIN:
-				basicProg = Txt2NextBasicConverter.encodeProgram(replaceVariables(ctx, """
+				basicProg = SimpleZXNextBasicCompileer.encodeProgram(replaceVariables(ctx, """
 				10 CD "[binaryPath]"
 				20 CLEAR [clear]
 				30 LOAD "[binaryFile]" CODE [org]
@@ -73,7 +73,7 @@ public class AutoexecBasPreparationSource implements IPreparationSource {
 				() -> new IllegalStateException(
 						"Cannot create autoexec.bas, the binary output file was not "
 						+ "included in preparation, so there is nothing to execute.")));
-		str= str.replace("[binaryFile]", prepCtx.binaryFile().getName());
+		str= str.replace("[binaryFile]", prepCtx.launchFile().getFileName().toString());
 		str = str.replace("[clear]", String.valueOf(prepCtx.buildOptions().orgOrDefault() - 1));
 		str = str.replace("[org]", String.valueOf(prepCtx.buildOptions().orgOrDefault()));
 		

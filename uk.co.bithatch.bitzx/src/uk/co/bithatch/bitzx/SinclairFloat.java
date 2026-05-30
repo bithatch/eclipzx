@@ -1,6 +1,5 @@
 package uk.co.bithatch.bitzx;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class SinclairFloat {

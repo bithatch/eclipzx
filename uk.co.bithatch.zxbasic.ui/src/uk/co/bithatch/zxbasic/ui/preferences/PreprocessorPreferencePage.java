@@ -1,6 +1,7 @@
 package uk.co.bithatch.zxbasic.ui.preferences;
 
 import uk.co.bithatch.widgetzx.preferences.AbstractProjectSpecificPreferencePage;
+import uk.co.bithatch.widgetzx.preferences.DefinesTableFieldEditor;
 
 public class PreprocessorPreferencePage extends AbstractProjectSpecificPreferencePage {
     

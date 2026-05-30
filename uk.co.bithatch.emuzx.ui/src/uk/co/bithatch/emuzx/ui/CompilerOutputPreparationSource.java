@@ -14,7 +14,7 @@ public class CompilerOutputPreparationSource implements IPreparationSource {
 
 	@Override
 	public void contribute(IPreparationContext ctx, List<FileSet> fileSets, IProgressMonitor monitor) throws CoreException {
-		fileSets.add(new FileSet(Purpose.PROGRAM, ctx.binaryFile()));
+		fileSets.add(new FileSet(Purpose.PROGRAM, ctx.launchFile().toFile()));
 	}
 
 }

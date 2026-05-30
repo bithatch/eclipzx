@@ -18,10 +18,9 @@ public class AsmGlobalScopeProvider extends ImportUriGlobalScopeProvider {
 	@Override
 	public LinkedHashSet<URI> getImportedUris(Resource resource) {
 		LinkedHashSet<URI> impUris = new LinkedHashSet<>(super.getImportedUris(resource));
-		System.out.println("AsmGlobalScopeProvider.getImportedUris: " + resource.getURI() + " imports " + impUris);
-		impUris.addAll(includeSource.find(resource));
+		if (includeSource != null) {
+			impUris.addAll(includeSource.find(resource));
+		}
 		return impUris;
-
 	}
-
 }

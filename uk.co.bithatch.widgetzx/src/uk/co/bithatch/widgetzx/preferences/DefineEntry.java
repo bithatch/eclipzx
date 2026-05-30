@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.widgetzx.preferences;
 public class DefineEntry {
     private String name;
     private String value;

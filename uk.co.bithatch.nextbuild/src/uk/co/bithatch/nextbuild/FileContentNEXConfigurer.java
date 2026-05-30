@@ -11,8 +11,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 
-import uk.co.bithatch.emuzx.INEXConfiguration;
-import uk.co.bithatch.emuzx.NexConverter;
+import uk.co.bithatch.bitzx.INEXConfiguration;
+import uk.co.bithatch.bitzx.NEXBuilder;
 import uk.co.bithatch.emuzx.api.INEXConfigurer;
 
 /**
@@ -59,9 +59,9 @@ public class FileContentNEXConfigurer implements INEXConfigurer {
 						}
 						var xargs = x.split(",");
 
-						var offval = NexConverter.parseInt(xargs[2]) & 0x1fff;
-						var fileoffset = NexConverter.parseInt(xargs[4]);
-						var bank = NexConverter.parseInt(xargs[5]);
+						var offval = NEXBuilder.parseInt(xargs[2]) & 0x1fff;
+						var fileoffset = NEXBuilder.parseInt(xargs[4]);
+						var bank = NEXBuilder.parseInt(xargs[5]);
 						if (fileoffset > 0) {
 							var tmpfile = Files.createTempFile("eclipzx", ".bnk");
 							try {

@@ -1,4 +1,4 @@
-package uk.co.bithatch.emuzx;
+package uk.co.bithatch.bitzx;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import uk.co.bithatch.emuzx.NexConverter.LoadingScreen;
-import uk.co.bithatch.emuzx.NexConverter.NexHeader;
+import uk.co.bithatch.bitzx.NEXBuilder.LoadingScreen;
+import uk.co.bithatch.bitzx.NEXBuilder.NexHeader;
 
 public class DefaultNEXConfiguration extends AbstractNEXConfiguration {
 	public List<byte[]> extraFiles = new ArrayList<>();
@@ -97,7 +97,7 @@ public class DefaultNEXConfiguration extends AbstractNEXConfiguration {
 				int b = Byte.toUnsignedInt(palette[i * 4]);
 				int g = Byte.toUnsignedInt(palette[i * 4 + 1]);
 				int r = Byte.toUnsignedInt(palette[i * 4 + 2]);
-				int v = NexConverter.getPaletteValue(r, g, b);
+				int v = NEXBuilder.getPaletteValue(r, g, b);
 				palette[i * 2] = (byte) (v & 0xFF);
 				palette[i * 2 + 1] = (byte) ((v >> 8) & 0xFF);
 			}
@@ -166,7 +166,7 @@ public class DefaultNEXConfiguration extends AbstractNEXConfiguration {
 				int b = Byte.toUnsignedInt(paletteLoRes[i * 4]);
 				int g = Byte.toUnsignedInt(paletteLoRes[i * 4 + 1]);
 				int r = Byte.toUnsignedInt(paletteLoRes[i * 4 + 2]);
-				int v = NexConverter.getPaletteValue(r, g, b);
+				int v = NEXBuilder.getPaletteValue(r, g, b);
 				paletteLoRes[i * 2] = (byte) (v & 0xFF);
 				paletteLoRes[i * 2 + 1] = (byte) ((v >> 8) & 0xFF);
 			}
@@ -248,7 +248,7 @@ public class DefaultNEXConfiguration extends AbstractNEXConfiguration {
 			var buf = new byte[0x4000];
 
 			while (true) {
-				var realBank = NexConverter.getRealBank(currentBank);
+				var realBank = NEXBuilder.getRealBank(currentBank);
 				int maskedAddr = currentAddress & 0x3FFF;
 				var offset = (realBank * 16384) + maskedAddr;
 				var length = 0x4000 - maskedAddr;
@@ -279,9 +279,9 @@ public class DefaultNEXConfiguration extends AbstractNEXConfiguration {
 
 						SNA128_Header = fin.readNBytes(4);
 
-						var sp = NexConverter.makeNum(SNA128_Header, 23, 2);
+						var sp = NEXBuilder.makeNum(SNA128_Header, 23, 2);
 
-						if (NexConverter.isEmptyBytes(SNA128_Header)) {
+						if (NEXBuilder.isEmptyBytes(SNA128_Header)) {
 							SNA128_Header = new byte[4];
 							var sp2 = sp;
 							if (sp2 > 16384) {
@@ -294,12 +294,12 @@ public class DefaultNEXConfiguration extends AbstractNEXConfiguration {
 						}
 
 						header512.SP = sp;
-						header512.PC = NexConverter.makeNum(SNA128_Header, 0, 2);
+						header512.PC = NEXBuilder.makeNum(SNA128_Header, 0, 2);
 					}
 				}
 
 				currentAddress = ((currentAddress & 0xC000) + 0x4000) & 0xC000;
-				currentBank = NexConverter.getNextBank(currentBank);
+				currentBank = NEXBuilder.getNextBank(currentBank);
 			}
 
 		} catch (IOException e) {

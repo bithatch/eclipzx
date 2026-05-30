@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -311,15 +310,6 @@ public class Z88dkDebugInfoParser implements ISourceAdressMap {
 	}
 
 	@Override
-	public Map<SourceLocation, Integer> getLineToAddressMap() {
-		return Collections.unmodifiableMap(lineToAddress);
-	}
-
-	@Override
-	public NavigableMap<Integer, SourceLocation> getAddressToLineMap() {
-		return Collections.unmodifiableNavigableMap(addressToLine);
-	}
-
 	public boolean hasDebugInfo() {
 		return !lineToAddress.isEmpty();
 	}

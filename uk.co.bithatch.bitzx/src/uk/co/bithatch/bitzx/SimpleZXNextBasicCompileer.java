@@ -8,7 +8,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
 
-public class Txt2NextBasicConverter {
+public class SimpleZXNextBasicCompileer {
 	enum ParseState {
 	    NORMAL,
 	    QUOTE,

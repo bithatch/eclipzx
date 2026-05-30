@@ -1,9 +1,9 @@
 package uk.co.bithatch.bitzx;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -44,7 +44,7 @@ public interface ILanguageSystemProvider {
 
 	boolean isCompatible(IResource resource);
 
-	File prepareForLaunch(IOutputFormat fmt, IFile file, ILaunchConfiguration configuration, String mode, ILaunch launch,
+	Path prepareForInternalLaunch(IOutputFormat fmt, IFile file, ILaunchConfiguration configuration, String mode, ILaunch launch,
 			IProgressMonitor monitor) throws CoreException;
 
 	boolean isLaunchable(IResource res);
@@ -54,4 +54,6 @@ public interface ILanguageSystemProvider {
 	List<? extends IArchitecture> architectures(IProject project, String sdkName);
 	
 	Set<String> findIncludeSourcePaths(IFile baseFile);
+	
+	Map<String, String> findDefines(IFile baseFile);
 }

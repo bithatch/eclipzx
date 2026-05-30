@@ -1,7 +1,9 @@
 package uk.co.bithatch.emuzx.emulator.jspeccy;
 
-import static uk.co.bithatch.emuzx.emulator.jspeccy.EmulatorLaunchConfigurationAttributes.PROGRAM;
-import static uk.co.bithatch.emuzx.emulator.jspeccy.EmulatorLaunchConfigurationAttributes.PROJECT;
+import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.PROGRAM;
+import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.PROJECT;
+
+import java.util.Optional;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -13,43 +15,44 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import uk.co.bithatch.bitzx.LanguageSystem;
-import uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants;
-import uk.co.bithatch.bitzx.WellKnownOutputFormat;
-import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
+import uk.co.bithatch.bitzx.LaunchContext;
+import uk.co.bithatch.emuzx.api.IInternallyLaunchable;
+import uk.co.bithatch.emuzx.api.IPreparationTarget;
+import uk.co.bithatch.emuzx.api.IWritablePreparationContext;
+import uk.co.bithatch.emuzx.ui.AbstractPreparedLaunchConfigurationDelegate;
 import uk.co.bithatch.jspeccy.views.EmulatorInstance;
 import uk.co.bithatch.jspeccy.views.EmulatorView;
 
-public class EmulatorLaunchConfiguration extends AbstractConfigurationDelegate {
+public class EmulatorLaunchConfiguration extends AbstractPreparedLaunchConfigurationDelegate<IInternallyLaunchable> {
 
 	public EmulatorLaunchConfiguration() {
-		super(PROJECT, PROGRAM);
+		super(PROJECT, PROGRAM, IInternallyLaunchable.class);
 	}
 
-	@Override
-	public void launch(IFile file, ILaunchConfiguration configuration, String mode, ILaunch launch,
-			IProgressMonitor monitor) throws CoreException {
-		
-		var ofmt = LanguageSystem.outputFormatOrDefault(file.getProject(), configuration.getAttribute(LanguageSystemPreferenceConstants.OUTPUT_FORMAT, WellKnownOutputFormat.SNA.name()));
-		var binaryFile = LanguageSystem.languageSystem(file).prepareForLaunch(ofmt, file, configuration, mode, launch, monitor);
-		
-//		var ctx = new DefaultPreparationContext(configuration, file,
-//				OutputFormat.parse(configuration.getAttribute(OUTPUT_FORMAT,
-//				OutputFormat.SNA.name()), OutputFormat.SNA));
-//
-//		compileForLaunch(ctx, mode, ZXBasicBuilder.DEFAULT_REPORTER);
 
+	@Override
+	protected void preparedLaunch(ILaunchConfiguration configuration, ILaunch launch, IProgressMonitor monitor,
+			Optional<IPreparationTarget> preparationTarget, String mode, IFile file,
+			IWritablePreparationContext prepCtx, IInternallyLaunchable launchable, LaunchContext launchCtx)
+			throws CoreException {
+		var ofmt = launchable.getLaunchFormat(configuration, file);
+		var lang = LanguageSystem.languageSystem(file);
+		var binaryFile = lang.prepareForInternalLaunch(ofmt, file, configuration, mode, launch, monitor);
+		
 		PlatformUI.getWorkbench().getDisplay().execute(() -> {
 			// TODO make this better wrt threads
 
 			try {
 				var eview = openEmulatorView(configuration, PlatformUI.getWorkbench());
 				launch.addDebugTarget(new EmulatorDebugTarget(launch, eview));
-				eview.load(binaryFile);
+				eview.load(binaryFile.toFile());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});
+		
 	}
+
 
 	private EmulatorInstance openEmulatorView(ILaunchConfiguration configuration, IWorkbench bench) {
 

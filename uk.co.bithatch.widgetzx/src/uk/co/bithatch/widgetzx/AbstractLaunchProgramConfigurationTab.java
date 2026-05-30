@@ -241,7 +241,7 @@ public abstract class AbstractLaunchProgramConfigurationTab extends AbstractLaun
 	public final IArchitecture resolveArchitecture() {
 		var lang = resolveLanguage();
 		var proj = resolveProject();
-		if(lang != null && proj != null) {
+		if(lang != null) {
 			return lang.architectureOrDefault(proj, architectureCombo.getText());
 		}
 		return null;

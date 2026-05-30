@@ -28,7 +28,7 @@ public class EmulatorLaunchShortcut extends AbstractEmulatorLaunchShortcut {
 //	protected void doLaunch(IFile file, String mode) throws CoreException {
 //
 //		var manager = DebugPlugin.getDefault().getLaunchManager();
-//		var type = manager.getLaunchConfigurationType(EmulatorLaunchConfigurationAttributes.ID);
+//		var type = manager.getLaunchConfigurationType(IEmulatorLaunchConfigurationAttributes.ID);
 //
 //		var name = file.getFullPath().toString();
 //		var cfg = manager.generateLaunchConfigurationName(name);
@@ -36,9 +36,9 @@ public class EmulatorLaunchShortcut extends AbstractEmulatorLaunchShortcut {
 //		ILaunchConfiguration lcfg = manager.getLaunchConfiguration(cfg);
 //		if(lcfg == null) {
 //			var workingCopy = type.newInstance(EmuZXPreferencesAccess.getOutputFolder(file.getProject()), cfg);
-//			workingCopy.setAttribute(EmulatorLaunchConfigurationAttributes.PROGRAM, file.getName());
-//			workingCopy.setAttribute(EmulatorLaunchConfigurationAttributes.PROJECT, file.getProject().getName());
-////			workingCopy.setAttribute(EmulatorLaunchConfigurationAttributes.PROJECT, file.getProject().getName());
+//			workingCopy.setAttribute(IEmulatorLaunchConfigurationAttributes.PROGRAM, file.getName());
+//			workingCopy.setAttribute(IEmulatorLaunchConfigurationAttributes.PROJECT, file.getProject().getName());
+////			workingCopy.setAttribute(IEmulatorLaunchConfigurationAttributes.PROJECT, file.getProject().getName());
 //			lcfg = workingCopy.doSave();
 //		}
 //		DebugUITools.launch(lcfg, mode);

@@ -12,9 +12,13 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
@@ -22,11 +26,13 @@ import uk.co.bithatch.eclipz80.asm.Add;
 import uk.co.bithatch.eclipz80.asm.And;
 import uk.co.bithatch.eclipz80.asm.AsmCall;
 import uk.co.bithatch.eclipz80.asm.AsmCondition;
+import uk.co.bithatch.eclipz80.asm.AsmDefcLine;
 import uk.co.bithatch.eclipz80.asm.AsmExpression;
 import uk.co.bithatch.eclipz80.asm.AsmGroupedDefine;
 import uk.co.bithatch.eclipz80.asm.AsmIf;
 import uk.co.bithatch.eclipz80.asm.AsmIfDef;
 import uk.co.bithatch.eclipz80.asm.AsmIfNDef;
+import uk.co.bithatch.eclipz80.asm.AsmInclude;
 import uk.co.bithatch.eclipz80.asm.AsmIndirect;
 import uk.co.bithatch.eclipz80.asm.AsmLabel;
 import uk.co.bithatch.eclipz80.asm.AsmLabelDef;
@@ -65,6 +71,7 @@ import uk.co.bithatch.eclipz80.asm.Exx;
 import uk.co.bithatch.eclipz80.asm.Halt;
 import uk.co.bithatch.eclipz80.asm.Im;
 import uk.co.bithatch.eclipz80.asm.Inc;
+import uk.co.bithatch.eclipz80.asm.IncBin;
 import uk.co.bithatch.eclipz80.asm.Ind;
 import uk.co.bithatch.eclipz80.asm.Indr;
 import uk.co.bithatch.eclipz80.asm.Ini;
@@ -72,6 +79,8 @@ import uk.co.bithatch.eclipz80.asm.Inir;
 import uk.co.bithatch.eclipz80.asm.IntegralLiteral;
 import uk.co.bithatch.eclipz80.asm.Jp;
 import uk.co.bithatch.eclipz80.asm.Jr;
+import uk.co.bithatch.eclipz80.asm.LabelEQULine;
+import uk.co.bithatch.eclipz80.asm.LabelOnlyLine;
 import uk.co.bithatch.eclipz80.asm.Ld;
 import uk.co.bithatch.eclipz80.asm.Ldd;
 import uk.co.bithatch.eclipz80.asm.Lddr;
@@ -114,9 +123,17 @@ import uk.co.bithatch.eclipz80.asm.Xor;
 
 /**
  * A simple Z80 assembler that walks an Xtext-parsed {@link AsmProgram} AST and
- * emits raw Z80 machine code. Currently supports the subset of instructions
- * needed for basic programs (no labels, no expression evaluation beyond
- * literals).
+ * emits raw Z80 machine code. Uses a two-pass approach: pass&nbsp;1 collects
+ * label addresses (emitting into a discarded buffer to get accurate instruction
+ * sizes), then pass&nbsp;2 re-emits the final machine code with all label
+ * references resolved.
+ * <p>
+ * Supports:
+ * <ul>
+ *   <li>Labels defined on their own line, on statement lines, via EQU, and via DEFC</li>
+ *   <li>Forward and backward label references in operands (JP, CALL, LD, data directives, etc.)</li>
+ *   <li>Relative offset calculation for JR and DJNZ with range checking</li>
+ * </ul>
  * <p>
  * Can be used standalone (outside the Xtext generator infrastructure) by
  * calling {@link #assemble(AsmProgram)} which returns a {@code byte[]}, or
@@ -131,6 +148,10 @@ import uk.co.bithatch.eclipz80.asm.Xor;
  * </pre>
  */
 public class Z80Assembler {
+	
+	public interface Results {
+		Path mapFile();
+	}
 
 	/**
 	 * Callback for non-fatal warnings emitted during assembly.
@@ -161,15 +182,18 @@ public class Z80Assembler {
 
 	private final List<String> warnings = new ArrayList<>();
 	private final Map<String, String> defines;
+	private final Map<String, Integer> labels = new LinkedHashMap<>();
 	private int currentAddress = 0;
 	private String effectiveSource;
+	private Path sourceDir;
 	private int currentLine = -1;
+	private boolean pass1;
 	private WarningCallback warningCallback;
 
-	private Path mapFile;
+	private final Optional<Path> mapFile;
+	private final Optional<Path> outputDir;
 	private final boolean mapEnabled;
 	private final boolean farAddresses;
-	private final String sourceFileName;
 	private final List<MapEntry> mapEntries = new ArrayList<>();
 
 	/**
@@ -195,10 +219,10 @@ public class Z80Assembler {
 	 * Builder for configuring a {@link Z80Assembler}.
 	 */
 	public static class Builder {
-		private Path mapFile;
+		private Optional<Path> mapFile = Optional.empty();
+		private Optional<Path> outputDir = Optional.empty();
 		private boolean mapEnabled;
 		private boolean farAddresses;
-		private String sourceFileName;
 		private final Map<String, String> defines = new LinkedHashMap<>();
 		private WarningCallback warningCallback;
 
@@ -209,37 +233,58 @@ public class Z80Assembler {
 		 * binary output path (replacing the extension with {@code .zmap}).
 		 * This acts as a flag — the actual path is resolved at write time
 		 * if no explicit path is given via {@link #withMap(Path)}.
+		 * 
+		 * @return this for chaining
 		 */
 		public Builder withMap() {
-			this.mapEnabled = true;
+			return withMap(true);
+		}
+		
+		/**
+		 * Enable .zmap output. The map file path will be derived from the
+		 * binary output path (replacing the extension with {@code .zmap}).
+		 * This acts as a flag — the actual path is resolved at write time
+		 * if no explicit path is given via {@link #withMap(Path)}.
+		 * 
+		 * @param map whether to enable map
+		 * @return this for chaining
+		 */
+		public Builder withMap(boolean map) {
+			this.mapEnabled = map;
 			return this;
 		}
 
 		/**
 		 * Enable .zmap output and specify an explicit file path.
+		 * 
+		 * @param mapFile map file
+		 * @return this for chaining
 		 */
 		public Builder withMap(Path mapFile) {
-			this.mapFile = mapFile;
+			this.mapFile = Optional.of(mapFile);
 			this.mapEnabled = true;
+			return this;
+		}
+
+		/**
+		 * Set output directory. When not set, uses same directory as source.
+		 * 
+		 * @param output dir
+		 * @return this for chaining
+		 */
+		public Builder withOutputDir(Path outputDir) {
+			this.outputDir = Optional.of(outputDir);
 			return this;
 		}
 
 		/**
 		 * Use 32-bit far addresses (Z88DK style) in map output.
 		 * By default, standard 16-bit addresses are used.
+		 * 
+		 * @return this for chaining
 		 */
 		public Builder withFarAddresses() {
 			this.farAddresses = true;
-			return this;
-		}
-
-		/**
-		 * Set the source file name used as the default in map entries.
-		 * If not set, the assembler will attempt to derive it from the
-		 * Xtext resource URI.
-		 */
-		public Builder withSourceFileName(String sourceFileName) {
-			this.sourceFileName = sourceFileName;
 			return this;
 		}
 
@@ -311,18 +356,18 @@ public class Z80Assembler {
 	 * Default constructor for backwards compatibility.
 	 */
 	public Z80Assembler() {
-		this.mapFile = null;
+		this.mapFile = Optional.empty();
 		this.mapEnabled = false;
 		this.farAddresses = false;
-		this.sourceFileName = null;
 		this.defines = new LinkedHashMap<>();
+		this.outputDir = Optional.empty();
 	}
 
 	private Z80Assembler(Builder builder) {
+		this.outputDir = builder.outputDir;
 		this.mapFile = builder.mapFile;
 		this.mapEnabled = builder.mapEnabled;
 		this.farAddresses = builder.farAddresses;
-		this.sourceFileName = builder.sourceFileName;
 		this.defines = new LinkedHashMap<>(builder.defines);
 		this.warningCallback = builder.warningCallback;
 	}
@@ -335,34 +380,35 @@ public class Z80Assembler {
 	}
 
 	/**
-	 * Assemble the program and return raw bytes.
-	 */
-	public byte[] assemble(AsmProgram program) {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		assemble(program, baos);
-		return baos.toByteArray();
-	}
-
-	/**
 	 * Assemble the program, writing bytes to the given output stream.
+	 * Uses a two-pass approach: pass 1 collects label addresses (output is
+	 * discarded), pass 2 emits the final machine code with all labels resolved.
 	 * If a map file was configured, the .zmap file is written after assembly.
 	 */
-	public void assemble(AsmProgram program, OutputStream out) {
+	public Results assemble(String sourceFileName, AsmProgram program, OutputStream out) {
 		warnings.clear();
 		currentAddress = 0;
+		labels.clear();
 		mapEntries.clear();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		// Derive source file name from the resource URI if not explicitly set
-		String effectiveSource = sourceFileName;
-		if (effectiveSource == null && program.eResource() != null) {
-			effectiveSource = program.eResource().getURI().lastSegment();
-		}
-		if (effectiveSource == null) {
-			effectiveSource = "unknown";
-		}
-		this.effectiveSource = effectiveSource;
+		this.effectiveSource = calcEffectiveSource(sourceFileName, program);
 
+		// Derive the source directory for resolving relative paths (e.g. INCBIN)
+		if (program.eResource() != null && program.eResource().getURI().isFile()) {
+			this.sourceDir = Path.of(program.eResource().getURI().toFileString()).getParent();
+		} else {
+			this.sourceDir = Path.of("").toAbsolutePath();
+		}
+
+		// ── Pass 1: collect label addresses (output discarded) ──
+		pass1 = true;
+		assembleLines(program, new ByteArrayOutputStream());
+
+		// ── Pass 2: emit final machine code with labels resolved ──
+		pass1 = false;
+		currentAddress = 0;
 		assembleLines(program, baos);
 
 		try {
@@ -372,28 +418,35 @@ public class Z80Assembler {
 		}
 
 		// Write map file if configured
-		if (mapEnabled && mapFile != null) {
-			writeMapFile(effectiveSource);
+		Path mapOutputFile;
+		if (mapEnabled) {
+			mapOutputFile = mapFile.orElseGet(() -> {
+				int dot = effectiveSource.lastIndexOf('.');
+				return outputDir.orElse(this.sourceDir).resolve((dot >= 0 ? effectiveSource.substring(0, dot) : effectiveSource) + ".zmap");
+			});
+			writeMapFile(mapOutputFile);
 		}
+		else {
+			mapOutputFile = null;
+		}
+		
+		return new Results() {
+			@Override
+			public Path mapFile() {
+				return mapOutputFile;
+			}
+		};
 	}
 
-	/**
-	 * Assemble the program, writing bytes to the given output stream,
-	 * and derive the map file path from the given binary output path
-	 * (replacing the extension with {@code .zmap}).
-	 * <p>
-	 * This is a convenience for callers who used {@link Builder#withMap()}
-	 * without an explicit path.
-	 */
-	public void assemble(AsmProgram program, OutputStream out, Path binaryOutputPath) {
-		if (mapEnabled && mapFile == null && binaryOutputPath != null) {
-			// Auto-derive map path from binary output path
-			String binName = binaryOutputPath.getFileName().toString();
-			int dot = binName.lastIndexOf('.');
-			String baseName = dot >= 0 ? binName.substring(0, dot) : binName;
-			this.mapFile = binaryOutputPath.resolveSibling(baseName + ".zmap");
+	protected String calcEffectiveSource(String sourceFileName, AsmProgram program) {
+		String effectiveSource = sourceFileName;
+		if (effectiveSource == null && program.eResource() != null) {
+			effectiveSource = program.eResource().getURI().lastSegment();
 		}
-		assemble(program, out);
+		if (effectiveSource == null) {
+			effectiveSource = "unknown.asm";
+		}
+		return effectiveSource;
 	}
 
 	/**
@@ -432,7 +485,7 @@ public class Z80Assembler {
 		return farAddresses ? 0xFFFFFFFFL : 0xFFFFL;
 	}
 
-	private void writeMapFile(String defaultSource) {
+	private void writeMapFile(Path mapFile) {
 		try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(mapFile))) {
 			String lastFile = null;
 			for (MapEntry entry : mapEntries) {
@@ -464,15 +517,51 @@ public class Z80Assembler {
 	 */
 	private void assembleLines(AsmProgram program, ByteArrayOutputStream out) {
 		for (AsmLine line : program.getLines()) {
+
+			// ── Label-only line (e.g. "start:" or ".loop:") ──
+			if (line instanceof LabelOnlyLine) {
+				LabelOnlyLine lol = (LabelOnlyLine) line;
+				if (pass1 && lol.getLabelDef() != null) {
+					labels.put(lol.getLabelDef().getName(), currentAddress);
+				}
+				continue;
+			}
+
+			// ── EQU line (e.g. "SCREEN_ADDR EQU $4000") ──
+			if (line instanceof LabelEQULine) {
+				LabelEQULine equ = (LabelEQULine) line;
+				if (pass1 && equ.getLabelDef() != null) {
+					// TODO: forward references in EQU expressions are not yet supported
+					labels.put(equ.getLabelDef().getName(), resolveImmediate(equ.getValue()));
+				}
+				continue;
+			}
+
+			// ── DEFC line (e.g. "DEFC name = expr") ──
+			if (line instanceof AsmDefcLine) {
+				AsmDefcLine defc = (AsmDefcLine) line;
+				if (pass1 && defc.getLabelDef() != null) {
+					// TODO: forward references in DEFC expressions are not yet supported
+					labels.put(defc.getLabelDef().getName(), resolveImmediate(defc.getValue()));
+				}
+				continue;
+			}
+
+			// ── Statement line (may have an optional label prefix) ──
 			if (line instanceof AsmStatementLine) {
 				AsmStatementLine stmtLine = (AsmStatementLine) line;
+
+				// Record label on this statement line (e.g. "message: db ...")
+				if (pass1 && stmtLine.getLabelDef() != null) {
+					labels.put(stmtLine.getLabelDef().getName(), currentAddress);
+				}
 
 				// Record line-to-address mapping before emitting
 				int lineNumber = getLineNumber(stmtLine);
 				String lineFile = getSourceFile(stmtLine, effectiveSource);
 				this.currentLine = lineNumber;
 
-				if (lineNumber > 0) {
+				if (!pass1 && lineNumber > 0) {
 					mapEntries.add(new MapEntry(lineFile, lineNumber, currentAddress & addressMask()));
 				}
 
@@ -480,7 +569,7 @@ public class Z80Assembler {
 					assembleStatement(stmt, out);
 				}
 			}
-			// Other line types (labels, EQU, etc.) are ignored for now
+			// Other line types (NUMERIC_LABEL, LOCAL, etc.) are ignored for now
 		}
 	}
 
@@ -528,6 +617,14 @@ public class Z80Assembler {
 		}
 		if (stmt instanceof DataDefineGroup) {
 			assembleDefineGroup((DataDefineGroup) stmt, out);
+			return;
+		}
+		if (stmt instanceof IncBin) {
+			assembleIncBin((IncBin) stmt, out);
+			return;
+		}
+		if (stmt instanceof AsmInclude) {
+			assembleInclude((AsmInclude) stmt, out);
 			return;
 		}
 
@@ -773,9 +870,12 @@ public class Z80Assembler {
 
 		// ── DJNZ ──
 		if (stmt instanceof Djnz) {
-			// For now, only support immediate offset (no label resolution)
-			int offset = resolveImmediate(((Djnz) stmt).getValue());
+			int target = resolveImmediate(((Djnz) stmt).getValue());
 			emit8(out, 0x10);
+			int offset = target - (currentAddress + 1); // +1 because we've already emitted the opcode
+			if (!pass1 && (offset < -128 || offset > 127)) {
+				warn("DJNZ offset out of range: " + offset);
+			}
 			emit8(out, offset & 0xFF);
 			return;
 		}
@@ -783,12 +883,16 @@ public class Z80Assembler {
 		// ── JR ──
 		if (stmt instanceof Jr) {
 			Jr jr = (Jr) stmt;
-			int offset = resolveImmediate(jr.getValue());
+			int target = resolveImmediate(jr.getValue());
 			if (jr.getCondition() == null) {
 				emit8(out, 0x18);
 			} else {
 				int cc = resolveConditionJr(jr.getCondition());
 				emit8(out, 0x20 + cc * 8);
+			}
+			int offset = target - (currentAddress + 1); // +1 because we've already emitted the opcode
+			if (!pass1 && (offset < -128 || offset > 127)) {
+				warn("JR offset out of range: " + offset);
 			}
 			emit8(out, offset & 0xFF);
 			return;
@@ -1206,6 +1310,93 @@ public class Z80Assembler {
 		}
 	}
 
+	/**
+	 * BINARY / INCBIN — load a binary file at the current location in the
+	 * object file. The file path is resolved relative to the source file
+	 * being assembled.
+	 */
+	private void assembleIncBin(IncBin directive, ByteArrayOutputStream out) {
+		String fileName = directive.getFile();
+		if (fileName == null || fileName.isEmpty()) {
+			warn("INCBIN: no file specified");
+			return;
+		}
+		Path filePath = sourceDir.resolve(fileName);
+		try {
+			byte[] data = Files.readAllBytes(filePath);
+			for (byte b : data) {
+				emit8(out, b & 0xFF);
+			}
+		} catch (IOException e) {
+			warn("INCBIN: cannot read file '" + filePath + "': " + e.getMessage());
+		}
+	}
+
+	/**
+	 * INCLUDE "file" — parse and assemble the included source file at the
+	 * current position. The included file must already be loaded into the
+	 * resource set (Xtext's {@code importURI} mechanism handles this).
+	 * Source-to-address map entries use the included file's name.
+	 */
+	private void assembleInclude(AsmInclude directive, ByteArrayOutputStream out) {
+		String importURI = directive.getImportURI();
+		if (importURI == null || importURI.isEmpty()) {
+			warn("INCLUDE: no file specified");
+			return;
+		}
+
+		// Strip surrounding quotes if present (grammar's FileSpec uses STRING terminal)
+		importURI = stripQuotes(importURI);
+
+		// Resolve the include path relative to the containing resource
+		Resource containingResource = directive.eResource();
+		if (containingResource == null) {
+			warn("INCLUDE: cannot resolve '" + importURI + "' — no containing resource");
+			return;
+		}
+
+		URI baseURI = containingResource.getURI();
+		URI resolvedURI = URI.createFileURI(importURI).resolve(baseURI);
+
+		// Look up or load the resource from the resource set
+		ResourceSet resourceSet = containingResource.getResourceSet();
+		Resource includedResource = null;
+		try {
+			includedResource = resourceSet.getResource(resolvedURI, true);
+		} catch (Exception e) {
+			warn("INCLUDE: cannot load '" + importURI + "': " + e.getMessage());
+			return;
+		}
+
+		if (includedResource == null || includedResource.getContents().isEmpty()) {
+			warn("INCLUDE: empty or unresolvable resource '" + importURI + "'");
+			return;
+		}
+
+		if (!(includedResource.getContents().get(0) instanceof AsmProgram)) {
+			warn("INCLUDE: resource '" + importURI + "' does not contain an AsmProgram");
+			return;
+		}
+
+		AsmProgram includedProgram = (AsmProgram) includedResource.getContents().get(0);
+
+		// Save and switch source context for map entries
+		String previousSource = this.effectiveSource;
+		Path previousSourceDir = this.sourceDir;
+
+		this.effectiveSource = resolvedURI.lastSegment();
+		if (resolvedURI.isFile()) {
+			this.sourceDir = Path.of(resolvedURI.toFileString()).getParent();
+		}
+
+		// Assemble the included program inline
+		assembleLines(includedProgram, out);
+
+		// Restore source context
+		this.effectiveSource = previousSource;
+		this.sourceDir = previousSourceDir;
+	}
+
 	// ─────────────── Conditional compilation ───────────────
 
 	/**
@@ -1390,7 +1581,8 @@ public class Z80Assembler {
 	/**
 	 * Resolve an operand to an integer value. Recursively evaluates
 	 * expressions including binary operators, unary sign/not, literals,
-	 * strings (first char ordinal), and labels (stub — warns and returns 0).
+	 * strings (first char ordinal), and labels (looked up from the symbol
+	 * table populated during pass&nbsp;1).
 	 */
 	private int resolveImmediate(AsmExpression operand) {
 		if (operand instanceof IntegralLiteral) {
@@ -1440,8 +1632,15 @@ public class Z80Assembler {
 		}
 		if (operand instanceof AsmLabel label) {
 			AsmLabelDef def = label.getRef();
-			String labelName = (def != null && !def.eIsProxy()) ? def.getName() : "?";
-			warn("Label resolution not yet implemented: " + labelName);
+			String labelName = (def != null && !def.eIsProxy()) ? def.getName() : null;
+			if (labelName != null && labels.containsKey(labelName)) {
+				return labels.get(labelName);
+			}
+			// During pass 1, labels may not yet be defined (forward references) — return 0 silently
+			if (pass1) {
+				return 0;
+			}
+			warn("Undefined label: " + (labelName != null ? labelName : "?"));
 			return 0;
 		}
 		if (operand instanceof AsmIndirect) {
@@ -1532,9 +1731,26 @@ public class Z80Assembler {
 	}
 
 	private void warn(String message) {
+		if (pass1) {
+			return; // Suppress warnings during pass 1 — labels aren't resolved yet
+		}
 		warnings.add(message);
 		if (warningCallback != null && currentLine > 0) {
 			warningCallback.warn(effectiveSource, currentLine, message);
 		}
+	}
+
+	/**
+	 * Strip surrounding quotes from a string, if present.
+	 */
+	private String stripQuotes(String s) {
+		s = s.trim();
+		if (s.startsWith("\"") && s.endsWith("\"")) {
+			return s.substring(1, s.length() - 1);
+		}
+		if (s.startsWith("'") && s.endsWith("'")) {
+			return s.substring(1, s.length() - 1);
+		}
+		return s;
 	}
 }

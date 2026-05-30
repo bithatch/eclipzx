@@ -3,7 +3,7 @@ package uk.co.bithatch.eclipz80.ui.language;
 import uk.co.bithatch.bitzx.IOutputFormat;
 
 public enum AsmOutputFormat implements IOutputFormat {
-	BIN;
+	BIN, TAP;
 
 	public boolean snapshot() {
 		return false;

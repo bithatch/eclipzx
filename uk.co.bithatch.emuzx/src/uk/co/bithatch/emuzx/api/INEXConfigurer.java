@@ -7,7 +7,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 
-import uk.co.bithatch.emuzx.INEXConfiguration;
+import uk.co.bithatch.bitzx.INEXConfiguration;
 
 public interface INEXConfigurer {
 

@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.cdt.core.CProjectNature;
 import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.settings.model.ICSettingEntry;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -172,10 +174,10 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	}
 
 	@Override
-	public File prepareForLaunch(IOutputFormat fmt, IFile file, ILaunchConfiguration configuration, String mode,
+	public Path prepareForInternalLaunch(IOutputFormat fmt, IFile file, ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		// TODO Auto-generated method stub
-		return file.getLocation().toFile();
+		return file.getLocation().toPath();
 	}
 
 	@Override
@@ -190,6 +192,14 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			debugInfo.parse(file);
 		}
 		return debugInfo;
+	}
+
+	@Override
+	public Map<String, String> findDefines(IFile baseFile) {
+		/* TODO get all the defines from project configuration of the files
+		 * projects and all of its referenced projects
+		 */
+		return Collections.emptyMap();
 	}
 
 	@Override
@@ -224,7 +234,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		return Collections.emptySet();
 	}
 
-	private void collectIncludePathsFromProject(IProject project, java.util.Set<Path> paths) {
+	private void collectIncludePathsFromProject(IProject project, Set<Path> paths) {
 		var projDesc = CoreModel.getDefault().getProjectDescription(project, false);
 		if (projDesc == null) return;
 
@@ -237,7 +247,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		var projectLocation = project.getLocation();
 
 		for (var lang : root.getLanguageSettings()) {
-			for (var se : lang.getResolvedSettingEntries(org.eclipse.cdt.core.settings.model.ICSettingEntry.INCLUDE_PATH)) {
+			for (var se : lang.getResolvedSettingEntries(ICSettingEntry.INCLUDE_PATH)) {
 				var value = se.getValue();
 				if (value == null || value.isEmpty()) continue;
 

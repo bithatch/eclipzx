@@ -1,7 +1,8 @@
 package uk.co.bithatch.eclipz80.generator;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
@@ -15,6 +16,7 @@ import com.google.inject.Injector;
 
 import uk.co.bithatch.eclipz80.AsmStandaloneSetup;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipz80.generator.Z80Assembler.Results;
 
 /**
  * Standalone command-line Z80 assembler. Parses a {@code .asm} file using the
@@ -34,7 +36,7 @@ import uk.co.bithatch.eclipz80.asm.AsmProgram;
  */
 public class Z80AssemblerCLI {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		boolean mapEnabled = false;
 		Path mapPath = null;
 		boolean farAddresses = false;
@@ -104,8 +106,7 @@ public class Z80AssemblerCLI {
 		AsmProgram program = (AsmProgram) resource.getContents().get(0);
 
 		// ── Build assembler ──
-		Z80Assembler.Builder builder = Z80Assembler.builder()
-				.withSourceFileName(inputPath.getFileName().toString());
+		Z80Assembler.Builder builder = Z80Assembler.builder();
 		if (mapEnabled) {
 			if (mapPath != null) {
 				builder.withMap(mapPath);
@@ -122,52 +123,25 @@ public class Z80AssemblerCLI {
 		Z80Assembler assembler = builder.build();
 
 		// ── Assemble ──
-		byte[] binary;
-		if (mapEnabled && mapPath == null) {
-			// Use 3-arg form to auto-derive .zmap path from output path
-			java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-			assembler.assemble(program, baos, outputPath);
-			binary = baos.toByteArray();
-		} else {
-			binary = assembler.assemble(program);
-		}
 
 		for (String warning : assembler.getWarnings()) {
 			System.err.println("WARNING: " + warning);
 		}
 
 		// ── Write output ──
-		try (FileOutputStream fos = new FileOutputStream(outputPath.toFile())) {
-			fos.write(binary);
+		Results results;
+		try (OutputStream fos = Files.newOutputStream(outputPath)) {
+			results = assembler.assemble(inputPath.getFileName().toString(), program, fos);
 		} catch (IOException e) {
+			results = null;
 			System.err.println("ERROR writing output: " + e.getMessage());
 			System.exit(4);
 		}
 
-		System.out.println("Assembled " + binary.length + " bytes to " + outputPath);
+		long binaryLength = Files.size(outputPath);
+		System.out.println("Assembled " + binaryLength + " bytes to " + outputPath);
 		if (mapEnabled) {
-			Path effectiveMapPath = mapPath;
-			if (effectiveMapPath == null) {
-				String binName = outputPath.getFileName().toString();
-				int dot = binName.lastIndexOf('.');
-				String baseName = dot >= 0 ? binName.substring(0, dot) : binName;
-				effectiveMapPath = outputPath.resolveSibling(baseName + ".zmap");
-			}
-			System.out.println("Map:      " + effectiveMapPath);
-		}
-
-		// ── Hex dump ──
-		System.out.println("\nHex dump:");
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < binary.length; i++) {
-			sb.append(String.format("%02X ", binary[i] & 0xFF));
-			if ((i + 1) % 16 == 0) {
-				System.out.println("  " + sb.toString().trim());
-				sb.setLength(0);
-			}
-		}
-		if (sb.length() > 0) {
-			System.out.println("  " + sb.toString().trim());
+			System.out.println("Map:      " + results.mapFile());
 		}
 	}
 }

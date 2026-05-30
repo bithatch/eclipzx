@@ -1,17 +1,13 @@
 package uk.co.bithatch.emuzx;
 
-public interface ExternalEmulatorLaunchConfigurationAttributes {
+public interface ExternalEmulatorLaunchConfigurationAttributes extends IEmulatorLaunchConfigurationAttributes {
 
     public static final String ID = "uk.co.bithatch.emuzx.ui.externalEmulatorLaunch";
 
-    public static final String LANGUAGE = ID + ".language";
     public static final String EMULATOR_EXECUTABLE = ID + ".emulator";
     public static final String CONFIGURATION_FILE = ID + ".configurationFile";
     public static final String CONFIGURATION_CONTENT = ID + ".configurationContent";
     public static final String EMULATOR_ARGS = ID + ".emulatorArguments";
-    public static final String PROGRAM = ID + ".program";
-    public static final String OUTPUT_FORMAT = ID + ".outputFormat";
-    public static final String PROJECT = ID + ".project";
     public static final String CUSTOM_WORKING_DIRECTORY = ID + ".customWorkingDirectory";
     public static final String WORKING_DIRECTORY_LOCATION = ID + ".workingDirectoryLocation";
     public static final String PREPARATION = ID + ".preparation";

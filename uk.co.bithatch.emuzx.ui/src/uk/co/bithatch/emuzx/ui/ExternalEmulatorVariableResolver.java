@@ -1,6 +1,7 @@
 package uk.co.bithatch.emuzx.ui;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
@@ -12,7 +13,8 @@ import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LaunchContext;
 import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
-import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
+import uk.co.bithatch.emuzx.LaunchableRegistry;
+import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 
 public class ExternalEmulatorVariableResolver implements IDynamicVariableResolver {
 
@@ -37,13 +39,13 @@ public class ExternalEmulatorVariableResolver implements IDynamicVariableResolve
 				var project = PlatformUI.getWorkbench().getAdapter(IWorkspace.class).getRoot().getProject(projectName);
 				if (project != null) {
 					var srcfile = project.getFile(programName);
+					var launchable = LaunchableRegistry.launchableFor(IExternallyLaunchable.class, srcfile);
+					var lang = LanguageSystem.languageSystem(project);
+					var outputFolder = lang.preferenceAccess().getOutputFolder(project).getLocation().toPath();
 					if (variable.getName().equals("ee_program_loc")) {
 						return srcfile.getLocation().toString();
 					} else {
-						var launchable = ExternallyLaunchableRegistry.externallyLaunchableFor(srcfile);
-						var lang = LanguageSystem.languageSystem(project);
 						var outputFormat = launchable.getOutputFormat(project);
-						var outputFolder = lang.preferenceAccess().getOutputFolder(project).getLocation().toPath();
 						var binfile = launchable.getBinFile(srcfile.getLocation().toPath(), outputFolder, outputFormat).toFile();
 						if (variable.getName().equals("ee_output_path")) {
 							return project.getRawLocation().toPath().relativize(binfile.toPath()).toString();
@@ -54,13 +56,15 @@ public class ExternalEmulatorVariableResolver implements IDynamicVariableResolve
 						}
 					}
 
-					var binfile = (File) ctx.attr(LaunchContext.BINARY_FILE);
-					if (variable.getName().equals("ee_launch_path")) {
-						return project.getRawLocation().toPath().relativize(binfile.toPath()).toString();
-					} else if (variable.getName().equals("ee_launch_loc")) {
-						return binfile.getAbsolutePath();
-					} else if (variable.getName().equals("ee_launch_name")) {
-						return binfile.getName();
+					var launchFile = (Path) ctx.attr(LaunchContext.LAUNCH_FILE);
+					if(launchFile != null) {
+						if (variable.getName().equals("ee_launch_path")) {
+							return project.getRawLocation().toPath().relativize(launchFile).toString();
+						} else if (variable.getName().equals("ee_launch_loc")) {
+							return launchFile.toAbsolutePath().toString();
+						} else if (variable.getName().equals("ee_launch_name")) {
+							return launchFile.getFileName().toString();
+						}
 					}
 				}
 			}

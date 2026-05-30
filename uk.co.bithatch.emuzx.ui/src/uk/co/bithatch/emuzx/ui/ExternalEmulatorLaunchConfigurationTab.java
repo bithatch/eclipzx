@@ -16,7 +16,8 @@ import org.eclipse.swt.widgets.Label;
 
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes;
-import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
+import uk.co.bithatch.emuzx.LaunchableRegistry;
+import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 import uk.co.bithatch.widgetzx.AbstractLaunchProgramConfigurationTab;
 
 public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgramConfigurationTab {
@@ -83,7 +84,7 @@ public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgra
 		try {
 			var program = resolveProgram();
 			if(program != null) {
-				var externallyLaunchable = ExternallyLaunchableRegistry.externallyLaunchableFor(program);
+				var externallyLaunchable = LaunchableRegistry.launchableFor(IExternallyLaunchable.class, program);
 				var system = resolveArchitecture();
 				
 				outputFormatCombo.setEnabled(true);

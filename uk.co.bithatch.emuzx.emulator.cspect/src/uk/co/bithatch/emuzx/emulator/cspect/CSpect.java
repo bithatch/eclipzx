@@ -3,11 +3,11 @@ package uk.co.bithatch.emuzx.emulator.cspect;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.DEBUGGER_EMULATOR_ARGS;
 import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
+import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_CONTENT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CONFIGURATION_FILE;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.CUSTOM_WORKING_DIRECTORY;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.EMULATOR_ARGS;
-import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.PREPARATION_TARGET;
 import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.WORKING_DIRECTORY_LOCATION;
 
@@ -21,16 +21,17 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import uk.co.bithatch.bitzx.Strings;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
-import uk.co.bithatch.emuzx.ExternallyLaunchableRegistry;
+import uk.co.bithatch.emuzx.LaunchableRegistry;
 import uk.co.bithatch.emuzx.api.EmulatorDescriptor;
 import uk.co.bithatch.emuzx.api.IEmulator;
+import uk.co.bithatch.emuzx.api.IExternallyLaunchable;
 
 public class CSpect implements IEmulator {
 
 	@Override
 	public void configure(EmulatorDescriptor descriptor, ILaunchConfigurationWorkingCopy configuration, IFile programFile, File home, String mode) throws CoreException {
 		var proj = programFile.getProject();
-		var arch = ExternallyLaunchableRegistry.externallyLaunchableFor(programFile).getArchitecture(proj);
+		var arch = LaunchableRegistry.launchableFor(IExternallyLaunchable.class, programFile).getArchitecture(proj);
 		
 		if(WellKnownArchitecture.ZXNEXT.equals(arch.wellKnown().orElse(null))) {
 

@@ -1,6 +1,6 @@
 package uk.co.bithatch.emuzx;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +16,7 @@ public class DefaultPreparationContext implements IWritablePreparationContext {
 
 	private IProgramBuildOptions buildOptions;
 	private final IFile programFile;
-	private File binaryFile;
+	private Path binaryFile;
 	private IOutputFormat outputFormat;
 	private String preparedBinaryFilePath;
 	private ILaunchConfiguration configuration;
@@ -50,12 +50,12 @@ public class DefaultPreparationContext implements IWritablePreparationContext {
 	}
 
 	@Override
-	public File binaryFile() {
+	public Path launchFile() {
 		return binaryFile;
 	}
 
 	@Override
-	public void binaryFile(File binaryFile) {
+	public void launchFile(Path binaryFile) {
 		this.binaryFile = binaryFile;
 	}
 

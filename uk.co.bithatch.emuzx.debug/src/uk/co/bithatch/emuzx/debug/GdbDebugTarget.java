@@ -124,7 +124,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 
 
 		LOG.info("GDB RSP debug target created successfully"
-				+ (debugInfo.hasDebugInfo() ? " with " + debugInfo.getLineToAddressMap().size() + " line mappings" : " (no debug info)"));
+				+ (debugInfo.hasDebugInfo() ? " with line mappings" : " (no debug info)"));
 	}
 
 	@Override

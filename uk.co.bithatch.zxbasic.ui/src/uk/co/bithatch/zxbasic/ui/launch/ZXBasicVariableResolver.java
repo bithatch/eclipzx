@@ -1,6 +1,6 @@
 package uk.co.bithatch.zxbasic.ui.launch;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
@@ -14,6 +14,10 @@ import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicOutputFormat;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 import uk.co.bithatch.zxbasic.ui.tools.ZXBC;
 
+/**
+ * TODO Kept for backward compatibility. Remove on release
+ */
+@Deprecated
 public class ZXBasicVariableResolver implements IDynamicVariableResolver {
 
 	@Override
@@ -51,14 +55,17 @@ public class ZXBasicVariableResolver implements IDynamicVariableResolver {
 						}
 					}
 
-					var binfile = (File) ctx.attr(LaunchContext.BINARY_FILE);
-					if (variable.getName().equals("zxbasic_launch_path")) {
-						return project.getRawLocation().toPath().relativize(binfile.toPath()).toString();
-					} else if (variable.getName().equals("zxbasic_launch_loc")) {
-						return binfile.getAbsolutePath();
-					} else if (variable.getName().equals("zxbasic_launch_name")) {
-						return binfile.getName();
+					var binfile = (Path) ctx.attr(LaunchContext.LAUNCH_FILE);
+					if(binfile != null) {
+						if (variable.getName().equals("zxbasic_launch_path")) {
+							return project.getRawLocation().toPath().relativize(binfile).toString();
+						} else if (variable.getName().equals("zxbasic_launch_loc")) {
+							return binfile.toAbsolutePath().toString();
+						} else if (variable.getName().equals("zxbasic_launch_name")) {
+							return binfile.getFileName().toString();
+						}
 					}
+					
 				}
 			}
 

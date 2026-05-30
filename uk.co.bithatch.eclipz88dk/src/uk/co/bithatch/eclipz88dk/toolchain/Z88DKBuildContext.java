@@ -6,7 +6,7 @@ import uk.co.bithatch.bitzx.IOutputFormat;
 
 /**
  * Static context used to pass the desired output format from
- * {@link uk.co.bithatch.eclipz88dk.launch.CExternallyLaunchable#compileForLaunch}
+ * {@link uk.co.bithatch.eclipz88dk.launch.CLaunchable#compileForLaunch}
  * into the CDT command-line generator ({@link Z88DKCmdLineGen}).
  * <p>
  * This uses a simple static volatile field rather than a thread-local because
