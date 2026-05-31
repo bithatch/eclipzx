@@ -34,7 +34,7 @@ public class ToggleBreakpointHandler extends AbstractHandler {
 
 		try {
 			var mgr = DebugPlugin.getDefault().getBreakpointManager();
-			var breakpoints = mgr.getBreakpoints();
+			var breakpoints = mgr.getBreakpoints(AsmLineBreakpoint.MODEL_ID);
 
 			// Toggle logic: remove if exists
 			for (var bp : breakpoints) {

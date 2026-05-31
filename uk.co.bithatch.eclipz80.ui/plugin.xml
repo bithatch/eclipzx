@@ -249,13 +249,29 @@
 		</resourceServiceProvider>
 	</extension>
 	<!-- marker definitions for uk.co.bithatch.eclipz80.Asm -->
-	<extension point="org.eclipse.core.resources.markers" id="uk.co.bithatch.eclipz80.ui.debug.lineBreakpointMarker" name="Z80 Line Breakpoint">
+	<extension point="org.eclipse.core.resources.markers" id="debug.lineBreakpointMarker" name="Z80 Line Breakpoint">
         <persistent value="true" />
-        <!-- You can extend more than one type -->
         <super type="org.eclipse.debug.core.lineBreakpointMarker" />
-        <!-- Optional attributes you want associated with the marker -->
         <attribute name="lineNumber" />
         <attribute name="enabled" />
+    </extension>
+
+    <!-- Register breakpoint type with the debug framework -->
+    <extension point="org.eclipse.debug.core.breakpoints">
+        <breakpoint
+            id="uk.co.bithatch.eclipz80.ui.debug.lineBreakpoint"
+            class="uk.co.bithatch.eclipz80.ui.debug.AsmLineBreakpoint"
+            markerType="uk.co.bithatch.eclipz80.ui.debug.lineBreakpointMarker"
+            name="Z80 Assembly Line Breakpoint">
+        </breakpoint>
+    </extension>
+
+    <!-- Toggle breakpoints target factory for ruler actions -->
+    <extension point="org.eclipse.debug.ui.toggleBreakpointsTargetFactories">
+        <toggleTargetFactory
+            id="uk.co.bithatch.eclipz80.ui.debug.toggleBreakpointsTargetFactory"
+            class="uk.co.bithatch.eclipz80.ui.debug.AsmToggleBreakpointsTargetFactory">
+        </toggleTargetFactory>
     </extension>
 	<extension
 			id="asm.check.fast"

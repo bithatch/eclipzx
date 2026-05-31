@@ -4,6 +4,7 @@
 package uk.co.bithatch.eclipz80;
 
 import org.eclipse.xtext.generator.IOutputConfigurationProvider;
+import org.eclipse.xtext.naming.IQualifiedNameProvider;
 import org.eclipse.xtext.scoping.IGlobalScopeProvider;
 import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
@@ -27,5 +28,9 @@ public class AsmRuntimeModule extends AbstractAsmRuntimeModule {
 
 	public Class<? extends IOutputConfigurationProvider> bindIOutputConfigurationProvider() {
 		return AsmOutputConfigurationProvider.class;
+	}
+
+	public Class<? extends IQualifiedNameProvider> bindIQualifiedNameProvider() {
+		return AsmQualifiedNameProvider.class;
 	}
 }

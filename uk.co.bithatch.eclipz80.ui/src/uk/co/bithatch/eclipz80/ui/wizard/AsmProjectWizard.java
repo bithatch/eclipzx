@@ -70,7 +70,7 @@ public class AsmProjectWizard extends Wizard implements INewWizard {
 							+ "    ret z\n"
 							+ "    rst $10\n"
 							+ "    inc hl\n"
-							+ "    jr .loop\n"
+							+ "    jr loop\n"
 							+ "\n"
 							+ "message:\n"
 							+ "    db \"Hello\", 0\n").getBytes()), true, null);

@@ -277,21 +277,9 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 		return sourceName;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
-		GdbZ80StackFrame other = (GdbZ80StackFrame) obj;
-		/* Eclipse identifies stack frames primarily by their thread and depth.
-		 * Since we only have a top stack frame (depth 0), we just compare the Thread. 
-		 * Removing PC from equality prevents the selection jumping around in the Debug View when stepping. */
-		return getThread().equals(other.getThread());
-	}
-
-	@Override
-	public int hashCode() {
-		return getThread().hashCode();
-	}
+	/* No equals/hashCode override — we reuse a single frame instance per thread,
+	 * so default Object identity is correct.  This lets Eclipse's Debug View
+	 * keep its tree selection and expansion state across suspend/resume cycles. */
 
 	// ---- Delegation to thread ----
 

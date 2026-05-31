@@ -88,7 +88,7 @@ public class AsmLanguageSystemProvider implements ILanguageSystemProvider {
 	@Override
 	public ISourceAdressMap createSourceAddressMap(Path file) {
 		try {
-			return new AsmSourceAddressMap(file);
+			return new AsmSourceAddressMap(FileNames.changeExtension(file, "zmap"));
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}

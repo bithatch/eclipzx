@@ -50,13 +50,12 @@ public class GdbDebugModelPresentation extends LabelProvider implements IDebugMo
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
 		if (element instanceof IFile file) {
-			/* Use the C editor for .c files, text editor otherwise */
 			var name = file.getName().toLowerCase();
 			if (name.endsWith(".c") || name.endsWith(".h")) {
 				return "org.eclipse.cdt.ui.editor.CEditor";
 			}
-			if (name.endsWith(".asm") || name.endsWith(".s")) {
-				return "org.eclipse.ui.DefaultTextEditor";
+			if (name.endsWith(".asm") || name.endsWith(".s") || name.endsWith(".z80")) {
+				return "uk.co.bithatch.eclipz80.Asm";
 			}
 		}
 		return "org.eclipse.ui.DefaultTextEditor";

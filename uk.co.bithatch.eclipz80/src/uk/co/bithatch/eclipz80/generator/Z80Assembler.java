@@ -2152,6 +2152,10 @@ public class Z80Assembler {
 				}
 			}
 			if (labelName != null) {
+				// Strip leading dot — z88dk convention
+				if (labelName.startsWith(".")) {
+					labelName = labelName.substring(1);
+				}
 				// Try module-qualified lookup first, then bare name
 				// TODO: Support explicit module.label syntax in expressions (needs grammar change)
 				String qualifiedName = currentModule + "." + labelName;
@@ -2291,13 +2295,16 @@ public class Z80Assembler {
 	}
 	
 	private Symbol putSymbol(String symbol) {
+		// Strip leading dot — z88dk uses .label to define labels, but
+		// the dot is not part of the name (it is referenced without it)
+		String name = symbol.startsWith(".") ? symbol.substring(1) : symbol;
 		// Store with module-qualified name
-		String qualifiedName = currentModule.isEmpty() ? symbol : currentModule + "." + symbol;
-		Symbol sym = symbols.computeIfAbsent(qualifiedName, s -> new Symbol(symbol));
+		String qualifiedName = currentModule.isEmpty() ? name : currentModule + "." + name;
+		Symbol sym = symbols.computeIfAbsent(qualifiedName, s -> new Symbol(name));
 		sym.section = currentSection;
 		sym.module = currentModule;
 		// Also store unqualified for cross-module access (PUBLIC/GLOBAL symbols)
-		symbols.putIfAbsent(symbol, sym);
+		symbols.putIfAbsent(name, sym);
 		return sym;
 	}
 }

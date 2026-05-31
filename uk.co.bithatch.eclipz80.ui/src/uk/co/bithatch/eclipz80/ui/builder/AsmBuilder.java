@@ -126,6 +126,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		var defines = prefs.getDefines(project);
 		var assembler = Z80Assembler.builder()
 				.withDefines(defines)
+				.withZ80N() /* TODO temporarily always enable this, need arch property on projects */
 				.withOutputDir(prefs.getOutputFolder(project).getLocation().toPath())
 				.withMap(prefs.isGenerateMap(project))
 				.withWarningCallback((filename, line, warning) -> {

@@ -103,7 +103,6 @@ public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
 				|| stmt instanceof AsmInclude
 				|| stmt instanceof AsmModule
 				|| stmt instanceof AsmSection
-				|| stmt instanceof AsmCLINE
 				|| stmt instanceof AsmAlignDirective
 				|| stmt instanceof AsmAssumeDirective
 				|| stmt instanceof AsmCallOzDirective

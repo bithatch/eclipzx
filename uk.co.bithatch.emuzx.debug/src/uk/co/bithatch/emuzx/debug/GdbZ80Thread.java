@@ -28,12 +28,13 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 	private volatile boolean stepping = false;
 	
 	/* 
-	 * Eclipse's Debug View requires object identity (or proper equals/hashCode) to maintain
-	 * selection across steps. If we create a new stack frame instance every time,
-	 * the selection "jumps about" because Eclipse thinks all the frames have changed.
-	 * We cache the frame here and invalidate it when resuming.
+	 * Eclipse's Debug View uses object identity to maintain tree selection and
+	 * expansion state across suspend/resume cycles.  We keep ONE frame instance
+	 * for the entire session and update it in-place when the target suspends.
+	 * A dirty flag tells getTopStackFrame() to re-read registers/source.
 	 */
-	private GdbZ80StackFrame currentFrame;
+	private final GdbZ80StackFrame currentFrame;
+	private volatile boolean frameDirty = true;
 
 	GdbZ80Thread(IDebugTarget delegate, GdbRspClient rsp, ISourceAdressMap debugInfo) {
 		super(delegate);
@@ -42,8 +43,8 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 		this.currentFrame = new GdbZ80StackFrame(this, rsp, debugInfo);
 	}
 
-	private IDebugTarget target() {
-		return (IDebugTarget) super.delegate();
+	private GdbDebugTarget target() {
+		return (GdbDebugTarget) super.delegate();
 	}
 
 	@Override
@@ -78,21 +79,42 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 			try {
 				LOG.info("Stepping into...");
 				stepping = true;
-				currentFrame = null;
+				frameDirty = true;
+
+				/* Transition to "not suspended" so the event is consistent
+				 * with what isSuspended() returns when Eclipse processes it. */
+				target().setSuspended(false);
 				DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[] {
 					new DebugEvent(this, DebugEvent.RESUME, DebugEvent.STEP_INTO)
 				});
 				
-				/* Send step and read stop reply synchronously to avoid desync.
-				 * The step command completes very quickly (single instruction). */
-				var stopReply = rsp.sendCommand("s");
+				/* Send step and read stop reply synchronously.
+				 * The step command completes very quickly (single instruction).
+				 * The waitForStopLoop is guarded by the 'stepping' flag so it
+				 * will not compete for the socket. */
+				rsp.sendCommand("s");
+
+				/* Back to suspended */
+				target().setSuspended(true);
 				stepping = false;
+
+				/* Update the frame in-place BEFORE firing events so Eclipse
+				 * sees the new PC / line number when it queries the model. */
+				currentFrame.update();
+				frameDirty = false;
+
 				DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[] {
 					new DebugEvent(this, DebugEvent.SUSPEND, DebugEvent.STEP_END)
 				});
+				/* Tell Eclipse the frame content changed so it refreshes
+				 * source highlighting even though the frame object is the same. */
+				DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[] {
+					new DebugEvent(currentFrame, DebugEvent.CHANGE, DebugEvent.CONTENT)
+				});
 				
 			} catch (IOException e) {
-				stepping = false; /* Failed, undo state */
+				stepping = false;
+				target().setSuspended(true);
 				throw new DebugException(Status.error("Failed to step", e));
 			}
 		}
@@ -105,6 +127,18 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 
 	void setStepping(boolean stepping) {
 		this.stepping = stepping;
+	}
+
+	/**
+	 * Mark the cached stack frame as stale so it will be refreshed on the
+	 * next call to {@link #getTopStackFrame()}.
+	 * <p>
+	 * Unlike nulling the frame, this preserves the same object instance so
+	 * Eclipse's Debug View keeps its tree selection and expansion state
+	 * (e.g., the Registers viewer stays expanded).
+	 */
+	void invalidateFrame() {
+		frameDirty = true;
 	}
 
 	@Override
@@ -155,16 +189,11 @@ public final class GdbZ80Thread extends DelegatingDebugElement implements IThrea
 	@Override
 	public IStackFrame getTopStackFrame() throws DebugException {
 		if (isSuspended()) {
-			if (currentFrame != null) {
+			if (frameDirty) {
 				currentFrame.update();
-				return currentFrame;
+				frameDirty = false;
 			}
-			try {
-				currentFrame = new GdbZ80StackFrame(this, rsp, debugInfo);
-				return currentFrame;
-			} catch (Exception e) {
-				LOG.error("Failed to create stack frame", e);
-			}
+			return currentFrame;
 		}
 		return null;
 	}

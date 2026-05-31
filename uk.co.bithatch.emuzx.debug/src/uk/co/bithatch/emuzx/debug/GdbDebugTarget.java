@@ -158,6 +158,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 			try {
 				LOG.info("Resuming execution");
 				z80thread.setStepping(false);
+				z80thread.invalidateFrame();
 				rsp.continueExecution();
 				suspended = false;
 				fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
@@ -281,6 +282,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 		}
 		if (wasRunning) {
 			LOG.info("Resuming after breakpoint set");
+			z80thread.invalidateFrame();
 			rsp.continueExecution();
 			suspended = false;
 			fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
@@ -304,6 +306,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 				rsp.removeBreakpoint(address);
 				LOG.info("Removed breakpoint at 0x" + Integer.toHexString(address));
 				if (wasRunning && suspended) {
+					z80thread.invalidateFrame();
 					rsp.continueExecution();
 					suspended = false;
 					fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
@@ -359,26 +362,42 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 
 	private void waitForStopLoop() {
 		while (!terminated) {
-			if (!suspended && rsp.isConnected()) {
+			/* Only enter the blocking wait when:
+			 *  - we are NOT suspended (target is running after 'c')
+			 *  - we are NOT stepping (stepInto() handles its own stop reply)
+			 *  - RSP socket is still open */
+			if (!suspended && !z80thread.isStepping() && rsp.isConnected()) {
 				try {
 					var stopReply = rsp.waitForStop();
 					if (stopReply != null && !terminated) {
 						LOG.info("Target stopped: " + stopReply);
 						suspended = true;
-						boolean wasStepping = z80thread.isStepping();
+						z80thread.invalidateFrame();
 						z80thread.setStepping(false);
+
 						/* Fire suspend events from the THREAD, not the debug target.
 						 * Eclipse requires the event source to be the thread
 						 * for proper stack frame selection and source highlighting. */
 						int detail;
-						if (wasStepping) {
-							detail = DebugEvent.STEP_END;
-						} else if (stopReply.contains("T05") || stopReply.contains("T02")) {
+						if (stopReply.contains("T05") || stopReply.contains("T02")) {
 							detail = DebugEvent.BREAKPOINT;
 						} else {
 							detail = DebugEvent.CLIENT_REQUEST;
 						}
 						fireEvent(new DebugEvent(z80thread, DebugEvent.SUSPEND, detail));
+
+						/* Force the frame to update in-place and tell Eclipse
+						 * its content changed.  This makes Eclipse re-query
+						 * getLineNumber() / getName() and move the instruction
+						 * pointer annotation to the new source line. */
+						try {
+							var topFrame = z80thread.getTopStackFrame();
+							if (topFrame != null) {
+								fireEvent(new DebugEvent(topFrame, DebugEvent.CHANGE, DebugEvent.CONTENT));
+							}
+						} catch (DebugException de) {
+							LOG.warn("Could not refresh stack frame after suspend", de);
+						}
 					}
 				} catch (IOException e) {
 					if (!terminated) {

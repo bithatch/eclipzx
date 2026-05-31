@@ -10,16 +10,21 @@ import uk.co.bithatch.eclipz80.ui.AsmUiActivator;
 
 public class AsmLineBreakpoint extends LineBreakpoint {
 
-    static final String MARKER_ID = "uk.co.bithatch.eclipz80.ui.debug.lineBreakpointMarker";
+    public static final String MARKER_ID = "uk.co.bithatch.eclipz80.ui.debug.lineBreakpointMarker";
+    public static final String MODEL_ID = "uk.co.bithatch.eclipz80.ui.debug";
+
+    /** Required no-arg constructor for breakpoint restoration by the debug framework. */
+    public AsmLineBreakpoint() {
+    }
 
     public AsmLineBreakpoint(IMarker marker) throws CoreException {
         marker.setAttribute(IBreakpoint.ENABLED, true);
-        marker.setAttribute(IBreakpoint.ID, DebugPlugin.getDefault().getBundle().getSymbolicName());
+        marker.setAttribute(IBreakpoint.ID, MODEL_ID);
         setMarker(marker);
     }
 
 	@Override
 	public String getModelIdentifier() {
-		return AsmUiActivator.PLUGIN_ID;
+		return MODEL_ID;
 	}
 }

@@ -5,8 +5,10 @@ package uk.co.bithatch.eclipz80.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.xtext.ide.editor.syntaxcoloring.ISemanticHighlightingCalculator;
+import org.eclipse.xtext.ui.editor.XtextEditor;
 
 import uk.co.bithatch.eclipz80.IAsmIncludeSource;
+import uk.co.bithatch.eclipz80.ui.debug.AsmXtextEditor;
 import uk.co.bithatch.eclipz80.ui.library.AsmLibraryIncludeSource;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmHighlightingConfiguration;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmSemanticHighlightingCalculator;
@@ -23,6 +25,10 @@ public class AsmUiModule extends AbstractAsmUiModule {
 
 	public Class<? extends IAsmIncludeSource> bindIAsmIncludeSource() {
 	    return AsmLibraryIncludeSource.class;
+	}
+
+	public Class<? extends XtextEditor> bindXtextEditor() {
+		return AsmXtextEditor.class;
 	}
 
 	public Class<? extends ISemanticHighlightingCalculator> bindISemanticHighlightingCalculator() {
