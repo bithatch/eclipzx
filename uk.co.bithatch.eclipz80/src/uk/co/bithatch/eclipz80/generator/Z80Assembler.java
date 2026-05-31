@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,104 +23,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
-import uk.co.bithatch.eclipz80.asm.Add;
-import uk.co.bithatch.eclipz80.asm.And;
-import uk.co.bithatch.eclipz80.asm.AsmCall;
-import uk.co.bithatch.eclipz80.asm.AsmCondition;
-import uk.co.bithatch.eclipz80.asm.AsmDefcLine;
-import uk.co.bithatch.eclipz80.asm.AsmExpression;
-import uk.co.bithatch.eclipz80.asm.AsmGroupedDefine;
-import uk.co.bithatch.eclipz80.asm.AsmIf;
-import uk.co.bithatch.eclipz80.asm.AsmIfDef;
-import uk.co.bithatch.eclipz80.asm.AsmIfNDef;
-import uk.co.bithatch.eclipz80.asm.AsmInclude;
-import uk.co.bithatch.eclipz80.asm.AsmIndirect;
-import uk.co.bithatch.eclipz80.asm.AsmLabel;
-import uk.co.bithatch.eclipz80.asm.AsmLabelDef;
-import uk.co.bithatch.eclipz80.asm.AsmLine;
-import uk.co.bithatch.eclipz80.asm.AsmNotExpr;
-import uk.co.bithatch.eclipz80.asm.AsmProgram;
-import uk.co.bithatch.eclipz80.asm.AsmRegisterName;
-import uk.co.bithatch.eclipz80.asm.AsmSignedExpr;
-import uk.co.bithatch.eclipz80.asm.AsmStatement;
-import uk.co.bithatch.eclipz80.asm.AsmStatementLine;
-import uk.co.bithatch.eclipz80.asm.BinaryExpr;
-import uk.co.bithatch.eclipz80.asm.Bit;
-import uk.co.bithatch.eclipz80.asm.Ccf;
-import uk.co.bithatch.eclipz80.asm.Cp;
-import uk.co.bithatch.eclipz80.asm.Cpd;
-import uk.co.bithatch.eclipz80.asm.Cpdr;
-import uk.co.bithatch.eclipz80.asm.Cpi;
-import uk.co.bithatch.eclipz80.asm.Cpir;
-import uk.co.bithatch.eclipz80.asm.Cpl;
-import uk.co.bithatch.eclipz80.asm.DI;
-import uk.co.bithatch.eclipz80.asm.Daa;
-import uk.co.bithatch.eclipz80.asm.DataDefineGroup;
-import uk.co.bithatch.eclipz80.asm.Dec;
-import uk.co.bithatch.eclipz80.asm.DefByte;
-import uk.co.bithatch.eclipz80.asm.DefDWord;
-import uk.co.bithatch.eclipz80.asm.DefPointer;
-import uk.co.bithatch.eclipz80.asm.DefSpace;
-import uk.co.bithatch.eclipz80.asm.DefTermString;
-import uk.co.bithatch.eclipz80.asm.DefWord;
-import uk.co.bithatch.eclipz80.asm.DefWordBE;
-import uk.co.bithatch.eclipz80.asm.Define;
-import uk.co.bithatch.eclipz80.asm.Djnz;
-import uk.co.bithatch.eclipz80.asm.EI;
-import uk.co.bithatch.eclipz80.asm.Ex;
-import uk.co.bithatch.eclipz80.asm.Exx;
-import uk.co.bithatch.eclipz80.asm.Halt;
-import uk.co.bithatch.eclipz80.asm.Im;
-import uk.co.bithatch.eclipz80.asm.Inc;
-import uk.co.bithatch.eclipz80.asm.IncBin;
-import uk.co.bithatch.eclipz80.asm.Ind;
-import uk.co.bithatch.eclipz80.asm.Indr;
-import uk.co.bithatch.eclipz80.asm.Ini;
-import uk.co.bithatch.eclipz80.asm.Inir;
-import uk.co.bithatch.eclipz80.asm.IntegralLiteral;
-import uk.co.bithatch.eclipz80.asm.Jp;
-import uk.co.bithatch.eclipz80.asm.Jr;
-import uk.co.bithatch.eclipz80.asm.LabelEQULine;
-import uk.co.bithatch.eclipz80.asm.LabelOnlyLine;
-import uk.co.bithatch.eclipz80.asm.Ld;
-import uk.co.bithatch.eclipz80.asm.Ldd;
-import uk.co.bithatch.eclipz80.asm.Lddr;
-import uk.co.bithatch.eclipz80.asm.Ldi;
-import uk.co.bithatch.eclipz80.asm.Ldir;
-import uk.co.bithatch.eclipz80.asm.Neg;
-import uk.co.bithatch.eclipz80.asm.Nop;
-import uk.co.bithatch.eclipz80.asm.OrInst;
-import uk.co.bithatch.eclipz80.asm.Org;
-import uk.co.bithatch.eclipz80.asm.Otdr;
-import uk.co.bithatch.eclipz80.asm.Otir;
-import uk.co.bithatch.eclipz80.asm.Outd;
-import uk.co.bithatch.eclipz80.asm.Outi;
-import uk.co.bithatch.eclipz80.asm.Pop;
-import uk.co.bithatch.eclipz80.asm.Push;
-import uk.co.bithatch.eclipz80.asm.Res;
-import uk.co.bithatch.eclipz80.asm.Ret;
-import uk.co.bithatch.eclipz80.asm.Reti;
-import uk.co.bithatch.eclipz80.asm.Retn;
-import uk.co.bithatch.eclipz80.asm.Rl;
-import uk.co.bithatch.eclipz80.asm.Rla;
-import uk.co.bithatch.eclipz80.asm.Rlc;
-import uk.co.bithatch.eclipz80.asm.Rlca;
-import uk.co.bithatch.eclipz80.asm.Rld;
-import uk.co.bithatch.eclipz80.asm.Rr;
-import uk.co.bithatch.eclipz80.asm.Rra;
-import uk.co.bithatch.eclipz80.asm.Rrc;
-import uk.co.bithatch.eclipz80.asm.Rrca;
-import uk.co.bithatch.eclipz80.asm.Rrd;
-import uk.co.bithatch.eclipz80.asm.Rst;
-import uk.co.bithatch.eclipz80.asm.Sbc;
-import uk.co.bithatch.eclipz80.asm.Scf;
-import uk.co.bithatch.eclipz80.asm.SetInst;
-import uk.co.bithatch.eclipz80.asm.Sla;
-import uk.co.bithatch.eclipz80.asm.Sra;
-import uk.co.bithatch.eclipz80.asm.Srl;
-import uk.co.bithatch.eclipz80.asm.StringLiteral;
-import uk.co.bithatch.eclipz80.asm.Sub;
-import uk.co.bithatch.eclipz80.asm.Xor;
+import uk.co.bithatch.eclipz80.asm.*;
 
 /**
  * A simple Z80 assembler that walks an Xtext-parsed {@link AsmProgram} AST and
@@ -133,6 +37,9 @@ import uk.co.bithatch.eclipz80.asm.Xor;
  *   <li>Labels defined on their own line, on statement lines, via EQU, and via DEFC</li>
  *   <li>Forward and backward label references in operands (JP, CALL, LD, data directives, etc.)</li>
  *   <li>Relative offset calculation for JR and DJNZ with range checking</li>
+ *   <li>MODULE / SECTION tracking with Z88DK-style module-qualified symbol names</li>
+ *   <li>PUBLIC / GLOBAL / EXTERN symbol visibility directives</li>
+ *   <li>ALIGN directive with configurable fill byte</li>
  * </ul>
  * <p>
  * Can be used standalone (outside the Xtext generator infrastructure) by
@@ -146,11 +53,69 @@ import uk.co.bithatch.eclipz80.asm.Xor;
  *     .withFarAddresses()      // use 32-bit far addresses (Z88DK)
  *     .build();
  * </pre>
+ *
+ * <h2>Outstanding TODOs</h2>
+ * <ul>
+ *   <li>TODO: Explicit module.label syntax in expressions (needs grammar change for dotted AsmLabel)</li>
+ *   <li>TODO: Section ordering in output (CODE, DATA, BSS reordering for linker phase)</li>
+ *   <li>TODO: Proper linker-phase extern resolution (currently fails with address 0)</li>
+ *   <li>TODO: Z80N instructions — NEXTREG, SWAPNIB, MIRROR, MUL, PIXELDN, PIXELAD, SETAE, OUTINB, TEST, BRK, MMU</li>
+ *   <li>TODO: Z80N block operations — LDIX, LDDX, LDIRX, LDDRX, LDPIRX, LDWS</li>
+ *   <li>TODO: Z80N barrel shifts — BSLA, BSRA, BSRL, BSRF, BRLC</li>
+ *   <li>TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP</li>
+ *   <li>TODO: DMA directives — DMA.WR0 through DMA.WR6/DMA.CMD</li>
+ *   <li>TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE</li>
+ *   <li>TODO: PROC / LOCAL scoping</li>
+ *   <li>TODO: Numeric label support (AsmNumericLabelLine)</li>
+ * </ul>
  */
 public class Z80Assembler {
 	
 	public interface Results {
 		Path mapFile();
+	}
+	
+	public final static class Symbol {
+		
+		private final String name;
+		private int address;
+		private boolean isGlobal;
+		private boolean isExternal;
+		private boolean isPublic;
+		private String section;
+		private String module;
+		
+		private Symbol(String name) {
+			this.name = name;
+		}	
+		
+		public int address() {
+			return address;
+		}
+		
+		public boolean isPublic() {
+			return isPublic;
+		}
+		
+		public boolean isExternal() {
+			return isExternal;
+		}
+		
+		public boolean isGlobal() {
+			return isGlobal;
+		}
+		
+		public String name() {
+			return name;
+		}
+		
+		public String section() {
+			return section;
+		}
+		
+		public String module() {
+			return module;
+		}
 	}
 
 	/**
@@ -182,13 +147,15 @@ public class Z80Assembler {
 
 	private final List<String> warnings = new ArrayList<>();
 	private final Map<String, String> defines;
-	private final Map<String, Integer> labels = new LinkedHashMap<>();
+	private final Map<String, Symbol> symbols = new LinkedHashMap<>();
 	private int currentAddress = 0;
 	private String effectiveSource;
 	private Path sourceDir;
 	private int currentLine = -1;
 	private boolean pass1;
 	private WarningCallback warningCallback;
+	private String currentSection = "";
+	private String currentModule = "";
 
 	private final Optional<Path> mapFile;
 	private final Optional<Path> outputDir;
@@ -382,13 +349,13 @@ public class Z80Assembler {
 	/**
 	 * Assemble the program, writing bytes to the given output stream.
 	 * Uses a two-pass approach: pass 1 collects label addresses (output is
-	 * discarded), pass 2 emits the final machine code with all labels resolved.
+	 * discarded), pass 2 emits the final machine code with all symbols resolved.
 	 * If a map file was configured, the .zmap file is written after assembly.
 	 */
 	public Results assemble(String sourceFileName, AsmProgram program, OutputStream out) {
 		warnings.clear();
 		currentAddress = 0;
-		labels.clear();
+		symbols.clear();
 		mapEntries.clear();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -402,13 +369,20 @@ public class Z80Assembler {
 			this.sourceDir = Path.of("").toAbsolutePath();
 		}
 
+		// Default module name derived from source file (Z88DK convention)
+		this.currentModule = deriveModuleName(this.effectiveSource);
+
 		// ── Pass 1: collect label addresses (output discarded) ──
 		pass1 = true;
+		currentSection = "";
+		currentModule = deriveModuleName(this.effectiveSource);
 		assembleLines(program, new ByteArrayOutputStream());
 
-		// ── Pass 2: emit final machine code with labels resolved ──
+		// ── Pass 2: emit final machine code with symbols resolved ──
 		pass1 = false;
 		currentAddress = 0;
+		currentSection = "";
+		currentModule = deriveModuleName(this.effectiveSource);
 		assembleLines(program, baos);
 
 		try {
@@ -450,6 +424,22 @@ public class Z80Assembler {
 	}
 
 	/**
+	 * Derive the default module name from a source filename.
+	 * Strips the file extension (e.g. "main.asm" → "main").
+	 * This follows Z88DK convention where the module name defaults
+	 * to the source file name without extension.
+	 */
+	private String deriveModuleName(String sourceFileName) {
+		if (sourceFileName == null) return "";
+		int dot = sourceFileName.lastIndexOf('.');
+		String base = dot >= 0 ? sourceFileName.substring(0, dot) : sourceFileName;
+		// Strip any directory separators
+		int sep = Math.max(base.lastIndexOf('/'), base.lastIndexOf('\\'));
+		if (sep >= 0) base = base.substring(sep + 1);
+		return base;
+	}
+
+	/**
 	 * Returns the collected line-to-address map entries from the last assembly.
 	 */
 	public List<MapEntry> getMapEntries() {
@@ -461,6 +451,13 @@ public class Z80Assembler {
 	 */
 	public List<String> getWarnings() {
 		return warnings;
+	}
+
+	/**
+	 * Returns an unmodifiable view of the symbol table from the last assembly.
+	 */
+	public Map<String, Symbol> getSymbols() {
+		return Collections.unmodifiableMap(symbols);
 	}
 
 	// ─────────────── Line / source tracking helpers ───────────────
@@ -522,7 +519,7 @@ public class Z80Assembler {
 			if (line instanceof LabelOnlyLine) {
 				LabelOnlyLine lol = (LabelOnlyLine) line;
 				if (pass1 && lol.getLabelDef() != null) {
-					labels.put(lol.getLabelDef().getName(), currentAddress);
+					putSymbol(lol.getLabelDef().getName()).address = currentAddress;
 				}
 				continue;
 			}
@@ -530,9 +527,9 @@ public class Z80Assembler {
 			// ── EQU line (e.g. "SCREEN_ADDR EQU $4000") ──
 			if (line instanceof LabelEQULine) {
 				LabelEQULine equ = (LabelEQULine) line;
-				if (pass1 && equ.getLabelDef() != null) {
-					// TODO: forward references in EQU expressions are not yet supported
-					labels.put(equ.getLabelDef().getName(), resolveImmediate(equ.getValue()));
+				if (equ.getLabelDef() != null) {
+					// Resolve on both passes — pass 2 re-resolves with all symbols defined
+					putSymbol(equ.getLabelDef().getName()).address = resolveImmediate(equ.getValue());
 				}
 				continue;
 			}
@@ -540,9 +537,9 @@ public class Z80Assembler {
 			// ── DEFC line (e.g. "DEFC name = expr") ──
 			if (line instanceof AsmDefcLine) {
 				AsmDefcLine defc = (AsmDefcLine) line;
-				if (pass1 && defc.getLabelDef() != null) {
-					// TODO: forward references in DEFC expressions are not yet supported
-					labels.put(defc.getLabelDef().getName(), resolveImmediate(defc.getValue()));
+				if (defc.getLabelDef() != null) {
+					// Resolve on both passes — pass 2 re-resolves with all symbols defined
+					putSymbol(defc.getLabelDef().getName()).address = resolveImmediate(defc.getValue());
 				}
 				continue;
 			}
@@ -553,7 +550,7 @@ public class Z80Assembler {
 
 				// Record label on this statement line (e.g. "message: db ...")
 				if (pass1 && stmtLine.getLabelDef() != null) {
-					labels.put(stmtLine.getLabelDef().getName(), currentAddress);
+					putSymbol(stmtLine.getLabelDef().getName()).address = currentAddress;
 				}
 
 				// Record line-to-address mapping before emitting
@@ -570,6 +567,8 @@ public class Z80Assembler {
 				}
 			}
 			// Other line types (NUMERIC_LABEL, LOCAL, etc.) are ignored for now
+			// TODO: Numeric label support (AsmNumericLabelLine)
+			// TODO: PROC / LOCAL scoping
 		}
 	}
 
@@ -579,6 +578,75 @@ public class Z80Assembler {
 		// ── Directives ──
 		if (stmt instanceof Org) {
 			currentAddress = resolveIntegralLiteral(((Org) stmt).getValue());
+			return;
+		}
+
+		// ── Module / Section directives ──
+		if (stmt instanceof uk.co.bithatch.eclipz80.asm.Module) {
+			currentModule = ((uk.co.bithatch.eclipz80.asm.Module) stmt).getName();
+			return;
+		}
+		if (stmt instanceof Section) {
+			currentSection = ((Section) stmt).getName();
+			return;
+		}
+
+		// ── Symbol visibility directives ──
+		if (stmt instanceof Public) {
+			Public pub = (Public) stmt;
+			if (pass1) {
+				for (String name : pub.getName()) {
+					putSymbol(name).isPublic = true;
+				}
+			}
+			return;
+		}
+		if (stmt instanceof Global) {
+			Global glob = (Global) stmt;
+			if (pass1) {
+				for (String name : glob.getName()) {
+					putSymbol(name).isGlobal = true;
+				}
+			}
+			return;
+		}
+		if (stmt instanceof Extern) {
+			Extern ext = (Extern) stmt;
+			if (pass1) {
+				for (String name : ext.getName()) {
+					Symbol sym = putSymbol(name);
+					sym.isExternal = true;
+					sym.address = 0;
+				}
+			} else {
+				// TODO: Proper linker-phase extern resolution (currently fails with address 0)
+				for (String name : ext.getName()) {
+					String qualifiedName = currentModule + "." + name;
+					Symbol sym = symbols.get(qualifiedName);
+					if (sym == null) sym = symbols.get(name);
+					if (sym != null && sym.isExternal && sym.address == 0) {
+						throw new AssemblyException(effectiveSource, currentLine,
+								"Unresolved external symbol: " + name);
+					}
+				}
+			}
+			return;
+		}
+
+		// ── ALIGN directive ──
+		if (stmt instanceof AlignDirective) {
+			AlignDirective align = (AlignDirective) stmt;
+			int boundary = resolveImmediate(align.getExpression());
+			if (boundary > 0) {
+				int padding = (boundary - (currentAddress % boundary)) % boundary;
+				int fill = 0x00;
+				if (align.getFiller() != null) {
+					fill = resolveImmediate(align.getFiller()) & 0xFF;
+				}
+				for (int i = 0; i < padding; i++) {
+					emit8(out, fill);
+				}
+			}
 			return;
 		}
 
@@ -613,6 +681,10 @@ public class Z80Assembler {
 		}
 		if(stmt instanceof Define) {
 			assembleDefine((Define) stmt, out);
+			return;
+		}
+		if(stmt instanceof Undefine) {
+			assembleUndefine((Undefine) stmt, out);
 			return;
 		}
 		if (stmt instanceof DataDefineGroup) {
@@ -735,21 +807,37 @@ public class Z80Assembler {
 			if (rr >= 0) {
 				emit8(out, 0xC5 + rr * 16);
 			} else {
-				// PUSH nn (Z80N) — handle immediate
-				int val = resolveImmediate(reg);
-				emit8(out, 0xED); emit8(out, 0x8A);
-				// Z80N PUSH nn is big-endian
-				emit8(out, (val >> 8) & 0xFF);
-				emit8(out, val & 0xFF);
+				// Check IX/IY
+				String regName = getRegisterName(reg);
+				int prefix = getIXIYPrefix(regName);
+				if (prefix > 0 && regName != null && ("IX".equalsIgnoreCase(regName) || "IY".equalsIgnoreCase(regName))) {
+					emit8(out, prefix);
+					emit8(out, 0xE5);
+				} else {
+					// PUSH nn (Z80N) — handle immediate
+					int val = resolveImmediate(reg);
+					emit8(out, 0xED); emit8(out, 0x8A);
+					// Z80N PUSH nn is big-endian
+					emit8(out, (val >> 8) & 0xFF);
+					emit8(out, val & 0xFF);
+				}
 			}
 			return;
 		}
 		if (stmt instanceof Pop) {
-			int rr = resolveRegister16Push(((Pop) stmt).getRegister());
+			AsmExpression reg = ((Pop) stmt).getRegister();
+			int rr = resolveRegister16Push(reg);
 			if (rr >= 0) {
 				emit8(out, 0xC1 + rr * 16);
 			} else {
-				warn("POP requires a 16-bit register pair");
+				String regName = getRegisterName(reg);
+				int prefix = getIXIYPrefix(regName);
+				if (prefix > 0 && regName != null && ("IX".equalsIgnoreCase(regName) || "IY".equalsIgnoreCase(regName))) {
+					emit8(out, prefix);
+					emit8(out, 0xE1);
+				} else {
+					warn("POP requires a 16-bit register pair");
+				}
 			}
 			return;
 		}
@@ -923,7 +1011,25 @@ public class Z80Assembler {
 			return;
 		}
 
+		// ── IN ──
+		if (stmt instanceof InInst) {
+			assembleIn((InInst) stmt, out);
+			return;
+		}
+
+		// ── OUT ──
+		if (stmt instanceof OutInst) {
+			assembleOut((OutInst) stmt, out);
+			return;
+		}
+
 		// If we get here, the instruction/directive is not yet supported — hard fail
+		// TODO: Z80N instructions — NEXTREG, SWAPNIB, MIRROR, MUL, PIXELDN, PIXELAD, SETAE, OUTINB, TEST, BRK, MMU
+		// TODO: Z80N block operations — LDIX, LDDX, LDIRX, LDDRX, LDPIRX, LDWS
+		// TODO: Z80N barrel shifts — BSLA, BSRA, BSRL, BSRF, BRLC
+		// TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP
+		// TODO: DMA directives — DMA.WR0 through DMA.WR6/DMA.CMD
+		// TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE
 		throw new AssemblyException(effectiveSource, currentLine,
 				"Unsupported instruction/directive: " + stmt.eClass().getName());
 	}
@@ -937,21 +1043,120 @@ public class Z80Assembler {
 		boolean destIndirect = dest instanceof AsmIndirect;
 		boolean srcIndirect = src instanceof AsmIndirect;
 
+		// ── IX/IY indexed source: LD r, (IX+d) / (IY+d) ──
+		if (srcIndirect) {
+			IndexedInfo idx = resolveIndexed((AsmIndirect) src);
+			if (idx != null) {
+				int dr = resolveRegister8(dest);
+				if (dr >= 0) {
+					emit8(out, idx.prefix);
+					emit8(out, 0x46 + dr * 8);
+					emit8(out, idx.displacement);
+					return;
+				}
+			}
+		}
+
+		// ── IX/IY indexed dest: LD (IX+d), r / LD (IX+d), n ──
+		if (destIndirect) {
+			IndexedInfo idx = resolveIndexed((AsmIndirect) dest);
+			if (idx != null) {
+				int sr = srcIndirect ? -1 : resolveRegister8(src);
+				if (sr >= 0) {
+					emit8(out, idx.prefix);
+					emit8(out, 0x70 + sr);
+					emit8(out, idx.displacement);
+					return;
+				}
+				// LD (IX+d), n
+				if (!srcIndirect) {
+					int n = resolveImmediate(src);
+					emit8(out, idx.prefix);
+					emit8(out, 0x36);
+					emit8(out, idx.displacement);
+					emit8(out, n & 0xFF);
+					return;
+				}
+			}
+		}
+
+		// ── LD IX, nn / LD IY, nn ──
+		String destReg = getRegisterName(dest);
+		String srcReg = getRegisterName(src);
+		int ixiyPrefix = getIXIYPrefix(destReg);
+		if (ixiyPrefix > 0 && !srcIndirect && destReg != null) {
+			String du = destReg.toUpperCase();
+			if ("IX".equals(du) || "IY".equals(du)) {
+				// LD IX, nn / LD IY, nn
+				if (!srcIndirect) {
+					int nn = resolveImmediate(src);
+					emit8(out, ixiyPrefix);
+					emit8(out, 0x21);
+					emit16LE(out, nn);
+					return;
+				}
+			}
+		}
+
+		// ── LD SP, IX / LD SP, IY ──
+		if ("SP".equalsIgnoreCase(destReg) && srcReg != null) {
+			int srcPrefix = getIXIYPrefix(srcReg);
+			if (srcPrefix > 0 && ("IX".equalsIgnoreCase(srcReg) || "IY".equalsIgnoreCase(srcReg))) {
+				emit8(out, srcPrefix);
+				emit8(out, 0xF9);
+				return;
+			}
+		}
+
+		// ── LD (nn), IX / LD (nn), IY ──
+		if (destIndirect && !srcIndirect && srcReg != null) {
+			int srcPrefix = getIXIYPrefix(srcReg);
+			if (srcPrefix > 0 && ("IX".equalsIgnoreCase(srcReg) || "IY".equalsIgnoreCase(srcReg))) {
+				int nn = resolveImmediate(((AsmIndirect) dest).getExpr());
+				emit8(out, srcPrefix);
+				emit8(out, 0x22);
+				emit16LE(out, nn);
+				return;
+			}
+		}
+
+		// ── LD IX, (nn) / LD IY, (nn) ──
+		if (srcIndirect && !destIndirect && destReg != null) {
+			int destPrefix = getIXIYPrefix(destReg);
+			if (destPrefix > 0 && ("IX".equalsIgnoreCase(destReg) || "IY".equalsIgnoreCase(destReg))) {
+				int nn = resolveImmediate(((AsmIndirect) src).getExpr());
+				emit8(out, destPrefix);
+				emit8(out, 0x2A);
+				emit16LE(out, nn);
+				return;
+			}
+		}
+
 		// LD r, r' — register to register
 		int dr = destIndirect ? -1 : resolveRegister8(dest);
 		int sr = srcIndirect ? -1 : resolveRegister8(src);
 
 		if (dr >= 0 && sr >= 0) {
-			// LD r, r' (but LD (HL),(HL) is HALT=0x76, should not happen)
 			emit8(out, 0x40 + dr * 8 + sr);
 			return;
+		}
+
+		// ── LD I, A / LD R, A / LD A, I / LD A, R ──
+		// Must be checked before LD r, n to avoid treating I/R as immediates
+		if (dr == 7 && srcReg != null) {
+			if ("I".equalsIgnoreCase(srcReg)) { emit8(out, 0xED); emit8(out, 0x57); return; }
+			if ("R".equalsIgnoreCase(srcReg)) { emit8(out, 0xED); emit8(out, 0x5F); return; }
+		}
+		if (destReg != null && sr == 7) {
+			if ("I".equalsIgnoreCase(destReg)) { emit8(out, 0xED); emit8(out, 0x47); return; }
+			if ("R".equalsIgnoreCase(destReg)) { emit8(out, 0xED); emit8(out, 0x4F); return; }
 		}
 
 		// LD r, (HL) — load from indirect
 		if (dr >= 0 && srcIndirect) {
 			String innerReg = getRegisterName(((AsmIndirect) src).getExpr());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
-				emit8(out, 0x40 + dr * 8 + 6); // 6 = (HL) position
+				emit8(out, 0x40 + dr * 8 + 6);
 				return;
 			}
 		}
@@ -960,7 +1165,7 @@ public class Z80Assembler {
 		if (destIndirect && sr >= 0) {
 			String innerReg = getRegisterName(((AsmIndirect) dest).getExpr());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
-				emit8(out, 0x70 + sr); // 0x70 = 0x40 + 6*8
+				emit8(out, 0x70 + sr);
 				return;
 			}
 		}
@@ -994,7 +1199,7 @@ public class Z80Assembler {
 		}
 
 		// LD A, (BC) / LD A, (DE)
-		if (dr == 7 && srcIndirect) { // A = 7
+		if (dr == 7 && srcIndirect) {
 			String innerReg = getRegisterName(((AsmIndirect) src).getExpr());
 			if (innerReg != null) {
 				if ("BC".equalsIgnoreCase(innerReg)) { emit8(out, 0x0A); return; }
@@ -1008,7 +1213,7 @@ public class Z80Assembler {
 		}
 
 		// LD (BC), A / LD (DE), A
-		if (destIndirect && sr == 7) { // A = 7
+		if (destIndirect && sr == 7) {
 			String innerReg = getRegisterName(((AsmIndirect) dest).getExpr());
 			if (innerReg != null) {
 				if ("BC".equalsIgnoreCase(innerReg)) { emit8(out, 0x02); return; }
@@ -1052,8 +1257,6 @@ public class Z80Assembler {
 		}
 
 		// LD SP, HL
-		String destReg = getRegisterName(dest);
-		String srcReg = getRegisterName(src);
 		if ("SP".equalsIgnoreCase(destReg) && "HL".equalsIgnoreCase(srcReg)) {
 			emit8(out, 0xF9);
 			return;
@@ -1071,7 +1274,6 @@ public class Z80Assembler {
 		String firstReg = getRegisterName(first);
 
 		if (second != null && firstReg != null && "HL".equalsIgnoreCase(firstReg)) {
-			// ADD HL, rr
 			int rr = resolveRegister16(second);
 			if (rr >= 0) {
 				emit8(out, 0x09 + rr * 16);
@@ -1079,7 +1281,29 @@ public class Z80Assembler {
 			}
 		}
 
-		// ADD A, operand (two-operand form: ADD A, r/n)
+		// ADD IX, rr / ADD IY, rr
+		if (second != null && firstReg != null) {
+			int prefix = getIXIYPrefix(firstReg);
+			if (prefix > 0 && ("IX".equalsIgnoreCase(firstReg) || "IY".equalsIgnoreCase(firstReg))) {
+				String secondReg = getRegisterName(second);
+				int rr = -1;
+				if (secondReg != null) {
+					switch (secondReg.toUpperCase()) {
+						case "BC": rr = 0; break;
+						case "DE": rr = 1; break;
+						case "IX": case "IY": rr = 2; break;
+						case "SP": rr = 3; break;
+					}
+				}
+				if (rr >= 0) {
+					emit8(out, prefix);
+					emit8(out, 0x09 + rr * 16);
+					return;
+				}
+			}
+		}
+
+		// ADD A, operand (two-operand form)
 		if (second != null) {
 			assembleAluOp(second, 0x80, 0xC6, out);
 			return;
@@ -1090,11 +1314,19 @@ public class Z80Assembler {
 	}
 
 	private void assembleAluOp(AsmExpression operand, int regBase, int immOpcode, ByteArrayOutputStream out) {
-		// Check for indirect (HL)
+		// Check for indexed (IX+d)/(IY+d)
 		if (operand instanceof AsmIndirect) {
+			IndexedInfo idx = resolveIndexed((AsmIndirect) operand);
+			if (idx != null) {
+				emit8(out, idx.prefix);
+				emit8(out, regBase + 6);
+				emit8(out, idx.displacement);
+				return;
+			}
+			// Check for indirect (HL)
 			String innerReg = getRegisterName(((AsmIndirect) operand).getExpr());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
-				emit8(out, regBase + 6); // (HL) = slot 6
+				emit8(out, regBase + 6);
 				return;
 			}
 		}
@@ -1112,8 +1344,16 @@ public class Z80Assembler {
 	// ─────────────── INC / DEC ───────────────
 
 	private void assembleIncDec(AsmExpression operand, boolean isInc, ByteArrayOutputStream out) {
-		// Check for (HL) indirect
+		// Check for (IX+d)/(IY+d) indexed
 		if (operand instanceof AsmIndirect) {
+			IndexedInfo idx = resolveIndexed((AsmIndirect) operand);
+			if (idx != null) {
+				emit8(out, idx.prefix);
+				emit8(out, isInc ? 0x34 : 0x35);
+				emit8(out, idx.displacement);
+				return;
+			}
+			// Check for (HL) indirect
 			String innerReg = getRegisterName(((AsmIndirect) operand).getExpr());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, isInc ? 0x34 : 0x35);
@@ -1128,10 +1368,19 @@ public class Z80Assembler {
 			return;
 		}
 
-		// 16-bit register
+		// 16-bit register pair
 		int rr = resolveRegister16(operand);
 		if (rr >= 0) {
 			emit8(out, (isInc ? 0x03 : 0x0B) + rr * 16);
+			return;
+		}
+
+		// IX/IY as 16-bit
+		String regName = getRegisterName(operand);
+		int prefix = getIXIYPrefix(regName);
+		if (prefix > 0 && regName != null && ("IX".equalsIgnoreCase(regName) || "IY".equalsIgnoreCase(regName))) {
+			emit8(out, prefix);
+			emit8(out, isInc ? 0x23 : 0x2B);
 			return;
 		}
 
@@ -1142,6 +1391,14 @@ public class Z80Assembler {
 
 	private void assembleCBOp(AsmExpression operand, int baseOpcode, ByteArrayOutputStream out) {
 		if (operand instanceof AsmIndirect) {
+			IndexedInfo idx = resolveIndexed((AsmIndirect) operand);
+			if (idx != null) {
+				emit8(out, idx.prefix);
+				emit8(out, 0xCB);
+				emit8(out, idx.displacement);
+				emit8(out, baseOpcode + 6);
+				return;
+			}
 			String innerReg = getRegisterName(((AsmIndirect) operand).getExpr());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, 0xCB);
@@ -1162,21 +1419,28 @@ public class Z80Assembler {
 
 	private void assembleBitOp(AsmExpression bitNum, AsmExpression target, int baseOpcode, ByteArrayOutputStream out) {
 		int bit = resolveImmediate(bitNum);
-		int r;
 		if (target instanceof AsmIndirect) {
+			IndexedInfo idx = resolveIndexed((AsmIndirect) target);
+			if (idx != null) {
+				emit8(out, idx.prefix);
+				emit8(out, 0xCB);
+				emit8(out, idx.displacement);
+				emit8(out, baseOpcode + bit * 8 + 6);
+				return;
+			}
 			String innerReg = getRegisterName(((AsmIndirect) target).getExpr());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
-				r = 6;
-			} else {
-				warn("BIT/SET/RES indirect requires (HL)");
+				emit8(out, 0xCB);
+				emit8(out, baseOpcode + bit * 8 + 6);
 				return;
 			}
-		} else {
-			r = resolveRegister8(target);
-			if (r < 0) {
-				warn("BIT/SET/RES requires a register operand");
-				return;
-			}
+			warn("BIT/SET/RES indirect requires (HL), (IX+d), or (IY+d)");
+			return;
+		}
+		int r = resolveRegister8(target);
+		if (r < 0) {
+			warn("BIT/SET/RES requires a register operand");
+			return;
 		}
 		emit8(out, 0xCB);
 		emit8(out, baseOpcode + bit * 8 + r);
@@ -1293,6 +1557,15 @@ public class Z80Assembler {
 			var name = def.getName();
 			var val = resolveConstExpressionAsString(def.getData());
 			defines.put(name, val);
+		}
+	}
+
+	/**
+	 * UNDEFINE name
+	 */
+	private void assembleUndefine(Undefine directive, ByteArrayOutputStream out) {
+		for(var def : directive.getDefines()) {
+			defines.remove(def);
 		}
 	}
 
@@ -1480,6 +1753,144 @@ public class Z80Assembler {
 		}
 	}
 
+	// ─────────────── IX/IY indexed addressing helpers ───────────────
+
+	/**
+	 * Result of resolving an (IX+d) or (IY+d) indirect operand.
+	 */
+	private static class IndexedInfo {
+		final int prefix; // 0xDD for IX, 0xFD for IY
+		final int displacement;
+		IndexedInfo(int prefix, int displacement) {
+			this.prefix = prefix;
+			this.displacement = displacement;
+		}
+	}
+
+	/**
+	 * If the given AsmIndirect contains an IX+d / IY+d / IX / IY expression,
+	 * return an IndexedInfo with the prefix byte and displacement.
+	 * Returns null if this is not an IX/IY indexed operand.
+	 */
+	private IndexedInfo resolveIndexed(AsmIndirect indirect) {
+		AsmExpression inner = indirect.getExpr();
+
+		// (IX) or (IY) — zero displacement
+		String regName = getRegisterName(inner);
+		if (regName != null) {
+			if ("IX".equalsIgnoreCase(regName)) return new IndexedInfo(0xDD, 0);
+			if ("IY".equalsIgnoreCase(regName)) return new IndexedInfo(0xFD, 0);
+			return null;
+		}
+
+		// (IX+d), (IX-d), (IY+d), (IY-d)
+		if (inner instanceof BinaryExpr bin) {
+			String op = bin.getOp();
+			if ("+".equals(op) || "-".equals(op)) {
+				String leftReg = getRegisterName(bin.getLeft());
+				if (leftReg != null) {
+					int prefix;
+					if ("IX".equalsIgnoreCase(leftReg)) prefix = 0xDD;
+					else if ("IY".equalsIgnoreCase(leftReg)) prefix = 0xFD;
+					else return null;
+					int d = resolveImmediate(bin.getRight());
+					if ("-".equals(op)) d = -d;
+					return new IndexedInfo(prefix, d & 0xFF);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get the IX/IY prefix byte for a register name, or -1 if not IX/IY.
+	 */
+	private int getIXIYPrefix(String regName) {
+		if (regName == null) return -1;
+		switch (regName.toUpperCase()) {
+			case "IX": case "IXH": case "IXL": return 0xDD;
+			case "IY": case "IYH": case "IYL": return 0xFD;
+			default: return -1;
+		}
+	}
+
+	// ─────────────── IN / OUT ───────────────
+
+	/**
+	 * IN r, (C)  → ED 40+r*8
+	 * IN A, (n)  → DB n
+	 */
+	private void assembleIn(InInst stmt, ByteArrayOutputStream out) {
+		AsmExpression dest = stmt.getName();
+		AsmExpression src = stmt.getValue();
+
+		int dr = resolveRegister8(dest);
+
+		if (src instanceof AsmIndirect) {
+			AsmExpression inner = ((AsmIndirect) src).getExpr();
+			String innerReg = getRegisterName(inner);
+			if (innerReg != null && "C".equalsIgnoreCase(innerReg)) {
+				// IN r, (C)
+				if (dr >= 0) {
+					emit8(out, 0xED);
+					emit8(out, 0x40 + dr * 8);
+				} else {
+					// IN F, (C) — undocumented, reads flags
+					emit8(out, 0xED);
+					emit8(out, 0x70);
+				}
+				return;
+			}
+			// IN A, (n)
+			if (dr == 7) { // A
+				int n = resolveImmediate(inner);
+				emit8(out, 0xDB);
+				emit8(out, n & 0xFF);
+				return;
+			}
+		}
+
+		warn("Unsupported IN variant");
+	}
+
+	/**
+	 * OUT (C), r  → ED 41+r*8
+	 * OUT (n), A  → D3 n
+	 */
+	private void assembleOut(OutInst stmt, ByteArrayOutputStream out) {
+		AsmExpression dest = stmt.getName();
+		AsmExpression src = stmt.getValue();
+
+		if (dest instanceof AsmIndirect) {
+			AsmExpression inner = ((AsmIndirect) dest).getExpr();
+			String innerReg = getRegisterName(inner);
+
+			if (innerReg != null && "C".equalsIgnoreCase(innerReg)) {
+				// OUT (C), r
+				int sr = resolveRegister8(src);
+				if (sr >= 0) {
+					emit8(out, 0xED);
+					emit8(out, 0x41 + sr * 8);
+				} else {
+					warn("OUT (C) requires a register operand");
+				}
+				return;
+			}
+
+			// OUT (n), A
+			int sr = resolveRegister8(src);
+			if (sr == 7) { // A
+				int n = resolveImmediate(inner);
+				emit8(out, 0xD3);
+				emit8(out, n & 0xFF);
+				return;
+			}
+		}
+
+		warn("Unsupported OUT variant");
+	}
+
 	// ─────────────── Operand resolution helpers ───────────────
 
 	/**
@@ -1581,7 +1992,7 @@ public class Z80Assembler {
 	/**
 	 * Resolve an operand to an integer value. Recursively evaluates
 	 * expressions including binary operators, unary sign/not, literals,
-	 * strings (first char ordinal), and labels (looked up from the symbol
+	 * strings (first char ordinal), and symbols (looked up from the symbol
 	 * table populated during pass&nbsp;1).
 	 */
 	private int resolveImmediate(AsmExpression operand) {
@@ -1633,10 +2044,27 @@ public class Z80Assembler {
 		if (operand instanceof AsmLabel label) {
 			AsmLabelDef def = label.getRef();
 			String labelName = (def != null && !def.eIsProxy()) ? def.getName() : null;
-			if (labelName != null && labels.containsKey(labelName)) {
-				return labels.get(labelName);
+			// When the cross-reference is unresolved (e.g. EXTERN symbols have no
+			// AsmLabelDef in the grammar), fall back to extracting the text from the
+			// node model so we can still look the name up in our symbol table.
+			if (labelName == null) {
+				INode node = NodeModelUtils.getNode(label);
+				if (node != null) {
+					labelName = node.getText().trim();
+				}
 			}
-			// During pass 1, labels may not yet be defined (forward references) — return 0 silently
+			if (labelName != null) {
+				// Try module-qualified lookup first, then bare name
+				// TODO: Support explicit module.label syntax in expressions (needs grammar change)
+				String qualifiedName = currentModule + "." + labelName;
+				if (symbols.containsKey(qualifiedName)) {
+					return symbols.get(qualifiedName).address;
+				}
+				if (symbols.containsKey(labelName)) {
+					return symbols.get(labelName).address;
+				}
+			}
+			// During pass 1, symbols may not yet be defined (forward references) — return 0 silently
 			if (pass1) {
 				return 0;
 			}
@@ -1732,7 +2160,7 @@ public class Z80Assembler {
 
 	private void warn(String message) {
 		if (pass1) {
-			return; // Suppress warnings during pass 1 — labels aren't resolved yet
+			return; // Suppress warnings during pass 1 — symbols aren't resolved yet
 		}
 		warnings.add(message);
 		if (warningCallback != null && currentLine > 0) {
@@ -1752,5 +2180,16 @@ public class Z80Assembler {
 			return s.substring(1, s.length() - 1);
 		}
 		return s;
+	}
+	
+	private Symbol putSymbol(String symbol) {
+		// Store with module-qualified name
+		String qualifiedName = currentModule.isEmpty() ? symbol : currentModule + "." + symbol;
+		Symbol sym = symbols.computeIfAbsent(qualifiedName, s -> new Symbol(symbol));
+		sym.section = currentSection;
+		sym.module = currentModule;
+		// Also store unqualified for cross-module access (PUBLIC/GLOBAL symbols)
+		symbols.putIfAbsent(symbol, sym);
+		return sym;
 	}
 }

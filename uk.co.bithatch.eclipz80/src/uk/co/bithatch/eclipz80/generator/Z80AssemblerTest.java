@@ -39,6 +39,7 @@ public class Z80AssemblerTest {
 	private static final String[] SAMPLES = {
 		"samples/test_basic.asm",
 		"samples/test_labels.asm",
+		"samples/test_sections.asm",
 	};
 
 	private static int passed = 0;

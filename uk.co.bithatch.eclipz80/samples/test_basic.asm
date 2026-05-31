@@ -92,3 +92,43 @@
     INCLUDE "inc.asm"
 
     DEFP external_thing
+
+    ; ── IN / OUT instructions ──
+    IN A, ($FE)         ; DB FE
+    IN B, (C)           ; ED 40
+    IN A, (C)           ; ED 78
+    OUT ($FE), A        ; D3 FE
+    OUT (C), A          ; ED 79
+    OUT (C), B          ; ED 41
+
+    ; ── IX/IY indexed addressing ──
+    LD IX, $1234        ; DD 21 34 12
+    LD IY, $5678        ; FD 21 78 56
+    LD A, (IX+5)        ; DD 7E 05
+    LD B, (IY+0)        ; FD 46 00
+    LD (IX+3), C        ; DD 71 03
+    LD (IY+10), $42     ; FD 36 0A 42
+    ADD A, (IX+1)       ; DD 86 01
+    SUB (IY+2)          ; FD 96 02
+    AND (IX+0)          ; DD A6 00
+    CP (IY+4)           ; FD BE 04
+    INC (IX+7)          ; DD 34 07
+    DEC (IY+3)          ; FD 35 03
+    INC IX              ; DD 23
+    DEC IY              ; FD 2B
+    PUSH IX             ; DD E5
+    POP IY              ; FD E1
+    ADD IX, BC          ; DD 09
+    ADD IY, DE          ; FD 19
+    LD SP, IX           ; DD F9
+    RL (IX+2)           ; DD CB 02 16
+    BIT 3, (IY+1)       ; FD CB 01 5E
+    SET 0, (IX+0)       ; DD CB 00 C6
+    RES 7, (IY+5)       ; FD CB 05 BE
+    LD (IX+0), A        ; DD 77 00
+    LD ($9000), IX      ; DD 22 00 90
+    LD IX, ($9000)      ; DD 2A 00 90
+    LD I, A             ; ED 47
+    LD A, I             ; ED 57
+    LD R, A             ; ED 4F
+    LD A, R             ; ED 5F

@@ -7,19 +7,12 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * TODO - Remaining Z88DK directives (https://github.com/z88dk/z88dk/wiki/Tool---z80asm---directives).
  * Note, some crossover here with preprocessor, not sure what means for us just yet
  * 
- *  - FLOAT
- *  - FPP
- *  - GLOBAL
- *  - INCLUDE
+ *  - FLOAT (will require float expression support and lots of functions!)
  *  - INVOKE
  *  - LSTOFF
  *  - LSTON
- *  - MODULE
  *  - PHASE
- *  - PUBLIC | XDEF | XLIB
- *  - SECTION
  *  - SETFLOAT
- *  - UNDEFINE
  */
 
 generate asm "http://www.co.uk/bithatch/eclipz80/Asm"
@@ -96,6 +89,8 @@ AsmStatement:
     AsmDefTermStringDirective |
     AsmDefSpaceDirective |
     AsmDefineDirective |
+    AsmFPPDirective |
+    AsmUndefineDirective |
     AsmDataDefineGroup |
     AsmDataDefineVars |
     AsmDMAWR0Directive |
@@ -106,12 +101,14 @@ AsmStatement:
     AsmDMAWR5Directive |
     AsmDMAWR6Directive |
     AsmExternDirective |
+    AsmGlobalDirective |
     AsmIfDirective |
     AsmIfDefDirective |
     AsmIfNDefDirective | 
     AsmPopStatement |
     AsmAndStatement |
     AsmOrStatement |
+    AsmPublicDirective |
     AsmXorStatement |
     AsmCpStatement |
     AsmCplStatement |
@@ -231,6 +228,10 @@ AsmDefineDirective:
     {Define} 'DEFINE' defines += AsmGroupedDefine (',' defines += AsmGroupedDefine)
 ;
 
+AsmUndefineDirective:
+    {Undefine} 'UNDEFINE' defines+=ID (',' defines += ID)*
+;
+
 AsmGroupedDefine:
     name = ID ( '=' data = AsmExpression )
 ;
@@ -239,6 +240,10 @@ AsmDataDefineVars:
     {DataDefineGroup} ( 'DEFVARS' ) name=ID '{'
         defines += AsmVarDefine 
     '}'
+;
+
+AsmFPPDirective:
+    {FPP} expression=AsmExpression
 ;
 
 AsmVarDefine:
@@ -617,41 +622,6 @@ AsmMmuStatement:
           | ('MMU0'|'MMU1'|'MMU2'|'MMU3'|'MMU4'|'MMU5'|'MMU6'|'MMU7') value=AsmExpression)
 ;
 
-/*
-AsmExpression:
-    {AsmExpression} ('+'|'-') '(' inner=AsmExpressionExpr ')'
-  | {AsmExpression} '(' inner=AsmExpressionExpr ')'
-  | {AsmExpression} expr=AsmExpressionExpr
-;
-
-AsmExpressionExpr:
-    parts+=AsmExpressionPart ((op+=AsmOperator parts+=AsmExpressionPart))*
-;
-
-AsmExpressionPart:
-    register=AsmRegisterName | literal=IntegralLiteral | id=ID
-;
-
-*/
-/*
-AsmExpression:
-    parts+=AsmExpressionPart ((op+=AsmOperator parts+=AsmExpressionPart))*;
-    
-AsmExpressionPart:
-    {AsmExpression} ('+'|'-') '(' inner=AsmExpression ')'
-  | {AsmExpression} '(' inner=AsmExpression ')'
-  | {AsmExpression} value = AsmExpressionValue
-;
-
-AsmExpressionValue:
-    name=AsmRegisterName | literal=IntegralLiteral | id=ID
-;
-
-AsmOperator:
-    name=('+'|'-'|'%'|'<<'|'>>')
-;
-* */
-
 AsmExpression:
     AsmAddExpr;
 
@@ -706,13 +676,6 @@ AsmIndirect:
 AsmLabel:
     ref=[AsmLabelDef]
 ;
-
-/*
-AsmExpressionValue:
-    name=AsmRegisterName | literal=IntegralLiteral | id=ID
-;
-*/
-
 
 AsmRegisterName:
     name=('A' | 'B' | 'D' | 'H'| 'C' | 'E' | 'L' | 'AF' |'BC' | 'DE' | 'HL' | 'SP' | 'PC' | 'IX' | 'IY' | 'IXL' | 'IXH' | 'IYL' | 'IYH' |'I' |'R'| 'AF\'' | 'BC\'' | 'DE\'' | 'HL\'')
@@ -797,6 +760,14 @@ AsmExternDirective:
     {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=ID (',' name+=ID)*
 ;
 
+AsmPublicDirective:
+    {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=ID (',' name+=ID)*
+;
+
+AsmGlobalDirective:
+    {Global} ( 'GLOBAL') name+=ID (',' name+=ID)*
+;
+
 // ─────────────── Boriel Specific ───────────────
 
 AsmNextReg:
@@ -813,7 +784,7 @@ AsmOrg:
 ;
 
 AsmModule:
-    'MODULE' name=ID
+    {Module} 'MODULE' name=ID
 ;
 
 AsmCall:
@@ -825,7 +796,7 @@ AsmInclude:
 ;
 
 AsmSection:
-    'SECTION' name=ID
+    {Section} 'SECTION' name=ID
 ;
     
 // ─────────────── MODEL ELEMENTS ───────────────
