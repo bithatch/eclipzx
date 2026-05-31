@@ -19,3 +19,4 @@ test-workspaces/**
 /packages/workspace/
 /build.log
 /test-nio-deploy.sh
+**/.tycho-consumer-pom.xml
