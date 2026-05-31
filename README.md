@@ -54,6 +54,23 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
  * <img title="UDG Editor" src="src/web/screenshot-udgs.png" width="200"/>
  * <img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/>
  
+## Status as of 31/05/2026
+
+**The configuration attributes uses in `.launch` files have changed in the latest build,
+you will likely need to recreate any launchers**
+
+EclipZX now has much improved pure Z80 project support, with wizards to create assembly projects, cross-referencing of labels in source files, and more. It includes a built-in Z80 assembler, but not all instructions yet implemented. Simple programs will work though, see the example created main.c for a working example.
+
+The Z88DK and Boriel assemblers are still currently uses for their respective project types, but having it's own built-in assembler will ultimately make the end of goal of being able to navigate and debug between assembly and C and assembly or basic much easier. Thanks to having Xtext and good working grammar meant creating an assembler was not a huge leap anyway.
+
+There has also been a lot of work factoring out features that started life as part of the ZX Basic but now are more useful as general framework for any supported language (NEX generation, map file creation for debuggers and more).
+
+Overall, EclipZX is getting very close to feature completeness as I had imagined it. Just a rough list of whats left ...
+
+ * The screen editor still needs completing
+ * Now that the architecture is better for supporting multiple languages, I can complete Debug support using (e.g. CSpect+DeZOG+GDB and others) with breakpoints and working active instruction tracking, stepping, register queries and memory inspection. 
+ 
+The Elephant in the room is the ZX Basic grammar. It still has some parsing issues that I am having difficulty in resolving. The goal of course is to be 100% compatible with Boriels Basic, but there are hard to reconcile ambiguities that occur when trying to model ZX Basic with Xtext. 
  
 ## Status as of 23/05/2026
 
@@ -87,15 +104,6 @@ ready for public consumption.
 The plan is to release the first public beta version along with the uploading all the source 
 to this repository and opening the issue tracker at point early September 2025.
 
-### Remaining Tasks
-
-Just a rough list, there is a lot more to do that this, but these are the ones.
-
- * The screen editor is relatively immature, but should progress rapidly.
- * Debug support using (e.g. CSpect+DeZOG and others) is immature.
- * A full tracker to supplement the AYFX effects editor (if I get time).
- * Various bugs
- 
 ## The Future
 
 It depends on interest of course. But I will be using these tools myself, so it will likely be kept to date. 
