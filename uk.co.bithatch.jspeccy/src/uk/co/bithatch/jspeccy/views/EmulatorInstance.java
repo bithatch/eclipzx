@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import javax.swing.JApplet;
 import javax.swing.SwingUtilities;
 
 import org.eclipse.core.runtime.Platform;
@@ -147,7 +146,7 @@ public class EmulatorInstance extends Composite implements SettingsListener, Tap
 
 			/* Then back to Swing thread for remainder */
 
-			panel = configureSwingComponent(new JApplet());
+			panel = configureSwingComponent(new LightweightSwingPanel());
 			frame.add(panel);
 
 			panel.add(jscr, BorderLayout.CENTER);
