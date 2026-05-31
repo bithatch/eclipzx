@@ -30,6 +30,7 @@ import uk.co.bithatch.eclipz80.generator.Z80Assembler.Results;
  *   <li>{@code --map} — write a {@code .zmap} file alongside the binary output</li>
  *   <li>{@code --map=<path>} — write the {@code .zmap} file to the given path</li>
  *   <li>{@code --far} — use 32-bit far addresses in map output (Z88DK)</li>
+ *   <li>{@code --z80n} — enable Z80N (ZX Spectrum Next) extended instructions</li>
  * </ul>
  *
  * <p>If no output path is given the {@code .bin} is written alongside the source.
@@ -40,6 +41,7 @@ public class Z80AssemblerCLI {
 		boolean mapEnabled = false;
 		Path mapPath = null;
 		boolean farAddresses = false;
+		boolean z80n = false;
 		String inputArg = null;
 		String outputArg = null;
 		Map<String, String> defs = new LinkedHashMap<>();
@@ -52,6 +54,8 @@ public class Z80AssemblerCLI {
 				mapPath = Paths.get(arg.substring("--map=".length())).toAbsolutePath();
 			} else if ("--far".equals(arg)) {
 				farAddresses = true;
+			} else if ("--z80n".equals(arg)) {
+				z80n = true;
 			} else if(arg.startsWith("-D")) {
 				String name = arg.substring(2);
 				int idx = arg.indexOf('=');
@@ -65,7 +69,7 @@ public class Z80AssemblerCLI {
 		}
 
 		if (inputArg == null) {
-			System.err.println("Usage: Z80AssemblerCLI [--map[=<path>]] [--far] <input.asm> [output.bin]");
+			System.err.println("Usage: Z80AssemblerCLI [--map[=<path>]] [--far] [--z80n] <input.asm> [output.bin]");
 			System.exit(1);
 		}
 
@@ -116,6 +120,9 @@ public class Z80AssemblerCLI {
 		}
 		if (farAddresses) {
 			builder.withFarAddresses();
+		}
+		if (z80n) {
+			builder.withZ80N();
 		}
 		
 		defs.forEach(builder::withDefine);

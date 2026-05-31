@@ -542,11 +542,11 @@ AsmSwapnibStatement:
 ;
 
 AsmMirrorStatement:
-    {Mirror} 'MIRROR'
+    {Mirror} ('MIRROR' | 'MIRR') (=> name=AsmExpression)?
 ;
 
 AsmMulStatement:
-    {Mul} 'MUL'
+    {Mul} 'MUL' (=> name=AsmExpression (',' value=AsmExpression)?)?
 ;
 
 AsmPixeldnStatement:

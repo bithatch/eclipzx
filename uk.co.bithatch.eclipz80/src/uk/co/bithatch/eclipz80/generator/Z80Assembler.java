@@ -59,9 +59,6 @@ import uk.co.bithatch.eclipz80.asm.*;
  *   <li>TODO: Explicit module.label syntax in expressions (needs grammar change for dotted AsmLabel)</li>
  *   <li>TODO: Section ordering in output (CODE, DATA, BSS reordering for linker phase)</li>
  *   <li>TODO: Proper linker-phase extern resolution (currently fails with address 0)</li>
- *   <li>TODO: Z80N instructions — NEXTREG, SWAPNIB, MIRROR, MUL, PIXELDN, PIXELAD, SETAE, OUTINB, TEST, BRK, MMU</li>
- *   <li>TODO: Z80N block operations — LDIX, LDDX, LDIRX, LDDRX, LDPIRX, LDWS</li>
- *   <li>TODO: Z80N barrel shifts — BSLA, BSRA, BSRL, BSRF, BRLC</li>
  *   <li>TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP</li>
  *   <li>TODO: DMA directives — DMA.WR0 through DMA.WR6/DMA.CMD</li>
  *   <li>TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE</li>
@@ -161,6 +158,7 @@ public class Z80Assembler {
 	private final Optional<Path> outputDir;
 	private final boolean mapEnabled;
 	private final boolean farAddresses;
+	private final boolean z80n;
 	private final List<MapEntry> mapEntries = new ArrayList<>();
 
 	/**
@@ -190,6 +188,7 @@ public class Z80Assembler {
 		private Optional<Path> outputDir = Optional.empty();
 		private boolean mapEnabled;
 		private boolean farAddresses;
+		private boolean z80n;
 		private final Map<String, String> defines = new LinkedHashMap<>();
 		private WarningCallback warningCallback;
 
@@ -252,6 +251,16 @@ public class Z80Assembler {
 		 */
 		public Builder withFarAddresses() {
 			this.farAddresses = true;
+			return this;
+		}
+
+		/**
+		 * Enable Z80N mode (next-generation Z80 instructions and addressing).
+		 * 
+		 * @return this for chaining
+		 */
+		public Builder withZ80N() {
+			this.z80n = true;
 			return this;
 		}
 
@@ -326,6 +335,7 @@ public class Z80Assembler {
 		this.mapFile = Optional.empty();
 		this.mapEnabled = false;
 		this.farAddresses = false;
+		this.z80n = false;
 		this.defines = new LinkedHashMap<>();
 		this.outputDir = Optional.empty();
 	}
@@ -335,6 +345,7 @@ public class Z80Assembler {
 		this.mapFile = builder.mapFile;
 		this.mapEnabled = builder.mapEnabled;
 		this.farAddresses = builder.farAddresses;
+		this.z80n = builder.z80n;
 		this.defines = new LinkedHashMap<>(builder.defines);
 		this.warningCallback = builder.warningCallback;
 	}
@@ -815,6 +826,7 @@ public class Z80Assembler {
 					emit8(out, 0xE5);
 				} else {
 					// PUSH nn (Z80N) — handle immediate
+					requireZ80N("PUSH nn");
 					int val = resolveImmediate(reg);
 					emit8(out, 0xED); emit8(out, 0x8A);
 					// Z80N PUSH nn is big-endian
@@ -1023,10 +1035,95 @@ public class Z80Assembler {
 			return;
 		}
 
+		// ── Z80N zero-operand instructions ──
+		if (stmt instanceof Swapnib) { requireZ80N("SWAPNIB"); emit8(out, 0xED); emit8(out, 0x23); return; }
+		if (stmt instanceof Mirror)  { requireZ80N("MIRROR");  emit8(out, 0xED); emit8(out, 0x24); return; }
+		if (stmt instanceof Mul)     { requireZ80N("MUL");     emit8(out, 0xED); emit8(out, 0x30); return; }
+		if (stmt instanceof Pixeldn) { requireZ80N("PIXELDN"); emit8(out, 0xED); emit8(out, 0x93); return; }
+		if (stmt instanceof Pixelad) { requireZ80N("PIXELAD"); emit8(out, 0xED); emit8(out, 0x94); return; }
+		if (stmt instanceof Setae)   { requireZ80N("SETAE");   emit8(out, 0xED); emit8(out, 0x95); return; }
+		if (stmt instanceof Outinb)  { requireZ80N("OUTINB");  emit8(out, 0xED); emit8(out, 0x90); return; }
+		if (stmt instanceof Brk)     { requireZ80N("BRK");     emit8(out, 0xDD); emit8(out, 0x01); return; }
+
+		// ── Z80N block operations ──
+		if (stmt instanceof Ldix)   { requireZ80N("LDIX");   emit8(out, 0xED); emit8(out, 0xA4); return; }
+		if (stmt instanceof Lddx)   { requireZ80N("LDDX");   emit8(out, 0xED); emit8(out, 0xAC); return; }
+		if (stmt instanceof Ldirx)  { requireZ80N("LDIRX");  emit8(out, 0xED); emit8(out, 0xB4); return; }
+		if (stmt instanceof Lddrx)  { requireZ80N("LDDRX");  emit8(out, 0xED); emit8(out, 0xBC); return; }
+		if (stmt instanceof Ldpirx) { requireZ80N("LDPIRX"); emit8(out, 0xED); emit8(out, 0xB7); return; }
+		if (stmt instanceof Ldws)   { requireZ80N("LDWS");   emit8(out, 0xED); emit8(out, 0xA5); return; }
+
+		// ── Z80N barrel shifts (all take DE, B) ──
+		if (stmt instanceof Bsla) { requireZ80N("BSLA"); emit8(out, 0xED); emit8(out, 0x28); return; }
+		if (stmt instanceof Bsra) { requireZ80N("BSRA"); emit8(out, 0xED); emit8(out, 0x29); return; }
+		if (stmt instanceof Bsrl) { requireZ80N("BSRL"); emit8(out, 0xED); emit8(out, 0x2A); return; }
+		if (stmt instanceof Bsrf) { requireZ80N("BSRF"); emit8(out, 0xED); emit8(out, 0x2B); return; }
+		if (stmt instanceof Brlc) { requireZ80N("BRLC"); emit8(out, 0xED); emit8(out, 0x2C); return; }
+
+		// ── Z80N TEST nn ──
+		if (stmt instanceof Test) {
+			requireZ80N("TEST");
+			int val = resolveImmediate(((Test) stmt).getValue());
+			emit8(out, 0xED); emit8(out, 0x27);
+			emit8(out, val & 0xFF);
+			return;
+		}
+
+		// ── Z80N NEXTREG ──
+		if (stmt instanceof NextReg) {
+			requireZ80N("NEXTREG");
+			NextReg nr = (NextReg) stmt;
+			int reg = resolveImmediate(nr.getName());
+			String valReg = getRegisterName(nr.getValue());
+			if (valReg != null && "A".equalsIgnoreCase(valReg)) {
+				// NEXTREG reg, A → ED 92 reg
+				emit8(out, 0xED); emit8(out, 0x92);
+				emit8(out, reg & 0xFF);
+			} else {
+				// NEXTREG reg, val → ED 91 reg val
+				int val = resolveImmediate(nr.getValue());
+				emit8(out, 0xED); emit8(out, 0x91);
+				emit8(out, reg & 0xFF);
+				emit8(out, val & 0xFF);
+			}
+			return;
+		}
+
+		// ── Z80N MMU ──
+		if (stmt instanceof Mmu) {
+			requireZ80N("MMU");
+			Mmu mmu = (Mmu) stmt;
+			int slot;
+			if (mmu.getName() != null) {
+				// MMU slot, page form
+				slot = resolveImmediate(mmu.getName());
+			} else {
+				// MMU0..MMU7 form — extract slot number from the keyword in the source text
+				INode node = NodeModelUtils.getNode(mmu);
+				String text = node != null ? node.getText().trim() : "";
+				// Extract digit from MMU0-MMU7
+				slot = -1;
+				for (int i = 0; i < text.length(); i++) {
+					char ch = text.charAt(i);
+					if (ch >= '0' && ch <= '7') {
+						slot = ch - '0';
+						break;
+					}
+				}
+				if (slot < 0) {
+					warn("Cannot determine MMU slot from: " + text);
+					slot = 0;
+				}
+			}
+			int page = resolveImmediate(mmu.getValue());
+			// MMU is assembled as NEXTREG $50+slot, page
+			emit8(out, 0xED); emit8(out, 0x91);
+			emit8(out, (0x50 + slot) & 0xFF);
+			emit8(out, page & 0xFF);
+			return;
+		}
+
 		// If we get here, the instruction/directive is not yet supported — hard fail
-		// TODO: Z80N instructions — NEXTREG, SWAPNIB, MIRROR, MUL, PIXELDN, PIXELAD, SETAE, OUTINB, TEST, BRK, MMU
-		// TODO: Z80N block operations — LDIX, LDDX, LDIRX, LDDRX, LDPIRX, LDWS
-		// TODO: Z80N barrel shifts — BSLA, BSRA, BSRL, BSRF, BRLC
 		// TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP
 		// TODO: DMA directives — DMA.WR0 through DMA.WR6/DMA.CMD
 		// TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE
@@ -2165,6 +2262,16 @@ public class Z80Assembler {
 		warnings.add(message);
 		if (warningCallback != null && currentLine > 0) {
 			warningCallback.warn(effectiveSource, currentLine, message);
+		}
+	}
+
+	/**
+	 * Guard that throws if Z80N mode is not enabled.
+	 */
+	private void requireZ80N(String mnemonic) {
+		if (!z80n) {
+			throw new AssemblyException(effectiveSource, currentLine,
+					mnemonic + " requires Z80N mode (use --z80n or withZ80N())");
 		}
 	}
 

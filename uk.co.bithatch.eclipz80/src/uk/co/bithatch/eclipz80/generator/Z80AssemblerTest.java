@@ -40,6 +40,7 @@ public class Z80AssemblerTest {
 		"samples/test_basic.asm",
 		"samples/test_labels.asm",
 		"samples/test_sections.asm",
+		"samples/test_z80n.asm",
 	};
 
 	private static int passed = 0;
@@ -68,21 +69,23 @@ public class Z80AssemblerTest {
 			return;
 		}
 
+		boolean isZ80N = sampleRelPath.contains("z80n");
+
 		String sampleName = samplePath.getFileName().toString();
-		System.out.println("=== Test: " + sampleName + " ===");
+		System.out.println("=== Test: " + sampleName + (isZ80N ? " [Z80N]" : "") + " ===");
 		System.out.println("Source: " + samplePath);
 		System.out.println();
 
 		// ── Step 1: Assemble with our assembler ──
 		System.out.println("--- Our Z80Assembler ---");
-		byte[] ourBinary = assembleWithOurs(injector, samplePath);
+		byte[] ourBinary = assembleWithOurs(injector, samplePath, isZ80N);
 		System.out.println("Output: " + ourBinary.length + " bytes");
 		System.out.println("Hex:    " + hexDump(ourBinary));
 		System.out.println();
 
 		// ── Step 2: Assemble with z88dk z80asm ──
 		System.out.println("--- z88dk z80asm ---");
-		byte[] z88dkBinary = assembleWithZ88dk(samplePath);
+		byte[] z88dkBinary = assembleWithZ88dk(samplePath, isZ80N);
 		if (z88dkBinary == null) {
 			System.err.println("z88dk assembly failed — cannot compare");
 			failed++;
@@ -126,7 +129,7 @@ public class Z80AssemblerTest {
 		return null;
 	}
 
-	private static byte[] assembleWithOurs(Injector injector, Path asmFile) throws IOException {
+	private static byte[] assembleWithOurs(Injector injector, Path asmFile, boolean z80n) throws IOException {
 		ResourceSet resourceSet = injector.getInstance(ResourceSet.class);
 		Resource resource = resourceSet.getResource(URI.createFileURI(asmFile.toString()), true);
 
@@ -146,9 +149,12 @@ public class Z80AssemblerTest {
 		Path binPath = asmFile.resolveSibling(baseName + ".bin");
 
 		// Use builder pattern — .withMap() will auto-derive .zmap path from .bin
-		Z80Assembler assembler = Z80Assembler.builder()
-				.withMap()
-				.build();
+		Z80Assembler.Builder builder = Z80Assembler.builder()
+				.withMap();
+		if (z80n) {
+			builder.withZ80N();
+		}
+		Z80Assembler assembler = builder.build();
 
 		// Write .bin so we can derive the .zmap alongside it
 		Results res;
@@ -167,7 +173,7 @@ public class Z80AssemblerTest {
 		return Files.readAllBytes(binPath);
 	}
 
-	private static byte[] assembleWithZ88dk(Path asmFile) throws Exception {
+	private static byte[] assembleWithZ88dk(Path asmFile, boolean z80n) throws Exception {
 		// z80asm -b produces <basename>.bin in the same directory as the source.
 		// Work in a temp directory to avoid polluting the source tree.
 		Path tempDir = Files.createTempDirectory("z80asm_test_");
@@ -188,7 +194,12 @@ public class Z80AssemblerTest {
 			}
 		}
 
-		ProcessBuilder pb = new ProcessBuilder(Z80ASM, "-b", tempAsm.toString());
+		ProcessBuilder pb;
+		if (z80n) {
+			pb = new ProcessBuilder(Z80ASM, "-mz80n", "-b", tempAsm.toString());
+		} else {
+			pb = new ProcessBuilder(Z80ASM, "-b", tempAsm.toString());
+		}
 		pb.redirectErrorStream(true);
 		Process proc = pb.start();
 
