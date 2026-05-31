@@ -39,7 +39,7 @@ public class LanguageSystem {
 		for (var d : descriptors()) {
 			var dsc = createHandler(d);
 			for (var a : dsc.architectures(project)) {
-				if (a.name().equals(archName))
+				if (archName == null || archName.equals("") || a.name().equals(archName))
 					return a;
 			}
 			hndlrs.add(dsc);
@@ -99,6 +99,7 @@ public class LanguageSystem {
 
 	public static IOutputFormat outputFormatOrDefault(IProject project, String fmtName) {
 		var hndlrs = new LinkedHashSet<ILanguageSystemProvider>();
+		var lang = languageSystem(project);
 		for (var d : descriptors()) {
 			var dsc = createHandler(d);
 			for (var a : dsc.outputFormats(project)) {

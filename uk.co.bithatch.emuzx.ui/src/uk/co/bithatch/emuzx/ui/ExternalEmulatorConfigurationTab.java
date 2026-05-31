@@ -113,6 +113,17 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 		return EmuZXUIActivator.getDefault().getImageRegistry().get(EmuZXUIActivator.CHIP_PATH);
 	}
 
+	@Override
+	protected void updateLaunchConfigurationDialog() {
+		super.updateLaunchConfigurationDialog();
+		var valid = context.isValid();
+		argsText.setEnabled(valid);
+		variablesButton.setEnabled(valid);
+		emulatorLocation.setEnabled(valid);
+		workingDir.setEnabled(valid);
+		
+	}
+
 	protected void createEmulatorSelector(Composite parent) {
 		var label = new Label(parent, SWT.NONE);
 		label.setText("Emulator:");
@@ -177,13 +188,17 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 					? configuration.getAttribute(WORKING_DIRECTORY_LOCATION, System.getProperty("user.home"))
 					: null);
 
-			/* Auto-open the emulator selector if no emulator is configured yet */
-			if (emulatorLocation.getText().isEmpty()) {
-				emulatorLocation.getDisplay().asyncExec(this::selectEmulator);
-			}
+			maybeAutoOpen();
 
 		} catch (Exception e) {
 			setErrorMessage("Could not initialize fields: " + e.getMessage());
+		}
+	}
+
+	private void maybeAutoOpen() {
+		/* Auto-open the emulator selector if no emulator is configured yet */
+		if (context.isValid() && emulatorLocation.getText().isEmpty()) {
+			emulatorLocation.getDisplay().asyncExec(this::selectEmulator);
 		}
 	}
 
@@ -207,6 +222,10 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 	@Override
 	public boolean isValid(ILaunchConfiguration launchConfig) {
 		setErrorMessage(null);
+		if(!context.isValid()) {
+			setErrorMessage("You must select a project and program file before selecting the emulator.");
+			return false;
+		}
 		if (emulatorLocation.getText().isEmpty()) {
 			setErrorMessage("Emulator executor must be selected.");
 			return false;

@@ -2,7 +2,6 @@ package uk.co.bithatch.eclipz80.ui.language;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +15,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.emf.common.util.URI;
@@ -27,7 +25,6 @@ import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.ISourceAdressMap;
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
-import uk.co.bithatch.bitzx.TAPBuilder;
 import uk.co.bithatch.eclipz80.ui.builder.AsmBuilder;
 import uk.co.bithatch.eclipz80.ui.builder.AsmNature;
 import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
@@ -53,41 +50,7 @@ public class AsmLanguageSystemProvider implements ILanguageSystemProvider {
 	public Path prepareForInternalLaunch(IOutputFormat fmt, IFile file, ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		
-		var binFile = AsmBuilder.prepareForGenericLaunch(file, mode);
-		var wellKnownFormat = fmt.wellKnown().orElseThrow(() -> new IllegalArgumentException("Must be a well known output format."));
-		
-		/* TODO move ORG and SP out of NEX building architecture into something
-		 * generic that we can use for sharing with internal emulator, external
-		 * emulator and building for all 3 languages (all of which have support for
-		 * altering ORG at least).
-		 */
-//		str = str.replace("[clear]", String.valueOf(prepCtx.buildOptions().orgOrDefault() - 1));
-//		str = str.replace("[org]", String.valueOf(prepCtx.buildOptions().orgOrDefault()));
-		var start = 32768;
-		var clear = start - 1;
-		
-		
-		try {
-		switch(wellKnownFormat) {
-			case TAP:
-				var tapbldr = new TAPBuilder();
-				tapbldr.addBasicLoader("LD" + file.getName(), start, clear);
-				tapbldr.addCode(file.getName(), Files.readAllBytes(binFile), start);
-				
-				var tapFile = FileNames.changeExtension(binFile, wellKnownFormat.extension());
-				try(var out = Files.newOutputStream(tapFile)) {
-					tapbldr.writeTo(out);
-				} 
-				
-				return tapFile;
-			default:
-				throw new CoreException(Status.error("Unsupported output format " + wellKnownFormat));
-			
-			}
-		}
-		catch (IOException e) {
-			throw new CoreException(Status.error("Failed to generate " + wellKnownFormat, e));
-		}
+		return AsmBuilder.prepareForEmulatorLaunch(fmt, file, AsmBuilder.prepareForGenericLaunch(file, mode));
 		
 	}
 

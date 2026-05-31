@@ -26,8 +26,9 @@ public class EmulatorConfigurationFileTab extends AbstractLaunchConfigurationTab
 
 	private Text configurationFileContent;
 	private Button variablesButton;
-	protected Text configurationLocation;
+	private LaunchConfigurationContext lcContext;
 
+	protected Text configurationLocation;
 
 	@Override
 	public void createControl(Composite parent) {
@@ -73,6 +74,53 @@ public class EmulatorConfigurationFileTab extends AbstractLaunchConfigurationTab
 		return EmuZXUIActivator.getDefault().getImageRegistry().get(EmuZXUIActivator.CONFIG_FILE_PATH);
 	}
 
+	@Override
+	public String getName() {
+		return "Config. File";
+	}
+
+	@Override
+	public void initializeFrom(ILaunchConfiguration configuration) {
+		try {
+			configurationLocation.setText(configuration.getAttribute(CONFIGURATION_FILE, ""));
+			configurationFileContent.setText(configuration.getAttribute(CONFIGURATION_CONTENT, ""));
+
+		} catch (Exception e) {
+			setErrorMessage("Could not initialize fields: " + e.getMessage());
+		}
+	}
+
+	@Override
+	public boolean isValid(ILaunchConfiguration launchConfig) {
+		setErrorMessage(null);
+		if(lcContext == null || !lcContext.isValid()) {
+			setErrorMessage("You must select a project and program file before selecting the emulator.");
+			return false;
+		}
+		if ((!configurationLocation.getText().isEmpty() && !configurationFileContent.getText().isEmpty())) {
+			setErrorMessage("You can either have configuration content or a configuration file, not both.");
+			return false;
+		}
+		return super.isValid(launchConfig);
+	}
+
+	@Override
+	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
+		configuration.setAttribute(CONFIGURATION_FILE, configurationLocation.getText());
+		configuration.setAttribute(CONFIGURATION_CONTENT, configurationFileContent.getText());
+
+	}
+
+	@Override
+	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
+		configuration.setAttribute(CONFIGURATION_FILE, "");
+		configuration.setAttribute(CONFIGURATION_CONTENT, "");
+	}
+
+	public void setLaunchContext(LaunchConfigurationContext lcContext) {
+		this.lcContext = lcContext;	
+	}
+
 	protected void createEmulatorSelector(Composite parent) {
 		var label = new Label(parent, SWT.NONE);
 		label.setText("Configuration Content:");
@@ -97,45 +145,6 @@ public class EmulatorConfigurationFileTab extends AbstractLaunchConfigurationTab
 				configurationLocation.setText(result);
 			}
 		}));
-	}
-
-	@Override
-	public String getName() {
-		return "Config. File";
-	}
-
-	@Override
-	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-		configuration.setAttribute(CONFIGURATION_FILE, "");
-		configuration.setAttribute(CONFIGURATION_CONTENT, "");
-	}
-
-	@Override
-	public void initializeFrom(ILaunchConfiguration configuration) {
-		try {
-			configurationLocation.setText(configuration.getAttribute(CONFIGURATION_FILE, ""));
-			configurationFileContent.setText(configuration.getAttribute(CONFIGURATION_CONTENT, ""));
-
-		} catch (Exception e) {
-			setErrorMessage("Could not initialize fields: " + e.getMessage());
-		}
-	}
-
-	@Override
-	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-		configuration.setAttribute(CONFIGURATION_FILE, configurationLocation.getText());
-		configuration.setAttribute(CONFIGURATION_CONTENT, configurationFileContent.getText());
-
-	}
-
-	@Override
-	public boolean isValid(ILaunchConfiguration launchConfig) {
-		setErrorMessage(null);
-		if ((!configurationLocation.getText().isEmpty() && !configurationFileContent.getText().isEmpty())) {
-			setErrorMessage("You can either have configuration content or a configuration file, not both.");
-			return false;
-		}
-		return super.isValid(launchConfig);
 	}
 
 

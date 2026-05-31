@@ -37,7 +37,13 @@ public class ExternalEmulatorLaunchConfigurationTabGroup extends AbstractLaunchC
 				preparationTab.initializeFrom(cfg);	
 				configFileTab.initializeFrom(cfg);
 			}
+
+			@Override
+			public boolean isValid() {
+				return launchTab.resolveProject() != null && launchTab.resolveProgram() != null;
+			}
 		};
+		configFileTab.setLaunchContext(lcContext);
 		
 		var emulatorTab = new ExternalEmulatorConfigurationTab(mode, lcContext);
 

@@ -220,9 +220,10 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 
 	public static Builder builderForProject(IProject project) {
 		var pax = ZXBasicPreferencesAccess.get();
+		var outputFormat = pax.getOutputFormat(project);
 		var bldr = new ZXBC.Builder(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).location().toPath()).
 				withWorkingdir(project.getLocation().toFile()).
-				withOutputFormat(((BorielZXBasicOutputFormat)pax.getOutputFormat(project)).firstPass()).
+				withOutputFormat(((BorielZXBasicOutputFormat)outputFormat).firstPass()).
 				withOutdir(pax.getOutputFolder(project).getLocation().toFile()).
 				withOptimizationLevel(pax.getOptimizationLevel(project)).
 				withVerbosity(pax.getDebugLevel(project)).

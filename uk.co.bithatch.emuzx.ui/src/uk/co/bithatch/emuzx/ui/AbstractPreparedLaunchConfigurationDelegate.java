@@ -2,6 +2,7 @@ package uk.co.bithatch.emuzx.ui;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -12,6 +13,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 import uk.co.bithatch.bitzx.FileSet;
+import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.LaunchContext;
 import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
 import uk.co.bithatch.emuzx.DefaultPreparationContext;
@@ -51,7 +53,7 @@ public abstract class AbstractPreparedLaunchConfigurationDelegate<L extends ILau
 			prepCtx.outputFormat(actualFormat);
 
 			/* Compile to the chosen format for the launch. */
-			externallyLaunchable.compileForLaunch(mode, prepCtx, monitor);
+			externallyLaunchable.compileForLaunch(mode, prepCtx, monitor, getSupportedFormatsFilter());
 			launchCtx.attr(LaunchContext.LAUNCH_FILE, prepCtx.launchFile());
 
 			/* If there is preparation to do, do it now */
@@ -119,6 +121,10 @@ public abstract class AbstractPreparedLaunchConfigurationDelegate<L extends ILau
 
 	}
 	
+	protected Predicate<IOutputFormat> getSupportedFormatsFilter() {
+		return (f) -> true;
+	}
+
 	protected abstract void preparedLaunch(ILaunchConfiguration configuration, ILaunch launch, IProgressMonitor monitor,
 			Optional<IPreparationTarget> preparationTarget, String mode, IFile file, IWritablePreparationContext prepCtx, L launchable, LaunchContext launchCtx) throws CoreException;
 

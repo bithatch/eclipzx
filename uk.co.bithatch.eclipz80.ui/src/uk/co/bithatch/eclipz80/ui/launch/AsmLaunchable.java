@@ -1,5 +1,7 @@
 package uk.co.bithatch.eclipz80.ui.launch;
 
+import java.util.function.Predicate;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
@@ -45,9 +47,18 @@ public class AsmLaunchable implements IExternallyLaunchable, IInternallyLaunchab
 	}
 
 	@Override
-	public void compileForLaunch(String mode, IWritablePreparationContext prepCtx, IProgressMonitor monitor)
+	public void compileForLaunch(String mode, IWritablePreparationContext prepCtx, IProgressMonitor monitor, Predicate<IOutputFormat> format)
 			throws CoreException {
-		prepCtx.launchFile(AsmBuilder.prepareForGenericLaunch(prepCtx.programFile(), mode));
+		
+		var file = prepCtx.programFile();
+		var launchFormat = getLaunchFormat(prepCtx.launchConfiguration(), file, format);
+		
+		prepCtx.launchFile(
+			AsmBuilder.prepareForEmulatorLaunch(
+				launchFormat, file,
+				AsmBuilder.prepareForGenericLaunch(file, mode)
+			)
+		);
 	}
 
 	@Override

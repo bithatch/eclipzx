@@ -288,8 +288,8 @@ public class EmulatorView extends ViewPart {
 
 	}
 
-	public EmulatorInstance showEmulator(String name) {
-		var em = getEmulator(name);
+	public EmulatorInstance resetAndShowEmulator(String name) {
+		var em = resetOrCreateEmulator(name);
 		var idx = emulators.indexOf(em);
 		if(idx != -1) {
 			folder.setSelection(idx);
@@ -305,6 +305,16 @@ public class EmulatorView extends ViewPart {
 		for(var em : emulators) {
 			if(em.getId().equals(id)) {
 				return em;
+			}
+		}
+	    return createEmulator(id);
+	}
+
+	public EmulatorInstance resetOrCreateEmulator(String id) {
+		for(var em : emulators) {
+			if(em.getId().equals(id)) {
+				em.close();
+				break;
 			}
 		}
 	    return createEmulator(id);

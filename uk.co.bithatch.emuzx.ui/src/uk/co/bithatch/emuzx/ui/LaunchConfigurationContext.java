@@ -9,6 +9,8 @@ public interface LaunchConfigurationContext {
 	IPath resolveProjectPath();
 
 	IFile resolveProgram();
+	
+	boolean isValid();
 
 	void initializeFrom(ILaunchConfigurationWorkingCopy cfg);
 

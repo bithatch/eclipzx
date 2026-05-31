@@ -1,6 +1,7 @@
 package uk.co.bithatch.eclipz88dk.launch;
 
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
@@ -54,7 +55,7 @@ public class CLaunchable implements IExternallyLaunchable, IInternallyLaunchable
 	}
 
 	@Override
-	public void compileForLaunch(String mode, IWritablePreparationContext prepCtx, IProgressMonitor monitor) throws CoreException {
+	public void compileForLaunch(String mode, IWritablePreparationContext prepCtx, IProgressMonitor monitor, Predicate<IOutputFormat> formatFilter) throws CoreException {
 		var file = prepCtx.programFile();
 		var project = file.getProject();
 		var sourceFile = file.getLocation().toFile();	

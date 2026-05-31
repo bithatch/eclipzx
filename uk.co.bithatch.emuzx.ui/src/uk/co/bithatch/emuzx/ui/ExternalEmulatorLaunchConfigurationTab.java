@@ -155,10 +155,11 @@ public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgra
 	@Override
 	public boolean isValid(ILaunchConfiguration launchConfig) {
 		setErrorMessage(null);
-		if (outputFormatCombo.getText().isEmpty()) {
+		var valid = super.isValid(launchConfig);
+		if (valid && outputFormatCombo.getText().isEmpty()) {
 			setErrorMessage("Output format must be selected.");
-			return false;
+			valid= false;
 		}
-		return super.isValid(launchConfig);
+		return valid;
 	}
 }

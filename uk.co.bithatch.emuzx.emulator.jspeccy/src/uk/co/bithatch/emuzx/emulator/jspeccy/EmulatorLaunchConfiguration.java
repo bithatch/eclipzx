@@ -4,6 +4,7 @@ import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.PROGRA
 import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.PROJECT;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -14,6 +15,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
+import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LaunchContext;
 import uk.co.bithatch.emuzx.api.IInternallyLaunchable;
@@ -35,7 +37,7 @@ public class EmulatorLaunchConfiguration extends AbstractPreparedLaunchConfigura
 			Optional<IPreparationTarget> preparationTarget, String mode, IFile file,
 			IWritablePreparationContext prepCtx, IInternallyLaunchable launchable, LaunchContext launchCtx)
 			throws CoreException {
-		var ofmt = launchable.getLaunchFormat(configuration, file);
+		var ofmt = launchable.getLaunchFormat(configuration, file, f -> Activator.JSPECCY_RUNNABLE_FORMATS.contains(f.extension()));
 		var lang = LanguageSystem.languageSystem(file);
 		var binaryFile = lang.prepareForInternalLaunch(ofmt, file, configuration, mode, launch, monitor);
 		
@@ -54,6 +56,13 @@ public class EmulatorLaunchConfiguration extends AbstractPreparedLaunchConfigura
 	}
 
 
+	@Override
+	protected Predicate<IOutputFormat> getSupportedFormatsFilter() {
+		var sf = super.getSupportedFormatsFilter();
+		return f -> sf.test(f) && Activator.JSPECCY_RUNNABLE_FORMATS.contains(f.extension());
+	}
+
+
 	private EmulatorInstance openEmulatorView(ILaunchConfiguration configuration, IWorkbench bench) {
 
 		var window = bench.getActiveWorkbenchWindow();
@@ -67,7 +76,7 @@ public class EmulatorLaunchConfiguration extends AbstractPreparedLaunchConfigura
 				try {
 					var view = page.showView(EmulatorView.ID);
 					page.bringToTop(view);
-					return ((EmulatorView) view).showEmulator(configuration.getName());
+					return ((EmulatorView) view).resetAndShowEmulator(configuration.getName());
 				} catch (PartInitException e) {
 					throw new IllegalStateException("Failed to open emulator view.");
 				}

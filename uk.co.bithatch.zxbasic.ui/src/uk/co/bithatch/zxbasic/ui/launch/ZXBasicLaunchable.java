@@ -1,6 +1,7 @@
 package uk.co.bithatch.zxbasic.ui.launch;
 
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -48,7 +49,7 @@ public class ZXBasicLaunchable implements IExternallyLaunchable, IInternallyLaun
 	}
 
 	@Override
-	public void compileForLaunch(String mode, IWritablePreparationContext prepCtx, IProgressMonitor monitor)
+	public void compileForLaunch(String mode, IWritablePreparationContext prepCtx, IProgressMonitor monitor, Predicate<IOutputFormat> filter)
 			throws CoreException {
 		ZXBasicBuilder.compileForLaunch(prepCtx, mode, ZXBasicBuilder.DEFAULT_REPORTER);
 	}
