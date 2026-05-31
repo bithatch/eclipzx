@@ -69,11 +69,11 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 		return "ORG " + formatIntegralLiteral(ele.getValue());
 	}
 
-	String text(AsmModule ele) {
+	String text(uk.co.bithatch.eclipz80.asm.Module ele) {
 		return "MODULE " + (ele.getName() != null ? ele.getName() : "");
 	}
 
-	String text(AsmSection ele) {
+	String text(Section ele) {
 		return "SECTION " + (ele.getName() != null ? ele.getName() : "");
 	}
 
@@ -171,10 +171,10 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 	private String getStatementText(AsmStatement stmt) {
 		if (stmt instanceof Org) {
 			return "ORG " + formatIntegralLiteral(((Org) stmt).getValue());
-		} else if (stmt instanceof AsmModule) {
-			return "MODULE " + ((AsmModule) stmt).getName();
-		} else if (stmt instanceof AsmSection) {
-			return "SECTION " + ((AsmSection) stmt).getName();
+		} else if (stmt instanceof uk.co.bithatch.eclipz80.asm.Module) {
+			return "MODULE " + ((uk.co.bithatch.eclipz80.asm.Module) stmt).getName();
+		} else if (stmt instanceof Section) {
+			return "SECTION " + ((Section) stmt).getName();
 		} else if (stmt instanceof AsmInclude) {
 			return "INCLUDE " + ((AsmInclude) stmt).getImportURI();
 		} else if (stmt instanceof Extern) {

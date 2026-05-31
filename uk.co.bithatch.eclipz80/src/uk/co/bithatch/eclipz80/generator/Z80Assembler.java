@@ -64,6 +64,7 @@ import uk.co.bithatch.eclipz80.asm.*;
  *   <li>TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE</li>
  *   <li>TODO: PROC / LOCAL scoping</li>
  *   <li>TODO: Numeric label support (AsmNumericLabelLine)</li>
+ *   <li>TODO: Allow command line ORG setting that overrides the default and what assembly specifies</li>
  * </ul>
  */
 public class Z80Assembler {
