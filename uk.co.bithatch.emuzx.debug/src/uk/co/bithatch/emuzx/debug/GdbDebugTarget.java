@@ -4,8 +4,11 @@ import static uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes.PORT;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigInteger;
 import java.net.ConnectException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IMarkerDelta;
@@ -20,6 +23,8 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
+import org.eclipse.debug.core.model.IMemoryBlockExtension;
+import org.eclipse.debug.core.model.IMemoryBlockRetrievalExtension;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
@@ -33,7 +38,7 @@ import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTarget;
  * This bypasses z88dk-gdb entirely and speaks GDB RSP directly over a
  * TCP socket, providing reliable control of the emulator.
  */
-public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
+public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemoryBlockRetrievalExtension {
 
 	private static final ILog LOG = ILog.of(GdbDebugTarget.class);
 
@@ -50,6 +55,9 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 
 	/** Tracks breakpoints by address so we can remove them */
 	private final Map<IBreakpoint, Integer> breakpointAddresses = new HashMap<>();
+
+	/** Tracks active memory blocks so we can fire content-change events on suspend */
+	private final List<Z80MemoryBlock> memoryBlocks = new ArrayList<>();
 
 	public GdbDebugTarget(ILaunch launch, ILaunchConfiguration configuration,
 			IProcess emulatorProcess, ISourceAdressMap debugInfo) throws CoreException {
@@ -341,22 +349,41 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 
 	@Override
 	public IMemoryBlock getMemoryBlock(long startAddress, long length) throws DebugException {
+		/* Delegate to the extended API */
+		return getExtendedMemoryBlock("0x" + Long.toHexString(startAddress),
+				this);
+	}
+
+	@Override
+	public IMemoryBlockExtension getExtendedMemoryBlock(String expression,
+			Object context) throws DebugException {
+		/* Parse the expression as a hex or decimal address */
+		BigInteger address;
 		try {
-			var hexData = rsp.readMemory((int) startAddress, (int) length);
-			var bytes = hexToBytes(hexData);
-			return new IMemoryBlock() {
-				@Override public <T> T getAdapter(Class<T> adapter) { return null; }
-				@Override public String getModelIdentifier() { return GdbDebugTarget.this.getModelIdentifier(); }
-				@Override public ILaunch getLaunch() { return GdbDebugTarget.this.getLaunch(); }
-				@Override public IDebugTarget getDebugTarget() { return GdbDebugTarget.this; }
-				@Override public boolean supportsValueModification() { return false; }
-				@Override public void setValue(long offset, byte[] bytes) throws DebugException { }
-				@Override public long getStartAddress() { return startAddress; }
-				@Override public long getLength() { return length; }
-				@Override public byte[] getBytes() throws DebugException { return bytes; }
-			};
-		} catch (IOException e) {
-			throw new DebugException(Status.error("Failed to read memory", e));
+			var expr = expression.strip();
+			if (expr.startsWith("0x") || expr.startsWith("0X")) {
+				address = new BigInteger(expr.substring(2), 16);
+			} else if (expr.startsWith("$")) {
+				address = new BigInteger(expr.substring(1), 16);
+			} else {
+				address = new BigInteger(expr);
+			}
+		} catch (NumberFormatException e) {
+			throw new DebugException(Status.error(
+					"Invalid memory address expression: " + expression, e));
+		}
+		var block = new Z80MemoryBlock(this, rsp, expression, address);
+		memoryBlocks.add(block);
+		return block;
+	}
+
+	/**
+	 * Notify all active memory blocks that content may have changed.
+	 * Called after the target suspends so hex views auto-refresh.
+	 */
+	private void fireMemoryBlockContentChange() {
+		for (var block : memoryBlocks) {
+			block.fireContentChange();
 		}
 	}
 
@@ -398,6 +425,9 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 						} catch (DebugException de) {
 							LOG.warn("Could not refresh stack frame after suspend", de);
 						}
+
+						/* Notify memory renderings that content may have changed */
+						fireMemoryBlockContentChange();
 					}
 				} catch (IOException e) {
 					if (!terminated) {
@@ -427,16 +457,6 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget {
 
 	GdbRspClient getRspClient() {
 		return rsp;
-	}
-
-	private static byte[] hexToBytes(String hex) {
-		if (hex == null) return new byte[0];
-		int len = hex.length() / 2;
-		var bytes = new byte[len];
-		for (int i = 0; i < len; i++) {
-			bytes[i] = (byte) Integer.parseInt(hex.substring(i * 2, i * 2 + 2), 16);
-		}
-		return bytes;
 	}
 
 }

@@ -47,7 +47,7 @@ public class CSpect implements IEmulator {
 					""", System.lineSeparator()));
 		}
 		else {
-			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.BIN).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
+			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.TZX).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""
 					""", System.lineSeparator()));
 		}

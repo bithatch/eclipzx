@@ -11,6 +11,11 @@ import java.util.List;
 import org.eclipse.core.runtime.Platform;
 
 public class FileNames {
+	
+	public static String stripExtension(String path) {
+		var idx = path.lastIndexOf('.');
+		return idx == -1 ? path : path.substring(0, idx);
+	}
 
 	public static boolean hasExtensions(File f, String... extensions) {
 		var ext = getExtension(f);

@@ -65,6 +65,7 @@ import uk.co.bithatch.eclipz80.asm.*;
  *   <li>TODO: PROC / LOCAL scoping</li>
  *   <li>TODO: Numeric label support (AsmNumericLabelLine)</li>
  *   <li>TODO: Allow command line ORG setting that overrides the default and what assembly specifies</li>
+ *   <li>TODO: Add all same command line options z80asm has</li>
  * </ul>
  */
 public class Z80Assembler {

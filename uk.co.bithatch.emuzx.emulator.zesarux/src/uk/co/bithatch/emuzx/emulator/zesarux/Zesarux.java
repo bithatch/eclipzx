@@ -61,10 +61,12 @@ public class Zesarux implements IEmulator {
 
 	@Override
 	public void configure(EmulatorDescriptor descriptor, ILaunchConfigurationWorkingCopy configuration, IFile programFile, File home, String mode) throws CoreException {
+		
 		var proj = programFile.getProject();
 		var arch = LaunchableRegistry.launchableFor(IExternallyLaunchable.class, programFile).getArchitecture(proj);
-
-		if(WellKnownArchitecture.ZXNEXT.equals(arch.wellKnown().orElse(null))) {
+		var wellKnownArch = arch.wellKnown().orElse(null);
+		
+		if(WellKnownArchitecture.ZXNEXT.equals(wellKnownArch)) {
 			/* TODO check this actually exists as its in a separate plugin */
 			configuration.setAttribute(PREPARATION_TARGET, "uk.co.bithatch.nextzxos.nextzxosFATPreparationTarget");
 			
@@ -83,13 +85,13 @@ public class Zesarux implements IEmulator {
 	        		""");
 		}
 		else {
-			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.SNA).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
+			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.TZX).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""
 					--machine
 					P2A41
 					--configfile
 					${emulator_config_file}
-					--snap
+					--tape
 					${ee_launch_loc}
 					""", System.lineSeparator()));
 	        configuration.setAttribute(CONFIGURATION_CONTENT, """

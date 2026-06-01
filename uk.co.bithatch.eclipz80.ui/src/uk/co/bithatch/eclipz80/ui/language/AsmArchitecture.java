@@ -29,6 +29,7 @@ public enum AsmArchitecture implements IArchitecture {
 	public List<IOutputFormat> supportedFormats() {
 		return Arrays.asList(
 			AsmOutputFormat.BIN,
+			AsmOutputFormat.TZX,
 			AsmOutputFormat.TAP
 		);
 	}

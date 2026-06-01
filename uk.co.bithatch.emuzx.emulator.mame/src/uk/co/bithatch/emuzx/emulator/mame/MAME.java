@@ -66,7 +66,7 @@ public class MAME implements IEmulator {
 		}
 		else {
 			configuration.setAttribute(PREPARATION_TARGET, "");
-			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.TAP).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
+			configuration.setAttribute(OUTPUT_FORMAT, arch.outputFormat(WellKnownOutputFormat.TZX).map(wk -> wk.name()).orElseThrow(() -> new IllegalStateException("Cannot map output format.")));
 			configuration.setAttribute(EMULATOR_ARGS, Strings.separatedList("""
 					-inipath
 					${emulator_config_file}

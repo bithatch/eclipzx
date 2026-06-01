@@ -27,6 +27,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.TAPBuilder;
+import uk.co.bithatch.bitzx.TZXBuilder;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
 import uk.co.bithatch.eclipz80.generator.Z80Assembler;
 import uk.co.bithatch.eclipz80.ui.internal.Eclipz80Activator;
@@ -251,14 +252,27 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 //		str = str.replace("[org]", String.valueOf(prepCtx.buildOptions().orgOrDefault()));
 		var start = 32768;
 		var clear = start - 1;
-		
+		var baseName = FileNames.stripExtension(file.getName());
 		
 		try {
 		switch(wellKnownFormat) {
+			case TZX:
+
+				var tzxbldr = new TZXBuilder();
+				tzxbldr.addBasicLoader("LD" + baseName, clear, start);
+				tzxbldr.addCode(baseName, Files.readAllBytes(binFile), start);
+				
+				var tzxFile = FileNames.changeExtension(binFile, wellKnownFormat.extension());
+				try(var out = Files.newOutputStream(tzxFile)) {
+					tzxbldr.writeTo(out);
+				} 
+				
+				return tzxFile;
+				
 			case TAP:
 				var tapbldr = new TAPBuilder();
-				tapbldr.addBasicLoader("LD" + file.getName(), start, clear);
-				tapbldr.addCode(file.getName(), Files.readAllBytes(binFile), start);
+				tapbldr.addBasicLoader("LD" + baseName, clear, start);
+				tapbldr.addCode(baseName, Files.readAllBytes(binFile), start);
 				
 				var tapFile = FileNames.changeExtension(binFile, wellKnownFormat.extension());
 				try(var out = Files.newOutputStream(tapFile)) {
