@@ -63,9 +63,11 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import uk.co.bithatch.ayzxfx.Activator;
 import uk.co.bithatch.ayzxfx.ay.AFX;
 import uk.co.bithatch.ayzxfx.ay.AFXFrame;
 import uk.co.bithatch.ayzxfx.ay.AYPlayer;
+import uk.co.bithatch.widgetzx.ZXPerspectivesUI;
 
 public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 	
@@ -396,6 +398,8 @@ public class AFXEditor extends EditorPart /* implements SelectionListener */ {
 		registerThemeListener();
 		
 		onPartControl();
+		
+		ZXPerspectivesUI.zxMediaPerspective(Activator.PLUGIN_ID);
 	}
 
 	@Override

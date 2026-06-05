@@ -1,5 +1,6 @@
 package uk.co.bithatch.drawzx.editor;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,8 @@ import org.eclipse.ui.operations.RedoActionHandler;
 import org.eclipse.ui.operations.UndoActionHandler;
 import org.eclipse.ui.part.EditorPart;
 
+import uk.co.bithatch.bitzx.ZXPerspectives;
+import uk.co.bithatch.drawzx.Activator;
 import uk.co.bithatch.drawzx.editor.EditorFileProperties.PaletteSource;
 import uk.co.bithatch.drawzx.editor.EditorFileProperties.SpritePaintMode;
 import uk.co.bithatch.drawzx.sprites.ClearOperation;
@@ -78,6 +81,7 @@ import uk.co.bithatch.drawzx.widgets.DrawListener;
 import uk.co.bithatch.drawzx.widgets.SpriteEditorGrid;
 import uk.co.bithatch.drawzx.widgets.SpriteGrid;
 import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
+import uk.co.bithatch.widgetzx.ZXPerspectivesUI;
 import uk.co.bithatch.zyxy.graphics.Palette;
 
 public abstract class AbstractSpriteEditor extends EditorPart implements IPartListener, IColouredEditor {
@@ -321,7 +325,13 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 			if (cmdService != null) {
 				cmdService.refreshElements("uk.co.bithatch.drawzx.sprites.commands.mode", null);
 			}
-			openColourPickerView(PlatformUI.getWorkbench());
+			
+			if(ZXPerspectivesUI.isPerspective(ZXPerspectives.ZX_MEDIA_ID)) {
+				openColourPickerView(PlatformUI.getWorkbench());	
+			}
+			else {
+				ZXPerspectivesUI.zxMediaPerspective(Activator.PLUGIN_ID);
+			}
 		}
 	}
 

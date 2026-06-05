@@ -12,7 +12,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.ide;bundle-version="3.22.600",
  com.formdev.flatlaf,
  org.eclipse.e4.ui.css.swt.theme;bundle-version="0.14.600",
- org.osgi.service.event;bundle-version="[1.4.0,2.0.0)"
+ org.osgi.service.event;bundle-version="[1.4.0,2.0.0)",
+ uk.co.bithatch.widgetzx;bundle-version="[1.0.0,2.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.ayzxfx
 Bundle-ActivationPolicy: lazy

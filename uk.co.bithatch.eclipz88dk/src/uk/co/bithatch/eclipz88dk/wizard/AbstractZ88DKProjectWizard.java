@@ -20,6 +20,7 @@ import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.osgi.service.prefs.BackingStoreException;
 
 import uk.co.bithatch.eclipz88dk.Activator;
+import uk.co.bithatch.widgetzx.ZXPerspectivesUI;
 
 public abstract class AbstractZ88DKProjectWizard<PAGE extends AbstractZ88DKProjectWizardPage> extends Wizard
 		implements INewWizard {
@@ -74,54 +75,10 @@ public abstract class AbstractZ88DKProjectWizard<PAGE extends AbstractZ88DKProje
 			return false;
 		}
 
-		checkPerspective();
+		ZXPerspectivesUI.zxCodingPerspective(Activator.PLUGIN_ID);
 
 		return true;
 	}
 
 	protected abstract CreateTask doProjectCreation(String projectName);
-
-	private void checkPerspective() {
-		final String PREFERENCE_KEY = "eclipz88dk.switch.perspective";
-
-		var prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
-		var pref = prefs.get(PREFERENCE_KEY, "prompt");
-
-		var window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		var page = window.getActivePage();
-		var currentPerspective = page.getPerspective();
-
-		if (!C_PERSPECTIVE.equals(currentPerspective.getId())) {
-			if ("prompt".equals(pref)) {
-				var dialog = MessageDialogWithToggle.openYesNoQuestion(window.getShell(), "Switch to C Perspective?",
-						"This project works best in the C perspective.\n" + "Would you like to switch now?",
-						"Remember my decision and do not ask again", false, // toggle default
-						null, null);
-
-				var switchPerspective = (dialog.getReturnCode() == IDialogConstants.YES_ID);
-				var toggleState = dialog.getToggleState() ? (switchPerspective ? "always" : "never") : "prompt";
-
-				prefs.put(PREFERENCE_KEY, toggleState);
-				try {
-					prefs.flush();
-				} catch (BackingStoreException e) {
-				}
-
-				if (switchPerspective) {
-					switchToPerspective(C_PERSPECTIVE, window);
-				}
-
-			} else if ("always".equals(pref)) {
-				switchToPerspective(C_PERSPECTIVE, window);
-			}
-		}
-	}
-
-	private void switchToPerspective(String perspectiveId, IWorkbenchWindow window) {
-		IPerspectiveRegistry registry = PlatformUI.getWorkbench().getPerspectiveRegistry();
-		IPerspectiveDescriptor desc = registry.findPerspectiveWithId(perspectiveId);
-		if (desc != null) {
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().setPerspective(desc);
-		}
-	}
 }

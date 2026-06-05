@@ -13,8 +13,27 @@ import uk.co.bithatch.bitzx.ZXPerspectives;
 
 public class ZXPerspectivesUI {
 
+	public static boolean isPerspective(String id) {
+        var window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        var page = window.getActivePage();
+        var currentPerspective = page.getPerspective();
+        return id.equals(currentPerspective.getId());
+	}
+
 	public static void zxCodingPerspective(String pluginId) {
-		final String PREFERENCE_KEY = "zxcoding.switch.perspective";
+		perspective(pluginId, "ZX Coding", ZXPerspectives.ZX_CODING_ID);
+	}
+
+	public static void zxDebuggingPerspective(String pluginId) {
+		perspective(pluginId, "ZX Debugging", ZXPerspectives.ZX_DEBUG_ID);
+	}
+
+	public static void zxMediaPerspective(String pluginId) {
+		perspective(pluginId, "ZX Media", ZXPerspectives.ZX_MEDIA_ID);
+	}
+
+	public static void perspective(String pluginId, String name, String id) {
+		final String PREFERENCE_KEY = id + ".switch.perspective";
 
         var prefs = InstanceScope.INSTANCE.getNode(pluginId);
         var pref = prefs.get(PREFERENCE_KEY, "prompt");
@@ -23,12 +42,12 @@ public class ZXPerspectivesUI {
         var page = window.getActivePage();
         var currentPerspective = page.getPerspective();
 
-        if (!ZXPerspectives.ZX_CODING_ID.equals(currentPerspective.getId())) {
+        if (!id.equals(currentPerspective.getId())) {
             if ("prompt".equals(pref)) {
                 var dialog = MessageDialogWithToggle.openYesNoQuestion(
                     window.getShell(),
-                    "Switch to ZX Coding Perspective?",
-                    "This project works best in the ZX Coding perspective.\n" +
+                    "Switch to " + name + " Perspective?",
+                    "This project works best in the " + name + " perspective.\n" +
                     "Would you like to switch now?",
                     "Remember my decision and do not ask again",
                     false, // toggle default
@@ -47,11 +66,11 @@ public class ZXPerspectivesUI {
                 }
 
                 if (switchPerspective) {
-                    switchToPerspective(ZXPerspectives.ZX_CODING_ID, window);
+                    switchToPerspective(id, window);
                 }
 
             } else if ("always".equals(pref)) {
-                switchToPerspective(ZXPerspectives.ZX_CODING_ID, window);
+                switchToPerspective(id, window);
             }
         }
 	}
