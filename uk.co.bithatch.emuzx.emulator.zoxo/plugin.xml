@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>   
+    <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+        <launchConfigurationType 
+            name="Internal Emulator (Zoxo)" 
+            delegate="uk.co.bithatch.emuzx.emulator.zoxo.EmulatorLaunchConfiguration"
+            modes="run,debug"
+            id="uk.co.bithatch.emuzx.emulator.zoxo.launch.emulatorLaunch" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+        <launchConfigurationTypeImage 
+            configTypeID="uk.co.bithatch.emuzx.emulator.zoxo.launch.emulatorLaunch" 
+            icon="icons/zoxo16.png" 
+            id="uk.co.bithatch.emuzx.emulator.zoxo.launch.emulatorLaunch.image" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+        <launchConfigurationTabGroup
+             class="uk.co.bithatch.emuzx.emulator.zoxo.EmulatorLaunchConfigurationTabGroup" 
+             id="uk.co.bithatch.emuzx.emulator.zoxo.launch.emulatorLaunchConfigurationTabGroup" 
+             type="uk.co.bithatch.emuzx.emulator.zoxo.launch.emulatorLaunch" />
+    </extension>
+    <extension point="org.eclipse.debug.ui.launchShortcuts">
+        <shortcut 
+            class="uk.co.bithatch.emuzx.emulator.zoxo.EmulatorLaunchShortcut" 
+            icon="icons/zoxo16.png"
+            id="uk.co.bithatch.emuzx.emulator.zoxo.launch.emulatorLaunch" 
+            label="Run In Internal Emulator (Zoxo)" modes="run,debug"
+            description="Only currently for legacy programs (48K, 128, +2, 3), runs directly inside an Eclipse view"
+            >
+            <contextualLaunch>
+                <enablement>
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IResource" />
+                        </iterate>
+                    </with>
+                </enablement>
+            </contextualLaunch>
+        </shortcut>
+    </extension>
+    
+    <!-- Debug model presentation for Zoxo internal emulator debugging -->
+    <extension point="org.eclipse.debug.ui.debugModelPresentations">
+        <debugModelPresentation
+            class="uk.co.bithatch.emuzx.emulator.zoxo.EmulatorDebugModelPresentation"
+            id="uk.co.bithatch.emuzx.emulator.zoxo" />
+    </extension>
+</plugin>

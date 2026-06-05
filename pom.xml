@@ -46,6 +46,7 @@
 		<module>uk.co.bithatch.zxbasic.borielsdk</module>
 		<module>uk.co.bithatch.emuzx.emulator.cspect</module>
 		<module>uk.co.bithatch.emuzx.emulator.jspeccy</module>
+		<module>uk.co.bithatch.emuzx.emulator.zoxo</module>
 		<module>uk.co.bithatch.emuzx.emulator.zesarux</module>
         <module>uk.co.bithatch.emuzx.emulator.mame</module>
         <module>uk.co.bithatch.emuzx.debug</module>
@@ -53,6 +54,7 @@
 		<module>uk.co.bithatch.eclipzx.ui</module>
 		<module>uk.co.bithatch.fatexplorer</module>
 		<module>uk.co.bithatch.jspeccy</module>
+		<module>uk.co.bithatch.eclipzoxo</module>
 		<module>uk.co.bithatch.nextbuild</module>
 		<module>uk.co.bithatch.nextlib</module>
 		<module>uk.co.bithatch.squashzx</module>

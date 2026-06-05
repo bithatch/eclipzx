@@ -15,3 +15,4 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.drawzx
 Bundle-ActivationPolicy: lazy
+Export-Package: uk.co.bithatch.drawzx.views

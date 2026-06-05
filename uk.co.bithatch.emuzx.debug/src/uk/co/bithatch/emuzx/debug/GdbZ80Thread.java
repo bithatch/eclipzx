@@ -16,7 +16,7 @@ import uk.co.bithatch.bitzx.ISourceAdressMap;
 
 /**
  * Z80 thread implementation for GDB-based debugging.
- * Unlike {@link Z80Thread} which depends on {@link DezogDebugTarget},
+ * Unlike {@link DezogZ80Thread} which depends on {@link DezogDebugTarget},
  * this delegates to the generic {@link IDebugTarget} interface.
  */
 public final class GdbZ80Thread extends DelegatingDebugElement implements IThread {

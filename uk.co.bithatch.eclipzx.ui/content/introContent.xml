@@ -6,7 +6,7 @@
     <group id="banner" style-id="container">
         <img src="images/banner.png" alt="EclipZX Banner" style-id="banner"/>
         <text>
-	        EclipZX is a complete Eclipse-based development environment for Boriel ZX Basic and Z80 assembler programming for the ZX Spectrum.
+	        EclipZX is a complete Eclipse-based development environment for C, Boriel ZX Basic and Z80 assembly languagge programming for the ZX Spectrum.
 	        Develop on your PC using Linux, Windows or Mac OS, and deploy to any supported ZX Spectrum.
         </text>
         <link url="https://bithatch.co.uk/eclipzx" label="EclipZX Project Homepage"/>
@@ -16,7 +16,17 @@
     </group>
 
     <group id="basic-getting-started" style-id="container">
-       <text style-id="h1">Getting Started with ZX Basic</text>
+       <text style-id="h1">Getting Started Assembly Language</text>
+       <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateAsmProjectAction" label="Create Assembly Language Project"/>
+       
+       <text style-id="h2">More Reading ... </text>
+       <group id="assembly-more-reading" style-id="more-reading">
+            <link url="https://github.com/z88dk/z88dk/wiki/Tool---z80asm" label="Z88DK Assembler Documentation"/>
+        </group>
+    </group>
+
+    <group id="basic-getting-started" style-id="container">
+       <text style-id="h1">Getting Started with Boriel's ZX Basic</text>
        <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateBasicProjectAction" label="Create New ZX Basic Project"/>
        <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateZXBasicExamplesProjectAction" label="Create ZX Basic Examples Project"></link>
        <link  url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.CreateNextBuildExamplesProjectAction" label="Create NextBuild Examples Project"></link>

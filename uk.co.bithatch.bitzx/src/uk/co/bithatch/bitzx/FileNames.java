@@ -22,6 +22,11 @@ public class FileNames {
 		return Arrays.asList(extensions).stream().map(String::toLowerCase).filter(s -> s.equals(ext)).findFirst().isPresent();
 	}
 
+	public static boolean hasExtensions(Path p, String... extensions) {
+		var ext = getExtension(p);
+		return Arrays.asList(extensions).stream().map(String::toLowerCase).filter(s -> s.equals(ext)).findFirst().isPresent();
+	}
+	
 	public static boolean hasExtensions(String name, String... extensions) {
 		var ext = getExtension(name);
 		return Arrays.asList(extensions).stream().map(String::toLowerCase).filter(s -> s.equals(ext)).findFirst().isPresent();
@@ -30,6 +35,10 @@ public class FileNames {
 	public static String getExtensionOrFilename(String filename) {
 		var x = getExtension(filename);
 		return x == null ? filename : x;
+	}
+
+	public static String getExtension(Path file) {
+		return getExtension(file.getFileName().toString());
 	}
 	
 	public static String getExtension(File file) {

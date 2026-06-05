@@ -86,4 +86,9 @@
        </preparationTarget>
     </extension>
    
+    <extension point="org.eclipse.ui.perspectives">
+        <perspective name="ZX Coding" icon="icons/coding16.png" class="uk.co.bithatch.eclipzx.ui.ZXCodingPerspective" id="uk.co.bithatch.eclipzx.ui.codingPerspective" />
+        <perspective name="ZX Debugging" icon="icons/debug16.png" class="uk.co.bithatch.eclipzx.ui.ZXDebuggingPerspective" id="uk.co.bithatch.eclipzx.ui.debuggingPerspective" />
+        <perspective name="ZX Media" icon="icons/drawing16.png" class="uk.co.bithatch.eclipzx.ui.ZXDrawingPerspective" id="uk.co.bithatch.eclipzx.ui.drawingPerspective" />
+    </extension>
 </plugin>

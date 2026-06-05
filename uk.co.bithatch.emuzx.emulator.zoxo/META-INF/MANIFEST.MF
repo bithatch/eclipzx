@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EmuZX Zoxo Emulator Support
+Bundle-SymbolicName: uk.co.bithatch.emuzx.emulator.zoxo;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Export-Package: uk.co.bithatch.emuzx.emulator.zoxo
+Bundle-Activator: uk.co.bithatch.emuzx.emulator.zoxo.Activator
+Bundle-Vendor: Bithatch
+Require-Bundle: uk.co.bithatch.emuzx.ui;bundle-version="1.0.0",
+ uk.co.bithatch.eclipzoxo;bundle-version="1.0.0",
+ uk.co.bithatch.zyxy-dezog;bundle-version="[0.0.0,1.0.0)",
+ uk.co.bithatch.emuzx.debug;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Automatic-Module-Name: uk.co.bithatch.emuzx.emulator.zoxo
+Bundle-ActivationPolicy: lazy

@@ -489,11 +489,8 @@
             </includes>
         </viewerActionBinding>
     </extension>
-    <extension point="org.eclipse.ui.perspectives">
-        <perspective name="ZX Basic" icon="icons/library16.png" class="uk.co.bithatch.zxbasic.ui.perspective.ZXBasicPerspective" id="uk.co.bithatch.zxbasic.perspective" />
-    </extension>
     <extension point="org.eclipse.ui.perspectiveExtensions">
-        <perspectiveExtension targetID="uk.co.bithatch.zxbasic.perspective">
+        <perspectiveExtension targetID="uk.co.bithatch.eclipzx.ui.codingPerspective">
             <!-- Show the Run/Debug actions -->
             <actionSet id="org.eclipse.debug.ui.launchActionSet" />
             <actionSet id="org.eclipse.debug.ui.profileActionSet" />
@@ -501,10 +498,10 @@
             <newWizardShortcut id="uk.co.bithatch.zxbasic.BasicProjectWizard" />
         </perspectiveExtension>
         <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
-            <perspectiveShortcut id="uk.co.bithatch.zxbasic.perspective" />
+            <perspectiveShortcut id="uk.co.bithatch.eclipzx.ui.codingPerspective" />
         </perspectiveExtension>
         <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
-            <perspectiveShortcut id="uk.co.bithatch.zxbasic.perspective" />
+            <perspectiveShortcut id="uk.co.bithatch.eclipzx.ui.codingPerspective" />
         </perspectiveExtension>
     </extension>
     <extension point="org.eclipse.core.runtime.adapters">

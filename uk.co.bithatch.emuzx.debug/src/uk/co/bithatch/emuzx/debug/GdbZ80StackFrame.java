@@ -16,7 +16,7 @@ import uk.co.bithatch.bitzx.ISourceAdressMap;
  * Reads registers via individual {@code p<n>} packets from MAME's GDB stub,
  * and resolves source location using {@link Z88dkDebugInfoParser}.
  */
-public final class GdbZ80StackFrame extends DelegatingDebugElement implements IStackFrame {
+public final class GdbZ80StackFrame extends DelegatingDebugElement implements ILocatableStackFrame {
 
 	private static final ILog LOG = ILog.of(GdbZ80StackFrame.class);
 
@@ -273,6 +273,7 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IS
 	/**
 	 * @return the source file name, or null if unknown
 	 */
+	@Override
 	public String getSourceName() {
 		return sourceName;
 	}

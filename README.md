@@ -16,10 +16,11 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
  * Z88DK C support. Write your games and applications in C.
  * Z80 Assembly Language support (Z88DK/ZX Basic assembler compatible).  Write your games and applications in pure Z80.
  * Mix all 3 languages in a single project, view and navigate generated assembler for high level languages.
+ * 3 Workbench layouts, each designed for a particular task. ZX Coding, ZX Debugging and ZX Media.
  * Define multiple SDKs for both ZX Basic and Z88DK and select the one to use with your project. E.g. A recent version of Boriels SDK will be bundled, but you can always download your own.
  * EclipZX adds concept of User Libraries to ZX Basic that you can share with others to use in their EclipZX projects. Comes with one example implementation, the great NextLib.
  * Deploy to any number of common formats such as NEX, TGZ, TAP, SNA and more.
- * Fully featured built in emulator based on JSpeccy (Original ZX Spectrum family only)
+ * Fully featured built in emulator based on Zoxo - My own JSpeccy Fork (Original ZX Spectrum family only)¹.
  * Click+Run your source file, it will be built and deployed to your chosen emulator.
  * Comes with emulator launch templates for MAME, CSpect and Zesarux. 
  * Debugging support for internal emulator and external emulators that support DeZOG and GDB (tested with MAME and CSpect)¹ .
@@ -30,6 +31,7 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
  * ZX Next Sprite editor, and UDG / Character set Editors for original Spectrums.
  * ZX Next palette editor.
  * ZX Next tilemap editor.
+ * Manual and automatic graphics image format conversion
  * A screen editor supporting .SCR for original video modes, and all new ZX Next modes¹ .
  * Compress and decompress files using ZX0. 
  * AYFX Effects Editor.
@@ -47,12 +49,32 @@ Get EclipZX [here](https://bithatch.co.uk/?page_id=344) for Windows, Linux and M
  * <img title="Wizards help you do do stuff" src="src/web/screenshot-new-basic-project.png" width="200"/>
  * <img title="Hello Universe" src="src/web/screenshot-first-program.png" width="200"/>
  * <img title="An AYFX editor for your sound effects" src="src/web/screenshot-ayfx.png" width="200"/>
- * <img title="JSpeccy runs your stuff" src="src/web/screenshot-emulator.png" width="200"/>
+ * <img title="Zoxo runs your stuff" src="src/web/screenshot-emulator.png" width="200"/>
  * <img title="Tape browser for tape file formats" src="src/web/screenshot-tape-browser.png" width="200"/>
  * <img title="Sprite Editor (mostly complete!)" src="src/web/screenshot-sprites.png" width="200"/>
  * <img title="UDG Font Import" src="src/web/screenshot-font-import.png" width="200"/>
  * <img title="UDG Editor" src="src/web/screenshot-udgs.png" width="200"/>
  * <img title="ZX Next Palette Editor" src="src/web/screenshot-palette.png" width="200"/>
+ 
+## Status as of 6/06/2026
+
+The ZX Basic perspective has been removed and replaced with 3 separate perspectives, ZX Coding, ZX Debugging and ZX Media. Each perspective lays out the workspace in a sensible default manner for the currently focused task. I encourage you to use this feature! 
+
+**The existing ZX Basic perspective will remain if you have ever used EclipZX. It is safe to remove**
+
+The Zoxo internal debugger is now taking shape, I expect for this to be fully available in a day or two.
+ 
+## Status as of 4/06/2026
+
+As part of completing the debugger architecture, the latest round of changes have been to integrate Zoxo, my own fork of JSpeccy. The were several reasons to do this. JSpeccy was chosen because its 1) Java 2) Pretty complete. However the original author was not really interested in ZX Next compatibility, so I decided to fork and started on route to adding this. After many diversions (a lot of the reason EclipZX as a whole has gone slower than I'd hoped), Zoxo is finally at a point where it can replace JSpeccy inside. The main advantages of Zoxo over JSpeccy are ...
+
+ * Highly modular. There will be future EclipZX plugins that add further features (ZX Next compatibility, Joystick support, and lots more). It also means Add-ons can be added and removed while running, although with results as unpredictable in real-life! (although without the damage).
+ * More renderers. The default is now the new pure SWT renderer. The SWT+Swing renderer will also be included as an option, along with an accelerated SWT+GL renderer for some platforms.
+ * Integrated DeZOG debugger. Zoxo has initial DeZOG support that I can now  complete and fully integrate with the Eclipse debugger. 
+ 
+Basically, I decided the effort of back-porting DeZOG to the original JSpeccy fork was better put into integrating Zoxo into EclipZX, so here we are.
+
+NOW I can move on to the actual debuggers.
  
 ## Status as of 31/05/2026
 

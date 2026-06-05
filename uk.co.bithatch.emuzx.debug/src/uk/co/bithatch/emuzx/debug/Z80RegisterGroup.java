@@ -11,11 +11,11 @@ public final class Z80RegisterGroup extends DelegatingDebugElement implements IR
 
 	private List<Z80Register> registers = new ArrayList<>();
 
-	Z80RegisterGroup(DelegatingDebugElement delegate) {
+	public Z80RegisterGroup(DelegatingDebugElement delegate) {
 		super(delegate);
 	}
 	
-	Z80Register addRegister(String name, String type) {
+	public Z80Register addRegister(String name, String type) {
 		for (var r : registers) {
 			try {
 				if (r.getName().equals(name)) return r;

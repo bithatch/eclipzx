@@ -64,21 +64,35 @@
             <repository location="https://bithatch.co.uk/repositories/p2"/>
             <unit id="com.formdev.flatlaf" version="3.7.1"/>
             <unit id="uk.co.bithatch.fat32" version="0.6.6"/>
-            <unit id="uk.co.bithatch.jspeccy.engine" version="1.0.2.bithatch2-20260507222551"/>
+            <unit id="uk.co.bithatch.jspeccy.engine" version="1.0.2.bithatch2-20260605214625"/>
+            <unit id="org.glassfish.jaxb.core" version="4.0.6"/>
+            <unit id="org.glassfish.jaxb.runtime" version="4.0.6"/>
             <unit id="uk.co.bithatch.zyxy-compress" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-dezog" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-graphics" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-lib" version="0.0.4"/>
             <unit id="uk.co.bithatch.zyxy-mmc" version="0.0.4"/>
-            <unit id="org.glassfish.jaxb.core" version="4.0.6"/>
-            <unit id="org.glassfish.jaxb.runtime" version="4.0.6"/>
-            <unit id="uk.co.bithatch.tnfs-java-client" version="0.9.0.20260507222551"/>
-            <unit id="uk.co.bithatch.tnfs-java-client-extensions" version="0.9.0.20260507222551"/>
-            <unit id="uk.co.bithatch.tnfs-java-server" version="0.9.0.20260507222551"/>
-            <unit id="uk.co.bithatch.tnfs-java-server-extensions" version="0.9.0.20260507222551"/>
-            <unit id="uk.co.bithatch.tnfs-java-nio" version="0.9.0.20260507222551"/>
-            <unit id="uk.co.bithatch.tnfs-java-lib" version="0.9.0.20260507222551"/>
-            <unit id="uk.co.bithatch.tnfs-java-lib-extensions" version="0.9.0.20260507222551"/>
+            <unit id="uk.co.bithatch.zoxo-system" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-z80" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-clock" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-dezog" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-zxkeyboard" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-interface1" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-interface2" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-swt" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-swtgl" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-tape" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-base-audio" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-ay8912" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-zxspectrum" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.zoxo-snapshots" version="0.0.1.20260605214625"/>
+            <unit id="uk.co.bithatch.tnfs-java-client" version="0.9.0.20260605214625"/>
+            <unit id="uk.co.bithatch.tnfs-java-client-extensions" version="0.9.0.20260605214625"/>
+            <unit id="uk.co.bithatch.tnfs-java-server" version="0.9.0.20260605214625"/>
+            <unit id="uk.co.bithatch.tnfs-java-server-extensions" version="0.9.0.20260605214625"/>
+            <unit id="uk.co.bithatch.tnfs-java-nio" version="0.9.0.20260605214625"/>
+            <unit id="uk.co.bithatch.tnfs-java-lib" version="0.9.0.20260605214625"/>
+            <unit id="uk.co.bithatch.tnfs-java-lib-extensions" version="0.9.0.20260605214625"/>
         </location>
     </locations>
 </target>

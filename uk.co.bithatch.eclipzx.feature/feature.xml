@@ -322,10 +322,6 @@ version(s), and exceptions or additional permissions here}.&quot;
          version="0.0.0"/>
 
    <plugin
-         id="uk.co.bithatch.jspeccy"
-         version="0.0.0"/>
-
-   <plugin
          id="uk.co.bithatch.nextbuild"
          version="0.0.0"/>
 
@@ -367,10 +363,6 @@ version(s), and exceptions or additional permissions here}.&quot;
 
    <plugin
          id="uk.co.bithatch.eclipzx"
-         version="0.0.0"/>
-
-   <plugin
-         id="uk.co.bithatch.emuzx.emulator.jspeccy"
          version="0.0.0"/>
 
    <plugin
@@ -431,6 +423,14 @@ version(s), and exceptions or additional permissions here}.&quot;
 
    <plugin
          id="uk.co.bithatch.eclipz80.ui"
+         version="0.0.0"/>
+
+   <plugin
+         id="uk.co.bithatch.eclipzoxo"
+         version="0.0.0"/>
+
+   <plugin
+         id="uk.co.bithatch.emuzx.emulator.zoxo"
          version="0.0.0"/>
 
 </feature>

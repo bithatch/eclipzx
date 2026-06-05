@@ -1,0 +1,802 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.35"?>
+<plugin>
+
+    <extension-point id="uk.co.bithatch.eclipzoxo.addOn" name="Zoxo Add-on Implementation" schema="schema/uk.co.bithatch.eclipzoxo.addOn.exsd" />
+    <extension-point id="uk.co.bithatch.eclipzoxo.machine" name="Zoxo Machine Implementation" schema="schema/uk.co.bithatch.eclipzoxo.machine.exsd" />
+
+    <extension point="uk.co.bithatch.eclipzoxo.machine">
+        <machine class="uk.co.bithatch.zoxo.zxspectrum.ZXSpectrum16K$ZXSpectrum16KFactory"/>
+        <machine class="uk.co.bithatch.zoxo.zxspectrum.ZXSpectrum48K$ZXSpectrum48KFactory"/>
+        <machine class="uk.co.bithatch.zoxo.zxspectrum.ZXSpectrum128K$ZXSpectrum128KFactory"/>
+        <machine class="uk.co.bithatch.zoxo.zxspectrum.ZXSpectrumPlus2$ZXSpectrumPlus2Factory"/>
+        <machine class="uk.co.bithatch.zoxo.zxspectrum.ZXSpectrumPlus2A$ZXSpectrumPlus2AFactory"/>
+        <machine class="uk.co.bithatch.zoxo.zxspectrum.ZXSpectrumPlus3$ZXSpectrumPlus3Factory"/>
+    </extension>
+    
+    <extension point="uk.co.bithatch.eclipzoxo.addOn">
+        <addOn class="uk.co.bithatch.zoxo.tape.DefaultTapePlayerAddOn$DefaultTapeAddOnFactory"/>
+        <addOn class="uk.co.bithatch.zoxo.interface1.Interface1AddOn$Interface1AddOnFactory"/>
+        <addOn class="uk.co.bithatch.zoxo.interface2.Interface2AddOn$Interface2AddOnFactory"/>
+        <addOn class="uk.co.bithatch.zoxo.zxkeyboard.ZXKeyboardAddOn$ZXKeyboardAddOnFactory"/>
+        <addOn class="uk.co.bithatch.zoxo.dezog.DeZogAddOn$DeZOGAddOnFactory"/>
+        <addOn class="uk.co.bithatch.zoxo.snapshots.SnapshotsAddOn$SnapshotsAddOnFactory"/>
+        <addOn class="uk.co.bithatch.zoxo.audio.BeeperAddOn$BeeperAddOnFactory"/>
+        <addOn class="uk.co.bithatch.zoxo.ay8912.AY8912AddOn$AY8912AddOnFactory"/>
+        
+    </extension>
+    
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            id="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"
+            name="Tape Browser"
+            class="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"
+            icon="icons/tape16.png"
+            contributorClass="org.eclipse.ui.part.EditorActionBarContributor">
+            <contentTypeBinding contentTypeId="uk.co.bithatch.eclipzoxo.tzx.contenttype"/>
+            <contentTypeBinding contentTypeId="uk.co.bithatch.eclipzoxo.tap.contenttype"/>
+            <contentTypeBinding contentTypeId="uk.co.bithatch.eclipzoxo.csw.contenttype"/>
+        </editor>
+    </extension>
+
+    <extension point="org.eclipse.ui.views">
+        <category id="uk.co.bithatch.eclipzoxo.category"
+                name="ZX Spectrum Emulator"/>
+        <view category="uk.co.bithatch.eclipzoxo.category" 
+              class="uk.co.bithatch.eclipzoxo.views.KeyboardView" 
+              icon="icons/keys16.png" 
+              id="uk.co.bithatch.eclipzoxo.views.KeyboardView" 
+              inject="true"
+              name="ZX Spectrum 16K/48K Keyboard" >
+        </view>
+        <view
+            id="uk.co.bithatch.eclipzoxo.views.EmulatorView"
+            name="ZX Spectrum Emulator"
+            class="uk.co.bithatch.eclipzoxo.views.EmulatorView"
+            category="uk.co.bithatch.eclipzoxo.category"
+            icon="icons/zoxo16.png">
+        </view>
+    </extension>
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type
+            file-extensions="z80"
+            id="uk.co.bithatch.eclipzoxo.z80.contenttype"
+            name="Z80 Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="sna"
+            id="uk.co.bithatch.eclipzoxo.sna.contenttype"
+            name="SNA Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="szx"
+            id="uk.co.bithatch.eclipzoxo.szx.contenttype"
+            name="SZX Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="sp"
+            id="uk.co.bithatch.eclipzoxo.sp.contenttype"
+            name="SP Spectrum Snapshot"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="tap"
+            id="uk.co.bithatch.eclipzoxo.tap.contenttype"
+            name="TAP Tape Container"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="tzx"
+            id="uk.co.bithatch.eclipzoxo.tzx.contenttype"
+            name="TZX Tape Container"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="cws"
+            id="uk.co.bithatch.eclipzoxo.csw.contenttype"
+            name="CSW Tape Container"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="rom"
+            id="uk.co.bithatch.eclipzoxo.rom.contenttype"
+            name="Spectrum Rom"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="mdv"
+            id="uk.co.bithatch.eclipzoxo.mdv.contenttype"
+            name="Spectrum Microdrive Cartridge"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="mdr"
+            id="uk.co.bithatch.eclipzoxo.mdr.contenttype"
+            name="Spectrum Microdrive Cartridge"
+            priority="normal">
+        </content-type>
+        <content-type
+            file-extensions="bin"
+            id="uk.co.bithatch.eclipzoxo.bin.contenttype"
+            name="Spectrum Binary Data"
+            priority="low">
+        </content-type>
+    </extension>
+    
+    <extension
+            point="org.eclipse.ui.preferencePages">
+ 
+          <page
+                id="uk.co.bithatch.eclipzoxo.preferences.zoxo"
+                name="Zoxo"
+                class="uk.co.bithatch.eclipzoxo.preferences.ZoxoPreferencePage" />
+
+          <page
+                id="uk.co.bithatch.eclipzoxo.preferences.addOns"
+                name="Add-Ons"
+                category="uk.co.bithatch.eclipzoxo.preferences.zoxo"
+                class="uk.co.bithatch.eclipzoxo.preferences.AddOnsPreferencePage" />
+
+          <page
+                id="uk.co.bithatch.eclipzoxo.preferences.interface1"
+                name="Interface 1"
+                category="uk.co.bithatch.eclipzoxo.preferences.zoxo"
+                class="uk.co.bithatch.eclipzoxo.preferences.Interface1PreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.eclipzoxo.preferences.interface2"
+                name="Interface 2"
+                category="uk.co.bithatch.eclipzoxo.preferences.zoxo"
+                class="uk.co.bithatch.eclipzoxo.preferences.Interface2PreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.eclipzoxo.preferences.audio"
+                name="Audio"
+                category="uk.co.bithatch.eclipzoxo.preferences.zoxo"
+                class="uk.co.bithatch.eclipzoxo.views.AudioPreferencePage" />
+        
+          <page
+                id="uk.co.bithatch.eclipzoxo.preferences.tape"
+                name="Tape"
+                category="uk.co.bithatch.eclipzoxo.preferences.zoxo"
+                class="uk.co.bithatch.eclipzoxo.preferences.TapePreferencePage" />
+                
+                
+          <page
+                id="uk.co.bithatch.eclipzoxo.preferences.dezog"
+                name="Debugger"
+                category="uk.co.bithatch.eclipzoxo.preferences.zoxo"
+                class="uk.co.bithatch.eclipzoxo.preferences.DeZogPreferencePage" />
+    </extension>
+    
+
+    <extension point="org.eclipse.ui.commands">
+        <category
+            id="uk.co.bithatch.eclipzoxo.commands.category"
+            name="Zoxo Commands" />
+    
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.record"
+            name="Record To Tape"
+            categoryId="uk.co.bithatch.eclipzoxo.commands.category" />
+    
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.stop"
+            name="Stop Tape"
+            categoryId="uk.co.bithatch.eclipzoxo.commands.category" />
+    
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.rewind"
+            name="Rewind Tape"
+            categoryId="uk.co.bithatch.eclipzoxo.commands.category" />
+    
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.play"
+            name="Play Tape"
+            categoryId="uk.co.bithatch.eclipzoxo.commands.category" />
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.openInTapeBrowser"
+            name="Open in Tape Browser"
+            description="Open selected file in the Tape Browser">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.openInEmulator"
+            name="Open in Zoxo Emulator"
+            description="Open selected file in the Zoxo Emulator">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.insertROMFromFileSystem"
+            name="Insert ROM from Filesystem"
+            description="Locate, insert and start a .rom file from the local file system">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.insertTapeFromFileSystem"
+            name="Insert Tape from Filesystem"
+            description="Locate, insert and start a .tzx,.tap or .csv file from the local file system">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.ejectROM"
+            name="Eject ROM and Reset"
+            description="Eject the current ROM and reset the emulator">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.screenshot"
+            name="Screenshot"
+            description="Take a screenshot">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.microdrives"
+            name="Microdrives"
+            description="Manage Microdrives">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.nmi"
+            name="Generate NMI"
+            description="Generate NMI">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.poke"
+            name="Poke Address"
+            description="Poke an address with a value">
+        </command>
+        
+        <command
+            id="uk.co.bithatch.eclipzoxo.commands.ejectTape"
+            name="Eject Tape"
+            description="Eject the current tape">
+        </command>
+    </extension>
+    
+    <extension point="org.eclipse.ui.handlers">
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.record"
+            class="uk.co.bithatch.eclipzoxo.commands.RecordHandler">
+            
+             <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                      <and>
+                          <test property="uk.co.bithatch.eclipzoxo.editor.inserted" value="true"/>
+                          <test property="uk.co.bithatch.eclipzoxo.editor.running" value="false"/>
+                          <test property="uk.co.bithatch.eclipzoxo.editor.recording" value="false"/>
+                      </and>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                        <and>
+                            <test property="uk.co.bithatch.eclipzoxo.views.tapeInserted" value="true"/>
+                            <test property="uk.co.bithatch.eclipzoxo.views.tapeRunning" value="false"/>
+                            <test property="uk.co.bithatch.eclipzoxo.views.tapeRecording" value="false"/>
+                        </and>
+                    </with>
+                </or>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.stop"
+            class="uk.co.bithatch.eclipzoxo.commands.StopHandler">
+            
+            <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                      <test property="uk.co.bithatch.eclipzoxo.editor.running" value="true"/>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                        <test property="uk.co.bithatch.eclipzoxo.views.tapeRunning" value="true"/>
+                    </with>
+                </or>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.rewind"
+            class="uk.co.bithatch.eclipzoxo.commands.RewindHandler">
+            
+             <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                      <test property="uk.co.bithatch.eclipzoxo.editor.inserted" value="true"/>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                        <test property="uk.co.bithatch.eclipzoxo.views.tapeInserted" value="true"/>
+                    </with>
+                </or>
+            </enabledWhen>
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.play"
+            class="uk.co.bithatch.eclipzoxo.commands.PlayHandler">
+            
+            <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                      <and>
+                          <test property="uk.co.bithatch.eclipzoxo.editor.inserted" value="true"/>
+                          <test property="uk.co.bithatch.eclipzoxo.editor.running" value="false"/>
+                      </and>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                        <and>
+                            <test property="uk.co.bithatch.eclipzoxo.views.tapeInserted" value="true"/>
+                            <test property="uk.co.bithatch.eclipzoxo.views.tapeRunning" value="false"/>
+                        </and>
+                    </with>
+                </or>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.ejectTape"
+            class="uk.co.bithatch.eclipzoxo.commands.EjectTapeHandler">
+              <enabledWhen>
+                <or>
+                   <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                      <and>
+                          <test property="uk.co.bithatch.eclipzoxo.editor.inserted" value="true"/>
+                          <test property="uk.co.bithatch.eclipzoxo.editor.running" value="false"/>
+                      </and>
+                    </with>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                      <and>
+                        <test property="uk.co.bithatch.eclipzoxo.views.tapeInserted" value="true"/>
+                        <test property="uk.co.bithatch.eclipzoxo.views.tapeRunning" value="false"/>
+                        </and>
+                    </with>
+                </or>
+            </enabledWhen>
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.openInEmulator"
+            class="uk.co.bithatch.eclipzoxo.commands.OpenInEmulatorHandler">
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.openInTapeBrowser"
+            class="uk.co.bithatch.eclipzoxo.commands.OpenInTapeBrowserHandler">
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.insertROMFromFileSystem"
+            class="uk.co.bithatch.eclipzoxo.commands.InsertROMFromFileSystemHandler">
+            
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                 <not>
+                   <test property="uk.co.bithatch.eclipzoxo.views.activeMedia" value="rom"/>
+                 </not>
+              </with>
+            </enabledWhen>
+            
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.insertTapeFromFileSystem"
+            class="uk.co.bithatch.eclipzoxo.commands.InsertTapeFromFileSystemHandler">
+            
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                 <not>
+                   <test property="uk.co.bithatch.eclipzoxo.views.activeMedia" value="tape"/>
+                 </not>
+              </with>
+            </enabledWhen>
+            
+        </handler>
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.ejectROM"
+            class="uk.co.bithatch.eclipzoxo.commands.EjectROMHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+              <test property="uk.co.bithatch.eclipzoxo.views.activeMedia" value="rom"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.microdrives"
+            class="uk.co.bithatch.eclipzoxo.commands.MicrodrivesHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                <test property="uk.co.bithatch.eclipzoxo.views.microdrives" value="true"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.nmi"
+            class="uk.co.bithatch.eclipzoxo.commands.NMIHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.poke"
+            class="uk.co.bithatch.eclipzoxo.commands.PokeHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+              </with>
+            </enabledWhen>
+        </handler>
+        
+        <handler
+            commandId="uk.co.bithatch.eclipzoxo.commands.screenshot"
+            class="uk.co.bithatch.eclipzoxo.commands.ScreenshotHandler">
+            <enabledWhen>
+              <with variable="activePart">
+                <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+              </with>
+            </enabledWhen>
+        </handler>
+    </extension>
+    
+    <extension point="org.eclipse.ui.menus">
+    
+        <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=navigate">
+            <menu
+                id="uk.co.bithatch.eclipzoxo.editor.menus.tape"
+                label="Tape">
+                <visibleWhen>
+                    <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                        </or>
+                    </with>
+                </visibleWhen>
+            </menu>
+            
+             <menu
+                id="uk.co.bithatch.eclipzoxo.views.menus.emulator"
+                label="Emulator">
+                <visibleWhen>
+                    <with variable="activePart">
+                        <instanceof value="uk.co.bithatch.eclipzoxo.views.EmulatorView"/>
+                        <!--<test property="org.example.myViewPart.inputType" value="type1"/>-->
+                    </with>
+                </visibleWhen>
+            </menu>
+        </menuContribution>
+    
+      <menuContribution locationURI="menu:uk.co.bithatch.eclipzoxo.views.menus.emulator">
+        
+           <!-- ROMs submenu -->
+           <menu
+                 id="uk.co.bithatch.eclipzoxo.menus.roms"
+                 label="ROMs"
+                 icon="icons/rom16.png">
+              <command
+                    commandId="uk.co.bithatch.eclipzoxo.commands.insertROMFromFileSystem"
+                    label="Insert ROM from Filesystem"
+                    tooltip="Locate, insert and start a .rom file from the local file system"
+                    style="push"/>
+              <command
+                    commandId="uk.co.bithatch.eclipzoxo.commands.ejectROM"
+                    icon="icons/eject16.png"
+                    label="Eject ROM and Reset"
+                    tooltip="Eject the current ROM and reset the emulator"
+                    style="push"/>
+           </menu>
+        
+           <menu
+                 id="uk.co.bithatch.eclipzoxo.menus.tapes"
+                 label="Tapes"
+                 icon="icons/tape16.png">
+               <command
+                    commandId="uk.co.bithatch.eclipzoxo.commands.insertTapeFromFileSystem"
+                    label="Insert Tape from Filesystem"
+                    tooltip="Locate, insert and start a .tzx,.tap or .csw file from the local file system"
+                    style="push"/>
+              <command
+                    commandId="uk.co.bithatch.eclipzoxo.commands.ejectTape" 
+                    icon="icons/eject16.png"
+                    label="Eject Tape"
+                    tooltip="Eject the current tape"
+                    style="push">
+                </command>
+           </menu> 
+        
+           <command
+                 commandId="uk.co.bithatch.eclipzoxo.commands.microdrives"
+                 icon="icons/microdrive16.png" 
+                 label="Microdrives"
+                 tooltip="Manage currently inserted microdrives"
+                 style="push"/>
+        
+           <separator name="uk.co.bithatch.eclipzoxo.menus.sep" visible="true"/>
+                 
+           <command
+                 commandId="uk.co.bithatch.eclipzoxo.commands.nmi"
+                 icon="icons/nmi16.png" 
+                 label="Generate NMI"
+                 tooltip="Geneate a non-maskable interupt"
+                 style="push"/>
+                 
+           <command
+                 commandId="uk.co.bithatch.eclipzoxo.commands.poke"
+                 icon="icons/poke16.png" 
+                 label="Poke Address"
+                 tooltip="Poke an address with a value"
+                 style="push"/>
+        
+           <command
+                 commandId="uk.co.bithatch.eclipzoxo.commands.screenshot"
+                 label="Screenshot"
+                 icon="icons/screenshot16.png" 
+                 tooltip="Take a screenshot"
+                 style="push"/>
+                 
+        </menuContribution>
+
+    
+      <menuContribution
+            locationURI="menu:uk.co.bithatch.eclipzoxo.editor.menus.tape">
+            
+          <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.record"
+                icon="icons/record16.png"
+                label="Record To Tape"
+                tooltip="Record to tape on SAVE operation"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.stop"
+                icon="icons/stop16.png"
+                label="Stop Tape"
+                tooltip="Stop current Tape LOAD"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.rewind"
+                icon="icons/rew16.png"
+                label="Rewind Tape"
+                tooltip="Rewind current Tape"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.play"
+                icon="icons/play16.png"
+                label="Play Tape"
+                tooltip="Play current Tape"
+                style="push">
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.ejectTape"
+                icon="icons/eject16.png"
+                label="Eject Tape"
+                tooltip="Eject current Tape"
+                style="push">
+          </command>
+    </menuContribution>
+    
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+        <toolbar id="uk.co.bithatch.eclipzoxo.tape.toolbar" label="Tape Browser">
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.record"
+                icon="icons/record16.png"
+                label="Record To Tape"
+                tooltip="Record to tape on SAVE operation"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.stop"
+                icon="icons/stop16.png"
+                label="Stop Tape"
+                tooltip="Stop current Tape LOAD"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.rewind"
+                icon="icons/rew16.png"
+                label="Rewind Tape"
+                tooltip="Rewind current Tape"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.play"
+                icon="icons/play16.png"
+                label="Play Tape"
+                tooltip="Play current Tape"
+                style="push">
+                <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorId">
+                    <or>
+                        <equals value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                    </or>
+                  </with>
+                </visibleWhen>
+          </command>
+           <command
+                commandId="uk.co.bithatch.eclipzoxo.commands.ejectTape"
+                icon="icons/eject16.png"
+                label="Eject Tape"
+                tooltip="Eject current Tape"
+                style="push">
+               <!-- <visibleWhen checkEnabled="false">
+                    <with variable="activeEditor">
+                      <instanceof value="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"/>
+                      <test property="uk.co.bithatch.eclipzoxo.editor.inserted" value="true"/>
+                    </with>
+                </visibleWhen>-->
+          </command>
+        </toolbar>
+      </menuContribution>
+    
+     <menuContribution locationURI="toolbar:org.eclipse.ui.trim.status">
+        <toolbar
+           id="uk.co.bithatch.eclipzoxo.statusbar"
+           label="Zoxo Status Bar">
+          <control
+                id="uk.co.bithatch.eclipzoxo.views.EmulatorStatusControl"
+                class="uk.co.bithatch.eclipzoxo.views.EmulatorStatusControl">
+                    <!-- <visibleWhen>
+                <with
+                      variable="activePartId">
+                   <equals
+                         value="uk.co.bithatch.zxbasic.ui.views.EmulatorView"/>
+                </with>
+             </visibleWhen>-->
+          </control>
+          </toolbar>
+       </menuContribution>
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.open">
+        <command
+          commandId="uk.co.bithatch.eclipzoxo.commands.openInEmulator"
+          label="Open in Zoxo Emulator"
+          icon="icons/zoxo16.png"
+          style="push">
+          
+           <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                           <or>
+                              <test property="org.eclipse.core.resources.extension" value="z80"/>
+                              <test property="org.eclipse.core.resources.extension" value="sna"/>
+                              <test property="org.eclipse.core.resources.extension" value="tap"/>
+                              <test property="org.eclipse.core.resources.extension" value="tzx"/>
+                              <test property="org.eclipse.core.resources.extension" value="rom"/>
+                              <test property="org.eclipse.core.resources.extension" value="mdr"/>
+                              <test property="org.eclipse.core.resources.extension" value="mdv"/>
+                              <test property="org.eclipse.core.resources.extension" value="bin"/>
+                            </or>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+        </command> 
+        <command
+          commandId="uk.co.bithatch.eclipzoxo.commands.openInTapeBrowser"
+          label="Open in Tape Browser"
+          icon="icons/tape16.png"
+          style="push">
+          
+           <visibleWhen
+                  checkEnabled="false">
+               <with variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                        <adapt type="org.eclipse.core.resources.IFile">
+                           <or>
+                              <test property="org.eclipse.core.resources.extension" value="csw"/>
+                              <test property="org.eclipse.core.resources.extension" value="tap"/>
+                              <test property="org.eclipse.core.resources.extension" value="tzx"/>
+                            </or>
+                        </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+        </command>
+      </menuContribution>
+    </extension>
+
+   <extension point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+          id="uk.co.bithatch.eclipzoxo.navigatorContent"
+          name="Zoxo File Label Provider"
+          activeByDefault="true"
+          contentProvider="uk.co.bithatch.eclipzoxo.navigator.EmulatorFilesContentProvider"
+          labelProvider="uk.co.bithatch.eclipzoxo.navigator.EmulatorFilesLabelProvider"
+          priority="highest">
+        <triggerPoints>
+          <instanceof value="org.eclipse.core.resources.IFile"/>
+        </triggerPoints>
+      </navigatorContent>
+    </extension>
+
+    <extension point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding
+          viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+        <includes>
+          <contentExtension
+              pattern="uk.co.bithatch.eclipzoxo.navigatorContent"/>
+        </includes>
+      </viewerContentBinding>
+    </extension>
+
+    <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            id="uk.co.bithatch.eclipzoxo.views.EmulatorViewPropertyTester"
+            type="uk.co.bithatch.eclipzoxo.views.EmulatorView"
+            namespace="uk.co.bithatch.eclipzoxo.views"
+            properties="activeMedia,microdrives,tapeInserted,tapeRunning,tapePlaying,tapeRecording,tapeReady"
+            class="uk.co.bithatch.eclipzoxo.views.EmulatorViewPropertyTester"/>
+            
+       <propertyTester
+            id="uk.co.bithatch.eclipzoxo.editor.TapeBrowserPropertyTester"
+            type="uk.co.bithatch.eclipzoxo.editor.TapeBrowser"
+            namespace="uk.co.bithatch.eclipzoxo.editor"
+            properties="inserted,running,playing,recording,ready"
+            class="uk.co.bithatch.eclipzoxo.editor.TapeBrowserPropertyTester"/>
+    </extension>
+    
+    <extension point="org.eclipse.ui.exportWizards">
+        <category
+            id="uk.co.bithatch.eclipzx.imagesCategory"
+            name="Images"/>
+        <wizard
+            id="uk.co.bithatch.eclipzoxo.wizards.screenshot"
+            name="Built-in Emulator Screenshot"
+            class="uk.co.bithatch.eclipzoxo.wizards.ExportScreenshotWizard"
+            category="uk.co.bithatch.eclipzx.imageExportCategory"
+            icon="icons/screenshot16.png">
+            <description>Export a PNG or SCR format screenshot.</description>
+        </wizard>
+    </extension>
+
+</plugin>

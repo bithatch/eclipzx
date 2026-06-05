@@ -21,6 +21,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
+import uk.co.bithatch.bitzx.ISourceAdressMap;
 import uk.co.bithatch.emuzx.ui.ExternalEmulatorDebugTarget;
 import uk.co.bithatch.zyxy.dezog.Command.PauseNotification;
 import uk.co.bithatch.zyxy.dezog.DezogClient;
@@ -29,9 +30,11 @@ public class DezogDebugTarget extends ExternalEmulatorDebugTarget {
 	
 	private final DezogClient dezog;
 	private final IThread z80thread;
+	private final ISourceAdressMap sourceMap;
 
-	public DezogDebugTarget(ILaunch launch, ILaunchConfiguration configuration, IProcess process) throws CoreException {
+	public DezogDebugTarget(ILaunch launch, ILaunchConfiguration configuration, IProcess process, ISourceAdressMap sourceMap) throws CoreException {
 		super(launch, process);
+		this.sourceMap = sourceMap;
 
 		dezog = new DezogClient.Builder()
 				.withPort(configuration.getAttribute(PORT, DezogClient.DEFAULT_PORT))
@@ -45,7 +48,7 @@ public class DezogDebugTarget extends ExternalEmulatorDebugTarget {
 				String.join(".", IntStream.of(dezog.version()).mapToObj(String::valueOf).toList()),
 				dezog.machineType()));
 		
-		z80thread = new Z80Thread(this);
+		z80thread = new DezogZ80Thread(this);
 		
 		DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 

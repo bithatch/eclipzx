@@ -9,7 +9,9 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
+import uk.co.bithatch.eclipz80.ui.AsmUiActivator;
 import uk.co.bithatch.eclipz80.ui.builder.AsmNature;
+import uk.co.bithatch.widgetzx.ZXPerspectivesUI;
 
 public class AsmProjectWizard extends Wizard implements INewWizard {
 
@@ -76,6 +78,9 @@ public class AsmProjectWizard extends Wizard implements INewWizard {
 							+ "    db \"Hello\", 0\n").getBytes()), true, null);
 				}
 			}
+			
+
+        	ZXPerspectivesUI.zxCodingPerspective(AsmUiActivator.PLUGIN_ID);
 
 			return true;
 

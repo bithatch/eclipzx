@@ -7,9 +7,7 @@ import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.CoreException;
@@ -17,11 +15,9 @@ import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IBreakpoint;
-import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IMemoryBlockExtension;
 import org.eclipse.debug.core.model.IMemoryBlockRetrievalExtension;
@@ -48,13 +44,12 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemo
 	private final ISourceAdressMap debugInfo;
 	private volatile boolean suspended = true;
 	private volatile boolean terminated = false;
+	
+	private final DebugTargetHelper helper;
 
 	void setSuspended(boolean suspended) {
 		this.suspended = suspended;
 	}
-
-	/** Tracks breakpoints by address so we can remove them */
-	private final Map<IBreakpoint, Integer> breakpointAddresses = new HashMap<>();
 
 	/** Tracks active memory blocks so we can fire content-change events on suspend */
 	private final List<Z80MemoryBlock> memoryBlocks = new ArrayList<>();
@@ -92,20 +87,45 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemo
 		}
 
 		z80thread = new GdbZ80Thread(this, rsp, debugInfo);
+		
+		helper = new DebugTargetHelper(launch, this, z80thread, debugInfo) {
 
-		/* Set up source locator so Eclipse can find and highlight source files */
-		if (launch.getSourceLocator() == null) {
-			launch.setSourceLocator(new GdbSourceLocator());
-		}
-
-		/* Install any existing breakpoints from the workspace */
-		var bpManager = DebugPlugin.getDefault().getBreakpointManager();
-		bpManager.addBreakpointListener(this);
-		for (var bp : bpManager.getBreakpoints()) {
-			if (supportsBreakpoint(bp)) {
-				breakpointAdded(bp);
+			@Override
+			protected void onAddBreakpoint(IBreakpoint breakpoint, int address) throws IOException {
+				setBreakpointWithPause(breakpoint, address);
 			}
-		}
+
+			@Override
+			protected boolean onBreakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta, int address) {
+				try {
+					boolean wasRunning = !suspended;
+					if (wasRunning) {
+						rsp.interrupt();
+						long deadline = System.currentTimeMillis() + 3000;
+						while (!suspended && System.currentTimeMillis() < deadline) {
+							try {
+								Thread.sleep(50);
+							} catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+								return false;
+							}
+						}
+					}
+					rsp.removeBreakpoint(address);
+					LOG.info("Removed breakpoint at 0x" + Integer.toHexString(address));
+					if (wasRunning && suspended) {
+						z80thread.invalidateFrame();
+						rsp.continueExecution();
+						suspended = false;
+						return true;
+					}
+				} catch (IOException e) {
+					LOG.error("Failed to remove breakpoint at 0x" + Integer.toHexString(address), e);
+				}
+				return false;
+			}
+			
+		};
 
 		/* Background thread to wait for stop events after continue/step */
 		waitThread = new Thread(this::waitForStopLoop, "gdb-rsp-wait");
@@ -215,7 +235,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemo
 			} catch (IOException e) {
 				LOG.warn("Error closing GDB RSP connection", e);
 			}
-			DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
+			helper.terminate();
 			super.terminate();
 		}
 	}
@@ -227,40 +247,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemo
 
 	@Override
 	public void breakpointAdded(IBreakpoint breakpoint) {
-		try {
-			var marker = breakpoint.getMarker();
-			LOG.info("Breakpoint added: " + breakpoint + ", marker attrs: " + marker.getAttributes());
-			
-			/* Check for address-based breakpoint (e.g. from memory view) */
-			var addrStr = marker.getAttribute("org.eclipse.cdt.debug.core.address", (String) null);
-			if (addrStr != null) {
-				int address = Integer.decode(addrStr);
-				LOG.info("Setting address breakpoint at 0x" + Integer.toHexString(address));
-				setBreakpointWithPause(breakpoint, address);
-				return;
-			}
-
-			/* Source line breakpoint — resolve via debug info parser. */
-			int lineNumber = marker.getAttribute("lineNumber", -1);
-			var resource = marker.getResource();
-			if (resource != null && lineNumber > 0 && debugInfo.hasDebugInfo()) {
-				var fileName = resource.getName();
-				int address = debugInfo.getAddress(fileName, lineNumber);
-				if (address >= 0) {
-					LOG.info("Setting source breakpoint at " + fileName + ":" + lineNumber
-							+ " → 0x" + Integer.toHexString(address));
-					setBreakpointWithPause(breakpoint, address);
-				} else {
-					LOG.warn("No address mapping found for " + fileName + ":" + lineNumber
-							+ " — do you have --c-code-in-asm in compiler flags and --list in linker flags?");
-				}
-			} else {
-				LOG.info("Source breakpoint at " + (resource != null ? resource.getName() : "?") + ":" + lineNumber 
-						+ " — " + (debugInfo.hasDebugInfo() ? "no mapping found" : "no debug info available"));
-			}
-		} catch (Exception e) {
-			LOG.error("Failed to add breakpoint", e);
-		}
+		helper.breakpointAdded(breakpoint);
 	}
 
 	/**
@@ -284,7 +271,7 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemo
 			}
 		}
 		if (rsp.setBreakpoint(address)) {
-			breakpointAddresses.put(breakpoint, address);
+			helper.put(breakpoint, address);
 		} else {
 			LOG.warn("GDB stub rejected breakpoint at 0x" + Integer.toHexString(address));
 		}
@@ -299,47 +286,12 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemo
 
 	@Override
 	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-		LOG.info("Breakpoint removed: " + breakpoint);
-		var address = breakpointAddresses.remove(breakpoint);
-		if (address != null) {
-			try {
-				boolean wasRunning = !suspended;
-				if (wasRunning) {
-					rsp.interrupt();
-					long deadline = System.currentTimeMillis() + 3000;
-					while (!suspended && System.currentTimeMillis() < deadline) {
-						try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
-					}
-				}
-				rsp.removeBreakpoint(address);
-				LOG.info("Removed breakpoint at 0x" + Integer.toHexString(address));
-				if (wasRunning && suspended) {
-					z80thread.invalidateFrame();
-					rsp.continueExecution();
-					suspended = false;
-					fireEvent(new DebugEvent(z80thread, DebugEvent.RESUME, DebugEvent.CLIENT_REQUEST));
-				}
-			} catch (IOException e) {
-				LOG.error("Failed to remove breakpoint at 0x" + Integer.toHexString(address), e);
-			}
-		}
+		helper.breakpointRemoved(breakpoint, delta);
 	}
 
 	@Override
 	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-		LOG.info("Breakpoint changed: " + breakpoint);
-		/* Re-add if enabled, remove if disabled */
-		try {
-			if (breakpoint.isEnabled()) {
-				if (!breakpointAddresses.containsKey(breakpoint)) {
-					breakpointAdded(breakpoint);
-				}
-			} else {
-				breakpointRemoved(breakpoint, delta);
-			}
-		} catch (CoreException e) {
-			LOG.error("Failed to handle breakpoint change", e);
-		}
+		helper.breakpointChanged(breakpoint, delta);		
 	}
 
 	@Override
