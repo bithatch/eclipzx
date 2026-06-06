@@ -28,6 +28,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -84,6 +85,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 	protected SpriteCell spriteCell;
 	protected SpriteEditorGrid spriteGrid;
+	protected ScrolledComposite gridScroll;
 	protected SpriteSheet spriteSheet;
 
 	private Clipboard clipboard;
@@ -550,8 +552,79 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		layout.marginHeight = 8;
 		root.setLayout(layout);
 
-		spriteGrid = new SpriteEditorGrid(root, spriteCell, SWT.BORDER);
-		spriteGrid.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+		gridScroll = new ScrolledComposite(root, SWT.H_SCROLL | SWT.V_SCROLL);
+		gridScroll.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+		gridScroll.setExpandHorizontal(true);
+		gridScroll.setExpandVertical(true);
+		gridScroll.setBackground(root.getBackground());
+
+		spriteGrid = new SpriteEditorGrid(gridScroll, spriteCell, SWT.NONE);
+		gridScroll.setContent(spriteGrid);
+
+		configureGrid();
+
+		// Restore persisted zoom level
+		var savedZoom = EditorFileProperties.getIntProperty(getFile(), EditorFileProperties.ZOOM_LEVEL_PROPERTY, -1);
+		if (savedZoom >= 4) {
+			spriteGrid.cellPixelSize(savedZoom);
+			updateGridSize();
+		}
+	}
+
+	/**
+	 * Hook for subclasses to configure the sprite grid after it has been created
+	 * (e.g. set background type). The grid is already created and assigned to
+	 * {@link #spriteGrid} when this method is called.
+	 */
+	protected void configureGrid() {
+		// default: no extra configuration
+	}
+
+	/**
+	 * Update the scrolled composite after a zoom change.
+	 */
+	protected void updateGridSize() {
+		if (spriteGrid.cellPixelSize() >= 1) {
+			var total = spriteGrid.cellPixelSize() * spriteCell.size();
+			spriteGrid.setSize(total, total);
+			gridScroll.setMinSize(total, total);
+		} else {
+			gridScroll.setMinSize(0, 0);
+		}
+		gridScroll.layout(true, true);
+	}
+
+	public void zoomIn() {
+		var current = spriteGrid.cellPixelSize();
+		if (current < 1) {
+			// First zoom: seed from current auto-fit size
+			current = spriteGrid.calPixelSize();
+		}
+		var newSize = current + 4;
+		spriteGrid.cellPixelSize(newSize);
+		updateGridSize();
+		EditorFileProperties.setProperty(getFile(), EditorFileProperties.ZOOM_LEVEL_PROPERTY, newSize);
+	}
+
+	public void zoomOut() {
+		var current = spriteGrid.cellPixelSize();
+		if (current < 1) {
+			current = spriteGrid.calPixelSize();
+		}
+		if (current > 4) {
+			var newSize = current - 4;
+			spriteGrid.cellPixelSize(newSize);
+			updateGridSize();
+			EditorFileProperties.setProperty(getFile(), EditorFileProperties.ZOOM_LEVEL_PROPERTY, newSize);
+		}
+	}
+
+	public void resetZoom() {
+		spriteGrid.cellPixelSize(-1);
+		gridScroll.setMinSize(0, 0);
+		gridScroll.layout(true, true);
+		spriteGrid.redraw();
+		EditorFileProperties.setProperty(getFile(), EditorFileProperties.ZOOM_LEVEL_PROPERTY, -1);
 	}
 
 	protected void loadPaletteFile(IFile file) throws CoreException {

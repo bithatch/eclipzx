@@ -5,24 +5,21 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import uk.co.bithatch.drawzx.editor.AbstractScreenEditor;
 import uk.co.bithatch.drawzx.editor.AbstractSpriteEditor;
 import uk.co.bithatch.drawzx.editor.TilemapEditor;
 
-public class ZoomOutHandler extends AbstractHandler {
-	
-	public ZoomOutHandler() {
+public class ResetZoomHandler extends AbstractHandler {
+
+	public ResetZoomHandler() {
 	}
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		var part = HandlerUtil.getActiveEditor(event);
-		if (part instanceof AbstractScreenEditor ase) {
-			ase.zoomOut();
+		if (part instanceof AbstractSpriteEditor se) {
+			se.resetZoom();
 		} else if (part instanceof TilemapEditor te) {
-			te.zoomOut();
-		} else if (part instanceof AbstractSpriteEditor se) {
-			se.zoomOut();
+			te.resetZoom();
 		}
 		return null;
 	}

@@ -6,6 +6,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import uk.co.bithatch.drawzx.editor.AbstractScreenEditor;
+import uk.co.bithatch.drawzx.editor.AbstractSpriteEditor;
 import uk.co.bithatch.drawzx.editor.TilemapEditor;
 
 public class ZoomInHandler extends AbstractHandler {
@@ -20,6 +21,8 @@ public class ZoomInHandler extends AbstractHandler {
 			ase.zoomIn();
 		} else if (part instanceof TilemapEditor te) {
 			te.zoomIn();
+		} else if (part instanceof AbstractSpriteEditor se) {
+			se.zoomIn();
 		}
 		return null;
 	}

@@ -297,12 +297,34 @@ public class TilemapEditorGrid extends Canvas {
 	}
 
 	private Point cellAt(int px, int py) {
-		var col = (px + scrollX) / cellPixelSize;
-		var row = (py + scrollY) / cellPixelSize;
+		var ox = calcOffsetX();
+		var oy = calcOffsetY();
+		var col = (px - ox + scrollX) / cellPixelSize;
+		var row = (py - oy + scrollY) / cellPixelSize;
 		if (col >= 0 && col < tilemap.columns() && row >= 0 && row < tilemap.rows()) {
 			return new Point(col, row);
 		}
 		return null;
+	}
+
+	/**
+	 * Compute the horizontal offset to centre the tilemap within the widget
+	 * when the widget is larger than the tilemap content.
+	 */
+	public int calcOffsetX() {
+		var tilemapWidth = tilemap.columns() * cellPixelSize;
+		var clientWidth = getClientArea().width;
+		return Math.max(0, (clientWidth - tilemapWidth) / 2);
+	}
+
+	/**
+	 * Compute the vertical offset to centre the tilemap within the widget
+	 * when the widget is larger than the tilemap content.
+	 */
+	public int calcOffsetY() {
+		var tilemapHeight = tilemap.rows() * cellPixelSize;
+		var clientHeight = getClientArea().height;
+		return Math.max(0, (clientHeight - tilemapHeight) / 2);
 	}
 
 	private Rectangle normalizeRect(Point a, Point b) {
@@ -355,6 +377,8 @@ public class TilemapEditorGrid extends Canvas {
 		var cols = tilemap.columns();
 		var rows = tilemap.rows();
 		var tileDefs = tilemap.tileDefinitions();
+		var ox = calcOffsetX();
+		var oy = calcOffsetY();
 
 		// Background - fill with widget background, then tilemap area with black
 		gc.setBackground(getBackground());
@@ -362,13 +386,13 @@ public class TilemapEditorGrid extends Canvas {
 		var tilemapWidth = cols * cellPixelSize;
 		var tilemapHeight = rows * cellPixelSize;
 		gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_BLACK));
-		gc.fillRectangle(-scrollX, -scrollY, tilemapWidth, tilemapHeight);
+		gc.fillRectangle(ox - scrollX, oy - scrollY, tilemapWidth, tilemapHeight);
 
 		// Draw each tile
 		for (var r = 0; r < rows; r++) {
 			for (var c = 0; c < cols; c++) {
-				var px = (c * cellPixelSize) - scrollX;
-				var py = (r * cellPixelSize) - scrollY;
+				var px = ox + (c * cellPixelSize) - scrollX;
+				var py = oy + (r * cellPixelSize) - scrollY;
 
 				// Skip if off-screen
 				if (px + cellPixelSize < 0 || py + cellPixelSize < 0 || px > bounds.width || py > bounds.height)
@@ -388,18 +412,20 @@ public class TilemapEditorGrid extends Canvas {
 		gc.setForeground(gridColor);
 		gc.setAlpha(64);
 		for (var r = 0; r <= rows; r++) {
-			var y = (r * cellPixelSize) - scrollY;
-			gc.drawLine(-scrollX, y, (cols * cellPixelSize) - scrollX, y);
+			var y = oy + (r * cellPixelSize) - scrollY;
+			gc.drawLine(ox - scrollX, y, ox + (cols * cellPixelSize) - scrollX, y);
 		}
 		for (var c = 0; c <= cols; c++) {
-			var x = (c * cellPixelSize) - scrollX;
-			gc.drawLine(x, -scrollY, x, (rows * cellPixelSize) - scrollY);
+			var x = ox + (c * cellPixelSize) - scrollX;
+			gc.drawLine(x, oy - scrollY, x, oy + (rows * cellPixelSize) - scrollY);
 		}
 		gc.setAlpha(255);
 		
 	}
 
 	private void paintSelectionOverlay(GC gc) {
+		var ox = calcOffsetX();
+		var oy = calcOffsetY();
 		// Paste preview
 		if (pastePreview != null && pastePreviewPos != null) {
 			paintPastePreview(gc);
@@ -414,8 +440,8 @@ public class TilemapEditorGrid extends Canvas {
 			gc.setForeground(selectedColor);
 			gc.setLineWidth(2);
 			gc.drawRectangle(
-				(rect.x * cellPixelSize) - scrollX,
-				(rect.y * cellPixelSize) - scrollY,
+				ox + (rect.x * cellPixelSize) - scrollX,
+				oy + (rect.y * cellPixelSize) - scrollY,
 				rect.width * cellPixelSize,
 				rect.height * cellPixelSize
 			);
@@ -423,8 +449,8 @@ public class TilemapEditorGrid extends Canvas {
 			gc.setBackground(selectedColor);
 			gc.setAlpha(64);
 			gc.fillRectangle(
-				(selection.x * cellPixelSize) - scrollX,
-				(selection.y * cellPixelSize) - scrollY,
+				ox + (selection.x * cellPixelSize) - scrollX,
+				oy + (selection.y * cellPixelSize) - scrollY,
 				selection.width * cellPixelSize,
 				selection.height * cellPixelSize
 			);
@@ -432,8 +458,8 @@ public class TilemapEditorGrid extends Canvas {
 			gc.setForeground(selectedColor);
 			gc.setLineWidth(2);
 			gc.drawRectangle(
-				(selection.x * cellPixelSize) - scrollX,
-				(selection.y * cellPixelSize) - scrollY,
+				ox + (selection.x * cellPixelSize) - scrollX,
+				oy + (selection.y * cellPixelSize) - scrollY,
 				selection.width * cellPixelSize,
 				selection.height * cellPixelSize
 			);
@@ -444,6 +470,8 @@ public class TilemapEditorGrid extends Canvas {
 		var tileDefs = tilemap.tileDefinitions();
 		var px0 = pastePreviewPos.x;
 		var py0 = pastePreviewPos.y;
+		var ox = calcOffsetX();
+		var oy = calcOffsetY();
 
 		// Draw the tiles from the paste buffer with semi-transparency
 		gc.setAlpha(180);
@@ -455,8 +483,8 @@ public class TilemapEditorGrid extends Canvas {
 
 				var entry = pastePreview[r][c];
 				var tileIdx = entry.tileIndex();
-				var px = (col * cellPixelSize) - scrollX;
-				var py = (row * cellPixelSize) - scrollY;
+				var px = ox + (col * cellPixelSize) - scrollX;
+				var py = oy + (row * cellPixelSize) - scrollY;
 
 				if (tileIdx >= 0 && tileIdx < tileDefs.size()) {
 					var cell = tileDefs.cell(tileIdx);
@@ -476,8 +504,8 @@ public class TilemapEditorGrid extends Canvas {
 		var pw = Math.min(pastePreviewCols, tilemap.columns() - px0) * cellPixelSize;
 		var ph = Math.min(pastePreviewRows, tilemap.rows() - py0) * cellPixelSize;
 		gc.drawRectangle(
-			(px0 * cellPixelSize) - scrollX,
-			(py0 * cellPixelSize) - scrollY,
+			ox + (px0 * cellPixelSize) - scrollX,
+			oy + (py0 * cellPixelSize) - scrollY,
 			pw, ph
 		);
 		gc.setLineStyle(SWT.LINE_SOLID);
@@ -805,6 +833,8 @@ public class TilemapEditorGrid extends Canvas {
 	 */
 	private void paintLinePreview(GC gc) {
 		var tileDefs = tilemap.tileDefinitions();
+		var ox = calcOffsetX();
+		var oy = calcOffsetY();
 		int x0 = lineStart.x, y0 = lineStart.y, x1 = lineEnd.x, y1 = lineEnd.y;
 		int dx = Math.abs(x1 - x0);
 		int dy = -Math.abs(y1 - y0);
@@ -814,8 +844,8 @@ public class TilemapEditorGrid extends Canvas {
 
 		// Draw tile preview at each cell along the line
 		while (true) {
-			var px = (x0 * cellPixelSize) - scrollX;
-			var py = (y0 * cellPixelSize) - scrollY;
+			var px = ox + (x0 * cellPixelSize) - scrollX;
+			var py = oy + (y0 * cellPixelSize) - scrollY;
 
 			// Draw the preview tile
 			if (selectedTileIndex >= 0 && selectedTileIndex < tileDefs.size()) {

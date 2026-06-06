@@ -49,6 +49,7 @@ import uk.co.bithatch.drawzx.editor.EditorFileProperties;
 import uk.co.bithatch.drawzx.editor.EditorFileProperties.PaletteSource;
 import uk.co.bithatch.drawzx.editor.IColouredEditor;
 import uk.co.bithatch.drawzx.widgets.PaletteGrid;
+import uk.co.bithatch.widgetzx.FontStyleHelper;
 import uk.co.bithatch.zyxy.graphics.Palette;
 
 public class ColourPickerView extends ViewPart implements IPartListener2, IColourPicker {
@@ -96,6 +97,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 	private Composite pickerGroups;
 	private GridData paletteDetailsGridData;
 	private GridData selectionInfoGridData;
+	private FontStyleHelper fontStyleHelper;
 
 
 	@Override
@@ -183,6 +185,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 		if(this.editor != null) {
 			this.editor.picker(null);
 		}
+		fontStyleHelper.dispose();
 		getSite().getWorkbenchWindow().getPartService().removePartListener(this);
 		super.dispose();
 	}
@@ -303,7 +306,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 	}
 	
 	protected void createColorAccessories(Composite colorInfo) {
-		historyLabel = new Label(colorInfo, SWT.NONE);
+		historyLabel = fontStyleHelper.bold(new Label(colorInfo, SWT.NONE));
 		historyLabel.setText("History:");
 		historyLabelGridData = GridDataFactory.swtDefaults().create();
 		historyLabel.setLayoutData(historyLabelGridData);
@@ -317,7 +320,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 					( e.stateMask & SWT.CONTROL ) != 0);
 		}));
 		
-		paletteOffsetLabel = new Label(colorInfo, SWT.NONE);
+		paletteOffsetLabel = fontStyleHelper.bold(new Label(colorInfo, SWT.NONE));
 		paletteOffsetLabel.setText("Offset:");
 		paletteOffsetLabelGridData = GridDataFactory.swtDefaults().create();
 		paletteOffsetLabel.setLayoutData(paletteOffsetLabelGridData);
@@ -357,8 +360,10 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 		paletteDetails.setLayout(paletteDetailsLayout);
 		paletteDetailsGridData = GridDataFactory.fillDefaults().grab(true, false).create();
 		paletteDetails.setLayoutData(paletteDetailsGridData);
+		
+		fontStyleHelper = new FontStyleHelper(paletteDetails);
 
-		var paletteLabel = new Label(paletteDetails, SWT.NONE);
+		var paletteLabel = fontStyleHelper.bold(new Label(paletteDetails, SWT.NONE));
 		paletteLabel.setText("Palette:");
 
 		paletteLink = new Link(paletteDetails, SWT.NONE);
@@ -397,7 +402,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 		paletteLinkButtonsGridData = GridDataFactory.swtDefaults().align(SWT.CENTER, SWT.CENTER).span(2, 1).create();
 		paletteLinkButtons.setLayoutData(paletteLinkButtonsGridData);
 
-		paletteInfoLabel = new Label(paletteDetails, SWT.BOLD);
+		paletteInfoLabel = fontStyleHelper.bold(new Label(paletteDetails, SWT.BOLD));
 		paletteInfoLabel.setText("Type:");
 
 		paletteInfo = new Label(paletteDetails, SWT.BOLD);
@@ -419,7 +424,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 		selectionInfoGridData = GridDataFactory.fillDefaults().grab(true, false).create();
 		selectionInfo.setLayoutData(selectionInfoGridData);
 
-		var indexLabel = new Label(selectionInfo, SWT.NONE);
+		var indexLabel = fontStyleHelper.bold(new Label(selectionInfo, SWT.NONE));
 		indexLabel.setText("Index:");
 
 		index = new Label(selectionInfo, SWT.NONE);
@@ -427,7 +432,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 				.align(SWT.FILL, SWT.CENTER).create());
 		index.setText("0");
 		
-		var rgbLabel = new Label(selectionInfo, SWT.NONE);
+		var rgbLabel = fontStyleHelper.bold(new Label(selectionInfo, SWT.NONE));
 		rgbLabel.setText("RRRGGGBBB:");
 
 		rgb = new Label(selectionInfo, SWT.NONE);
@@ -435,7 +440,7 @@ public class ColourPickerView extends ViewPart implements IPartListener2, IColou
 				.align(SWT.FILL, SWT.CENTER).create());
 		rgb.setText("0 0 0");
 		
-		var encodedLabel = new Label(selectionInfo, SWT.NONE);
+		var encodedLabel = fontStyleHelper.bold(new Label(selectionInfo, SWT.NONE));
 		encodedLabel.setText("Encoded:");
 
 		encoded = new Label(selectionInfo, SWT.NONE);

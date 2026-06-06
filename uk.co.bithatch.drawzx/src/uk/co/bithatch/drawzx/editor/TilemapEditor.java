@@ -2,7 +2,6 @@ package uk.co.bithatch.drawzx.editor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.channels.Channels;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -61,6 +60,7 @@ import uk.co.bithatch.drawzx.views.SpriteView;
 import uk.co.bithatch.drawzx.widgets.DrawListener;
 import uk.co.bithatch.drawzx.widgets.TilemapEditorGrid;
 import uk.co.bithatch.drawzx.wizards.NewTilemapWizard;
+import uk.co.bithatch.widgetzx.FontStyleHelper;
 import uk.co.bithatch.widgetzx.ZXPerspectivesUI;
 
 /**
@@ -108,6 +108,7 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 	// Sprite view link
 	private ISpriteView spriteView;
 	private int selectedTileIndex;
+	private FontStyleHelper fontStyleHelper;
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
@@ -205,12 +206,14 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 		layout.marginWidth = 8;
 		layout.marginHeight = 8;
 		root.setLayout(layout);
+		
+		fontStyleHelper = new FontStyleHelper(root);
 
 		// Center: tilemap grid in a scrolled composite
 		gridScroll = new ScrolledComposite(root, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		gridScroll.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
-		gridScroll.setExpandHorizontal(false);
-		gridScroll.setExpandVertical(false);
+		gridScroll.setExpandHorizontal(true);
+		gridScroll.setExpandVertical(true);
 		gridScroll.setBackground(root.getBackground());
 
 		tilemapGrid = new TilemapEditorGrid(gridScroll, tilemap, 16, SWT.NONE);
@@ -242,7 +245,7 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 		// Right: info panel
 		var infoPanel = new Composite(root, SWT.NONE);
 		infoPanel.setLayout(new GridLayout(1, false));
-		infoPanel.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).hint(180, SWT.DEFAULT).create());
+		infoPanel.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).hint(240, SWT.DEFAULT).create());
 
 		createInfoPanel(infoPanel);
 		updateInfo();
@@ -255,19 +258,6 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 	}
 
 	private void createInfoPanel(Composite parent) {
-		// Tile definition file link and drop target
-		var tilDefGroup = new Group(parent, SWT.NONE);
-		tilDefGroup.setText("Tile Definitions");
-		tilDefGroup.setLayout(new GridLayout(1, false));
-		tilDefGroup.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-
-		tilDefPathLink = new org.eclipse.swt.widgets.Link(tilDefGroup, SWT.WRAP);
-		tilDefPathLink.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		tilDefPathLink.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> openTilFile()));
-		updateTilDefPathLabel();
-
-		// Set up drag-and-drop for .til files
-		setupTilDropTarget(tilDefGroup);
 
 		// Tilemap info group
 		var tilemapInfo = new Group(parent, SWT.NONE);
@@ -278,13 +268,20 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 		tilemapInfo.setLayout(gl);
 		tilemapInfo.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
 
-		new Label(tilemapInfo, SWT.NONE).setText("Mode:");
+		// Tile definition file link and drop target
+		fontStyleHelper.bold(new Label(tilemapInfo, SWT.NONE)).setText("Definitions:");
+		tilDefPathLink = new org.eclipse.swt.widgets.Link(tilemapInfo, SWT.WRAP);
+//		tilDefPathLink.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		tilDefPathLink.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> openTilFile()));
+		updateTilDefPathLabel();
+
+		fontStyleHelper.bold(new Label(tilemapInfo, SWT.NONE)).setText("Mode:");
 		tilemapModeLabel = new Label(tilemapInfo, SWT.BOLD);
 
-		new Label(tilemapInfo, SWT.NONE).setText("Size:");
+		fontStyleHelper.bold(new Label(tilemapInfo, SWT.NONE)).setText("Size:");
 		tilemapSizeLabel = new Label(tilemapInfo, SWT.BOLD);
 
-		new Label(tilemapInfo, SWT.NONE).setText("Bytes:");
+		fontStyleHelper.bold(new Label(tilemapInfo, SWT.NONE)).setText("Bytes:");
 		tilemapByteSizeLabel = new Label(tilemapInfo, SWT.BOLD);
 
 		// Restore last mode from persistent property, default to SELECT
@@ -300,24 +297,21 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 		}
 		tilemapGrid.mode(savedMode);
 
-		// Selected tile info
-		var tileInfo = new Group(parent, SWT.NONE);
-		tileInfo.setText("Selected Tile");
-		tileInfo.setLayout(new GridLayout(2, false));
-		tileInfo.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-
-		new Label(tileInfo, SWT.NONE).setText("Index:");
-		selectedTileLabel = new Label(tileInfo, SWT.BOLD);
-		selectedTileLabel.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		selectedTileLabel.setText("0");
+		// Set up drag-and-drop for .til files
+		setupTilDropTarget(tilemapInfo);
 
 		// Entry properties group
 		var propsGroup = new Group(parent, SWT.NONE);
-		propsGroup.setText("Entry Properties");
+		propsGroup.setText("Tile");
 		propsGroup.setLayout(new GridLayout(2, false));
 		propsGroup.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
 
-		new Label(propsGroup, SWT.NONE).setText("Palette Offset:");
+		fontStyleHelper.bold(new Label(propsGroup, SWT.NONE)).setText("Index:");
+		selectedTileLabel = new Label(propsGroup, SWT.BOLD);
+		selectedTileLabel.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		selectedTileLabel.setText("0");
+
+		fontStyleHelper.bold(new Label(propsGroup, SWT.NONE)).setText("Palette Offset:");
 		palOffsetSpinner = new org.eclipse.swt.widgets.Spinner(propsGroup, SWT.BORDER);
 		palOffsetSpinner.setMinimum(0);
 		palOffsetSpinner.setMaximum(15);
@@ -452,6 +446,7 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 		super.dispose();
 		history.dispose(undoContext, true, true, true);
 		getSite().getWorkbenchWindow().getPartService().removePartListener(this);
+		fontStyleHelper.dispose();
 	}
 
 	@Override
@@ -625,6 +620,11 @@ public class TilemapEditor extends EditorPart implements IPartListener, ISpriteS
 			tilemapGrid.cellPixelSize(current - 4);
 			updateGridSize();
 		}
+	}
+
+	public void resetZoom() {
+		tilemapGrid.cellPixelSize(16);
+		updateGridSize();
 	}
 
 	public void setMode(TilemapEditorGrid.TilemapPaintMode mode) {

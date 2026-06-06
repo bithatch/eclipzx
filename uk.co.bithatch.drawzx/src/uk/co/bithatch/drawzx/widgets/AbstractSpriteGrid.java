@@ -20,6 +20,7 @@ public abstract class AbstractSpriteGrid extends Canvas {
 
 	private static final int DEFAULT_CELL_SIZE = 16;
 	private int cellSize;
+	private int fixedPixelSize = -1;
 	private SpriteCell spriteCell;
 	private Color borderColor;
 	private boolean border;
@@ -132,7 +133,31 @@ public abstract class AbstractSpriteGrid extends Canvas {
 		return cellSize;
 	}
 
-	protected int calPixelSize() {
+	/**
+	 * Get the fixed pixel size, or -1 if auto-fit mode.
+	 */
+	public int cellPixelSize() {
+		return fixedPixelSize;
+	}
+
+	/**
+	 * Set a fixed pixel size per sprite pixel. When set to a value >= 1,
+	 * the grid will use this size instead of auto-fitting to the client area.
+	 * Set to -1 to return to auto-fit mode.
+	 */
+	public void cellPixelSize(int pixelSize) {
+		this.fixedPixelSize = pixelSize;
+		if (pixelSize >= 1 && spriteCell != null) {
+			var total = pixelSize * spriteCell.size();
+			setSize(total, total);
+		}
+		invalidateCache();
+	}
+
+	public int calPixelSize() {
+		if (fixedPixelSize >= 1) {
+			return fixedPixelSize;
+		}
 		var bounds = getClientArea();
 		var pixels = spriteCell.size();
 		var cellX = bounds.width / pixels;

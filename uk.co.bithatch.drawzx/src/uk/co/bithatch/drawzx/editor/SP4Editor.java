@@ -3,14 +3,8 @@ package uk.co.bithatch.drawzx.editor;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.eclipse.jface.layout.GridDataFactory;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.widgets.AbstractSpriteGrid.BackgroundType;
-import uk.co.bithatch.drawzx.widgets.SpriteEditorGrid;
 
 public class SP4Editor extends SPREditor {
 
@@ -30,15 +24,8 @@ public class SP4Editor extends SPREditor {
 	}
 
 	@Override
-	protected void createEditorLayout(Composite root) {
-		var layout = new GridLayout(1, false);
-		layout.marginWidth = 8;
-		layout.marginHeight = 8;
-		root.setLayout(layout);
-
-		spriteGrid = new SpriteEditorGrid(root, spriteCell, SWT.BORDER);
+	protected void configureGrid() {
 		spriteGrid.backgroundType(BackgroundType.SMALL_CHEQUER);
-		spriteGrid.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
 	}
 
 	@Override

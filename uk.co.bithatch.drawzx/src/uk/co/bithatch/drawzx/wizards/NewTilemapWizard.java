@@ -16,6 +16,7 @@ import org.eclipse.ui.ide.IDE;
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.tilemaps.Tilemap;
 import uk.co.bithatch.drawzx.tilemaps.Tilemap.TilemapMode;
+import uk.co.bithatch.zyxy.graphics.Palette;
 
 /**
  * Wizard for creating a new ZX Next tilemap (.map) file.
@@ -56,7 +57,7 @@ public class NewTilemapWizard extends Wizard implements INewWizard {
 			var bpp = configPage.getBpp();
 
 			// Always 16-bit entries for new tilemaps (supports attributes)
-			var tileDefs = new SpriteSheet(256, bpp);
+			var tileDefs = createTransparentTileDefs(256, bpp);
 			var tilemap = new Tilemap(mode, true, tileDefs);
 
 			// Write the empty tilemap data
@@ -107,5 +108,25 @@ public class NewTilemapWizard extends Wizard implements INewWizard {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Create a SpriteSheet with all cells filled with the transparency index
+	 * and the correct palette for the given bpp.
+	 */
+	private SpriteSheet createTransparentTileDefs(int tileCount, int bpp) {
+		if (bpp == 4) {
+			var transIndex = Palette.DEFAULT_TRANSPARENCY % 16;
+			var pal = Palette.rgb333().withTransparency(transIndex);
+			var cellSize = 8;
+			var data = new int[cellSize][tileCount * cellSize];
+			for (var r = 0; r < data.length; r++) {
+				java.util.Arrays.fill(data[r], transIndex);
+			}
+			return new SpriteSheet(pal, tileCount, cellSize, data, bpp);
+		} else {
+			// 1-bit: 0 is background/transparent, Palette.mono() is correct
+			return new SpriteSheet(tileCount, bpp);
+		}
 	}
 }

@@ -64,7 +64,6 @@
             <repository location="https://bithatch.co.uk/repositories/p2"/>
             <unit id="com.formdev.flatlaf" version="3.7.1"/>
             <unit id="uk.co.bithatch.fat32" version="0.6.6"/>
-            <unit id="uk.co.bithatch.jspeccy.engine" version="1.0.2.bithatch2-20260606100201"/>
             <unit id="org.glassfish.jaxb.core" version="4.0.6"/>
             <unit id="org.glassfish.jaxb.runtime" version="4.0.6"/>
             <unit id="uk.co.bithatch.zyxy-compress" version="0.0.4"/>

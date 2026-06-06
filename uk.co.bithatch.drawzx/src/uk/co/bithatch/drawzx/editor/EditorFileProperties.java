@@ -50,6 +50,7 @@ public class EditorFileProperties {
 	public static QualifiedName PALETTE_SECONDARY_PROPERTY = new QualifiedName(Activator.PLUGIN_ID, "paletteSecondary");
 	public static QualifiedName SPRITE_INDEX_PROPERTY = new QualifiedName(Activator.PLUGIN_ID, "spriteIndex");
 	public static QualifiedName CELL_SIZE_PROPERTY = new QualifiedName(Activator.PLUGIN_ID, "cellSize");
+	public static QualifiedName ZOOM_LEVEL_PROPERTY = new QualifiedName(Activator.PLUGIN_ID, "zoomLevel");
 	
 	public static int getIntProperty(IFile file, QualifiedName key) {
 		return getIntProperty(file, key, 0);

@@ -110,12 +110,12 @@ else you fancy running in no time at all.
       <plugin id="uk.co.bithatch.eclipzx.ui" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.emuzx" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.emuzx.emulator.cspect" autoStart="true" startLevel="0" />
-      <plugin id="uk.co.bithatch.emuzx.emulator.jspeccy" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.emuzx.emulator.zoxo" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.emuzx.emulator.zesarux" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.emuzx.ui" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.fat32-lib" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.fatexplorer" autoStart="true" startLevel="0" />
-      <plugin id="uk.co.bithatch.jspeccy" autoStart="true" startLevel="0" />
+      <plugin id="uk.co.bithatch.eclipzoxo" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.nextbuild" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.nextlib" autoStart="true" startLevel="0" />
       <plugin id="uk.co.bithatch.squashzx" autoStart="true" startLevel="0" />

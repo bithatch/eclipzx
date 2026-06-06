@@ -262,6 +262,11 @@
             id="uk.co.bithatch.drawzx.screens.commands.zoomOut"
             name="Zoom-Out"
             categoryId="uk.co.bithatch.drawzx.screens.commands.category" />
+            
+        <command
+            id="uk.co.bithatch.drawzx.screens.commands.zoomReset"
+            name="Reset Zoom"
+            categoryId="uk.co.bithatch.drawzx.screens.commands.category" />
         
         <command
             id="uk.co.bithatch.drawzx.screens.commands.mode"
@@ -303,6 +308,10 @@
       <handler
             class="uk.co.bithatch.drawzx.screens.ZoomOutHandler"
             commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"/>
+      
+      <handler
+            class="uk.co.bithatch.drawzx.screens.ResetZoomHandler"
+            commandId="uk.co.bithatch.drawzx.screens.commands.zoomReset"/>
       
       <handler
             class="uk.co.bithatch.drawzx.tilemaps.TilemapModeHandler"
@@ -549,6 +558,11 @@
                         <or>
                             <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
                             <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                         </or>
                       </with>
                     </visibleWhen>
@@ -564,6 +578,31 @@
                         <or>
                             <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
                             <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
+                        </or>
+                      </with>
+                    </visibleWhen>
+              </command>
+              <command
+                    commandId="uk.co.bithatch.drawzx.screens.commands.zoomReset"
+                    icon="icons/fit16.png"
+                    label="Reset Zoom"
+                    tooltip="Reset zoom to fit the drawing area"
+                    style="push">
+                    <visibleWhen checkEnabled="false">
+                      <with variable="activeEditorId">
+                        <or>
+                            <equals value="uk.co.bithatch.drawzx.editor.SCREditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.TilemapEditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.CH8Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.UDGEditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SPREditor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.SP4Editor"/>
+                            <equals value="uk.co.bithatch.drawzx.editor.TileDefEditor"/>
                         </or>
                       </with>
                     </visibleWhen>
@@ -912,19 +951,27 @@
                 style="push">
           </command>
             
-          <command
-                commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"
-                icon="icons/zoomOut16.png"
-                label="Zoom-Out"
-                tooltip="Zoom-Out"
-                style="push">
-          </command>
-          
-          
-       </menuContribution>
+           <command
+                 commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"
+                 icon="icons/zoomOut16.png"
+                 label="Zoom-Out"
+                 tooltip="Zoom-Out"
+                 style="push">
+           </command>
+           
+           <command
+                 commandId="uk.co.bithatch.drawzx.screens.commands.zoomReset"
+                 icon="icons/fit16.png"
+                 label="Reset Zoom"
+                 tooltip="Reset zoom to fit window"
+                 style="push">
+           </command>
+           
+           
+        </menuContribution>
       
-       <menuContribution
-            locationURI="menu:uk.co.bithatch.drawzx.editor.menus.sprite">
+        <menuContribution
+             locationURI="menu:uk.co.bithatch.drawzx.editor.menus.sprite">
             
             
          <command
@@ -1019,13 +1066,39 @@
                 style="push">
           </command>
           
-          <command
-                commandId="uk.co.bithatch.drawzx.sprites.commands.clear"
-                icon="icons/clear16.png"
-                label="Clear"
-                tooltip="Clear Sprite"
-                style="push">
-          </command>
+           <command
+                 commandId="uk.co.bithatch.drawzx.sprites.commands.clear"
+                 icon="icons/clear16.png"
+                 label="Clear"
+                 tooltip="Clear Sprite"
+                 style="push">
+           </command>
+           
+           <separator name="uk.co.bithatch.drawzx.sprites.menu.zoom.separator" visible="true"/>
+           
+           <command
+                 commandId="uk.co.bithatch.drawzx.screens.commands.zoomIn"
+                 icon="icons/zoomIn16.png"
+                 label="Zoom-In"
+                 tooltip="Zoom-In"
+                 style="push">
+           </command>
+           
+           <command
+                 commandId="uk.co.bithatch.drawzx.screens.commands.zoomOut"
+                 icon="icons/zoomOut16.png"
+                 label="Zoom-Out"
+                 tooltip="Zoom-Out"
+                 style="push">
+           </command>
+           
+           <command
+                 commandId="uk.co.bithatch.drawzx.screens.commands.zoomReset"
+                 icon="icons/fit16.png"
+                 label="Reset Zoom"
+                 tooltip="Reset zoom to fit window"
+                 style="push">
+           </command>
         </menuContribution>
     </extension>
 

@@ -24,6 +24,11 @@ public class UDGEditor extends AbstractSpriteEditor {
 	}
 
 	@Override
+	protected int swatchColumnsFor(SpriteSheet sheet) {
+		return 6;
+	}
+
+	@Override
 	public void setDefaultPalette() {
 		setSpriteSheet(spriteSheet.withPalette(Palette.mono()));
 		markDirty();

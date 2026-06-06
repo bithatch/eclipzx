@@ -9,8 +9,6 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -32,6 +30,7 @@ import uk.co.bithatch.drawzx.sprites.SpriteCell;
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.widgets.SpriteGrid;
 import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
+import uk.co.bithatch.widgetzx.FontStyleHelper;
 
 /**
  * A view that displays a {@link SpriteSwatch} and spritesheet/sprite info,
@@ -83,7 +82,7 @@ public class SpriteView extends ViewPart implements IPartListener2, ISpriteView 
 	// Editor-configured base values
 	private int baseColumns;
 	private int baseCellSize;
-	private Font boldFont;
+	private FontStyleHelper fontStyleHelper;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -249,9 +248,7 @@ public class SpriteView extends ViewPart implements IPartListener2, ISpriteView 
 			this.editor.spriteView(null);
 		}
 		getSite().getWorkbenchWindow().getPartService().removePartListener(this);
-		if (boldFont != null && !boldFont.isDisposed()) {
-			boldFont.dispose();
-		}
+		fontStyleHelper.dispose();
 		super.dispose();
 	}
 
@@ -406,22 +403,14 @@ public class SpriteView extends ViewPart implements IPartListener2, ISpriteView 
 		spritesheetInfoGridData = GridDataFactory.fillDefaults().grab(false, false).align(SWT.FILL, SWT.BEGINNING).create();
 		spritesheetInfoPanel.setLayoutData(spritesheetInfoGridData);
 
-		// Create bold font
-		var normalFont = spritesheetInfoPanel.getFont();
-		var fd = normalFont.getFontData();
-		for (var f : fd) {
-			f.setStyle(f.getStyle() | SWT.BOLD);
-		}
-		boldFont = new Font(spritesheetInfoPanel.getDisplay(), fd);
+		fontStyleHelper = new FontStyleHelper(spritesheetInfoPanel);
 
-		var cellsLabel = new Label(spritesheetInfoPanel, SWT.NONE);
+		var cellsLabel = fontStyleHelper.bold(new Label(spritesheetInfoPanel, SWT.NONE));
 		cellsLabel.setText("Cells:");
-		cellsLabel.setFont(boldFont);
 		spriteSheetCells = new Label(spritesheetInfoPanel, SWT.NONE);
 
-		spriteSheetCellSizeLabel = new Label(spritesheetInfoPanel, SWT.NONE);
+		spriteSheetCellSizeLabel = fontStyleHelper.bold(new Label(spritesheetInfoPanel, SWT.NONE));
 		spriteSheetCellSizeLabel.setText("Cell Size:");
-		spriteSheetCellSizeLabel.setFont(boldFont);
 		spriteSheetCellSize = new Combo(spritesheetInfoPanel, SWT.READ_ONLY);
 		spriteSheetCellSize.setLayoutData(GridDataFactory.fillDefaults().hint(56, SWT.DEFAULT).grab(true, false).create());
 		spriteSheetCellSize.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
@@ -434,14 +423,12 @@ public class SpriteView extends ViewPart implements IPartListener2, ISpriteView 
 			}
 		}));
 
-		var sizeLabel = new Label(spritesheetInfoPanel, SWT.NONE);
+		var sizeLabel = fontStyleHelper.bold(new Label(spritesheetInfoPanel, SWT.NONE));
 		sizeLabel.setText("Size:");
-		sizeLabel.setFont(boldFont);
 		spriteSheetSize = new Label(spritesheetInfoPanel, SWT.NONE);
 
-		var depthLabel = new Label(spritesheetInfoPanel, SWT.NONE);
+		var depthLabel = fontStyleHelper.bold(new Label(spritesheetInfoPanel, SWT.NONE));
 		depthLabel.setText("Depth:");
-		depthLabel.setFont(boldFont);
 		spriteSheetBpp = new Label(spritesheetInfoPanel, SWT.NONE);
 
 		// Swatch container — grabs ALL leftover space
@@ -464,9 +451,8 @@ public class SpriteView extends ViewPart implements IPartListener2, ISpriteView 
 		spriteInfoGridData = GridDataFactory.fillDefaults().grab(false, false).align(SWT.FILL, SWT.BEGINNING).create();
 		spriteInfoPanel.setLayoutData(spriteInfoGridData);
 
-		var idxLbl = new Label(spriteInfoPanel, SWT.NONE);
+		var idxLbl = fontStyleHelper.bold(new Label(spriteInfoPanel, SWT.NONE));
 		idxLbl.setText("Index:");
-		idxLbl.setFont(boldFont);
 		indexLabel = new Label(spriteInfoPanel, SWT.NONE);
 		indexLabel.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
 		indexLabel.setText("");
