@@ -22,7 +22,7 @@ public class SpriteSwatch extends Composite {
 	private int columns;
 	private List<SpriteGrid> spriteCells = new  ArrayList<>();
 	private int selected = -1;
-	private int spacing = 3;
+	private int spacing = 2;
 	private BackgroundType backgroundType = BackgroundType.LARGE_CHEQUER;
 
 	public SpriteSwatch(Composite parent) {
@@ -73,6 +73,19 @@ public class SpriteSwatch extends Composite {
 		}
 	}
 
+	/**
+	 * Redraw only the currently selected cell (e.g. after pixel edits).
+	 * Much more efficient than redrawing the entire swatch.
+	 */
+	public void redrawSelected() {
+		if (selected >= 0 && selected < spriteCells.size()) {
+			var grid = spriteCells.get(selected);
+			if (!grid.isDisposed()) {
+				grid.redraw();
+			}
+		}
+	}
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -91,6 +104,14 @@ public class SpriteSwatch extends Composite {
 
 	public int spacing() {
 		return spacing;
+	}
+
+	public int cellSize() {
+		return cellSize;
+	}
+
+	public int columns() {
+		return columns;
 	}
 
 	public void spacing(int spacing) {
@@ -129,27 +150,32 @@ public class SpriteSwatch extends Composite {
 	}
 
 	private void rebuildAndRedraw() {
-		spriteCells.forEach(SpriteGrid::dispose);
-		spriteCells.clear();
-		var sz = this.spriteSheet.size();
-		var rows = ( sz + columns - 1) / columns;
-		var layout = new GridLayout(columns, true);
-		layout.horizontalSpacing = layout.verticalSpacing = spacing;
-		setLayout(layout);
-		for(var r = 0 ; r < rows; r++) {
-			for(var c = 0 ; c < columns ; c++) {
-				var index = (r * columns) + c;
-				var spriteGrid = new SpriteGrid(this, spriteSheet.cell(index), SWT.NONE);
-				spriteGrid.setSelection(spriteCells.size() == selected);
-				spriteGrid.backgroundType(backgroundType);
-				spriteGrid.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-					select(index);
-				}));
-				spriteGrid.setLayoutData(GridDataFactory.create(SWT.NONE).grab(true, false).hint(cellSize, cellSize).create());
-				spriteCells.add(spriteGrid);
+		setRedraw(false);
+		try {
+			spriteCells.forEach(SpriteGrid::dispose);
+			spriteCells.clear();
+			var sz = this.spriteSheet.size();
+			var rows = ( sz + columns - 1) / columns;
+			var layout = new GridLayout(columns, true);
+			layout.horizontalSpacing = layout.verticalSpacing = spacing;
+			layout.marginWidth = layout.marginHeight = 1;
+			setLayout(layout);
+			for(var r = 0 ; r < rows; r++) {
+				for(var c = 0 ; c < columns ; c++) {
+					var index = (r * columns) + c;
+					var spriteGrid = new SpriteGrid(this, spriteSheet.cell(index), SWT.NONE);
+					spriteGrid.setSelection(spriteCells.size() == selected);
+					spriteGrid.backgroundType(backgroundType);
+					spriteGrid.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+						select(index);
+					}));
+					spriteGrid.setLayoutData(GridDataFactory.create(SWT.NONE).grab(false, false).align(SWT.CENTER, SWT.CENTER).hint(cellSize, cellSize).create());
+					spriteCells.add(spriteGrid);
+				}
 			}
+		} finally {
+			setRedraw(true);
 		}
-		
 		requestLayout();
 	}
 	

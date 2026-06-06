@@ -32,6 +32,7 @@ public class SPRConfigurationWizardPage extends WizardPage {
 	private Combo cellSize;
 	private Combo palette;
 	private Button createPalette;
+	private Button fillTransparency;
 	private Text file;
 	private final Supplier<String> filename;
 	private final Supplier<IPath> container;
@@ -122,6 +123,17 @@ public class SPRConfigurationWizardPage extends WizardPage {
         createPaletteLabel.setText("Create palette file");
         createPaletteLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
 
+        fillTransparency = new Button(container, SWT.CHECK);
+        fillTransparency.setSelection(true);
+        var gdFill = new GridData();
+        gdFill.horizontalIndent = 16;
+        gdFill.verticalIndent = 8;
+        fillTransparency.setLayoutData(gdFill);
+
+        var fillTransparencyLabel = new Label(container, SWT.NONE);
+        fillTransparencyLabel.setText("Fill with transparency index");
+        fillTransparencyLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
+
         
         label = new Label(container, SWT.NONE);
         label.setText("File:");
@@ -159,6 +171,10 @@ public class SPRConfigurationWizardPage extends WizardPage {
 		return Integer.parseInt(cellSize.getItems()[cellSize.getSelectionIndex()]);
 	}
 
+	public boolean isFillTransparency() {
+		return fillTransparency.getSelection();
+	}
+
 	public Palette getPalette() {
 		Palette pal;
 		switch(palette.getSelectionIndex()) {
@@ -178,6 +194,10 @@ public class SPRConfigurationWizardPage extends WizardPage {
 			return Palette.load(container.get().append(file.getText()).toFile().getAbsolutePath());
 		default:
 			throw new IllegalStateException();
+		}
+		
+		if(isFillTransparency()) {
+			pal = pal.withTransparency();
 		}
 		
 		if(createPalette.getSelection()) {

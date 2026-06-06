@@ -163,6 +163,8 @@ public abstract class AbstractSpriteGrid extends Canvas {
 	}
 
 	private void paintCached(GC gc) {
+		if (isDisposed())
+			return;
 		var area = getClientArea();
 		if (area.width <= 0 || area.height <= 0)
 			return;

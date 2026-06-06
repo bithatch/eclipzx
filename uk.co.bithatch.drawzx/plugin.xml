@@ -1092,5 +1092,6 @@
     <extension point="org.eclipse.ui.views">
         <category id="uk.co.bithatch.drawzx.category" name="ZX Draw Views" />
         <view name="Colour Picker" icon="icons/choose16.png" class="uk.co.bithatch.drawzx.views.ColourPickerView" category="uk.co.bithatch.drawzx.category" id="uk.co.bithatch.drawzx.views.colourPickerView" />
+        <view name="Sprite Sheet" icon="icons/sprite16.png" class="uk.co.bithatch.drawzx.views.SpriteView" category="uk.co.bithatch.drawzx.category" id="uk.co.bithatch.drawzx.views.spriteView" />
     </extension>
 </plugin>

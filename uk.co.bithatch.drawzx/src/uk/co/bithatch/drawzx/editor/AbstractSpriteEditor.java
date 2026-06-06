@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.Channels;
-import java.util.stream.IntStream;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.IOperationHistory;
@@ -36,11 +35,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPartListener;
@@ -77,21 +73,18 @@ import uk.co.bithatch.drawzx.sprites.SpriteCellSelectOperation;
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.views.ColourPickerView;
 import uk.co.bithatch.drawzx.views.IColourPicker;
+import uk.co.bithatch.drawzx.views.ISpriteView;
+import uk.co.bithatch.drawzx.views.SpriteView;
 import uk.co.bithatch.drawzx.widgets.DrawListener;
 import uk.co.bithatch.drawzx.widgets.SpriteEditorGrid;
-import uk.co.bithatch.drawzx.widgets.SpriteGrid;
-import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
 import uk.co.bithatch.widgetzx.ZXPerspectivesUI;
 import uk.co.bithatch.zyxy.graphics.Palette;
 
-public abstract class AbstractSpriteEditor extends EditorPart implements IPartListener, IColouredEditor {
+public abstract class AbstractSpriteEditor extends EditorPart implements IPartListener, IColouredEditor, ISpriteSwatchEditor {
 
 	protected SpriteCell spriteCell;
 	protected SpriteEditorGrid spriteGrid;
-	protected SpriteGrid spritePreviewInverse;
-	protected SpriteGrid spritePreviewNormal;
 	protected SpriteSheet spriteSheet;
-	protected SpriteSwatch spriteSwatch;
 
 	private Clipboard clipboard;
 	private final IResourceDeltaVisitor deltaVisitor = new IResourceDeltaVisitor() {
@@ -101,7 +94,6 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 			if (resource instanceof IFile file) {
 				if ("pal".equalsIgnoreCase(file.getFileExtension())
 						|| "npl".equalsIgnoreCase(file.getFileExtension())) {
-					// Check if this file is the one currently in use
 					if (file.equals(getPaletteFile())) {
 						Display.getDefault().asyncExec(() -> {
 							try {
@@ -113,18 +105,13 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 					}
 				}
 			}
-			return true; // keep visiting children
+			return true;
 		}
 	};
 
 	private boolean dirty;
-	private Label index;
 	private PersistentPropertyWatcher propertyWatcher;
 	private Composite root;
-	private Label spriteSheetBpp;
-	private Label spriteSheetCells;
-	private Combo spriteSheetCellSize;
-	private Label spriteSheetSize;
 
 	private final IResourceChangeListener resourceChangeListener = new IResourceChangeListener() {
 		@Override
@@ -138,6 +125,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 	};
 	
 	protected IColourPicker picker;
+	protected ISpriteView spriteView;
 	protected final IUndoContext undoContext = new ObjectUndoContext(this);
 	protected IOperationHistory history;
 	private UndoActionHandler undoHandler;
@@ -162,15 +150,13 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		setupUndo();
 		
 		root = new Composite(parent, SWT.NONE);
-		GridLayout layout = new GridLayout(2, false);
+		GridLayout layout = new GridLayout(1, false);
 		layout.marginWidth = 8;
 		layout.marginHeight = 8;
 		root.setLayout(layout);
 
 		createEditorLayout(root);
 		setupEditorListeners();
-
-		updateSpriteSheetInfo();
 
 		propertyWatcher = new PersistentPropertyWatcher(getFile(), (key, val) -> {
 			if (key.equals(EditorFileProperties.EDITOR_MODE_PROPERTY)) {
@@ -191,7 +177,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		}, EditorFileProperties.EDITOR_MODE_PROPERTY);
 
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener,
-				IResourceChangeEvent.POST_CHANGE // only real changes, after they happen
+				IResourceChangeEvent.POST_CHANGE
 		);
 
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
@@ -327,7 +313,8 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 			}
 			
 			if(ZXPerspectivesUI.isPerspective(ZXPerspectives.ZX_MEDIA_ID)) {
-				openColourPickerView(PlatformUI.getWorkbench());	
+				openColourPickerView(PlatformUI.getWorkbench());
+				openSpriteView(PlatformUI.getWorkbench());
 			}
 			else {
 				ZXPerspectivesUI.zxMediaPerspective(Activator.PLUGIN_ID);
@@ -383,23 +370,65 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 	public void setSpriteSheet(SpriteSheet spriteSheet) {
 		this.spriteSheet = spriteSheet;
-		if (spriteSheetCells != null) {
-			spriteSwatch.update(spriteSheet, swatchColumns(spriteSheet), swatchCellSize(spriteSheet));
-			updateSpriteSheetInfo();
-			var idx = Math.min(spriteSwatch.selected(), spriteSheet.size() - 1);
-			currentCellIndex = idx;
-			spriteSwatch.selected(idx);
-			selectCell(spriteSheet.cell(idx));
-			if(picker != null)
-				picker.palette(spriteSheet.palette());
+		var idx = Math.min(currentCellIndex, spriteSheet.size() - 1);
+		currentCellIndex = idx;
+		selectCell(spriteSheet.cell(idx));
+		if (spriteView != null) {
+			spriteView.updateSpriteSheet(spriteSheet, swatchColumns(), swatchCellSize());
+			spriteView.updateSpriteSheetInfo();
+			spriteView.updateSelection(idx);
 		}
-
+		if(picker != null)
+			picker.palette(spriteSheet.palette());
 	}
 
 	@Override
 	public void picker(IColourPicker picker) {
 		this.picker = picker;		
 	}
+
+	// --- ISpriteSwatchEditor implementation ---
+
+	@Override
+	public SpriteSheet spriteSheet() {
+		return spriteSheet;
+	}
+
+	@Override
+	public int swatchColumns() {
+		return swatchColumnsFor(spriteSheet);
+	}
+
+	@Override
+	public int swatchCellSize() {
+		return swatchCellSizeFor(spriteSheet);
+	}
+
+	@Override
+	public int selectedSpriteIndex() {
+		return currentCellIndex;
+	}
+
+	@Override
+	public void selectSprite(int index) {
+		var oldIndex = currentCellIndex;
+		if (oldIndex != index) {
+			execute(new SpriteCellSelectOperation(oldIndex, index, this::applyCellSelection));
+		}
+	}
+
+	@Override
+	public void cellSizeChanged(int newCellSize) {
+		EditorFileProperties.setProperty(getFile(), EditorFileProperties.CELL_SIZE_PROPERTY, String.valueOf(newCellSize));
+		setSpriteSheet(spriteSheet.withCellSize(newCellSize));
+	}
+
+	@Override
+	public void spriteView(ISpriteView spriteView) {
+		this.spriteView = spriteView;
+	}
+
+	// --- End ISpriteSwatchEditor ---
 
 	public void shift(int h, int v) {
 		execute(new ShiftOperation(spriteGrid, h, v, this::markDirty));
@@ -441,7 +470,7 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 						var ext = file.getFileExtension();
 						return ext != null && (ext.equalsIgnoreCase("npl") || ext.equalsIgnoreCase("pal"));
 					} else if (element instanceof IContainer) {
-						return true; // allow folders
+						return true;
 					}
 					return false;
 				}
@@ -469,7 +498,9 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 
 	@Override
 	public void currentPaletteUpdate() {
-		updateSpriteSheetInfo();
+		if(spriteView != null) {
+			spriteView.updateSpriteSheetInfo();
+		}
 	}
 
 	protected GridLayout createGroupLayout(int cols, boolean equal) {
@@ -480,15 +511,16 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		return l;
 	}
 
+	@Override
 	public int[] cellSizes() {
 		return new int[] { 8 };
 	}
 
-	protected int swatchColumns(SpriteSheet sheet) {
+	protected int swatchColumnsFor(SpriteSheet sheet) {
 		return 16;
 	}
 
-	protected int swatchCellSize(SpriteSheet sheet) {
+	protected int swatchCellSizeFor(SpriteSheet sheet) {
 		return 24;
 	}
 
@@ -512,17 +544,14 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		return false;
 	}
 
-	protected void layoutGridAndSwatch(Composite parent) {
-		var palettes = new Composite(parent, SWT.NONE);
-		var layout = new GridLayout();
-		layout.verticalSpacing = 8;
-		palettes.setLayout(layout);
-		palettes.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
+	protected void createEditorLayout(Composite root) {
+		GridLayout layout = new GridLayout(1, false);
+		layout.marginWidth = 8;
+		layout.marginHeight = 8;
+		root.setLayout(layout);
 
-		spriteGrid = new SpriteEditorGrid(palettes, spriteCell, SWT.BORDER);
+		spriteGrid = new SpriteEditorGrid(root, spriteCell, SWT.BORDER);
 		spriteGrid.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
-		spriteSwatch = new SpriteSwatch(palettes, spriteSheet, 24, 16, SWT.BORDER);
-		spriteSwatch.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).hint(SWT.DEFAULT, 240).create());
 	}
 
 	protected void loadPaletteFile(IFile file) throws CoreException {
@@ -596,124 +625,37 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 			setSpriteSheet(spriteSheet.withPalette(Palette.rgb333().withTransparency()));
 	}
 
-	protected void spriteCellSelected(SelectionEvent e) {
-		var oldIndex = currentCellIndex;
-		var newCell = (SpriteCell) e.data;
-		var newIndex = spriteSheet.index(newCell);
-		if (oldIndex != newIndex) {
-			execute(new SpriteCellSelectOperation(oldIndex, newIndex, this::applyCellSelection));
-		}
-	}
-
 	private void applyCellSelection(int idx) {
 		currentCellIndex = idx;
-		spriteSwatch.selected(idx);
+		if (spriteView != null) {
+			spriteView.updateSelection(idx);
+		}
 		selectCell(spriteSheet.cell(idx));
 		EditorFileProperties.setProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, idx);
 	}
 
-	protected void createEditorLayout(Composite root) {
-		GridLayout layout = new GridLayout(2, false);
-		layout.marginWidth = 8;
-		layout.marginHeight = 8;
-		root.setLayout(layout);
-
-		layoutGridAndSwatch(root);
-		createInfoColumn(root);
-	}
-
-	private void createInfoColumn(Composite parent) {
-		var groups = new Composite(parent, SWT.NONE);
-		groups.setLayout(new GridLayout(1, false));
-		groups.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).create());
-
-		createSpritesheetInfoGroup(groups).setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		createSpriteInfoGroup(groups).setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
-	}
-
-	protected Group createSpritesheetInfoGroup(Composite parent) {
-		var spritesheetInfo = new Group(parent, SWT.TITLE);
-		var spritesheetInfoLayout = createGroupLayout(2, false);
-		spritesheetInfoLayout.horizontalSpacing = 8;
-		spritesheetInfoLayout.verticalSpacing = 8;
-		spritesheetInfo.setLayout(spritesheetInfoLayout);
-		spritesheetInfo.setText("Spritesheet");
-
-		var cellsLabel = new Label(spritesheetInfo, SWT.NONE);
-		cellsLabel.setText("Cells:");
-		spriteSheetCells = new Label(spritesheetInfo, SWT.BOLD);
-
-		var cellsSizeLabel = new Label(spritesheetInfo, SWT.NONE);
-		cellsSizeLabel.setText("Cell Size:");
-		spriteSheetCellSize = new Combo(spritesheetInfo, SWT.READ_ONLY);
-		var cellSizeList = IntStream.of(cellSizes()).mapToObj(String::valueOf).toList();
-		spriteSheetCellSize.setItems(cellSizeList.toArray(String[]::new));
-		var configuredCellSize = spriteSheet.cellSize();
-		var idx = cellSizeList.indexOf(String.valueOf(configuredCellSize));
-		spriteSheetCellSize.select(idx == -1 ? 0 : idx);
-		spriteSheetCellSize.setLayoutData(GridDataFactory.fillDefaults().hint(64, SWT.DEFAULT).grab(true, false).create());
-		spriteSheetCellSize.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-			updateCellSize();
-		}));
-
-		var sizeLabel = new Label(spritesheetInfo, SWT.NONE);
-		sizeLabel.setText("Size:");
-		spriteSheetSize = new Label(spritesheetInfo, SWT.BOLD);
-
-		var depthLabel = new Label(spritesheetInfo, SWT.NONE);
-		depthLabel.setText("Depth:");
-		spriteSheetBpp = new Label(spritesheetInfo, SWT.BOLD);
-
-		return spritesheetInfo;
-	}
-
-	protected Group createSpriteInfoGroup(Composite parent) {
-		var spriteInfo = new Group(parent, SWT.TITLE);
-		GridLayout spritesheetInfoLayout2 = createGroupLayout(2, false);
-		spriteInfo.setLayout(spritesheetInfoLayout2);
-		spriteInfo.setText("Sprite");
-
-		var indexLabel = new Label(spriteInfo, SWT.NONE);
-		indexLabel.setText("Index:");
-		index = new Label(spriteInfo, SWT.BOLD);
-		index.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		index.setText("");
-
-		var previews = new Composite(spriteInfo, SWT.NONE);
-		previews.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).span(2, 1).create());
-		previews.setLayout(new GridLayout(2, true));
-
-		spritePreviewNormal = new SpriteGrid(previews, 48, SWT.NONE);
-		spritePreviewNormal.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		spritePreviewInverse = new SpriteGrid(previews, 48, SWT.NONE);
-		spritePreviewInverse.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		spritePreviewInverse.setInverse(true);
-
-		return spriteInfo;
-	}
-
-	private void updateCellSize() {
-		int selectedSize = getSelectedCellSize();
-		EditorFileProperties.setProperty(getFile(), EditorFileProperties.CELL_SIZE_PROPERTY, String.valueOf(selectedSize));
-		setSpriteSheet(spriteSheet.withCellSize(selectedSize));
-		updateSpriteSheetInfo();
-	}
-
-	private int getSelectedCellSize() {
-		int selectedSize = cellSizes()[spriteSheetCellSize.getSelectionIndex()];
-		return selectedSize;
+	private void selectCell(SpriteCell spriteCell) {
+		this.spriteCell = spriteCell;
+		spriteGrid.setSpriteCell(spriteCell);
+		if (spriteView != null) {
+			spriteView.updateSpritePreview(spriteCell, spriteSheet.index(spriteCell));
+		}
 	}
 
 	private void setupEditorListeners() {
 
 		currentCellIndex = EditorFileProperties.getIntProperty(getFile(), EditorFileProperties.SPRITE_INDEX_PROPERTY, 0);
-		spriteSwatch.selected(currentCellIndex);
+		if (currentCellIndex > 0 && currentCellIndex < spriteSheet.size()) {
+			spriteCell = spriteSheet.cell(currentCellIndex);
+			spriteGrid.setSpriteCell(spriteCell);
+		}
 
 		spriteGrid.addModifyListener(t -> {
 			markDirty();
-			spritePreviewNormal.redraw();
-			spritePreviewInverse.redraw();
-			spriteSwatch.redraw();
+			if (spriteView != null) {
+				spriteView.redrawSwatch();
+				spriteView.updateSpritePreview(spriteCell, currentCellIndex);
+			}
 		});
 		
 		spriteGrid.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
@@ -743,36 +685,19 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 		spriteGrid.mode(SpritePaintMode.valueOf(EditorFileProperties
 				.getProperty(getFile(), EditorFileProperties.EDITOR_MODE_PROPERTY, SpritePaintMode.SELECT.name()).toUpperCase()));
 
-		spriteSwatch.addSelectionListener(SelectionListener.widgetSelectedAdapter(this::spriteCellSelected));
-
-	}
-
-	private void selectCell(SpriteCell spriteCell) {
-		this.spriteCell = spriteCell;
-		spriteGrid.setSpriteCell(spriteCell);
-		index.setText(String.valueOf(spriteSheet.index(spriteCell)));
-		updatePreview();
-//		if(e.detail == 2) {
-//			choose(fullPal.color((Integer)e.data));
-//		}
 	}
 
 	private String selectionString(int[][] pixels) {
 		var sb = new StringBuilder();
 		for (var row : pixels) {
 			for (var pixel : row) {
-				sb.append(pixel).append(" "); // or format differently
+				sb.append(pixel).append(" ");
 			}
 			sb.append("\n");
 		}
 
 		var text = sb.toString();
 		return text;
-	}
-
-	private void updatePreview() {
-		spritePreviewNormal.setSpriteCell(spriteCell);
-		spritePreviewInverse.setSpriteCell(spriteCell);
 	}
 
 	private int[][] snapshotSpriteData() {
@@ -785,16 +710,6 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 			}
 		}
 		return snapshot;
-	}
-
-	private void updateSpriteSheetInfo() {
-		spriteSheetCells.setText(String.valueOf(spriteSheet.size()));
-		spriteSheetSize.setText(String.format("%d bytes", spriteSheet.byteSize()));
-		spriteSheetBpp.setText(String.format("%d Bpp", spriteSheet.bpp()));
-		spriteSheetCellSize.select(IntStream.of(cellSizes()).mapToObj(Integer::valueOf).toList().indexOf(spriteSheet.cellSize()));
-		if(picker != null) {
-			picker.updatePaletteInfo();
-		}
 	}
 
 	private ColourPickerView openColourPickerView(IWorkbench bench) {
@@ -812,6 +727,25 @@ public abstract class AbstractSpriteEditor extends EditorPart implements IPartLi
 					return (ColourPickerView) view;
 				} catch (PartInitException e) {
 					throw new IllegalStateException("Failed to open colour picker view.", e);
+				}
+			}
+		}
+	}
+
+	private SpriteView openSpriteView(IWorkbench bench) {
+		var window = bench.getActiveWorkbenchWindow();
+		if (window == null) {
+			throw new IllegalStateException("No active workbench.");
+		} else {
+			var page = window.getActivePage();
+			if (page == null) {
+				throw new IllegalStateException("No active page.");
+			} else {
+				try {
+					var view = page.showView(SpriteView.ID, null, org.eclipse.ui.IWorkbenchPage.VIEW_VISIBLE);
+					return (SpriteView) view;
+				} catch (PartInitException e) {
+					throw new IllegalStateException("Failed to open sprite view.", e);
 				}
 			}
 		}

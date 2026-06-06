@@ -44,39 +44,42 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.operations.RedoActionHandler;
 import org.eclipse.ui.operations.UndoActionHandler;
 import org.eclipse.ui.part.EditorPart;
 
+import uk.co.bithatch.bitzx.ZXPerspectives;
+import uk.co.bithatch.drawzx.Activator;
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.tilemaps.Tilemap;
 import uk.co.bithatch.drawzx.tilemaps.Tilemap.TilemapMode;
 import uk.co.bithatch.drawzx.tilemaps.TilemapEntry;
+import uk.co.bithatch.drawzx.views.ISpriteView;
+import uk.co.bithatch.drawzx.views.SpriteView;
 import uk.co.bithatch.drawzx.widgets.DrawListener;
-import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
 import uk.co.bithatch.drawzx.widgets.TilemapEditorGrid;
 import uk.co.bithatch.drawzx.wizards.NewTilemapWizard;
+import uk.co.bithatch.widgetzx.ZXPerspectivesUI;
 
 /**
  * Eclipse editor for ZX Next tilemap files (.til).
  * 
  * <p>The editor layout consists of:</p>
  * <ul>
- *   <li>Left: tile definition swatch (reusing {@link SpriteSwatch}) for selecting
- *       which tile to place</li>
+ *   <li>Left: tile definition swatch shown in the SpriteView (selecting
+ *       which tile to place)</li>
  *   <li>Center: the tilemap grid where tiles are placed</li>
  *   <li>Right: info panel showing tilemap properties and selected tile info</li>
  * </ul>
  */
-public class TilemapEditor extends EditorPart implements IPartListener {
+public class TilemapEditor extends EditorPart implements IPartListener, ISpriteSwatchEditor {
 
 	protected Tilemap tilemap;
 	protected TilemapEditorGrid tilemapGrid;
-	protected SpriteSwatch tileSwatch;
 	protected SpriteSheet tileDefinitions;
 	private ScrolledComposite gridScroll;
-	private ScrolledComposite swatchScroll;
 	private IResourceChangeListener resourceChangeListener;
 
 	private boolean dirty;
@@ -92,13 +95,19 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 	private org.eclipse.swt.widgets.Button mirrorYCheck;
 	private org.eclipse.swt.widgets.Button rotateCheck;
 	private org.eclipse.swt.widgets.Button ulaOverCheck;
-	private boolean updatingTileProps; // guard against recursive updates
-	private org.eclipse.swt.graphics.Rectangle selectedEntryCell; // col,row of single-cell selection	// Info labels
+	private boolean updatingTileProps;
+	private org.eclipse.swt.graphics.Rectangle selectedEntryCell;
+
+	// Info labels
 	private Label tilemapModeLabel;
 	private Label tilemapSizeLabel;
 	private Label tilemapByteSizeLabel;
 	private Label selectedTileLabel;
 	private org.eclipse.swt.widgets.Link tilDefPathLink;
+
+	// Sprite view link
+	private ISpriteView spriteView;
+	private int selectedTileIndex;
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
@@ -160,13 +169,22 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 				var tilFile = wsRoot.getFile(new Path(tilPath));
 				if (tilFile != null && tilFile.exists()) {
 					try (var tilIn = tilFile.getContents()) {
-						return SpriteSheet.load(tilIn, bpp, true);
+						var sheet = SpriteSheet.load(tilIn, bpp, true);
+						// Tile definitions are always 8x8, but load() may use larger cell size
+						if (sheet.cellSize() != 8) {
+							sheet = sheet.withCellSize(8);
+						}
+						return sheet;
 					}
 				}
 				// Try as filesystem path
 				var fsPath = java.nio.file.Path.of(tilPath);
 				if (java.nio.file.Files.exists(fsPath)) {
-					return SpriteSheet.load(fsPath, bpp, true);
+					var sheet = SpriteSheet.load(fsPath, bpp, true);
+					if (sheet.cellSize() != 8) {
+						sheet = sheet.withCellSize(8);
+					}
+					return sheet;
 				}
 			}
 
@@ -183,42 +201,10 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		setupUndo();
 
 		var root = new Composite(parent, SWT.NONE);
-		var layout = new GridLayout(3, false);
+		var layout = new GridLayout(2, false);
 		layout.marginWidth = 8;
 		layout.marginHeight = 8;
 		root.setLayout(layout);
-
-		// Left: tile swatch for selecting tiles to place
-		var swatchGroup = new Group(root, SWT.NONE);
-		swatchGroup.setText("Tile Definitions");
-		swatchGroup.setLayout(new GridLayout(1, false));
-		swatchGroup.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).hint(200, SWT.DEFAULT).create());
-
-		tilDefPathLink = new org.eclipse.swt.widgets.Link(swatchGroup, SWT.WRAP);
-		tilDefPathLink.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		tilDefPathLink.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> openTilFile()));
-		updateTilDefPathLabel();
-
-		swatchScroll = new ScrolledComposite(swatchGroup, SWT.V_SCROLL | SWT.BORDER);
-		swatchScroll.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
-		swatchScroll.setExpandHorizontal(true);
-		swatchScroll.setExpandVertical(true);
-
-		tileSwatch = new SpriteSwatch(swatchScroll, tileDefinitions, 20, 8, SWT.NONE);
-		swatchScroll.setContent(tileSwatch);
-		swatchScroll.setMinSize(tileSwatch.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-
-		// Set up drag-and-drop for .til files
-		setupTilDropTarget(swatchGroup, swatchScroll);
-
-		tileSwatch.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-			var idx = tileSwatch.selected();
-			tilemapGrid.selectedTileIndex(idx);
-			if (selectedTileLabel != null) {
-				selectedTileLabel.setText(String.valueOf(idx));
-				selectedTileLabel.getParent().layout(true);
-			}
-		}));
 
 		// Center: tilemap grid in a scrolled composite
 		gridScroll = new ScrolledComposite(root, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
@@ -269,6 +255,20 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 	}
 
 	private void createInfoPanel(Composite parent) {
+		// Tile definition file link and drop target
+		var tilDefGroup = new Group(parent, SWT.NONE);
+		tilDefGroup.setText("Tile Definitions");
+		tilDefGroup.setLayout(new GridLayout(1, false));
+		tilDefGroup.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+
+		tilDefPathLink = new org.eclipse.swt.widgets.Link(tilDefGroup, SWT.WRAP);
+		tilDefPathLink.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+		tilDefPathLink.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> openTilFile()));
+		updateTilDefPathLabel();
+
+		// Set up drag-and-drop for .til files
+		setupTilDropTarget(tilDefGroup);
+
 		// Tilemap info group
 		var tilemapInfo = new Group(parent, SWT.NONE);
 		tilemapInfo.setText("Tilemap");
@@ -456,6 +456,14 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 
 	@Override
 	public void partActivated(IWorkbenchPart part) {
+		if (part.equals(this)) {
+			if(ZXPerspectivesUI.isPerspective(ZXPerspectives.ZX_MEDIA_ID)) {
+				openSpriteView();
+			}
+			else {
+				ZXPerspectivesUI.zxMediaPerspective(Activator.PLUGIN_ID);
+			}
+		}
 	}
 
 	@Override
@@ -473,6 +481,61 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 	@Override
 	public void partOpened(IWorkbenchPart part) {
 	}
+
+	// --- ISpriteSwatchEditor implementation ---
+
+	@Override
+	public SpriteSheet spriteSheet() {
+		return tileDefinitions;
+	}
+
+	@Override
+	public int swatchColumns() {
+		return tileDefinitions != null && tileDefinitions.size() > 256 ? 16 : 8;
+	}
+
+	@Override
+	public int swatchCellSize() {
+		return tileDefinitions != null && tileDefinitions.size() > 256 ? 16 : 20;
+	}
+
+	@Override
+	public int[] cellSizes() {
+		// Tile definitions are always 8x8
+		return new int[0];
+	}
+
+	@Override
+	public int selectedSpriteIndex() {
+		return selectedTileIndex;
+	}
+
+	@Override
+	public void selectSprite(int index) {
+		selectedTileIndex = index;
+		tilemapGrid.selectedTileIndex(index);
+		if (selectedTileLabel != null) {
+			selectedTileLabel.setText(String.valueOf(index));
+			selectedTileLabel.getParent().layout(true);
+		}
+	}
+
+	@Override
+	public void cellSizeChanged(int newCellSize) {
+		// Not applicable for tilemap tile definitions
+	}
+
+	@Override
+	public void spriteView(ISpriteView spriteView) {
+		this.spriteView = spriteView;
+	}
+
+	@Override
+	public boolean showPreviews() {
+		return false;
+	}
+
+	// --- End ISpriteSwatchEditor ---
 
 	private IFile getFile() {
 		return getEditorInput().getAdapter(IFile.class);
@@ -723,19 +786,10 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 			tileDefinitions = newDefs;
 			tilemap.tileDefinitions(tileDefinitions);
 
-			// Rebuild the swatch
-			tileSwatch.dispose();
-			tileSwatch = new SpriteSwatch(swatchScroll, tileDefinitions, 20, 8, SWT.NONE);
-			swatchScroll.setContent(tileSwatch);
-			swatchScroll.setMinSize(tileSwatch.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-			tileSwatch.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-				var idx = tileSwatch.selected();
-				tilemapGrid.selectedTileIndex(idx);
-				if (selectedTileLabel != null) {
-					selectedTileLabel.setText(String.valueOf(idx));
-					selectedTileLabel.getParent().layout(true);
-				}
-			}));
+			// Update the sprite view swatch
+			if (spriteView != null) {
+				spriteView.updateSpriteSheet(tileDefinitions, swatchColumns(), swatchCellSize());
+			}
 
 			// Refresh tilemap grid
 			tilemapGrid.invalidateAllCaches();
@@ -789,9 +843,9 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		}
 	}
 
-	private void setupTilDropTarget(Group swatchGroup, ScrolledComposite swatchScroll) {
+	private void setupTilDropTarget(Group tilDefGroup) {
 		var fileTransfer = FileTransfer.getInstance();
-		var dropTarget = new DropTarget(swatchGroup, DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_DEFAULT);
+		var dropTarget = new DropTarget(tilDefGroup, DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_DEFAULT);
 		dropTarget.setTransfer(new Transfer[] { fileTransfer });
 		dropTarget.addDropListener(new DropTargetAdapter() {
 			@Override
@@ -808,7 +862,7 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 					if (files != null && files.length > 0) {
 						var path = files[0];
 						if (path.toLowerCase().endsWith(".til")) {
-							applyTilFile(path, swatchScroll);
+							applyTilFile(path);
 						}
 					}
 				}
@@ -816,7 +870,7 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 		});
 	}
 
-	private void applyTilFile(String fsPath, ScrolledComposite swatchScroll) {
+	private void applyTilFile(String fsPath) {
 		try {
 			var tilPath = java.nio.file.Path.of(fsPath);
 			if (!java.nio.file.Files.exists(tilPath)) return;
@@ -828,6 +882,10 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 
 			// Load new tile definitions
 			var newDefs = SpriteSheet.load(tilPath, bpp, true);
+			// Tile definitions are always 8x8
+			if (newDefs.cellSize() != 8) {
+				newDefs = newDefs.withCellSize(8);
+			}
 
 			// Try to find workspace-relative path
 			var wsRoot = ResourcesPlugin.getWorkspace().getRoot();
@@ -846,19 +904,10 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 			tileDefinitions = newDefs;
 			tilemap.tileDefinitions(tileDefinitions);
 
-			// Rebuild the swatch
-			tileSwatch.dispose();
-			tileSwatch = new SpriteSwatch(swatchScroll, tileDefinitions, 20, 8, SWT.NONE);
-			swatchScroll.setContent(tileSwatch);
-			swatchScroll.setMinSize(tileSwatch.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-			tileSwatch.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
-				var idx = tileSwatch.selected();
-				tilemapGrid.selectedTileIndex(idx);
-				if (selectedTileLabel != null) {
-					selectedTileLabel.setText(String.valueOf(idx));
-					selectedTileLabel.getParent().layout(true);
-				}
-			}));
+			// Update the sprite view swatch
+			if (spriteView != null) {
+				spriteView.updateSpriteSheet(tileDefinitions, swatchColumns(), swatchCellSize());
+			}
 
 			// Update label
 			updateTilDefPathLabel();
@@ -869,6 +918,20 @@ public class TilemapEditor extends EditorPart implements IPartListener {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void openSpriteView() {
+		var window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (window != null) {
+			var page = window.getActivePage();
+			if (page != null) {
+				try {
+					page.showView(SpriteView.ID, null, org.eclipse.ui.IWorkbenchPage.VIEW_VISIBLE);
+				} catch (PartInitException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }

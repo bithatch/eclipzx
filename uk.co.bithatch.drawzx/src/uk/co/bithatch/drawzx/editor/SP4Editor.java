@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.Composite;
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.widgets.AbstractSpriteGrid.BackgroundType;
 import uk.co.bithatch.drawzx.widgets.SpriteEditorGrid;
-import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
 
 public class SP4Editor extends SPREditor {
 
@@ -31,19 +30,15 @@ public class SP4Editor extends SPREditor {
 	}
 
 	@Override
-	protected void layoutGridAndSwatch(Composite parent) {
-		var palettes = new Composite(parent, SWT.NONE);
-		var layout = new GridLayout(2, false);
-		layout.verticalSpacing = 2;
-		palettes.setLayout(layout);
-		palettes.setLayoutData(GridDataFactory.create(SWT.NONE).align(SWT.FILL, SWT.FILL).grab(true, true).create());
+	protected void createEditorLayout(Composite root) {
+		var layout = new GridLayout(1, false);
+		layout.marginWidth = 8;
+		layout.marginHeight = 8;
+		root.setLayout(layout);
 
-		spriteSwatch = new SpriteSwatch(palettes, spriteSheet, 32, 8, SWT.BORDER);
-        spriteSwatch.setLayoutData(GridDataFactory.create(SWT.NONE).align(SWT.CENTER, SWT.CENTER).grab(false, true).create());
-        
-        spriteGrid = new SpriteEditorGrid(palettes, spriteCell, SWT.BORDER);
-        spriteGrid.backgroundType(BackgroundType.SMALL_CHEQUER);
-        spriteGrid.setLayoutData(GridDataFactory.create(SWT.NONE).align(SWT.FILL, SWT.FILL).grab(true, true).create());
+		spriteGrid = new SpriteEditorGrid(root, spriteCell, SWT.BORDER);
+		spriteGrid.backgroundType(BackgroundType.SMALL_CHEQUER);
+		spriteGrid.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
 	}
 
 	@Override
@@ -51,8 +46,6 @@ public class SP4Editor extends SPREditor {
 		if( ( primary ? spriteGrid.color() : spriteGrid.secondaryColor() ) != index) {
 			super.colorSelected(index, primary);
 			spriteGrid.paletteOffset(picker.paletteOffset());
-			spritePreviewInverse.paletteOffset(picker.paletteOffset());
-			spritePreviewNormal.paletteOffset(picker.paletteOffset());
 		}
 	}
 
@@ -60,6 +53,4 @@ public class SP4Editor extends SPREditor {
 	public boolean isPaletteOffsetUsed() {
 		return true;
 	}
-
-
 }

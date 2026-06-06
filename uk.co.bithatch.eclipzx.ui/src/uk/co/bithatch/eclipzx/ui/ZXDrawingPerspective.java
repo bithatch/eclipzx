@@ -4,6 +4,7 @@ import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 import uk.co.bithatch.drawzx.views.ColourPickerView;
+import uk.co.bithatch.drawzx.views.SpriteView;
 
 public class ZXDrawingPerspective implements IPerspectiveFactory {
 
@@ -23,6 +24,7 @@ public class ZXDrawingPerspective implements IPerspectiveFactory {
         // Bottom folder: tabbed layout for multiple views
         IFolderLayout rightFolder = layout.createFolder("right", IPageLayout.RIGHT, 0.75f, editorArea);
         rightFolder.addView(ColourPickerView.ID);
+        rightFolder.addView(SpriteView.ID);
         
     }
 }

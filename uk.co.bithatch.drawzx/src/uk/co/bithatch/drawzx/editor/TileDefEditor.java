@@ -29,13 +29,13 @@ public class TileDefEditor extends SP4Editor {
 	}
 
 	@Override
-	protected int swatchColumns(SpriteSheet sheet) {
-		return 8;
+	protected int swatchColumnsFor(SpriteSheet sheet) {
+		return sheet.size() > 256 ? 16 : 8;
 	}
 
 	@Override
-	protected int swatchCellSize(SpriteSheet sheet) {
-		return 20;
+	protected int swatchCellSizeFor(SpriteSheet sheet) {
+		return sheet.size() > 256 ? 16 : 20;
 	}
 
 	@Override

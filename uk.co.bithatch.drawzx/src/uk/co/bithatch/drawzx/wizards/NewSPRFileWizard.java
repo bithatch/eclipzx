@@ -43,12 +43,28 @@ public class NewSPRFileWizard extends Wizard implements INewWizard {
 
 		try {
 
+			var palette = config.getPalette();
 			var spr = new SpriteSheet(
-				config.getPalette(), 
+				palette, 
 				config.getNumberOfSprites(), 
 				config.getCellSize(), 
 				config.getBPP()
 			);
+
+			if (config.isFillTransparency()) {
+				var transIdx = palette.transparency().orElse(-1);
+				if (transIdx >= 0) {
+					for (var cell : spr.cells()) {
+						var sz = cell.size();
+						for (var y = 0; y < sz; y++) {
+							for (var x = 0; x < sz; x++) {
+								cell.index(x, y, transIdx);
+							}
+						}
+					}
+				}
+			}
+
 			var path = file.getLocation().toPath();
 			try (var out = Files.newByteChannel(path, StandardOpenOption.WRITE,
 					StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {

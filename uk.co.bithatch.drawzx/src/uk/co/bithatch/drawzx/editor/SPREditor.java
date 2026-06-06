@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.Composite;
 import uk.co.bithatch.drawzx.sprites.SpriteSheet;
 import uk.co.bithatch.drawzx.widgets.AbstractSpriteGrid.BackgroundType;
 import uk.co.bithatch.drawzx.widgets.SpriteEditorGrid;
-import uk.co.bithatch.drawzx.widgets.SpriteSwatch;
 
 public class SPREditor extends AbstractSpriteEditor {
 
@@ -37,33 +36,12 @@ public class SPREditor extends AbstractSpriteEditor {
 
 	@Override
 	protected void createEditorLayout(Composite root) {
-		var layout = new GridLayout(2, false);
+		var layout = new GridLayout(1, false);
 		layout.marginWidth = 8;
 		layout.marginHeight = 8;
 		root.setLayout(layout);
 
-		// Left column: swatch
-		spriteSwatch = new SpriteSwatch(root, spriteSheet, swatchCellSize(spriteSheet), swatchColumns(spriteSheet), SWT.BORDER);
-		spriteSwatch.setLayoutData(GridDataFactory.fillDefaults().grab(false, true).create());
-
-		// Right column: info bar on top, editor canvas below
-		var rightArea = new Composite(root, SWT.NONE);
-		var rightLayout = new GridLayout(1, false);
-		rightLayout.marginWidth = 0;
-		rightLayout.marginHeight = 0;
-		rightArea.setLayout(rightLayout);
-		rightArea.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
-
-		var infoBar = new Composite(rightArea, SWT.NONE);
-		var infoLayout = new GridLayout(2, true);
-		infoLayout.marginWidth = 0;
-		infoLayout.marginHeight = 0;
-		infoBar.setLayout(infoLayout);
-		infoBar.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		createSpritesheetInfoGroup(infoBar).setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-		createSpriteInfoGroup(infoBar).setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-
-		spriteGrid = new SpriteEditorGrid(rightArea, spriteCell, SWT.BORDER);
+		spriteGrid = new SpriteEditorGrid(root, spriteCell, SWT.BORDER);
 		spriteGrid.backgroundType(BackgroundType.SMALL_CHEQUER);
 		spriteGrid.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
 	}
@@ -74,12 +52,12 @@ public class SPREditor extends AbstractSpriteEditor {
 	}
 
 	@Override
-	protected int swatchColumns(SpriteSheet sheet) {
+	protected int swatchColumnsFor(SpriteSheet sheet) {
 		return sheet.cellSize() <= 8 ? 8 : 4;
 	}
 
 	@Override
-	protected int swatchCellSize(SpriteSheet sheet) {
+	protected int swatchCellSizeFor(SpriteSheet sheet) {
 		return sheet.cellSize() <= 8 ? 20 : 32;
 	}
 
