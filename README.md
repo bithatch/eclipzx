@@ -62,6 +62,8 @@ The ZX Basic perspective has been removed and replaced with 3 separate perspecti
 
 **The existing ZX Basic perspective will remain if you have ever used EclipZX. It is safe to remove**
 
+The *Sprite Sheet* now has its own view instead of being embedded in the various editor types. This means each editor By default, the view is also linked with current UDG, sprite, tiledef or tilemap editor and will activate when an editor is used (you can unlink this).
+
 The Zoxo internal debugger is now taking shape, I expect for this to be fully available in a day or two.
  
 ## Status as of 4/06/2026
