@@ -57,7 +57,10 @@ public class ZoxoPreferencesAccess extends AbstractPreferencesAccess {
 	}
 
 	public MachineFactory<?, ?> getFallbackMachine() {
-		return machines.iterator().next();
+		return machines.stream().filter(m -> m.model().equals(Model.SPECTRUM48K)).findFirst().orElseGet(() -> {
+			return machines.iterator().next();	
+		});
+		
 	}
 	
 	public MachineFactory<?, ?> getDefaultModel() {

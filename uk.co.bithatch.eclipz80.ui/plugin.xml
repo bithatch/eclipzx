@@ -593,4 +593,19 @@
             class="uk.co.bithatch.eclipz80.ui.launch.AsmLaunchable" 
             extensions="asm"/>
     </extension>     
+    
+    <extension point="org.eclipse.ui.perspectiveExtensions">
+        <perspectiveExtension targetID="uk.co.bithatch.eclipzx.ui.codingPerspective">
+            <!-- Show the Run/Debug actions -->
+            <actionSet id="org.eclipse.debug.ui.launchActionSet" />
+            <!-- Optional: add New Project shortcut -->
+            <newWizardShortcut id="uk.co.bithatch.eclipz80.AsmProjectWizard" />
+        </perspectiveExtension>
+        <perspectiveExtension targetID="uk.co.bithatch.eclipzx.ui.debuggingPerspective">
+            <!-- Show the Run/Debug actions -->
+            <actionSet id="org.eclipse.debug.ui.launchActionSet" />
+            <actionSet id="org.eclipse.debug.ui.profileActionSet" />
+        </perspectiveExtension>
+    </extension>
+    
 </plugin>

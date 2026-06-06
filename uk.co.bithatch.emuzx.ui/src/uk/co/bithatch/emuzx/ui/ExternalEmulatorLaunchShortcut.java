@@ -23,48 +23,53 @@ public final class ExternalEmulatorLaunchShortcut extends AbstractEmulatorLaunch
 	@Override
 	protected final void doLaunch(IFile file, String mode) throws CoreException {
 
-		var workbench = PlatformUI.getWorkbench();
-		var shell = workbench.getActiveWorkbenchWindow().getShell();
+		var manager = DebugPlugin.getDefault().getLaunchManager();
+		var type = manager.getLaunchConfigurationType(ID);
+		var name = file.getProject().getName() + " - " + file.getName();
+		var projectName = file.getProject().getName();
+		var programPath = file.getProjectRelativePath().toString();
 
-		while (true) {
-
-			var manager = DebugPlugin.getDefault().getLaunchManager();
-			var type = manager.getLaunchConfigurationType(ID);
-			var name = file.getProject().getName() + " - " + file.getName();
-
-			ILaunchConfiguration config = null;
-
-			for (var cfg : manager.getLaunchConfigurations()) {
-				if (cfg.getName().equals(name)) {
-					if (cfg.getAttribute(EMULATOR_EXECUTABLE, "").equals("")) {
-						config = cfg;
-						break;
-					} else {
-						DebugUITools.launch(cfg, mode);
-					}
-					return;
-				}
-			}
-
-			if (config == null) {
-				var workingCopy = type.newInstance(null, manager.generateLaunchConfigurationName(name));
-
-				// Configure your emulator
-				workingCopy.setAttribute(EMULATOR_EXECUTABLE, "");
-				workingCopy.setAttribute(PROGRAM, file.getProjectRelativePath().toString());
-				workingCopy.setAttribute(PROJECT, file.getProject().getName());
-
-				config = workingCopy.doSave();
-			}
-
-			if (DebugUITools.openLaunchConfigurationPropertiesDialog(shell, config,
-					mode.equals(ILaunchManager.DEBUG_MODE) 
-						? "org.eclipse.debug.ui.launchGroup.debug"
-						: "org.eclipse.debug.ui.launchGroup.run") != Window.OK) {
-				return;
+		// Look for an existing config of the right type matching the project and program
+		ILaunchConfiguration config = null;
+		for (var cfg : manager.getLaunchConfigurations(type)) {
+			if (cfg.getAttribute(PROJECT, "").equals(projectName)
+					&& cfg.getAttribute(PROGRAM, "").equals(programPath)) {
+				config = cfg;
+				break;
 			}
 		}
 
+		// If no existing config, create one
+		if (config == null) {
+			var workingCopy = type.newInstance(null, manager.generateLaunchConfigurationName(name));
+			workingCopy.setAttribute(EMULATOR_EXECUTABLE, "");
+			workingCopy.setAttribute(PROGRAM, programPath);
+			workingCopy.setAttribute(PROJECT, projectName);
+			config = workingCopy.doSave();
+		}
+
+		// If no emulator configured yet, open the dialog so the user can set one up
+		if (config.getAttribute(EMULATOR_EXECUTABLE, "").isEmpty()) {
+			var workbench = PlatformUI.getWorkbench();
+			var shell = workbench.getActiveWorkbenchWindow().getShell();
+			var groupId = mode.equals(ILaunchManager.DEBUG_MODE)
+					? "org.eclipse.debug.ui.launchGroup.debug"
+					: "org.eclipse.debug.ui.launchGroup.run";
+
+			if (DebugUITools.openLaunchConfigurationPropertiesDialog(shell, config, groupId) != Window.OK) {
+				return;
+			}
+			// Re-read the config after the dialog may have saved changes
+			for (var cfg : manager.getLaunchConfigurations(type)) {
+				if (cfg.getAttribute(PROJECT, "").equals(projectName)
+						&& cfg.getAttribute(PROGRAM, "").equals(programPath)) {
+					config = cfg;
+					break;
+				}
+			}
+		}
+
+		DebugUITools.launch(config, mode);
 	}
 
 	@Override

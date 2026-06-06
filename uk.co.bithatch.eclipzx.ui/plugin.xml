@@ -91,4 +91,13 @@
         <perspective name="ZX Debugging" icon="icons/debug16.png" class="uk.co.bithatch.eclipzx.ui.ZXDebuggingPerspective" id="uk.co.bithatch.eclipzx.ui.debuggingPerspective" />
         <perspective name="ZX Media" icon="icons/drawing16.png" class="uk.co.bithatch.eclipzx.ui.ZXDrawingPerspective" id="uk.co.bithatch.eclipzx.ui.drawingPerspective" />
     </extension>
+    
+    <!--<extension point="org.eclipse.ui.perspectiveExtensions">
+        <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+            <perspectiveShortcut id="uk.co.bithatch.eclipzx.ui.codingPerspective" />
+        </perspectiveExtension>
+        <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+            <perspectiveShortcut id="uk.co.bithatch.eclipzx.ui.codingPerspective" />
+        </perspectiveExtension>
+    </extension>-->
 </plugin>

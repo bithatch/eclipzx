@@ -507,4 +507,11 @@
         </menuContribution>
     </extension>
     
+    <extension point="org.eclipse.ui.perspectiveExtensions">
+        <perspectiveExtension targetID="uk.co.bithatch.eclipzx.ui.drawingPerspective">
+            <!-- Optional: add New Project shortcut -->
+            <newWizardShortcut id="uk.co.bithatch.ayzxfx.wizards.newAFB" />
+        </perspectiveExtension>
+    </extension>
+    
 </plugin>

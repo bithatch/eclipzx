@@ -489,21 +489,22 @@
             </includes>
         </viewerActionBinding>
     </extension>
+    
     <extension point="org.eclipse.ui.perspectiveExtensions">
         <perspectiveExtension targetID="uk.co.bithatch.eclipzx.ui.codingPerspective">
             <!-- Show the Run/Debug actions -->
             <actionSet id="org.eclipse.debug.ui.launchActionSet" />
-            <actionSet id="org.eclipse.debug.ui.profileActionSet" />
             <!-- Optional: add New Project shortcut -->
             <newWizardShortcut id="uk.co.bithatch.zxbasic.BasicProjectWizard" />
         </perspectiveExtension>
-        <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
-            <perspectiveShortcut id="uk.co.bithatch.eclipzx.ui.codingPerspective" />
-        </perspectiveExtension>
-        <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
-            <perspectiveShortcut id="uk.co.bithatch.eclipzx.ui.codingPerspective" />
+        <perspectiveExtension targetID="uk.co.bithatch.eclipzx.ui.debuggingPerspective">
+            <!-- Show the Run/Debug actions -->
+            <actionSet id="org.eclipse.debug.ui.launchActionSet" />
+            <actionSet id="org.eclipse.debug.ui.profileActionSet" />
         </perspectiveExtension>
     </extension>
+    
+
     <extension point="org.eclipse.core.runtime.adapters">
         <factory adaptableType="uk.co.bithatch.zxbasic.ui.navigator.LibraryFileNode" class="uk.co.bithatch.zxbasic.ui.navigator.LibraryFileStorageAdapterFactory">
             <adapter type="org.eclipse.core.resources.IStorage" />
