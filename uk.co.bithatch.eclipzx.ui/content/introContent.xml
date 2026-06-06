@@ -6,13 +6,29 @@
     <group id="banner" style-id="container">
         <img src="images/banner.png" alt="EclipZX Banner" style-id="banner"/>
         <text>
-	        EclipZX is a complete Eclipse-based development environment for C, Boriel ZX Basic and Z80 assembly languagge programming for the ZX Spectrum.
+	        EclipZX is a complete Eclipse-based development environment for C, Boriel ZX Basic and Z80 assembly language programming for the ZX Spectrum.
 	        Develop on your PC using Linux, Windows or Mac OS, and deploy to any supported ZX Spectrum.
         </text>
         <link url="https://bithatch.co.uk/eclipzx" label="EclipZX Project Homepage"/>
     </group>
     
     <group id="setup" style-id="container" computed="true">
+    </group>
+
+    <group id="perspectives" style-id="container">
+       <text style-id="h1">Perspectives</text>
+       <text>To make the most of EclipZX, the use of Perspectives is recommended. A perspective
+       sets up the IDE to focus on a particular type of development task. Look for these icons at the top 
+       right of the window.</text>
+       
+        <group id="pespective-links" style-id="perspective-links">
+            <link url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.OpenCodingPerspectiveAction"><img src="images/coding.png" alt="ZX Coding" style-id="perspective"/></link>
+            <link url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.OpenCodingPerspectiveAction" label="Coding    "/>
+            <link url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.OpenDebugPerspectiveAction"><img src="images/debug.png" alt="ZX Debugging" style-id="perspective"/></link>
+            <link url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.OpenDebugPerspectiveAction" label="Debug    "/>
+            <link url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.OpenDrawingPerspectiveAction"><img src="images/drawing.png" alt="ZX Media" style-id="perspective"/></link>
+            <link url="http://org.eclipse.ui.intro/runAction?pluginId=uk.co.bithatch.eclipzx.ui&amp;class=uk.co.bithatch.eclipzx.ui.intro.OpenDrawingPerspectiveAction" label="Media    "/>
+        </group>
     </group>
 
     <group id="basic-getting-started" style-id="container">

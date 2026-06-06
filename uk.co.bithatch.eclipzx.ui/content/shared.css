@@ -51,3 +51,10 @@ a {
 .more-reading a {
     color: #0f0;
 }
+
+.perspective-links * {
+	vertical-align: middle;
+    display: inline;
+    text-decoration: none;
+    font-weight: bold;
+}

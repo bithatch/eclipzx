@@ -8,7 +8,7 @@
     </parent>
     <artifactId>uk.co.bithatch.eclipzx.repository</artifactId>
     <packaging>eclipse-repository</packaging>
- 
+
     <build>
         <plugins>
             <plugin>
@@ -21,22 +21,30 @@
                     <includeRequiredFeatures>true</includeRequiredFeatures>
                 </configuration>
             </plugin>
-            <!--
+
             <plugin>
                 <groupId>uk.co.bithatch</groupId>
                 <artifactId>niosync-maven-plugin</artifactId>
-                <version>0.9.0</version>
+                <version>0.9.2</version>
                 <executions>
                     <execution>
                         <id>sync-p2-repo</id>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>sync</goal>
                         </goals>
-                        <phase>deploy</phase>
                         <configuration>
                             <source>${basedir}/target/repository</source>
                             <target>ftp://${build.uploadUsername}:${build.uploadPassword}@${build.uploadHostname}/${build.uploadPath}</target>
                             <preserveAttributes>false</preserveAttributes>
+                            <serverId>bithatch-website</serverId>
+                            <checker>always</checker>
+                            <preserveAttributes>false</preserveAttributes>
+                            <environment>
+                                <connectTimeout>(int)60000</connectTimeout>
+                                <connectionMode>(enum)com.github.robtimus.filesystems.ftp.ConnectionMode.PASSIVE</connectionMode>
+                            </environment>
+
                         </configuration>
                     </execution>
                 </executions>
@@ -44,12 +52,12 @@
                     <dependency>
                         <groupId>com.github.robtimus</groupId>
                         <artifactId>ftp-fs</artifactId>
-                        <version>4.0</version>
+                        <version>4.0.1</version>
                     </dependency>
                 </dependencies>
-            </plugin>-->
-            
-            <plugin>
+            </plugin>
+
+            <!--<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -94,11 +102,11 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
         </plugins>
     </build>
-    
+
     <profiles>
         <profile>
             <id>products</id>
@@ -106,7 +114,7 @@
                 <plugins>
                     <plugin>
                         <groupId>org.eclipse.tycho</groupId>
-                        <artifactId>tycho-p2-director-plugin</artifactId>  
+                        <artifactId>tycho-p2-director-plugin</artifactId>
                         <executions>
                             <execution>
                                 <id>materialize-products</id>
@@ -122,7 +130,42 @@
                             </execution>
                         </executions>
                     </plugin>
-                    
+
+                    <plugin>
+                        <groupId>uk.co.bithatch</groupId>
+                        <artifactId>niosync-maven-plugin</artifactId>
+                        <version>0.9.2</version>
+                        <executions>
+                            <execution>
+                                <id>sync-p2-repo</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>sync</goal>
+                                </goals>
+                                <configuration>
+                                    <source>${basedir}/target/repository</source>
+                                    <target>ftp://${build.uploadUsername}:${build.uploadPassword}@${build.uploadHostname}/${build.uploadPath}</target>
+                                    <preserveAttributes>false</preserveAttributes>
+                                    <serverId>bithatch-website</serverId>
+                                    <checker>always</checker>
+                                    <preserveAttributes>false</preserveAttributes>
+                                    <environment>
+                                        <connectTimeout>(int)60000</connectTimeout>
+                                        <connectionMode>(enum)com.github.robtimus.filesystems.ftp.ConnectionMode.PASSIVE</connectionMode>
+                                    </environment>
+
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.github.robtimus</groupId>
+                                <artifactId>ftp-fs</artifactId>
+                                <version>4.0.1</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-antrun-plugin</artifactId>
@@ -132,37 +175,21 @@
                                 <phase>deploy</phase>
                                 <configuration>
                                     <target>
-                                        <ftp action="mkdir"
-                                             server="${build.uploadHostname}"
-                                             remotedir="${build.packageUploadPath}"
-                                             userid="${build.uploadUsername}"
-                                             password="${build.uploadPassword}"
-                                             ignoreNoncriticalErrors="true"
-                                             skipFailedTransfers="true">
+                                        <ftp action="mkdir" server="${build.uploadHostname}" remotedir="${build.packageUploadPath}" userid="${build.uploadUsername}"
+                                            password="${build.uploadPassword}" ignoreNoncriticalErrors="true" skipFailedTransfers="true">
                                         </ftp>
-                                        <ftp action="del"
-                                             server="${build.uploadHostname}"
-                                             remotedir="${build.packageUploadPath}"
-                                             userid="${build.uploadUsername}"
-                                             password="${build.uploadPassword}"
-                                             ignoreNoncriticalErrors="true"
-                                             passive="yes"
-                                             skipFailedTransfers="true">
+                                        <ftp action="del" server="${build.uploadHostname}" remotedir="${build.packageUploadPath}" userid="${build.uploadUsername}"
+                                            password="${build.uploadPassword}" ignoreNoncriticalErrors="true" passive="yes" skipFailedTransfers="true">
                                             <fileset>
-                                                <include name="*.zip"/>
-                                                <include name="*.tar.gz"/>
+                                                <include name="*.zip" />
+                                                <include name="*.tar.gz" />
                                             </fileset>
                                         </ftp>
-                                        <ftp server="${build.uploadHostname}"
-                                             remotedir="${build.packageUploadPath}"
-                                             userid="${build.uploadUsername}"
-                                             password="${build.uploadPassword}"
-                                             binary="yes"
-                                             passive="yes"
-                                             depends="no">
+                                        <ftp server="${build.uploadHostname}" remotedir="${build.packageUploadPath}" userid="${build.uploadUsername}" password="${build.uploadPassword}"
+                                            binary="yes" passive="yes" depends="no">
                                             <fileset dir="target/products">
-                                                <include name="*.zip"/>
-                                                <include name="*.tar.gz"/>
+                                                <include name="*.zip" />
+                                                <include name="*.tar.gz" />
                                             </fileset>
                                         </ftp>
                                     </target>
@@ -176,6 +203,6 @@
                 </plugins>
             </build>
         </profile>
-        
+
     </profiles>
 </project>
