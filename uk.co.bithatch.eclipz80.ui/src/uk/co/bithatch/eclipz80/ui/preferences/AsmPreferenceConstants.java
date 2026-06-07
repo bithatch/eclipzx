@@ -3,6 +3,8 @@ package uk.co.bithatch.eclipz80.ui.preferences;
 public interface AsmPreferenceConstants {
 	String COMPILER = "compiler";
 	String OUTPUT_PATH = "compiler.outputPath";
+	String LIBRARY_PATHS = "compiler.libraryPaths";
+	String INCLUDE_PATHS = "compiler.includePaths";
 	String ASSEMBLER_MODE = "compiler.assemblerMode";
 	String EXTERNAL_COMMAND = "compiler.externalCommand";
 	String GENERATE_MAP = "compiler.generateMap";
@@ -12,5 +14,5 @@ public interface AsmPreferenceConstants {
 	String ASSEMBLER_MODE_EXTERNAL = "external";
 
 	/** Separator used to store multiple defines in a single preference string. */
-	String DEFINES_SEPARATOR = "\n";
+	String DEFINES_SEPARATOR = "\n";;
 }

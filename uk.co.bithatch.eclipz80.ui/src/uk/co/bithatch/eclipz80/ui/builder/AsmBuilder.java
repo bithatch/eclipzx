@@ -32,6 +32,7 @@ import uk.co.bithatch.eclipz80.asm.AsmProgram;
 import uk.co.bithatch.eclipz80.generator.Z80Assembler;
 import uk.co.bithatch.eclipz80.ui.internal.Eclipz80Activator;
 import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
+import uk.co.bithatch.emuzx.ui.ResourceProperties;
 
 public class AsmBuilder extends IncrementalProjectBuilder {
 
@@ -100,7 +101,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 
 		// Only use built-in assembler
 		if (!prefs.isBuiltinAssembler(project)) {
-			return;
+			throw new CoreException(Status.error("External assembler support not yet implemented."));
 		}
 
 		// Parse the .asm file via Xtext
@@ -127,6 +128,8 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		var defines = prefs.getDefines(project);
 		var assembler = Z80Assembler.builder()
 				.withDefines(defines)
+				.withIncludePaths(prefs.getAllIncludePaths(project))
+				.withLibPaths(prefs.getAllIncludePaths(project))
 				.withZ80N() /* TODO temporarily always enable this, need arch property on projects */
 				.withOutputDir(prefs.getOutputFolder(project).getLocation().toPath())
 				.withMap(prefs.isGenerateMap(project))
@@ -242,16 +245,8 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 	
 	public static Path prepareForEmulatorLaunch(IOutputFormat fmt, IFile file, Path binFile) throws CoreException {
 		var wellKnownFormat = fmt.wellKnown().orElseThrow(() -> new IllegalArgumentException("Must be a well known output format."));
-		
-		/* TODO move ORG and SP out of NEX building architecture into something
-		 * generic that we can use for sharing with internal emulator, external
-		 * emulator and building for all 3 languages (all of which have support for
-		 * altering ORG at least).
-		 */
-//		str = str.replace("[clear]", String.valueOf(prepCtx.buildOptions().orgOrDefault() - 1));
-//		str = str.replace("[org]", String.valueOf(prepCtx.buildOptions().orgOrDefault()));
-		var start = 32768;
-		var clear = start - 1;
+		var start = ResourceProperties.getProperty(file, ResourceProperties.ORG_ADDRESS, 32768);
+		var clear = ResourceProperties.getProperty(file, ResourceProperties.ORG_ADDRESS, start - 1);
 		var baseName = FileNames.stripExtension(file.getName());
 		
 		try {
@@ -314,6 +309,8 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 			var defines = prefs.getDefines(project);
 			var assembler = Z80Assembler.builder()
 					.withDefines(defines)
+					.withIncludePaths(prefs.getAllIncludePaths(project))
+					.withLibPaths(prefs.getAllIncludePaths(project))
 					.withMap(mapFile)
 					.build();
 	

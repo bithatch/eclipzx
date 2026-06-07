@@ -59,10 +59,10 @@ import uk.co.bithatch.eclipz80.asm.*;
  *   <li>TODO: Explicit module.label syntax in expressions (needs grammar change for dotted AsmLabel)</li>
  *   <li>TODO: Section ordering in output (CODE, DATA, BSS reordering for linker phase)</li>
  *   <li>TODO: Proper linker-phase extern resolution (currently fails with address 0)</li>
- *   <li>TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP</li>
- *   <li>TODO: DMA directives — DMA.WR0 through DMA.WR6/DMA.CMD</li>
- *   <li>TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE</li>
- *   <li>TODO: PROC / LOCAL scoping</li>
+ *   <li>TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP  (Grammar exists, needs wiring up here)</li>
+ *   <li>TODO: DMA directives — DMA.WR0 through DMA.WR6/DMA.CMD  (Grammar exists, needs wiring up here)</li>
+ *   <li>TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE  (Grammar exists, needs wiring up here)</li>
+ *   <li>TODO: PROC / LOCAL scoping (Grammar exists, needs wiring up here)</li>
  *   <li>TODO: Numeric label support (AsmNumericLabelLine)</li>
  *   <li>TODO: Allow command line ORG setting that overrides the default and what assembly specifies</li>
  *   <li>TODO: Add all same command line options z80asm has</li>
@@ -155,6 +155,8 @@ public class Z80Assembler {
 	private WarningCallback warningCallback;
 	private String currentSection = "";
 	private String currentModule = "";
+	private boolean listing = false;
+	private boolean forcedORG;
 
 	private final Optional<Path> mapFile;
 	private final Optional<Path> outputDir;
@@ -162,6 +164,11 @@ public class Z80Assembler {
 	private final boolean farAddresses;
 	private final boolean z80n;
 	private final List<MapEntry> mapEntries = new ArrayList<>();
+	private Optional<Integer> forceORG;
+	private Optional<Integer> defaultORG;
+	private final int defaultFill;
+	private final List<Path> includePaths;
+	private final List<Path> libPaths;
 
 	/**
 	 * An entry in the line-to-address map.
@@ -188,13 +195,110 @@ public class Z80Assembler {
 	public static class Builder {
 		private Optional<Path> mapFile = Optional.empty();
 		private Optional<Path> outputDir = Optional.empty();
+		private Optional<Integer> forceORG = Optional.empty();
 		private boolean mapEnabled;
 		private boolean farAddresses;
 		private boolean z80n;
 		private final Map<String, String> defines = new LinkedHashMap<>();
 		private WarningCallback warningCallback;
+		private Optional<Integer> defaultORG = Optional.empty();
+		private Optional<Integer> defaultFill = Optional.empty();
+		private List<Path> includePaths = new ArrayList<>();
+		private List<Path> libPaths = new ArrayList<>();
 
 		private Builder() {}
+
+		/**
+		 * Add an array of paths to the list of those searched when locating
+		 * INCLUDE resources.
+		 * 
+		 * @param includePaths include paths
+		 * @return this for chaining
+		 */
+		public Builder addIncludePaths(Path... includePaths) {
+			return addIncludePaths(List.of(includePaths));
+		}
+
+		/**
+		 * Add a list of paths to the list of those searched when locating
+		 * INCLUDE resources.
+		 * 
+		 * @param includePaths include paths
+		 * @return this for chaining
+		 */
+		public Builder addIncludePaths(Collection<Path> includePaths) {
+			this.includePaths.addAll(includePaths);
+			return this;
+		}
+
+		/**
+		 * Set the paths searched when locating
+		 * INCLUDE resources.
+		 * 
+		 * @param includePaths include paths
+		 * @return this for chaining
+		 */
+		public Builder withIncludePaths(Path... includePaths) {
+			return withIncludePaths(List.of(includePaths));
+		}
+		
+		/**
+		 * Set the paths searched when locating
+		 * INCLUDE resources.
+		 * 
+		 * @param includePaths include paths
+		 * @return this for chaining
+		 */
+		public Builder withIncludePaths(Collection<Path> includePaths) {
+			this.includePaths.clear();
+			return addIncludePaths(includePaths);
+		}
+		
+		/**
+		 * Add an array of paths to the list of those searched when locating
+		 * library files
+		 * 
+		 * @param libPaths library paths
+		 * @return this for chaining
+		 */
+		public Builder addLibPaths(Path... libPaths) {
+			return addLibPaths(List.of(libPaths));
+		}
+		
+		/**
+		 * Add a list of paths to the list of those searched when locating
+		 * library files
+		 * 
+		 * @param libPaths library paths
+		 * @return this for chaining
+		 */
+		public Builder addLibPaths(Collection<Path> libPaths) {
+			this.libPaths.addAll(libPaths);
+			return this;
+		}
+
+		/**
+		 * Set the paths searched when locating
+		 * library files.
+		 * 
+		 * @param libPaths library paths
+		 * @return this for chaining
+		 */
+		public Builder withLibPaths(Path... libPaths) {
+			return withLibPaths(List.of(libPaths));
+		}
+
+		/**
+		 * Set the paths searched when locating
+		 * library files.
+		 * 
+		 * @param libPaths library paths
+		 * @return this for chaining
+		 */
+		public Builder withLibPaths(Collection<Path> libPaths) {
+			this.libPaths.clear();
+			return addLibPaths(includePaths);
+		}
 
 		/**
 		 * Enable .zmap output. The map file path will be derived from the
@@ -219,6 +323,41 @@ public class Z80Assembler {
 		 */
 		public Builder withMap(boolean map) {
 			this.mapEnabled = map;
+			return this;
+		}
+		
+		/**
+		 * Set the default ORG. The ORG directive in source may override
+		 * this as may {@link #withORG(int)}.
+		 * 
+		 * @param defaultORG default ORG
+		 * @return this for chaining
+		 */
+		public Builder withDefaultORG(int defaultORG) {
+			this.defaultORG  = Optional.of(defaultORG);
+			return this;
+		}
+		
+		/**
+		 * Set the default fill byte (DEFS). When not set, will be zero.
+		 * 
+		 * @param defaultFill default fill byte for DEEFS
+		 * @return this for chaining
+		 */
+		public Builder withDefaultFill(int defaultFill) {
+			this.defaultFill = Optional.of(defaultFill);
+			return this;
+		}
+		
+		/**
+		 * Force an ORG for the first section. The ORG directive in source may override
+		 * this.
+		 * 
+		 * @param forceORG force ORG of first section
+		 * @return this for chaining
+		 */
+		public Builder withORG(int forceORG) {
+			this.forceORG  = Optional.of(forceORG);
 			return this;
 		}
 
@@ -340,6 +479,11 @@ public class Z80Assembler {
 		this.z80n = false;
 		this.defines = new LinkedHashMap<>();
 		this.outputDir = Optional.empty();
+		this.forceORG = Optional.empty();
+		this.defaultORG = Optional.empty();
+		this.defaultFill = 0;
+		this.libPaths = Collections.emptyList();
+		this.includePaths = Collections.emptyList();
 	}
 
 	private Z80Assembler(Builder builder) {
@@ -350,6 +494,11 @@ public class Z80Assembler {
 		this.z80n = builder.z80n;
 		this.defines = new LinkedHashMap<>(builder.defines);
 		this.warningCallback = builder.warningCallback;
+		this.forceORG = builder.forceORG;
+		this.defaultORG = builder.defaultORG;
+		this.defaultFill = builder.defaultFill.orElse(0);
+		this.libPaths = Collections.unmodifiableList(new ArrayList<>(builder.libPaths));
+		this.includePaths = Collections.unmodifiableList(new ArrayList<>(builder.includePaths));
 	}
 
 	/**
@@ -367,7 +516,8 @@ public class Z80Assembler {
 	 */
 	public Results assemble(String sourceFileName, AsmProgram program, OutputStream out) {
 		warnings.clear();
-		currentAddress = 0;
+		forcedORG = false;
+		currentAddress = forceORG.or(() -> defaultORG).orElse(32768);
 		symbols.clear();
 		mapEntries.clear();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -393,7 +543,8 @@ public class Z80Assembler {
 
 		// ── Pass 2: emit final machine code with symbols resolved ──
 		pass1 = false;
-		currentAddress = 0;
+		forcedORG = false;
+		currentAddress = forceORG.or(() -> defaultORG).orElse(32768);
 		currentSection = "";
 		currentModule = deriveModuleName(this.effectiveSource);
 		assembleLines(program, baos);
@@ -571,7 +722,7 @@ public class Z80Assembler {
 				String lineFile = getSourceFile(stmtLine, effectiveSource);
 				this.currentLine = lineNumber;
 
-				if (!pass1 && lineNumber > 0) {
+				if (!pass1 && lineNumber > 0 && listing) {
 					mapEntries.add(new MapEntry(lineFile, lineNumber, currentAddress & addressMask()));
 				}
 
@@ -590,6 +741,13 @@ public class Z80Assembler {
 	private void assembleStatement(AsmStatement stmt, ByteArrayOutputStream out) {
 		// ── Directives ──
 		if (stmt instanceof Org) {
+			if(forceORG.isPresent()) {
+				if(forcedORG) {
+					return;
+				}
+				else
+					forcedORG = true;
+			}
 			currentAddress = resolveIntegralLiteral(((Org) stmt).getValue());
 			return;
 		}
@@ -660,6 +818,17 @@ public class Z80Assembler {
 					emit8(out, fill);
 				}
 			}
+			return;
+		}
+
+		// ── LSTS directives ──
+		if(stmt instanceof LSTON) {
+			listing = true;
+			return;
+		}
+
+		if(stmt instanceof LSTOFF) {
+			listing = false;
 			return;
 		}
 
@@ -1639,7 +1808,7 @@ public class Z80Assembler {
 	 */
 	private void assembleDefSpace(DefSpace directive, ByteArrayOutputStream out) {
 		int count = resolveImmediate(directive.getCount());
-		int fill = 0x00;
+		int fill = defaultFill;
 		if (directive.getFill() != null) {
 			fill = resolveImmediate(directive.getFill()) & 0xFF;
 		}
@@ -1700,7 +1869,8 @@ public class Z80Assembler {
 				emit8(out, b & 0xFF);
 			}
 		} catch (IOException e) {
-			warn("INCBIN: cannot read file '" + filePath + "': " + e.getMessage());
+			throw new AssemblyException(effectiveSource, currentLine,
+					"INCBIN: cannot read file '" + filePath + "': " + e.getMessage());
 		}
 	}
 
@@ -1723,8 +1893,8 @@ public class Z80Assembler {
 		// Resolve the include path relative to the containing resource
 		Resource containingResource = directive.eResource();
 		if (containingResource == null) {
-			warn("INCLUDE: cannot resolve '" + importURI + "' — no containing resource");
-			return;
+			throw new AssemblyException(effectiveSource, currentLine,
+					"INCLUDE: cannot resolve '" + importURI + "' — no containing resource");
 		}
 
 		URI baseURI = containingResource.getURI();
@@ -1736,18 +1906,18 @@ public class Z80Assembler {
 		try {
 			includedResource = resourceSet.getResource(resolvedURI, true);
 		} catch (Exception e) {
-			warn("INCLUDE: cannot load '" + importURI + "': " + e.getMessage());
-			return;
+			throw new AssemblyException(effectiveSource, currentLine,
+					"INCLUDE: cannot load '" + importURI + "': " + e.getMessage());
 		}
 
 		if (includedResource == null || includedResource.getContents().isEmpty()) {
-			warn("INCLUDE: empty or unresolvable resource '" + importURI + "'");
-			return;
+			throw new AssemblyException(effectiveSource, currentLine,
+					"INCLUDE: empty or unresolvable resource '" + importURI + "'");
 		}
 
 		if (!(includedResource.getContents().get(0) instanceof AsmProgram)) {
-			warn("INCLUDE: resource '" + importURI + "' does not contain an AsmProgram");
-			return;
+			throw new AssemblyException(effectiveSource, currentLine,
+					"INCLUDE: resource '" + importURI + "' does not contain an AsmProgram");
 		}
 
 		AsmProgram includedProgram = (AsmProgram) includedResource.getContents().get(0);

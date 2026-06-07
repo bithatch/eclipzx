@@ -11,6 +11,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
 import uk.co.bithatch.widgetzx.preferences.AbstractProjectSpecificPreferencePage;
+import uk.co.bithatch.widgetzx.preferences.LibraryFolderListEditor;
 import uk.co.bithatch.zxbasic.ui.library.ContributedSDKRegistry;
 import uk.co.bithatch.zxbasic.ui.tools.Python;
 

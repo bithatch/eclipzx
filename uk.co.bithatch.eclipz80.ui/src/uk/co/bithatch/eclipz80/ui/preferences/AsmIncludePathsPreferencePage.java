@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.eclipz80.ui.preferences;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.swt.SWT;
@@ -8,21 +8,19 @@ import org.eclipse.swt.widgets.Composite;
 import uk.co.bithatch.widgetzx.preferences.AbstractProjectSpecificPreferencePage;
 import uk.co.bithatch.widgetzx.preferences.LibraryFolderListEditor;
 
-public class UserLibrariesPreferencePage extends AbstractProjectSpecificPreferencePage {
+public class AsmIncludePathsPreferencePage extends AbstractProjectSpecificPreferencePage {
     
 
-	public UserLibrariesPreferencePage() {
-        super(ZXBasicPreferencesAccess.get(), ZXBasicPreferenceConstants.USER_LIBRARIES, GRID);
-        setDescription("User libraries can exist anywhere in your project or on your file system. "
-        		+ "These are added to Contributed Libraries to make up the final set of libraries "
-        		+ "available to your project. ");
+	public AsmIncludePathsPreferencePage() {
+        super(AsmPreferencesAccess.get(), AsmPreferenceConstants.LIBRARY_PATHS, GRID);
+        setDescription("Additional folder paths to search when locating INCLUDE resources in assemlby");
     }
 	
 	@Override
 	protected void createFieldEditors() {
 		super.createFieldEditors();
 		
-		addField(new LibraryFolderListEditor(ZXBasicPreferenceConstants.LIB_PATHS, "User Library Folders:", getFieldEditorParent(), 
+		addField(new LibraryFolderListEditor(AsmPreferenceConstants.LIBRARY_PATHS, "Include Folders:", getFieldEditorParent(), 
 				getWorkbench().getAdapter(IWorkspace.class).getRoot()) {
 
 			@Override

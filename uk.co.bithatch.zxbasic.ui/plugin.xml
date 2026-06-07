@@ -329,7 +329,7 @@
             </enabledWhen>
             <filter name="projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
         </page>
-        <page id="uk.co.bithatch.zxbasic.ui.builder.programBuildOptions" name="ZX Basic Compiler" class="uk.co.bithatch.zxbasic.ui.preferences.WorkspaceFileProgramBuildOptionsPage">
+        <page id="uk.co.bithatch.zxbasic.ui.builder.programBuildOptions" name="ZX Basic Output" class="uk.co.bithatch.zxbasic.ui.preferences.WorkspaceFileProgramBuildOptionsPage">
             <enabledWhen>
                 <adapt type="org.eclipse.core.resources.IFile">
                     <or>

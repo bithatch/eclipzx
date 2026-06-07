@@ -30,6 +30,7 @@ import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
 
 import uk.co.bithatch.bitzx.LaunchContext;
 import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
@@ -143,14 +144,16 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractPreparedLaunchC
 					}
 				}
 			});
-
+			
 			/* Register a debug target */
+			IDebugTarget debugTarget;
 			if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 				/* TODO configurable timeout */
 				Throwable lastException = null;
+				IDebugTarget tryDebugTarget = null;
 				for (int i = 0; i < 60; i++) {
 					try {
-						launch.addDebugTarget(launchable.createRemoteDebugTarget(configuration, launch, prepCtx, eclipseProcess));
+						tryDebugTarget = launchable.createRemoteDebugTarget(configuration, launch, prepCtx, eclipseProcess);
 						break;
 					} catch (UncheckedIOException ce) {
 						lastException = ce;
@@ -165,11 +168,38 @@ public class ExternalEmulatorLaunchConfiguration extends AbstractPreparedLaunchC
 						}
 					}
 				}
-				if (launch.getDebugTargets().length == 0)
+				if (tryDebugTarget == null)
 					throw new CoreException(Status.error("Failed to launch debugger.", lastException));
+				debugTarget = tryDebugTarget;
 			} else {
-				launch.addDebugTarget(launchable.createDefaultDebugTarget(launch, prepCtx, eclipseProcess));
+				debugTarget = launchable.createDefaultDebugTarget(launch, prepCtx, eclipseProcess);
 			}
+
+			launch.addDebugTarget(debugTarget);
+			
+			/**
+			 * Start a thread to wait for the process to finish and properly clean up
+			 * (e.g. if the emulator itself exits)
+			 */
+			var fprocess = process;
+			new Thread("Wait-For-Emulator-Exit") {
+				public void run() {
+					try {
+						fprocess.waitFor();
+					} catch (InterruptedException e) {
+					} finally {
+						try {
+							debugTarget.disconnect();
+						} catch (Exception e) {
+						} finally {
+							try {
+								debugTarget.terminate();
+							} catch (Exception e) {
+							}
+						}
+					}
+				}
+			}.start();
 		}
 		catch(RuntimeException | CoreException re) {
 			eclipseProcess.terminate();

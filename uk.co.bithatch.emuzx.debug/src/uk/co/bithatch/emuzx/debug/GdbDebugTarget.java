@@ -92,7 +92,16 @@ public class GdbDebugTarget extends ExternalEmulatorDebugTarget implements IMemo
 
 			@Override
 			protected void onAddBreakpoint(IBreakpoint breakpoint, int address) throws IOException {
-				setBreakpointWithPause(breakpoint, address);
+				if(helper == null) {
+					if (rsp.setBreakpoint(address)) {
+						super.onAddBreakpoint(breakpoint, address);
+					} else {
+						LOG.warn("GDB stub rejected breakpoint at 0x" + Integer.toHexString(address));
+					}
+				}
+				else {
+					setBreakpointWithPause(breakpoint, address);
+				}
 			}
 
 			@Override

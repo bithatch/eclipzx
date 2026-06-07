@@ -36,7 +36,7 @@ public class TNFSSharePropertiesPage extends PropertyPage {
 		composite.setLayout(layout);
 
 		var infoLabel = new Label(composite, SWT.WRAP);
-		infoLabel.setText("You can share this folder to any device capable of making of a TNFS connection, such as");
+		infoLabel.setText("You can share this folder to any device capable of making of a TNFS connection, such as a ZX Spectrum with Spectranet");
 		infoLabel.setLayoutData(swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(4, 1).hint(200, SWT.DEFAULT).create());
         infoLabel.setFont(getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 

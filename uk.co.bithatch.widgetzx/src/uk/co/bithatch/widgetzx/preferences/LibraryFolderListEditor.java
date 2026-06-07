@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preferences;
+package uk.co.bithatch.widgetzx.preferences;
 
 import java.io.File;
 import java.util.regex.Pattern;
@@ -68,7 +68,7 @@ public class LibraryFolderListEditor extends ListEditor {
                 Object[] selected = projDialog.getResult();
                 if (selected.length > 0) {
                     IPath path = (IPath) selected[0];
-                    return path.toPortableString();
+                    return path.makeRelative().toPortableString();
                 }
             }
         } else if (result == 1) {

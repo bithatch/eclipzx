@@ -490,6 +490,18 @@
                 </adapt>
             </enabledWhen>
         </page>
+        
+        <page id="uk.co.bithatch.eclipz88dk.ui.programBuildOptions" name="Z88DK Output" class="uk.co.bithatch.eclipz88dk.preferences.WorkspaceFileProgramBuildOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile">
+                    <or>
+                        <test property="org.eclipse.core.resources.extension" value="c" />
+                    </or>
+                </adapt>
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.eclipz88dk.Z88DKNature" />
+        </page>
+        
     </extension>
 
     <extension point="org.eclipse.ui.keywords">
@@ -601,4 +613,5 @@
             <actionSet id="org.eclipse.debug.ui.profileActionSet" />
         </perspectiveExtension>
     </extension>
+    
 </plugin>

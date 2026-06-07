@@ -5,7 +5,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
@@ -45,6 +47,10 @@ public class Z80AssemblerCLI {
 		String inputArg = null;
 		String outputArg = null;
 		Map<String, String> defs = new LinkedHashMap<>();
+		int forcedORG = -1;
+		int defaultFill = -1;
+		List<Path> includePaths = new ArrayList<>();
+		List<Path> libPaths = new ArrayList<>();
 
 		for (String arg : args) {
 			if ("--map".equals(arg)) {
@@ -56,6 +62,14 @@ public class Z80AssemblerCLI {
 				farAddresses = true;
 			} else if ("--z80n".equals(arg)) {
 				z80n = true;
+			} else if (arg.startsWith("-O")) {
+				includePaths.add(Paths.get(arg.substring(2).trim()));
+			} else if (arg.startsWith("-L")) {
+				libPaths.add(Paths.get(arg.substring(2).trim()));
+			} else if (arg.startsWith("-r")) {
+				forcedORG = parseNumber(arg.substring(2).trim());
+			}  else if (arg.startsWith("-f")) {
+				defaultFill = parseNumber(arg.substring(2).trim());
 			} else if(arg.startsWith("-D")) {
 				String name = arg.substring(2);
 				int idx = arg.indexOf('=');
@@ -69,7 +83,7 @@ public class Z80AssemblerCLI {
 		}
 
 		if (inputArg == null) {
-			System.err.println("Usage: Z80AssemblerCLI [--map[=<path>]] [--far] [--z80n] <input.asm> [output.bin]");
+			System.err.println("Usage: Z80AssemblerCLI [--map[=<path>]] [-r<org>] [-f<byte]>] [--far] [--z80n] <input.asm> [output.bin]");
 			System.exit(1);
 		}
 
@@ -118,11 +132,19 @@ public class Z80AssemblerCLI {
 				builder.withMap();
 			}
 		}
+		builder.withIncludePaths(includePaths);
+		builder.withLibPaths(libPaths);
 		if (farAddresses) {
 			builder.withFarAddresses();
 		}
 		if (z80n) {
 			builder.withZ80N();
+		}
+		if(forcedORG > 0) {
+			builder.withORG(forcedORG);
+		}
+		if(defaultFill > 0) {
+			builder.withDefaultFill(defaultFill);
 		}
 		
 		defs.forEach(builder::withDefine);
@@ -149,6 +171,18 @@ public class Z80AssemblerCLI {
 		System.out.println("Assembled " + binaryLength + " bytes to " + outputPath);
 		if (mapEnabled) {
 			System.out.println("Map:      " + results.mapFile());
+		}
+	}
+
+	private static int parseNumber(String str) {
+		if(str.startsWith("0x")) {
+			return Integer.parseInt(str.substring(2), 16);
+		}
+		else if(str.startsWith("$")) {
+			return Integer.parseInt(str.substring(0, str.length() - 1), 16);
+		}
+		else {
+			return Integer.parseInt(str);
 		}
 	}
 }

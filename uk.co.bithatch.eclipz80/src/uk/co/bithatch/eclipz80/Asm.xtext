@@ -5,12 +5,9 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * maybe others, i've no idea!)
  * 
  * TODO - Remaining Z88DK directives (https://github.com/z88dk/z88dk/wiki/Tool---z80asm---directives).
- * Note, some crossover here with preprocessor, not sure what means for us just yet
  * 
  *  - FLOAT (will require float expression support and lots of functions!)
  *  - INVOKE
- *  - LSTOFF
- *  - LSTON
  *  - PHASE
  *  - SETFLOAT
  */
@@ -90,6 +87,8 @@ AsmStatement:
     AsmDefSpaceDirective |
     AsmDefineDirective |
     AsmFPPDirective |
+    AsmLSTONDirective |
+    AsmLSTOFFDirective |
     AsmUndefineDirective |
     AsmDataDefineGroup |
     AsmDataDefineVars |
@@ -272,6 +271,14 @@ AsmIfNDefDirective:
         ('ELIFNDEF' elifName+=ID elifProgram+=AsmProgram)* 
         ('ELSE' elseProgram=AsmProgram)?
          'ENDIF'
+;
+
+AsmLSTONDirective:
+    {LSTON} 'LSTON'
+;
+
+AsmLSTOFFDirective:
+    {LSTOFF} 'LSTOFF'
 ;
 
 AsmEIStatement:

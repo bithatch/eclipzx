@@ -1,5 +1,6 @@
 package uk.co.bithatch.bitzx;
 
+import java.nio.file.Path;
 import java.util.Optional;
 
 import org.eclipse.core.resources.IFolder;
@@ -46,5 +47,9 @@ public abstract class LanguageSystemPreferencesAccess extends AbstractPreference
 	}
 
 	public abstract IFolder getOutputFolder(IProject project);
+	
+	public static Path resolveWorkspaceRelative(IProject project, String workspaceRelativePathOrAbsolute) {
+		return project.getWorkspace().getRoot().getLocation().toPath().resolve(workspaceRelativePathOrAbsolute);
+	}
 
 }

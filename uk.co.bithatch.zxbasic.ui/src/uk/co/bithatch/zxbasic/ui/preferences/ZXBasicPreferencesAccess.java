@@ -175,7 +175,7 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 					if (p.startsWith("/") || p.startsWith("\\")) {
 						return URI.createURI(new File(p).toURI().toString());
 					} else {
-						IResource member = project.findMember(p);
+						IResource member = project.getWorkspace().getRoot().findMember(p);
 						if (member == null) {
 							return null;
 						}
@@ -188,18 +188,10 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 
 	public List<File> getExternalLibs(IProject project) {
 		return getConfiguredLibraryPaths(project).stream().filter(p -> p.length() > 0).map(p -> {
-			return resolve(project, p);
+			return resolveWorkspaceRelative(project, p).toFile();
 		}).toList();
 	}
 	
-	private static File resolve(IProject project, String path) {
-		if (path.startsWith(File.separator)) {
-			return new File(path);
-		} else {
-			return new File(project.getLocation().toFile(), path);
-		}
-	}
-
 	public List<String> getConfiguredLibraryPaths(IProject project) {
 		return getStringListPreference(project, ZXBasicPreferenceConstants.LIB_PATHS);
 	}

@@ -1,5 +1,6 @@
 package uk.co.bithatch.eclipz80.ui.preferences;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -90,7 +91,58 @@ public class AsmPreferencesAccess extends LanguageSystemPreferencesAccess {
 		return Optional.of(SDKDefaults.SDK);
 	}
 
+	public List<String> getLibraryLocations(IProject project) {
+		String raw = getPreference(project, AsmPreferenceConstants.LIBRARY_PATHS, "");
+		if (raw.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return new ArrayList<>(Arrays.asList(raw.split(AsmPreferenceConstants.DEFINES_SEPARATOR)));
+	}
 
+	public List<Path> getLibraryPaths(IProject project) {
+		return getLibraryLocations(project).stream().map(n -> resolveWorkspaceRelative(project, n)).toList();
+	}
+	
+	public List<String> getIncludeLocations(IProject project) {
+		String raw = getPreference(project, AsmPreferenceConstants.INCLUDE_PATHS, "");
+		if (raw.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return new ArrayList<>(Arrays.asList(raw.split(AsmPreferenceConstants.DEFINES_SEPARATOR)));
+	}
+
+	public List<Path> getIncludePaths(IProject project) {
+		return getIncludeLocations(project).stream().map(n -> resolveWorkspaceRelative(project, n)).toList();
+	}
+	
+	public List<String> getAllLibraryLocations(IProject project) {
+		return getAllProjectReferences(project).stream().
+				flatMap(prj -> getLibraryLocations(prj).stream()).
+				distinct().
+				toList();
+	}
+	
+	public List<Path> getAllLibraryPaths(IProject project) {
+		return getAllProjectReferences(project).stream().
+				flatMap(prj -> getLibraryPaths(prj).stream()).
+				distinct().
+				toList();
+	}
+	
+	public List<String> getAllIncludeLocations(IProject project) {
+		return getAllProjectReferences(project).stream().
+				flatMap(prj -> getIncludeLocations(prj).stream()).
+				distinct().
+				toList();
+	}
+	
+	public List<Path> getAllIncludePaths(IProject project) {
+		return getAllProjectReferences(project).stream().
+				flatMap(prj -> getIncludePaths(prj).stream()).
+				distinct().
+				toList();
+	}
+	
 	public List<IProject> getAllProjectReferences(IProject project) {
 		try {
 			return Arrays.asList(project.getDescription().getReferencedProjects()).

@@ -7,7 +7,7 @@
         class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
         contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
         default="true"
-        extensions="asm"
+        extensions="asm,inc"
         icon="icons/asm16.png"
         id="uk.co.bithatch.eclipz80.Asm"
         name="Asm Editor">
@@ -96,14 +96,14 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.coloring"
 			name="Syntax Coloring">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_SyntaxColoring"/>
 		</page>
 		<page
 			category="uk.co.bithatch.eclipz80.Asm"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.templates"
 			name="Templates">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Templates"/>
 		</page>
 	</extension>
 	<extension
@@ -112,7 +112,7 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm"
 			name="Asm">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Language"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -121,9 +121,15 @@
 	</extension>
 	<extension
 		point="org.eclipse.ui.keywords">
-		<keyword
-			id="uk.co.bithatch.eclipz80.ui.keyword_Asm"
-			label="Asm"/>
+		<keyword id="uk.co.bithatch.eclipz80.ui.keyword_Asm" label="Asm"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_Compiler" label="Compiler"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_SyntaxColoring" label="Syntax Colouring"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_Defines" label="Defines"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_IncludePaths" label="Include Paths"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_LibPaths" label="Library Paths"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_Refactoring" label="Refactoring"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_Templates" label="Templates"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_Language" label="Language"/>
 	</extension>
 	<extension
 		point="org.eclipse.ui.commands">
@@ -228,7 +234,7 @@
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 		<content-type
 			base-type="org.eclipse.core.runtime.text"
-			file-extensions="asm"
+			file-extensions="asm,inc"
 			id="uk.co.bithatch.eclipz80.Asm.contenttype"
 			name="Asm File"
 			priority="normal">
@@ -321,15 +327,29 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmCompilerPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.compiler.preferencePage"
 			name="Compiler">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Compiler"/>
 		</page>
 		<page
 			category="uk.co.bithatch.eclipz80.Asm"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmDefinesPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.defines.preferencePage"
 			name="Defines">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Defines"/>
 		</page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmIncludePathsPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.includePaths.preferencePage"
+            name="Include Paths">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_IncludePaths"/>
+        </page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmLibraryPathsPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.libPaths.preferencePage"
+            name="Library Paths">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_LibPaths"/>
+        </page>
 	</extension>
 	<extension point="org.eclipse.ui.propertyPages">
 		<page
@@ -337,7 +357,7 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmCompilerPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.compiler.propertyPage"
 			name="Compiler">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Compiler"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -348,12 +368,44 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmDefinesPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.defines.propertyPage"
 			name="Defines">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Defines"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
 			<filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature"/>
 		</page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmIncludePathsPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.includePaths.propertyPage"
+            name="Include Paths">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_IncludePaths"/>
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject"/>
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature"/>
+        </page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmLibraryPathsPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.libPaths.propertyPage"
+            name="Library Paths">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_LibPaths"/>
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject"/>
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature"/>
+        </page>
+		<page id="uk.co.bithatch.eclipz80.ui.programBuildOptions" name="Assembly Output" class="uk.co.bithatch.eclipz80.ui.preferences.WorkspaceFileProgramBuildOptionsPage">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IFile">
+                    <or>
+                        <test property="org.eclipse.core.resources.extension" value="asm" />
+                    </or>
+                </adapt>
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature" />
+        </page>
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
@@ -468,13 +520,13 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.refactoring"
 			name="Refactoring">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Refactoring"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.compare.contentViewers">
 		<viewer id="uk.co.bithatch.eclipz80.Asm.compare.contentViewers"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="asm">
+			extensions="asm,inc">
 		</viewer>
 		<contentTypeBinding
 			contentTypeId="uk.co.bithatch.eclipz80.Asm.contenttype"
@@ -483,7 +535,7 @@
 	<extension point="org.eclipse.compare.contentMergeViewers">
 		<viewer id="uk.co.bithatch.eclipz80.Asm.compare.contentMergeViewers"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="asm" label="Asm Compare">
+			extensions="asm,inc" label="Asm Compare">
 		</viewer>
 		<contentTypeBinding
 			contentTypeId="uk.co.bithatch.eclipz80.Asm.contenttype"
@@ -492,12 +544,12 @@
 	<extension point="org.eclipse.ui.editors.documentProviders">
 		<provider id="uk.co.bithatch.eclipz80.Asm.editors.documentProviders"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
-			extensions="asm">
+			extensions="asm,inc">
 		</provider>
 	</extension>
 	<extension point="org.eclipse.team.core.fileTypes">
 		<fileTypes
-			extension="asm"
+			extension="asm,inc"
 			type="text">
 		</fileTypes>
 	</extension>
