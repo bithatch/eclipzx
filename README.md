@@ -134,7 +134,6 @@ It depends on interest of course. But I will be using these tools myself, so it 
 
 But if there is interest, more and better Emulator supports, and more platforms and graphics formats are the obvious areas where EclipZX could be expanded, even beyond the Sinclair range.
 
-
 ## License
 
 EclipZX plugins will be licensed under the usual Eclipse Public License version 2, and any original support libraries will be under a liberal license as possible (likely MIT). 
