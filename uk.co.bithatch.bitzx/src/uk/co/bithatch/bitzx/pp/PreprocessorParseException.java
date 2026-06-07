@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.preprocessor;
+package uk.co.bithatch.bitzx.pp;
 
 @SuppressWarnings("serial")
 public final class PreprocessorParseException extends RuntimeException {

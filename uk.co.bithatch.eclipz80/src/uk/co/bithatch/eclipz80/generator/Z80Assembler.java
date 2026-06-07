@@ -1887,18 +1887,53 @@ public class Z80Assembler {
 			return;
 		}
 
-		// Strip surrounding quotes if present (grammar's FileSpec uses STRING terminal)
+		// Strip surrounding quotes / angle brackets
+		boolean angleInclude = importURI.startsWith("<") && importURI.endsWith(">");
 		importURI = stripQuotes(importURI);
+		if (angleInclude) {
+			// stripQuotes won't handle angle brackets, strip them manually
+			importURI = importURI.substring(1, importURI.length() - 1);
+		}
 
-		// Resolve the include path relative to the containing resource
+		// Resolve the include path
 		Resource containingResource = directive.eResource();
 		if (containingResource == null) {
 			throw new AssemblyException(effectiveSource, currentLine,
 					"INCLUDE: cannot resolve '" + importURI + "' — no containing resource");
 		}
 
-		URI baseURI = containingResource.getURI();
-		URI resolvedURI = URI.createFileURI(importURI).resolve(baseURI);
+		URI resolvedURI = null;
+
+		// For quoted includes, try relative to the containing resource first
+		if (!angleInclude) {
+			URI baseURI = containingResource.getURI();
+			URI candidateURI = URI.createFileURI(importURI).resolve(baseURI);
+			try {
+				Path candidatePath = Path.of(java.net.URI.create(candidateURI.toString()));
+				if (Files.exists(candidatePath)) {
+					resolvedURI = candidateURI;
+				}
+			} catch (Exception e) {
+				// fall through to include path search
+			}
+		}
+
+		// Search the builder-provided include paths
+		if (resolvedURI == null && !includePaths.isEmpty()) {
+			for (Path incDir : includePaths) {
+				Path candidate = incDir.resolve(importURI);
+				if (Files.exists(candidate)) {
+					resolvedURI = URI.createFileURI(candidate.toAbsolutePath().toString());
+					break;
+				}
+			}
+		}
+
+		// Last resort: resolve relative to containing resource even if file may not exist
+		if (resolvedURI == null) {
+			URI baseURI = containingResource.getURI();
+			resolvedURI = URI.createFileURI(importURI).resolve(baseURI);
+		}
 
 		// Look up or load the resource from the resource set
 		ResourceSet resourceSet = containingResource.getResourceSet();

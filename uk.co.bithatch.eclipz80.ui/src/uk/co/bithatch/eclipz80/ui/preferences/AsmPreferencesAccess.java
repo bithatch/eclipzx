@@ -78,7 +78,7 @@ public class AsmPreferencesAccess extends LanguageSystemPreferencesAccess {
 	}
 	
 	public Map<String, String> getAllDefinesMap(IProject project) {
-		return getAllProjectReferences(project).
+		return getThisAndAllProjectReferences(project).
 				stream().
 				flatMap(prj ->
 					getDefinesMap(prj).entrySet().stream()
@@ -116,31 +116,38 @@ public class AsmPreferencesAccess extends LanguageSystemPreferencesAccess {
 	}
 	
 	public List<String> getAllLibraryLocations(IProject project) {
-		return getAllProjectReferences(project).stream().
+		return getThisAndAllProjectReferences(project).stream().
 				flatMap(prj -> getLibraryLocations(prj).stream()).
 				distinct().
 				toList();
 	}
 	
 	public List<Path> getAllLibraryPaths(IProject project) {
-		return getAllProjectReferences(project).stream().
+		return getThisAndAllProjectReferences(project).stream().
 				flatMap(prj -> getLibraryPaths(prj).stream()).
 				distinct().
 				toList();
 	}
 	
 	public List<String> getAllIncludeLocations(IProject project) {
-		return getAllProjectReferences(project).stream().
+		return getThisAndAllProjectReferences(project).stream().
 				flatMap(prj -> getIncludeLocations(prj).stream()).
 				distinct().
 				toList();
 	}
 	
 	public List<Path> getAllIncludePaths(IProject project) {
-		return getAllProjectReferences(project).stream().
+		return getThisAndAllProjectReferences(project).stream().
 				flatMap(prj -> getIncludePaths(prj).stream()).
 				distinct().
 				toList();
+	}
+	
+	public List<IProject> getThisAndAllProjectReferences(IProject project) {
+		return Stream.concat(
+			Stream.of(project), 
+			getAllProjectReferences(project).stream()
+		).toList();
 	}
 	
 	public List<IProject> getAllProjectReferences(IProject project) {
@@ -150,7 +157,7 @@ public class AsmPreferencesAccess extends LanguageSystemPreferencesAccess {
 				flatMap(prj -> 
 					Stream.concat(
 						Stream.of(project), 
-						getAllProjectReferences(prj).stream()
+						getThisAndAllProjectReferences(prj).stream()
 					)).
 				toList();
 
@@ -160,7 +167,7 @@ public class AsmPreferencesAccess extends LanguageSystemPreferencesAccess {
 	}
 
 	public List<URI> getProjectReferencesURIs(IProject project) {
-		return getAllProjectReferences(project).stream().map(prj -> URI.createURI(prj.getLocationURI().toString())).toList();
+		return getThisAndAllProjectReferences(project).stream().map(prj -> URI.createURI(prj.getLocationURI().toString())).toList();
 	}
 	
 	private final static class SDKDefaults {

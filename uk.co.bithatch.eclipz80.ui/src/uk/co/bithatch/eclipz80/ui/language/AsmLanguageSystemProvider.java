@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.emf.common.util.URI;
 
 import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
@@ -96,8 +95,7 @@ public class AsmLanguageSystemProvider implements ILanguageSystemProvider {
 
 	@Override
 	public Set<String> findIncludeSourcePaths(IFile file) {
-		return AsmPreferencesAccess.get().getProjectReferencesURIs(file.getProject()).stream().map(URI::toString)
-				.collect(Collectors.toSet());
+		return AsmPreferencesAccess.get().getAllIncludeLocations(file.getProject()).stream().collect(Collectors.toSet());
 	}
 
 	@Override

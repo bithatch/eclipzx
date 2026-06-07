@@ -3,6 +3,11 @@
  */
 package uk.co.bithatch.eclipz80;
 
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.xtext.resource.IResourceFactory;
+import org.eclipse.xtext.resource.IResourceServiceProvider;
+
+import com.google.inject.Injector;
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
@@ -11,5 +16,15 @@ public class AsmStandaloneSetup extends AsmStandaloneSetupGenerated {
 
 	public static void doSetup() {
 		new AsmStandaloneSetup().createInjectorAndDoEMFRegistration();
+	}
+
+	@Override
+	public void register(Injector injector) {
+		super.register(injector);
+		// Also register .inc files so they can be parsed as Asm resources
+		IResourceFactory resourceFactory = injector.getInstance(IResourceFactory.class);
+		IResourceServiceProvider serviceProvider = injector.getInstance(IResourceServiceProvider.class);
+		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("inc", resourceFactory);
+		IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put("inc", serviceProvider);
 	}
 }

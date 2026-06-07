@@ -56,13 +56,22 @@
 
 package uk.co.bithatch.eclipz80.scoping;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
+import com.google.inject.Inject;
+
+import uk.co.bithatch.eclipz80.IAsmIncludeSource;
 import uk.co.bithatch.eclipz80.asm.AsmInclude;
 
 public class AsmUriResolver extends ImportUriResolver {
+
+	@Inject(optional = true)
+	private IAsmIncludeSource includeSource;
 
 	@Override
 	public String resolve(EObject object) {
@@ -73,10 +82,35 @@ public class AsmUriResolver extends ImportUriResolver {
 		}
 
 		if (importURI != null) {
-			// Strip surrounding quotes if present
-			importURI = stripQuotes(importURI);
+			boolean angleInclude = importURI.startsWith("<") && importURI.endsWith(">");
 
-			// Resolve relative to the containing resource
+			// Strip surrounding quotes / angle brackets
+			importURI = stripDelimiters(importURI);
+
+			if (!angleInclude && object.eResource() != null) {
+				// Try resolving relative to the containing resource first
+				URI baseURI = object.eResource().getURI();
+				URI resolved = URI.createFileURI(importURI).resolve(baseURI);
+				// If the file exists at the relative location, use it
+				try {
+					Path relPath = Path.of(java.net.URI.create(resolved.toString()));
+					if (Files.exists(relPath)) {
+						return resolved.toString();
+					}
+				} catch (Exception e) {
+					// fall through to include path search
+				}
+			}
+
+			// Search include paths via IAsmIncludeSource
+			if (includeSource != null && object.eResource() != null) {
+				Path found = includeSource.find(object.eResource(), importURI);
+				if (found != null && Files.exists(found)) {
+					return found.toUri().toString();
+				}
+			}
+
+			// Last resort: resolve relative to resource even if file doesn't exist yet
 			if (object.eResource() != null) {
 				URI baseURI = object.eResource().getURI();
 				URI resolved = URI.createFileURI(importURI).resolve(baseURI);
@@ -88,11 +122,12 @@ public class AsmUriResolver extends ImportUriResolver {
 		return super.resolve(object);
 	}
 
-	private String stripQuotes(String s) {
+	private String stripDelimiters(String s) {
 		if (s != null && s.length() >= 2) {
 			char first = s.charAt(0);
 			char last = s.charAt(s.length() - 1);
-			if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+			if ((first == '"' && last == '"') || (first == '\'' && last == '\'')
+					|| (first == '<' && last == '>')) {
 				return s.substring(1, s.length() - 1);
 			}
 		}

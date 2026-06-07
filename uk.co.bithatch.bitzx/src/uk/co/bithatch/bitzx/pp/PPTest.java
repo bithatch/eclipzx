@@ -1,9 +1,9 @@
-package uk.co.bithatch.zxbasic.preprocessor;
+package uk.co.bithatch.bitzx.pp;
 
 import java.nio.file.Paths;
 import java.util.Map;
 
-import uk.co.bithatch.zxbasic.preprocessor.ZXPreprocessor.Mode;
+import uk.co.bithatch.bitzx.pp.GenericPreprocessor.Mode;
 
 
 
@@ -13,12 +13,12 @@ public class PPTest {
 		var smap = new SourceMap();
 
 		/* Build the preprocessor */
-		var ppfsBldr = new ZXPreprocessor.FileSystemResourceResolver.Builder().
+		var ppfsBldr = new GenericPreprocessor.FileSystemResourceResolver.Builder().
 				withRuntimeDir(Paths.get("/home/SOUTHPARK/tanktarta/Documents/Git/eclipzx/uk.co.bithatch.zxbasic.borielsdk/META-INF/zxbasic-1.18.1/src/lib/arch/zx48k/runtime")).
 				addIncludes("/home/SOUTHPARK/tanktarta/Documents/Git/eclipzx/uk.co.bithatch.zxbasic.borielsdk/META-INF/zxbasic-1.18.1/src/lib/arch/zx48k/stdlib").
 				addIncludePaths(Paths.get("tests/lib"));
 		
-		var pp = new ZXPreprocessor.Builder().
+		var pp = new GenericPreprocessor.Builder().
 				withSourceMap(smap).
 				withMode(Mode.EDITOR).
 				withDefines(Map.of("SMALL_NUMBER", "1")).

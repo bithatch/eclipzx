@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.preprocessor;
+package uk.co.bithatch.bitzx.pp;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,10 +30,15 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import uk.co.bithatch.zxbasic.preprocessor.SourceMap.Segment;
-import uk.co.bithatch.zxbasic.tools.AbstractTool;
+import uk.co.bithatch.bitzx.AbstractTool;
+import uk.co.bithatch.bitzx.pp.SourceMap.Segment;
 
-public class ZXPreprocessor extends AbstractTool {
+
+/**
+ * Generic pre-process compatible with ZX Basic preprocess (zxbpp), but with some additional
+ * features we need for editing.
+ */
+public class GenericPreprocessor extends AbstractTool {
 	
 	public enum Mode {
 		COMPILER, EDITOR
@@ -201,7 +206,7 @@ public class ZXPreprocessor extends AbstractTool {
 	/**
 	 * Builder
 	 */
-	public final static class Builder extends AbstractBuilder<Builder, ZXPreprocessor> {
+	public final static class Builder extends AbstractBuilder<Builder, GenericPreprocessor> {
 
 		private final Map<String, String> defines = new  HashMap<>();
 		private final Set<Warning> suppressedWarnings = new HashSet<Warning>(); 
@@ -273,8 +278,8 @@ public class ZXPreprocessor extends AbstractTool {
 			return this;
 		}
 		
-		public ZXPreprocessor build() {
-			return new ZXPreprocessor(this);
+		public GenericPreprocessor build() {
+			return new GenericPreprocessor(this);
 		}
 	}
 
@@ -288,7 +293,7 @@ public class ZXPreprocessor extends AbstractTool {
 	private final boolean expandRequire;
 	private final Mode mode;
     
-    private ZXPreprocessor(Builder bldr) {
+    private GenericPreprocessor(Builder bldr) {
     	super(bldr);
     	
 		suppressedWarnings = Collections.unmodifiableSet(new HashSet<>(bldr.suppressedWarnings));

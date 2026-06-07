@@ -247,11 +247,19 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
 			type="asm">
 		</parser>
+		<parser
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			type="inc">
+		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 		<resourceServiceProvider
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 			uriExtension="asm">
+		</resourceServiceProvider>
+		<resourceServiceProvider
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+			uriExtension="inc">
 		</resourceServiceProvider>
 	</extension>
 	<!-- marker definitions for uk.co.bithatch.eclipz80.Asm -->

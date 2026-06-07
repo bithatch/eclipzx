@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.preprocessor;
+package uk.co.bithatch.bitzx.pp;
 
 public enum Warning {
 	UNKNOWN_PREPROCESSOR_DIRECTIVE(2000),

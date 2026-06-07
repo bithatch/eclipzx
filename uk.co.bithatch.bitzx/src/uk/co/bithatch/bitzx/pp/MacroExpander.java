@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.preprocessor;
+package uk.co.bithatch.bitzx.pp;
 
 import java.util.*;
 import java.util.regex.*;

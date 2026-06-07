@@ -28,8 +28,8 @@ public class InterpreterLaunchShortcut extends AbstractEmulatorLaunchShortcut {
 	public InterpreterLaunchShortcut() {
 	}
 	
-//	static ZXPreprocessor createPreprocessor() {
-//		return new ZXPreprocessor.Builder().
+//	static GenericPreprocessor createPreprocessor() {
+//		return new GenericPreprocessor.Builder().
 //				build();
 //	}
 

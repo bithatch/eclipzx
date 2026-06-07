@@ -3,7 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Bitzx
 Bundle-SymbolicName: uk.co.bithatch.bitzx;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Export-Package: uk.co.bithatch.bitzx
+Export-Package: uk.co.bithatch.bitzx,
+ uk.co.bithatch.bitzx.pp
 Bundle-Activator: uk.co.bithatch.bitzx.Activator
 Bundle-Vendor: Bithatch
 Require-Bundle: org.eclipse.ui,

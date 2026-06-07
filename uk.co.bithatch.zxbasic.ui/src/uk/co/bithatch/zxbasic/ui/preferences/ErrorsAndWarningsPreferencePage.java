@@ -3,7 +3,7 @@ package uk.co.bithatch.zxbasic.ui.preferences;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 
 import uk.co.bithatch.widgetzx.preferences.AbstractProjectSpecificPreferencePage;
-import uk.co.bithatch.zxbasic.preprocessor.Warning;
+import uk.co.bithatch.zxbasic.ui.tools.ZXBC.Warning;
 
 
 public class ErrorsAndWarningsPreferencePage extends AbstractProjectSpecificPreferencePage {

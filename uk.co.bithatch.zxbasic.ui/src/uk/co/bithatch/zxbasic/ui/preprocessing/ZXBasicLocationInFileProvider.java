@@ -1,13 +1,6 @@
 package uk.co.bithatch.zxbasic.ui.preprocessing;
 
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.resource.DefaultLocationInFileProvider;
-import org.eclipse.xtext.util.ITextRegion;
-import org.eclipse.xtext.util.ITextRegionWithLineInformation;
-import org.eclipse.xtext.util.TextRegion;
-import org.eclipse.xtext.util.TextRegionWithLineInformation;
-
-import uk.co.bithatch.zxbasic.scoping.SourceMapRegistry;
 
 public class ZXBasicLocationInFileProvider extends DefaultLocationInFileProvider {
 

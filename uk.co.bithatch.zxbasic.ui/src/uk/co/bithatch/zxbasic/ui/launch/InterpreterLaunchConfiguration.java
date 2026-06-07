@@ -11,11 +11,11 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.xtext.resource.XtextResourceSet;
 
+import uk.co.bithatch.bitzx.pp.GenericPreprocessor;
 import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
 import uk.co.bithatch.zxbasic.BasicStandaloneSetup;
 import uk.co.bithatch.zxbasic.basic.CodeBlock;
 import uk.co.bithatch.zxbasic.basic.Program;
-import uk.co.bithatch.zxbasic.preprocessor.ZXPreprocessor;
 //import uk.co.bithatch.zxbasic.borielsdk.tools.ZXPreprocessor;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
@@ -31,12 +31,12 @@ public class InterpreterLaunchConfiguration extends AbstractConfigurationDelegat
 		var absPath = programFile.getLocation().toFile().getAbsolutePath();
 		
 		/* Build the preprocessor */
-		var ppfsBldr = new ZXPreprocessor.FileSystemResourceResolver.Builder().
+		var ppfsBldr = new GenericPreprocessor.FileSystemResourceResolver.Builder().
 				addIncludePaths(ZXBasicPreferencesAccess.get().getAllLibs(
 						programFile.getProject()).stream().map(File::toPath).toList()).
 				withWorkingDir(programFile.getLocation().toFile().getParentFile());
 		
-		var pp = new ZXPreprocessor.Builder().
+		var pp = new GenericPreprocessor.Builder().
 				withDefines(ZXBasicPreferencesAccess.get().getDefines(programFile.getProject())).
 				withResourceResolver(ppfsBldr.build()).build();
 		

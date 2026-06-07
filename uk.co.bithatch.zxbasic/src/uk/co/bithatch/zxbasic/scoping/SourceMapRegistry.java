@@ -6,7 +6,8 @@ import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.impl.AdapterImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 
-import uk.co.bithatch.zxbasic.preprocessor.SourceMap;
+import uk.co.bithatch.bitzx.pp.SourceMap;
+
 
 public class SourceMapRegistry {
 	

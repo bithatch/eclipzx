@@ -12,7 +12,7 @@ public class AsmIncludePathsPreferencePage extends AbstractProjectSpecificPrefer
     
 
 	public AsmIncludePathsPreferencePage() {
-        super(AsmPreferencesAccess.get(), AsmPreferenceConstants.LIBRARY_PATHS, GRID);
+        super(AsmPreferencesAccess.get(), AsmPreferenceConstants.INCLUDE_PATHS, GRID);
         setDescription("Additional folder paths to search when locating INCLUDE resources in assemlby");
     }
 	
@@ -20,7 +20,7 @@ public class AsmIncludePathsPreferencePage extends AbstractProjectSpecificPrefer
 	protected void createFieldEditors() {
 		super.createFieldEditors();
 		
-		addField(new LibraryFolderListEditor(AsmPreferenceConstants.LIBRARY_PATHS, "Include Folders:", getFieldEditorParent(), 
+		addField(new LibraryFolderListEditor(AsmPreferenceConstants.INCLUDE_PATHS, "Include Folders:", getFieldEditorParent(), 
 				getWorkbench().getAdapter(IWorkspace.class).getRoot()) {
 
 			@Override
