@@ -44,6 +44,10 @@ public class GenericPreprocessor extends AbstractTool {
 		COMPILER, EDITOR
 	}
 	
+	public interface PreProcessorConfiguration {
+		Optional<Character> lineContinuations();
+	}
+	
 	public final static class FileSystemResourceResolver implements ResourceResolver<Path> {
 
 		public final static class Builder {
@@ -138,7 +142,7 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 
 		@Override
-		public IncludeContext<Path> resolve(ResolveType resolveType, Path context, String name) {
+		public IncludeContext<Path> resolve(ResolveType resolveType, Path context, String name, PreProcessorConfiguration config) {
 			var oname = name;
 			
 			if(resolveType == ResolveType.RUNTIME && runtimedir.isPresent()) {
@@ -147,7 +151,7 @@ public class GenericPreprocessor extends AbstractTool {
 				if(Files.exists(lib)) {
 					return new IncludeContext<>(runtimedir.get(), 
 							lib.toAbsolutePath().toString(), 
-							new ReaderIterator(null), new AtomicBoolean(true));
+							new ReaderIterator(null, config), new AtomicBoolean(true));
 				}
 			}
 			else {
@@ -217,6 +221,17 @@ public class GenericPreprocessor extends AbstractTool {
 		private Optional<SourceMap> sourceMap = Optional.empty();
 		private boolean expandRequire = false;
 		private Mode mode= Mode.COMPILER;
+		private Optional<Character> lineContinuations = Optional.of('\\');
+
+		public Builder withoutLineContinuations() {
+			this.lineContinuations = Optional.empty();
+			return this;
+		}
+		
+		public Builder withLineContinuations(char lineContinuations) {
+			this.lineContinuations = Optional.of(lineContinuations);
+			return this;
+		}
 
 		public Builder withMode(Mode mode) {
 			this.mode = mode;
@@ -292,6 +307,7 @@ public class GenericPreprocessor extends AbstractTool {
 	private final Optional<SourceMap> sourceMap;
 	private final boolean expandRequire;
 	private final Mode mode;
+	private final Optional<Character> lineContinuations;
     
     private GenericPreprocessor(Builder bldr) {
     	super(bldr);
@@ -304,6 +320,7 @@ public class GenericPreprocessor extends AbstractTool {
 		onPragma = bldr.onPragma;
 		sourceMap = bldr.sourceMap;
 		expandRequire = bldr.expandRequire;
+		lineContinuations = bldr.lineContinuations;
 		mode = bldr.mode;
 
 		if(sourceMap.isPresent()) {
@@ -342,7 +359,7 @@ public class GenericPreprocessor extends AbstractTool {
     }
 
     public void process(Reader rdr, Writer wtr,  Object context) throws IOException {
-		var it = new ReaderIterator(rdr);
+		var it = new ReaderIterator(rdr, createPpConfig());
 		var pwtr = wtr instanceof PrintWriter pw ? pw : new PrintWriter(wtr, true);
     	doRun(it, context).forEach(s -> {
     		pwtr.println(s);
@@ -353,6 +370,15 @@ public class GenericPreprocessor extends AbstractTool {
 		var sit = new SourceToTargetIterator(context, root);
 		Iterable<String> iterable = () -> sit;
 		return StreamSupport.stream(iterable.spliterator(), false);
+	}
+
+	private PreProcessorConfiguration createPpConfig() {
+		return new PreProcessorConfiguration() {
+			@Override
+			public Optional<Character> lineContinuations() {
+				return lineContinuations;
+			}
+		};
 	}
 
 	private final class SourceToTargetIterator implements Iterator<String> {
@@ -584,7 +610,7 @@ public class GenericPreprocessor extends AbstractTool {
 				var rr = resourceResolver.get();
 				var res = stack.peek();
 				res.runtimeModule().set(true);
-				var rslv = rr.resolve(ResolveType.RUNTIME, res.context(), resname);
+				var rslv = rr.resolve(ResolveType.RUNTIME, res.context(), resname, createPpConfig());
 				
 				if(included.contains(rslv.uri())) {
 					return true;
@@ -640,7 +666,7 @@ public class GenericPreprocessor extends AbstractTool {
 				var res = stack.peek();
 				
 				try {
-					var rslv = rr.resolve(res.runtimeModule().get() ? ResolveType.RUNTIME : ResolveType.LIBRARIES, res.context(), resname);
+					var rslv = rr.resolve(res.runtimeModule().get() ? ResolveType.RUNTIME : ResolveType.LIBRARIES, res.context(), resname, createPpConfig());
 					
 					if(opts.contains("once") && included.contains(rslv.uri())) {
 						return true;

@@ -37,6 +37,7 @@ public class InterpreterLaunchConfiguration extends AbstractConfigurationDelegat
 				withWorkingDir(programFile.getLocation().toFile().getParentFile());
 		
 		var pp = new GenericPreprocessor.Builder().
+				withLineContinuations('_').
 				withDefines(ZXBasicPreferencesAccess.get().getDefines(programFile.getProject())).
 				withResourceResolver(ppfsBldr.build()).build();
 		

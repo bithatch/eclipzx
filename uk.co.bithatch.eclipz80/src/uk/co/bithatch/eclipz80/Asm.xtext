@@ -6,7 +6,15 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * 
  * TODO  - Remaining preprocessor ..
  * 
- *  - 
+ *  - #DEFINE
+ *  - #UNDEF
+ *  - ASSERT  expression, ["message"]
+ *  - DEFL
+ *  - EXITM
+ *  - MACRO
+ *  - REPT
+ *  - REPTC
+ *  - REPTI
  * 
  * TODO - Remaining Z88DK directives (https://github.com/z88dk/z88dk/wiki/Tool---z80asm---directives).
  * 

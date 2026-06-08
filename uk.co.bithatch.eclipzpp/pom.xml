@@ -5,9 +5,8 @@
 		<groupId>uk.co.bithatch</groupId>
 		<artifactId>uk.co.bithatch.eclipzx.parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../</relativePath>
 	</parent>
-	<artifactId>uk.co.bithatch.eclipz80</artifactId>
+	<artifactId>uk.co.bithatch.eclipzpp</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
 	<build>
@@ -29,7 +28,7 @@
 				<configuration>
 					<mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
 					<arguments>
-						<argument>/${project.basedir}/src/uk/co/bithatch/eclipz80/GenerateAsm.mwe2</argument>
+						<argument>/${project.basedir}/src/uk/co/bithatch/eclipzpp/GeneratePP.mwe2</argument>
 						<argument>-p</argument>
 						<argument>rootPath=/${project.basedir}/..</argument>
 					</arguments>
@@ -56,19 +55,19 @@
 				<configuration>
 					<filesets combine.children="append">
 						<fileset>
-							<directory>${basedir}/../uk.co.bithatch.eclipz80/src-gen/</directory>
+							<directory>${basedir}/../uk.co.bithatch.eclipzpp/src-gen/</directory>
 							<includes>
 								<include>**/*</include>
 							</includes>
 						</fileset>
 						<fileset>
-							<directory>${basedir}/../uk.co.bithatch.eclipz80.ide/src-gen/</directory>
+							<directory>${basedir}/../uk.co.bithatch.eclipzpp.ide/src-gen/</directory>
 							<includes>
 								<include>**/*</include>
 							</includes>
 						</fileset>
 						<fileset>
-							<directory>${basedir}/../uk.co.bithatch.eclipz80.ui/src-gen/</directory>
+							<directory>${basedir}/../uk.co.bithatch.eclipzpp.ui/src-gen/</directory>
 							<includes>
 								<include>**/*</include>
 							</includes>

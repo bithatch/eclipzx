@@ -1,0 +1,13 @@
+; Z80 Assembly - Hello World
+; Prints "Hello" to the screen using RST 10h (ZX Spectrum ROM)org $8000start:
+    ld hl, message
+.loop:
+    ld a, (hl)
+    or a
+    ret z
+    rst $10
+    inc hl
+    jr loop
+
+message:SOMETHING_ELSE
+db "Hello Big Bad World", 0

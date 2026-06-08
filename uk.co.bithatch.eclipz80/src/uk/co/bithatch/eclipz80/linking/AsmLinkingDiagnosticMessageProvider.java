@@ -19,6 +19,9 @@ public class AsmLinkingDiagnosticMessageProvider extends LinkingDiagnosticMessag
 	}
 
 	private boolean isKnownExternal(String name) {
+		
+		/* TODO get rid of this */
+		
 		// ZX Basic core runtime symbols
 		if (name.startsWith(".core.") || name.startsWith("core.__")) {
 			return true;

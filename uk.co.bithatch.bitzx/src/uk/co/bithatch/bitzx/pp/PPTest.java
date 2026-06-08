@@ -19,6 +19,7 @@ public class PPTest {
 				addIncludePaths(Paths.get("tests/lib"));
 		
 		var pp = new GenericPreprocessor.Builder().
+				withLineContinuations('_').
 				withSourceMap(smap).
 				withMode(Mode.EDITOR).
 				withDefines(Map.of("SMALL_NUMBER", "1")).

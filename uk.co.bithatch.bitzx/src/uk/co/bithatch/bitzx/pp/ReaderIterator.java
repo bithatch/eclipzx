@@ -7,11 +7,15 @@ import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import uk.co.bithatch.bitzx.pp.GenericPreprocessor.PreProcessorConfiguration;
+
 public final class ReaderIterator implements Iterator<String> {
 	private final BufferedReader br;
-	String line;
+	private	String line;
+	private PreProcessorConfiguration config;
 
-	public ReaderIterator(Reader br) {
+	public ReaderIterator(Reader br, PreProcessorConfiguration config) {
+		this.config = config;
 		this.br = br instanceof BufferedReader brr ? brr : new BufferedReader(br);
 	}
 
@@ -37,13 +41,27 @@ public final class ReaderIterator implements Iterator<String> {
 
 	private void checkNext() {
 		if(line == null) {
-			try {
-				line = br.readLine();
-				if(line == null) {
-					br.close();
+			String previous = null;
+			while(true) {
+				try {
+					line = br.readLine();
+					if(line == null) {
+						br.close();
+						break;
+					}
+					else {
+						if(previous != null) {
+							line = previous + line;
+						}
+						previous = null;
+					}
+					
+					if(config.lineContinuations().isPresent() && line.endsWith(config.lineContinuations().get().toString())) {
+						previous = line.substring(0, line.length() - 1) + System.lineSeparator();
+					}
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
 				}
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
 			}
 		}
 	}
