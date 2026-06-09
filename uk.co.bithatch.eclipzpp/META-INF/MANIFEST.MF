@@ -2,30 +2,10 @@ Manifest-Version: 1.0
 Automatic-Module-Name: uk.co.bithatch.eclipzpp
 Bundle-ManifestVersion: 2
 Bundle-Name: uk.co.bithatch.eclipzpp
-Bundle-Vendor: My Company
+Bundle-Vendor: Bithatch
 Bundle-Version: 1.0.0.qualifier
+Export-Package: uk.co.bithatch.eclipzpp
 Bundle-SymbolicName: uk.co.bithatch.eclipzpp; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext,
- org.eclipse.xtext.xbase,
- org.eclipse.equinox.common;bundle-version="3.19.0",
- org.eclipse.emf.ecore,
- org.eclipse.xtext.xbase.lib;bundle-version="2.43.0",
- org.eclipse.emf.common,
- org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
+Require-Bundle: uk.co.bithatch.bitzx;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
-Export-Package: uk.co.bithatch.eclipzpp.parser.antlr.lexer,
- uk.co.bithatch.eclipzpp.asm,
- uk.co.bithatch.eclipzpp.asm.impl,
- uk.co.bithatch.eclipzpp.parser.antlr,
- uk.co.bithatch.eclipzpp,
- uk.co.bithatch.eclipzpp.serializer,
- uk.co.bithatch.eclipzpp.validation,
- uk.co.bithatch.eclipzpp.parser.antlr.internal,
- uk.co.bithatch.eclipzpp.services,
- uk.co.bithatch.eclipzpp.scoping,
- uk.co.bithatch.eclipzpp.asm.util,
- uk.co.bithatch.eclipzpp.pp.impl,
- uk.co.bithatch.eclipzpp.pp,
- uk.co.bithatch.eclipzpp.pp.util
-Import-Package: org.apache.log4j

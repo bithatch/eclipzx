@@ -1,9 +1,10 @@
-package uk.co.bithatch.bitzx.pp;
+package uk.co.bithatch.eclipzpp;
 
 public enum Error {
 	UNKNOWN_PREPROCESS_DIRECTIVE(2000),
 	SYNTAX_ERROR(2001),
 	MISSING_INCLUDE(2002),
+	ASSERT_FAILED(2003),
 	ERROR_DIRECTIVE(0);
 	
 	private int code;
@@ -16,6 +17,8 @@ public enum Error {
 		switch(this) {
 		case ERROR_DIRECTIVE:
 			return "Error directive";
+		case ASSERT_FAILED:
+			return "Assertion failed";
 		default:
 			return name();
 		}

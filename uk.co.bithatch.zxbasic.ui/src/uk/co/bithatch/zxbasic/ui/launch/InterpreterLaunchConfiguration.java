@@ -11,6 +11,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.xtext.resource.XtextResourceSet;
 
+import uk.co.bithatch.bitzx.pp.FileSystemResourceResolver;
 import uk.co.bithatch.bitzx.pp.GenericPreprocessor;
 import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
 import uk.co.bithatch.zxbasic.BasicStandaloneSetup;
@@ -31,13 +32,12 @@ public class InterpreterLaunchConfiguration extends AbstractConfigurationDelegat
 		var absPath = programFile.getLocation().toFile().getAbsolutePath();
 		
 		/* Build the preprocessor */
-		var ppfsBldr = new GenericPreprocessor.FileSystemResourceResolver.Builder().
+		var ppfsBldr = new FileSystemResourceResolver.Builder().
 				addIncludePaths(ZXBasicPreferencesAccess.get().getAllLibs(
 						programFile.getProject()).stream().map(File::toPath).toList()).
 				withWorkingDir(programFile.getLocation().toFile().getParentFile());
 		
 		var pp = new GenericPreprocessor.Builder().
-				withLineContinuations('_').
 				withDefines(ZXBasicPreferencesAccess.get().getDefines(programFile.getProject())).
 				withResourceResolver(ppfsBldr.build()).build();
 		

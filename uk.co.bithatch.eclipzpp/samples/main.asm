@@ -5,7 +5,7 @@
 #define ROM_ROUTINE $10
 #define SOMETHING_ELSE ; Pants
 
-DEFINE ZZ = "NOOOO"
+DEFINE ZZ = 1 + 2 + 3
 
     assert THE_ORG , "NOOOO"
     org THE_ORG
@@ -24,6 +24,8 @@ start:
 
 message: 
 #undef SOMETHING_ELSE
+#ifdef SOMETHING_ELSE
 SOMETHING_ELSE
+#endif
 	include "message.inc" 
  

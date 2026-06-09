@@ -12,8 +12,8 @@ import org.eclipse.xtext.util.IAcceptor;
 
 import com.google.inject.Inject;
 
-import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.ILanguageSettings;
+import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.basic.Group;
 import uk.co.bithatch.zxbasic.basic.PPInclude;
 import uk.co.bithatch.zxbasic.basic.Program;

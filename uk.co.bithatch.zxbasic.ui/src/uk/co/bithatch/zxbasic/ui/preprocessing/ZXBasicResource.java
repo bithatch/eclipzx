@@ -19,8 +19,9 @@ import org.eclipse.xtext.util.TextRegion;
 
 import com.google.common.io.CharStreams;
 
+import uk.co.bithatch.bitzx.pp.FileSystemResourceResolver;
 import uk.co.bithatch.bitzx.pp.GenericPreprocessor;
-import uk.co.bithatch.bitzx.pp.GenericPreprocessor.Mode;
+import uk.co.bithatch.bitzx.pp.Mode;
 import uk.co.bithatch.bitzx.pp.SourceMap;
 import uk.co.bithatch.zxbasic.scoping.SourceMapRegistry;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
@@ -166,13 +167,12 @@ public class ZXBasicResource extends LazyLinkingResource {
 
 	public static GenericPreprocessor.Builder builderForProject(IProject project) {
 		var pax = ZXBasicPreferencesAccess.get();
-		var fs = new GenericPreprocessor.FileSystemResourceResolver.Builder().withIncludeDirs(pax.getAllLibs(project))
+		var fs = new FileSystemResourceResolver.Builder().withIncludeDirs(pax.getAllLibs(project))
 				.withWorkingDir(project.getLocation().toFile())
 				.withRuntimeDir(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).runtime(pax.getArchitecture(project))).build();
 
 		return new GenericPreprocessor.Builder().
 				withResourceResolver(fs).
-				withLineContinuations('_').
 				withDefines(pax.getDefines(project));
 	}
 }

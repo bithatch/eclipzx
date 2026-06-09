@@ -1,9 +1,11 @@
-package uk.co.bithatch.bitzx.pp;
+package uk.co.bithatch.eclipzpp;
 
 public enum Warning {
 	UNKNOWN_PREPROCESSOR_DIRECTIVE(2000),
 	WARNING_DIRECTIVE(0),
-	MACRO_REDEFINED(510);
+	MACRO_REDEFINED(510),
+	UNDEFINED_EXPRESSION_SYMBOL(511),
+	CIRCULAR_EXPRESSION_SYMBOL(512);
 	
 	private int code;
 
@@ -17,6 +19,10 @@ public enum Warning {
 			return "Warning Directive";
 		case MACRO_REDEFINED:
 			return "Macro redefined";
+		case UNDEFINED_EXPRESSION_SYMBOL:
+			return "Undefined expression symbol";
+		case CIRCULAR_EXPRESSION_SYMBOL:
+			return "Circular expression symbol";
 		default:
 			return name();
 		}
