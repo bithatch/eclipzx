@@ -23,7 +23,8 @@ Require-Bundle: uk.co.bithatch.zxbasic;visibility:=reexport,
  org.eclipse.core.variables;bundle-version="3.6.500",
  uk.co.bithatch.widgetzx;bundle-version="1.0.0";visibility:=reexport,
  uk.co.bithatch.emuzx.ui;bundle-version="1.0.0",
- uk.co.bithatch.emuzx.debug;bundle-version="1.0.0"
+ uk.co.bithatch.emuzx.debug;bundle-version="1.0.0",
+ uk.co.bithatch.eclipzpp;bundle-version="1.0.0"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Export-Package: uk.co.bithatch.zxbasic.ui;

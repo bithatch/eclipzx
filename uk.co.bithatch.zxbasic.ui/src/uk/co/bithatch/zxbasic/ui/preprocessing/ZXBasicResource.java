@@ -19,10 +19,10 @@ import org.eclipse.xtext.util.TextRegion;
 
 import com.google.common.io.CharStreams;
 
-import uk.co.bithatch.bitzx.pp.FileSystemResourceResolver;
-import uk.co.bithatch.bitzx.pp.GenericPreprocessor;
-import uk.co.bithatch.bitzx.pp.Mode;
-import uk.co.bithatch.bitzx.pp.SourceMap;
+import uk.co.bithatch.eclipzpp.FileSystemResourceResolver;
+import uk.co.bithatch.eclipzpp.GenericPreprocessor;
+import uk.co.bithatch.eclipzpp.Mode;
+import uk.co.bithatch.eclipzpp.SourceMap;
 import uk.co.bithatch.zxbasic.scoping.SourceMapRegistry;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
