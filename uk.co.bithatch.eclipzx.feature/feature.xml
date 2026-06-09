@@ -433,4 +433,8 @@ version(s), and exceptions or additional permissions here}.&quot;
          id="uk.co.bithatch.emuzx.emulator.zoxo"
          version="0.0.0"/>
 
+   <plugin
+         id="uk.co.bithatch.eclipzpp"
+         version="0.0.0"/>
+
 </feature>

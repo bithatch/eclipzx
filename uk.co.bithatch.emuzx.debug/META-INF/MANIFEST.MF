@@ -14,7 +14,8 @@ Require-Bundle: org.eclipse.ui;visibility:=reexport,
  org.eclipse.core.resources;visibility:=reexport,
  org.eclipse.debug.ui;visibility:=reexport,
  org.eclipse.ui.ide;bundle-version="3.22.600";visibility:=reexport,
- uk.co.bithatch.emuzx.ui;bundle-version="1.0.0"
+ uk.co.bithatch.emuzx.ui;bundle-version="1.0.0",
+ uk.co.bithatch.zyxy-dezog;bundle-version="0.0.4"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.emuzx.debug
 Bundle-ActivationPolicy: lazy
