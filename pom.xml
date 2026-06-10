@@ -35,6 +35,7 @@
 		<module>uk.co.bithatch.bitzx</module>
 		<module>uk.co.bithatch.widgetzx</module>
         <module>uk.co.bithatch.eclipzpp</module>
+        <module>uk.co.bithatch.eclipzpp.ui</module>
 		<module>uk.co.bithatch.zxbasic</module>
 		<module>uk.co.bithatch.zxbasic.ide</module>
 		<module>uk.co.bithatch.zxbasic.ui</module>

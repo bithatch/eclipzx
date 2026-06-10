@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: EclipZPP
+Bundle-Name: EclipZPP UI
 Bundle-SymbolicName: uk.co.bithatch.eclipzpp.ui
 Bundle-Version: 1.0.0.qualifier
 Export-Package: uk.co.bithatch.eclipzpp.ui
