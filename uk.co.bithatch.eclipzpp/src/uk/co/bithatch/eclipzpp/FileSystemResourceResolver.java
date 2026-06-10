@@ -127,7 +127,7 @@ public final class FileSystemResourceResolver implements ResourceResolver<Path> 
 		if(resolveType == ResolveType.RUNTIME && runtimedir.isPresent()) {
 			name = name.substring(1, name.length() - 1);
 			var lib = runtimedir.get().resolve(name);
-			if(Files.exists(lib)) {
+			if(isValid(lib)) {
 				return new IncludeContext<>(runtimedir.get(), 
 						lib.toAbsolutePath().toString(), 
 						new ReaderIterator(null), new AtomicBoolean(true));
@@ -157,7 +157,7 @@ public final class FileSystemResourceResolver implements ResourceResolver<Path> 
 				
 				var lib = nctx.resolve(name);
 				
-				if(Files.exists(lib)) {
+				if(isValid(lib)) {
 					try {
 						return new IncludeContext<>(nctx, lib.toAbsolutePath().toString(), new ReaderIterator(new InputStreamReader(Files.newInputStream(lib))));
 					} catch (IOException e) {
@@ -183,10 +183,14 @@ public final class FileSystemResourceResolver implements ResourceResolver<Path> 
 		}
 	}
 
+	private boolean isValid(Path lib) {
+		return Files.exists(lib) && !Files.isDirectory(lib);
+	}
+
 	private IncludeContext<Path> searchPaths(String name) {
 		for(var includePath : includePaths) {
 			var lib = includePath.resolve(name);
-			if(Files.exists(lib)) {
+			if(isValid(lib)) {
 				try {
 					return new IncludeContext<>(includePath, lib.toAbsolutePath().toString(), new ReaderIterator(new InputStreamReader(Files.newInputStream(lib))));
 				} catch (IOException e) {

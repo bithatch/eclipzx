@@ -112,10 +112,12 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 			bldr.withMode(Mode.COMPILER);
 			bldr.onError((err, txt) -> {
 				// TODO line numbers
+				System.out.println("ZZZ Preprocess error: " + txt);
 				addMarker(file, txt, 0, IMarker.SEVERITY_ERROR);
 			});
 			bldr.onWarning((wrn,txt) -> {
 				// TODO line numbers
+				System.out.println("ZZZ Preprocess wrn: " + txt);
 				addMarker(file, txt, 0, IMarker.SEVERITY_WARNING);
 			});
 		});
@@ -146,6 +148,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 					}
 					
 					if(include) {
+						System.out.println("ZZZ Parse err: " + ln + " " + diag.getMessage());
 						addMarker(file, diag.getMessage(), ln, IMarker.SEVERITY_ERROR);
 					}
 				}
@@ -169,6 +172,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 				.withMap(prefs.isGenerateMap(project))
 				.withSourceMap(resource.map())
 				.withWarningCallback((filename, line, warning) -> {
+					System.out.println("ZZZ Assemble warn: " + warning);
 					addMarker(file, warning, line, IMarker.SEVERITY_WARNING);
 				})
 				.build();

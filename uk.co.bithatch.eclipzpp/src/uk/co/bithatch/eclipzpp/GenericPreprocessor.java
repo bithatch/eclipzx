@@ -1374,8 +1374,8 @@ public class GenericPreprocessor extends AbstractTool {
 		private boolean include(String line) {
 			
 			if(resourceResolver.isPresent()) {
-				
-				var defln = line.startsWith("#") ? line.substring(9) : line.substring(8);
+				// #include
+				var defln = (line.startsWith("#") ? line.substring(8) : line.substring(7)).trim();
 				var idx = defln.lastIndexOf('>');
 				int sidx;
 				

@@ -23,11 +23,12 @@ import org.eclipse.xtext.util.TextRegion;
 import com.google.common.io.CharStreams;
 
 import uk.co.bithatch.eclipzpp.GenericPreprocessor;
+import uk.co.bithatch.eclipzpp.IMappedResource;
 import uk.co.bithatch.eclipzpp.Mode;
 import uk.co.bithatch.eclipzpp.SourceMap;
 import uk.co.bithatch.eclipzpp.SourceMapRegistry;
 
-public abstract class PPResource extends LazyLinkingResource {
+public abstract class PPResource extends LazyLinkingResource implements IMappedResource {
 	private final static ILog LOG = ILog.of(PPResource.class);
 
 	public static final String PROJECT_KEY = "zxbasic.project";
@@ -80,10 +81,36 @@ public abstract class PPResource extends LazyLinkingResource {
 	}
 
 	protected abstract Optional<IFile> getFile(Resource resource);
-	
+
+	@Override
 	public SourceMap map() {
 		return map;
 	}
+
+//	@Override
+//	public final void update(int offset, int replacedTextLength, String newText) {
+//		if (!isLoaded())
+//			throw new IllegalStateException("You can't update an unloaded resource.");
+//
+//		var file = getFile(this);
+//		if (file.isEmpty()) {
+//			super.update(offset, replacedTextLength, newText);
+//			return;
+//		}
+//
+//		try {
+//			SourceMapRegistry.set(map);
+//			isUpdating = true;
+//			super.update(offset, replacedTextLength, newText);
+//		}
+////		catch (IOException ioe) {
+////			throw new UncheckedIOException(ioe);
+////		} 
+//		finally {
+//			SourceMapRegistry.set(null);
+//			isUpdating = false;
+//		}
+//	}
 
 	@Override
 	public final void update(int offset, int replacedTextLength, String newText) {
@@ -179,21 +206,21 @@ public abstract class PPResource extends LazyLinkingResource {
 
 		var ppd = pp.process(instr);
 
-//		System.out.println("------------------->");
-//		var i = 1;
-//		for(var ln : ppd.split(System.lineSeparator())) {
-//			System.out.println(String.format("%03d : %s",  i++, ln));
-//		}
-//		System.out.println("<-------------------");
-//		
-//		pp.defines().forEach((k,v) -> {
-//			System.out.println("DEFINES: "+ k + "=" + v);
-//		});
-//		
-//		map.segments().forEach(seg -> {
-//			System.out.println("Seg " + seg.getUri() + " : " + seg.getOriginalLine() + " (" + seg.getOriginalLines()
-//					+ ") -> " + seg.getPreprocessedLine() + " (" + seg.getPreprocessedLines() + ")");
-//		});
+		System.out.println("------------------->");
+		var i = 1;
+		for(var ln : ppd.split(System.lineSeparator())) {
+			System.out.println(String.format("%03d : %s",  i++, ln));
+		}
+		System.out.println("<-------------------");
+		
+		pp.defines().forEach((k,v) -> {
+			System.out.println("DEFINES: "+ k + "=" + v);
+		});
+		
+		map.segments().forEach(seg -> {
+			System.out.println("Seg " + seg.getUri() + " : " + seg.getOriginalLine() + " (" + seg.getOriginalLines()
+					+ ") -> " + seg.getPreprocessedLine() + " (" + seg.getPreprocessedLines() + ")");
+		});
 		return ppd;
 	}
 
