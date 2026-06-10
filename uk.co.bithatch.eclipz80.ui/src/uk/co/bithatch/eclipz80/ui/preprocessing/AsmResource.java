@@ -10,6 +10,7 @@ import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
 import uk.co.bithatch.eclipzpp.FileSystemResourceResolver;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor.Builder;
+import uk.co.bithatch.eclipzpp.GenericPreprocessor.Format;
 import uk.co.bithatch.eclipzpp.ui.PPResource;
 import uk.co.bithatch.eclipzpp.ui.PPResourceUtil;
 
@@ -25,6 +26,7 @@ public class AsmResource extends PPResource {
 
 		return new GenericPreprocessor.Builder().
 				withResourceResolver(fs).
+				withFormat(Format.ASM).
 				withDefines(pax.getDefines(project));
 	}
 

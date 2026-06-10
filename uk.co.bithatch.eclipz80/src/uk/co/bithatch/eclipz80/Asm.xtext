@@ -4,16 +4,6 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * Z80 Grammar that covers Z88DK Assembler and Boriels ZX Basic assembler (and 
  * maybe others, i've no idea!)
  * 
- * TODO  - Remaining preprocessor ..
- * 
- *  - #DEFINE
- *  - #UNDEF
- *  - DEFL
- *  - MACRO
- *  - REPT
- *  - REPTC
- *  - REPTI
- * 
  * TODO - Remaining Z88DK directives (https://github.com/z88dk/z88dk/wiki/Tool---z80asm---directives).
  * 
  *  - FLOAT (will require float expression support and lots of functions!)
@@ -719,7 +709,7 @@ AsmDMAWR6Directive:
 ;
 
 AsmExternDirective:
-    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=ID (',' name+=ID)*
+    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=AsmLabelDef (',' name+=AsmLabelDef)*
 ;
 
 AsmPublicDirective:
@@ -727,7 +717,7 @@ AsmPublicDirective:
 ;
 
 AsmGlobalDirective:
-    {Global} ( 'GLOBAL') name+=ID (',' name+=ID)*
+    {Global} ( 'GLOBAL') name+=AsmLabelDef (',' name+=AsmLabelDef)*
 ;
 
 // ─────────────── Boriel Specific ───────────────
@@ -802,8 +792,12 @@ terminal STRING: ( '"' ( '\\' . | !('\\' | '"') )* '"' ) |
 terminal INT returns ecore::EInt: ('0'..'9')+;
 
 @Override
-terminal ID: '$' | ( ('@'|'.')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?
-           | ('@'|'.') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?);
+terminal ID: '$'
+            |
+            ( ('@'|'.')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?
+            | 
+            ('@'|'.') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?)
+            ;
              
 @Override
 terminal WS:

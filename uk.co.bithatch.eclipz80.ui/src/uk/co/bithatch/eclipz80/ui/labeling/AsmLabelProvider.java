@@ -83,7 +83,7 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 
 	String text(Extern ele) {
 		if (ele.getName() != null && !ele.getName().isEmpty()) {
-			return "EXTERN " + String.join(", ", ele.getName());
+			return "EXTERN " + String.join(", ", ele.getName().stream().map(e -> e.getName()).toList());
 		}
 		return "EXTERN";
 	}
@@ -179,7 +179,7 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 			return "INCLUDE " + ((AsmInclude) stmt).getImportURI();
 		} else if (stmt instanceof Extern) {
 			Extern ext = (Extern) stmt;
-			return "EXTERN " + (ext.getName() != null ? String.join(", ", ext.getName()) : "");
+			return "EXTERN " + (ext.getName() != null ? String.join(", ", ext.getName().stream().map(e -> e.getName()).toList()) : "");
 //		} else if (stmt instanceof IncBin) {
 //			return "INCBIN " + ((IncBin) stmt).getFile();
 		} 

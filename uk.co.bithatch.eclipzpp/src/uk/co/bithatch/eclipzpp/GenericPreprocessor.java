@@ -41,8 +41,10 @@ import uk.co.bithatch.eclipzpp.SourceMap.Segment;
 public class GenericPreprocessor extends AbstractTool {
 	
 	public enum Format {
-		Z88DK, BORIEL, ALL
+		Z88DK, BORIEL, ASM, ALL
 	}
+	
+	public record SourceReference(String type, int line, int originalLine, String originalUri) {}
 	
 	/**
 	 * Builder
@@ -195,6 +197,7 @@ public class GenericPreprocessor extends AbstractTool {
 	private final Mode mode;
 	private final Optional<Character> lineContinuations;
 	private final Format format;
+	private final Map<Integer, SourceReference> sourceReference = new HashMap<>();
     
     private GenericPreprocessor(Builder bldr) {
     	super(bldr);
@@ -218,6 +221,10 @@ public class GenericPreprocessor extends AbstractTool {
 			defines = new HashMap<>(bldr.defines);
 		}
 		defines.putAll(bldr.defines);
+    }
+    
+    public Map<Integer, SourceReference> sourceReference() {
+    	return sourceReference;
     }
     
     public Map<String, String> defines() {
@@ -593,6 +600,15 @@ public class GenericPreprocessor extends AbstractTool {
 						return Optional.of(line);
 					}
 				}
+				else if(directive.equals("c_line")) {
+					if(cLine(line.trim(), thisLineNo)) {
+						return includeDirectiveIfEditorMode(offset, line, 1, true);
+					}
+					else {
+						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						return Optional.of(line);
+					}
+				}
 				else if(directive.equals("define")) {
 					if(define(line.trim())) {
 						return includeDirectiveIfEditorMode(offset, line, 2, true);
@@ -690,43 +706,43 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 
 		private boolean isIfDirective(String directive) {
-			return directive.equals("#if") || directive.equals("if");
+			return directive.equals("#if") || ( format != Format.BORIEL && directive.equals("if"));
 		}
 
 		private boolean isElifDirective(String directive) {
-			return directive.equals("#elif") || directive.equals("elif");
+			return directive.equals("#elif") || ( format != Format.BORIEL && directive.equals("elif"));
 		}
 
 		private boolean isIfdefDirective(String directive) {
-			return directive.equals("#ifdef") || directive.equals("ifdef");
+			return directive.equals("#ifdef") || ( format != Format.BORIEL && directive.equals("ifdef"));
 		}
 
 		private boolean isIfndefDirective(String directive) {
-			return directive.equals("#ifndef") || directive.equals("ifndef");
+			return directive.equals("#ifndef") || ( format != Format.BORIEL && directive.equals("ifndef"));
 		}
 
 		private boolean isElifdefDirective(String directive) {
-			return directive.equals("#elifdef") || directive.equals("elifdef");
+			return directive.equals("#elifdef") || ( format != Format.BORIEL && directive.equals("elifdef"));
 		}
 
 		private boolean isElifndefDirective(String directive) {
-			return directive.equals("#elifndef") || directive.equals("elifndef");
+			return directive.equals("#elifndef") || ( format != Format.BORIEL && directive.equals("elifndef"));
 		}
 
 		private boolean isElseDirective(String directive) {
-			return directive.equals("#else") || directive.equals("else");
+			return directive.equals("#else") || ( format != Format.BORIEL && directive.equals("else"));
 		}
 
 		private boolean isEndifDirective(String directive) {
-			return directive.equals("#endif") || directive.equals("endif");
+			return directive.equals("#endif") || ( format != Format.BORIEL && directive.equals("endif"));
 		}
 
 		private boolean isEndrDirective(String directive) {
-			return directive.equals("endr") || directive.equals("#endr");
+			return directive.equals("#endr") || ( format != Format.BORIEL && directive.equals("endr"));
 		}
 
 		private boolean isEndmDirective(String directive) {
-			return directive.equals("endm") || directive.equals("#endm");
+			return directive.equals("#endm") || ( format != Format.BORIEL && directive.equals("endm"));
 		}
 
 		private boolean isDirectiveLine(String line, String directive) {
@@ -1368,6 +1384,28 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			else {
 				throw new UnsupportedOperationException("No resource resolver, set one to resolve includes.");
+			}
+		}
+
+		private boolean cLine(String line, int thisLineNo) {
+			var idx = line.indexOf(' ');
+			if(idx == -1) {
+				idx = line.indexOf('\t');
+			}
+			if(idx == -1) {
+				return false;
+			}
+			var type = line.substring(0, idx).trim();
+			var cline = line.substring(idx + 1).trim();
+			var parts =  Arrays.asList(cline.split(",")).stream().map(String::trim).toList();
+			try {
+				var num = Integer.parseInt(parts.get(0));
+				var filename = stripQuoted(parts.get(1));
+				sourceReference.put(thisLineNo + 1, new SourceReference(type, thisLineNo, num, filename));
+				return true;
+			}
+			catch(Exception nfe) {
+				return false;
 			}
 		}
 		

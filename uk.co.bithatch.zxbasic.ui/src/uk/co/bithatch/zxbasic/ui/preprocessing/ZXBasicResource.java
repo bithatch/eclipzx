@@ -9,6 +9,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import uk.co.bithatch.eclipzpp.FileSystemResourceResolver;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor.Builder;
+import uk.co.bithatch.eclipzpp.GenericPreprocessor.Format;
 import uk.co.bithatch.eclipzpp.ui.PPResource;
 import uk.co.bithatch.eclipzpp.ui.PPResourceUtil;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
@@ -24,6 +25,7 @@ public class ZXBasicResource extends PPResource {
 
 		return new GenericPreprocessor.Builder().
 				withResourceResolver(fs).
+				withFormat(Format.BORIEL).
 				withDefines(pax.getDefines(project));
 	}
 

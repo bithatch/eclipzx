@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>uk.co.bithatch.eclipz80</artifactId>
 	<packaging>eclipse-plugin</packaging>
-
+ 
 	<build>
 		<plugins>
 			<plugin>

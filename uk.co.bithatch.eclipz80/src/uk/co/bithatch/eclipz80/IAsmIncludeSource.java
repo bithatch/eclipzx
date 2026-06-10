@@ -9,6 +9,6 @@ public interface IAsmIncludeSource {
 
 	Path find(Resource resource, String importURI);
 
-	Set<String> find(Resource resource);
+	Set<String> find(Resource resource); 
 
 }

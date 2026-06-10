@@ -65,7 +65,7 @@ import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
 import com.google.inject.Inject;
 
-import uk.co.bithatch.eclipz80.IAsmIncludeSource;
+import uk.co.bithatch.eclipz80.IAsmIncludeSource; 
 import uk.co.bithatch.eclipz80.asm.AsmInclude;
 
 public class AsmUriResolver extends ImportUriResolver {
