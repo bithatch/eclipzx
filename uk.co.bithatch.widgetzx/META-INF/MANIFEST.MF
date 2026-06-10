@@ -6,13 +6,16 @@ Bundle-Version: 1.0.0.qualifier
 Export-Package: uk.co.bithatch.widgetzx,
  uk.co.bithatch.widgetzx.preferences,
  uk.co.bithatch.widgetzx.util
+Require-Bundle: org.eclipse.core.resources;bundle-version="[3.23.0,4.0.0)";visibility:=reexport,
+ org.eclipse.core.runtime;bundle-version="[3.34.0,4.0.0)";visibility:=reexport,
+ org.eclipse.debug.core;bundle-version="[3.23.0,4.0.0)";visibility:=reexport,
+ org.eclipse.debug.ui;bundle-version="[3.20.0,4.0.0)";visibility:=reexport,
+ org.eclipse.jface;bundle-version="[3.39.0,4.0.0)";visibility:=reexport,
+ org.eclipse.ui.ide;bundle-version="[3.23.0,4.0.0)";visibility:=reexport,
+ uk.co.bithatch.bitzx;bundle-version="[1.0.0,2.0.0)";visibility:=reexport,
+ org.eclipse.ui.workbench;bundle-version="[3.138.0,4.0.0)";visibility:=reexport
 Bundle-Activator: uk.co.bithatch.widgetzx.Activator
 Bundle-Vendor: Bithatch
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
- org.eclipse.ui.ide,
- uk.co.bithatch.bitzx;bundle-version="1.0.0";visibility:=reexport,
- org.eclipse.debug.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: uk.co.bithatch.widgetzx
 Bundle-ActivationPolicy: lazy
