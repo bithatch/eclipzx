@@ -1,12 +1,10 @@
-package uk.co.bithatch.zxbasic.scoping;
+package uk.co.bithatch.eclipzpp;
 
 import java.util.Optional;
 
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.impl.AdapterImpl;
 import org.eclipse.emf.ecore.resource.Resource;
-
-import uk.co.bithatch.eclipzpp.SourceMap;
 
 
 public class SourceMapRegistry {

@@ -1,12 +1,13 @@
 package uk.co.bithatch.zxbasic.ui.contentassist;
 
 import java.util.List;
+import java.util.stream.Stream;
 
-import uk.co.bithatch.zxbasic.IReferenceIndex;
+import uk.co.bithatch.eclipzpp.IReferenceIndex;
+import uk.co.bithatch.eclipzpp.ui.PPReferenceIndex;
 import uk.co.bithatch.zxbasic.interpreter.ZXStdlib;
-import uk.co.bithatch.zxbasic.scoping.SourceMapRegistry;
 
-public class BasicReferenceIndex implements IReferenceIndex {
+public class BasicReferenceIndex extends PPReferenceIndex {
 	
 	private final static IReferenceIndex DEFAULT = ZXStdlib.get();
 
@@ -15,18 +16,16 @@ public class BasicReferenceIndex implements IReferenceIndex {
 		if(DEFAULT.isDefined(offending))
 			return true;
 
-
-		var map = SourceMapRegistry.get();
-		if(map != null && map.defines().containsKey(offending)) {
-			return true;
-		}
-		
-		return false;
+		return super.isDefined(offending);
 	}
 
 	@Override
 	public List<String> definitions() {
-		return DEFAULT.definitions();
+		return Stream.concat(
+				super.definitions().stream(),
+				DEFAULT.definitions().stream()).
+				distinct().
+				toList();
 	}
 
 }

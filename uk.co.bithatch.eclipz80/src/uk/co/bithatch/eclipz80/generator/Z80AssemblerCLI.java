@@ -6,9 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -46,7 +44,6 @@ public class Z80AssemblerCLI {
 		boolean z80n = false;
 		String inputArg = null;
 		String outputArg = null;
-		Map<String, String> defs = new LinkedHashMap<>();
 		int forcedORG = -1;
 		int defaultFill = -1;
 		List<Path> includePaths = new ArrayList<>();
@@ -70,11 +67,6 @@ public class Z80AssemblerCLI {
 				forcedORG = parseNumber(arg.substring(2).trim());
 			}  else if (arg.startsWith("-f")) {
 				defaultFill = parseNumber(arg.substring(2).trim());
-			} else if(arg.startsWith("-D")) {
-				String name = arg.substring(2);
-				int idx = arg.indexOf('=');
-				String value = idx == -1 ? null : arg.substring(idx + 1);
-				defs.put(name, value);
 			} else if (inputArg == null) {
 				inputArg = arg;
 			} else if (outputArg == null) {
@@ -132,7 +124,6 @@ public class Z80AssemblerCLI {
 				builder.withMap();
 			}
 		}
-		builder.withIncludePaths(includePaths);
 		builder.withLibPaths(libPaths);
 		if (farAddresses) {
 			builder.withFarAddresses();
@@ -146,8 +137,6 @@ public class Z80AssemblerCLI {
 		if(defaultFill > 0) {
 			builder.withDefaultFill(defaultFill);
 		}
-		
-		defs.forEach(builder::withDefine);
 		
 		Z80Assembler assembler = builder.build();
 

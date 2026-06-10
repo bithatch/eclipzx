@@ -32,6 +32,9 @@ import uk.co.bithatch.eclipz80.asm.AsmProgram;
 import uk.co.bithatch.eclipz80.generator.Z80Assembler;
 import uk.co.bithatch.eclipz80.ui.internal.Eclipz80Activator;
 import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
+import uk.co.bithatch.eclipz80.ui.preprocessing.AsmResource;
+import uk.co.bithatch.eclipzpp.Mode;
+import uk.co.bithatch.eclipzpp.ui.PPResourcePreprocessorDecorator;
 import uk.co.bithatch.emuzx.ui.ResourceProperties;
 
 public class AsmBuilder extends IncrementalProjectBuilder {
@@ -103,16 +106,48 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		if (!prefs.isBuiltinAssembler(project)) {
 			throw new CoreException(Status.error("External assembler support not yet implemented."));
 		}
+		
+		// Configure the preprocessor that AsmResource will use
+		PPResourcePreprocessorDecorator.Instance.set(bldr -> {
+			bldr.withMode(Mode.COMPILER);
+			bldr.onError((err, txt) -> {
+				// TODO line numbers
+				addMarker(file, txt, 0, IMarker.SEVERITY_ERROR);
+			});
+			bldr.onWarning((wrn,txt) -> {
+				// TODO line numbers
+				addMarker(file, txt, 0, IMarker.SEVERITY_WARNING);
+			});
+		});
 
 		// Parse the .asm file via Xtext
 		AsmProgram program;
+		AsmResource resource;
 		try {
-			var resource = parseFile(file);
+			resource = (AsmResource)parseFile(file);
 
 			// Report parse errors as markers
 			if (resource.getErrors() != null && !resource.getErrors().isEmpty()) {
 				for (Resource.Diagnostic diag : resource.getErrors()) {
-					addMarker(file, diag.getMessage(), diag.getLine(), IMarker.SEVERITY_ERROR);
+					var ln = resource.map().translatePreprocessedToOriginalLine(diag.getLine(), null);
+					
+					/* The parser will also output undefined macro errors, we only want one for a particular line!
+					 */
+					var include = true;
+					if(diag.getMessage().startsWith("Undefined macro ")) {
+						for(var mkr : file.findMarkers(null, false, IResource.DEPTH_ONE)) {
+							var mln = mkr.getAttribute(IMarker.LINE_NUMBER, 0);
+							String mmsg = mkr.getAttribute(IMarker.MESSAGE, "");
+							if(mmsg.equals(diag.getMessage()) && mln == ln) {
+								include = false;
+								break;
+							}
+						}
+					}
+					
+					if(include) {
+						addMarker(file, diag.getMessage(), ln, IMarker.SEVERITY_ERROR);
+					}
 				}
 				return;
 			}
@@ -122,23 +157,19 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 			addMarker(file, "Failed to parse: " + e.getMessage(), 1, IMarker.SEVERITY_ERROR);
 			LOG.error("Failed to parse " + file.getFullPath(), e);
 			return;
+		} finally {
+			PPResourcePreprocessorDecorator.Instance.remove();
 		}
 
 		// Configure the assembler with project defines
-		var defines = prefs.getDefines(project);
 		var assembler = Z80Assembler.builder()
-				.withDefines(defines)
-				.withIncludePaths(prefs.getAllIncludePaths(project))
 				.withLibPaths(prefs.getAllIncludePaths(project))
 				.withZ80N() /* TODO temporarily always enable this, need arch property on projects */
 				.withOutputDir(prefs.getOutputFolder(project).getLocation().toPath())
 				.withMap(prefs.isGenerateMap(project))
+				.withSourceMap(resource.map())
 				.withWarningCallback((filename, line, warning) -> {
-					try {
-						addMarker(file, warning, line, IMarker.SEVERITY_WARNING);
-					} catch (CoreException e) {
-						LOG.error("Failed to create warning marker", e);
-					}
+					addMarker(file, warning, line, IMarker.SEVERITY_WARNING);
 				})
 				.build();
 
@@ -225,12 +256,17 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		return false;
 	}
 
-	private void addMarker(IFile file, String message, int lineNumber, int severity) throws CoreException {
-		IMarker marker = file.createMarker(MARKER_TYPE);
-		marker.setAttribute(IMarker.MESSAGE, message);
-		marker.setAttribute(IMarker.SEVERITY, severity);
-		if (lineNumber >= 1) {
-			marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+	private void addMarker(IFile file, String message, int lineNumber, int severity) {
+		try {
+			IMarker marker = file.createMarker(MARKER_TYPE);
+			marker.setAttribute(IMarker.MESSAGE, message);
+			marker.setAttribute(IMarker.SEVERITY, severity);
+			if (lineNumber >= 1) {
+				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+			}
+		}
+		catch(CoreException ce) {
+			LOG.error("Failed to add marker.", ce);
 		}
 	}
 
@@ -297,28 +333,39 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		var needMap = mode.equals("debug") || prefs.isGenerateMap(project);
 		
 		if(!Files.exists(outputBin) || (needMap && !Files.exists(mapFile))) {
-			var resource = parseFile(file);
-	
-			// Report parse errors as markers
-			if (resource.getErrors() != null && !resource.getErrors().isEmpty()) {
-				throw new CoreException(Status.error("Failed to prepare for launch, parser reported " + resource.getErrors().size() + " errors"));
-			}
-	
-			var program = (AsmProgram) resource.getContents().get(0);
+
 			
-			var defines = prefs.getDefines(project);
-			var assembler = Z80Assembler.builder()
-					.withDefines(defines)
-					.withIncludePaths(prefs.getAllIncludePaths(project))
-					.withLibPaths(prefs.getAllIncludePaths(project))
-					.withMap(mapFile)
-					.build();
-	
-			try(var outstr = Files.newOutputStream(outputBin)) {
-				assembler.assemble(file.getName(), program, outstr);
+			// Configure the preprocessor that AsmResource will use
+			PPResourcePreprocessorDecorator.Instance.set(bldr -> {
+				bldr.withMode(Mode.COMPILER);
+			});
+
+			try {
+				var resource = parseFile(file);
+		
+				// Report parse errors as markers
+				if (resource.getErrors() != null && !resource.getErrors().isEmpty()) {
+					throw new CoreException(Status.error("Failed to prepare for launch, parser reported " + resource.getErrors().size() + " errors"));
+				}
+		
+				var program = (AsmProgram) resource.getContents().get(0);
+				
+	//			var defines = prefs.getDefines(project);
+				var assembler = Z80Assembler.builder()
+						.withLibPaths(prefs.getAllIncludePaths(project))
+						.withMap(mapFile)
+						.withSourceMap(((AsmResource)resource).map())
+						.build();
+		
+				try(var outstr = Files.newOutputStream(outputBin)) {
+					assembler.assemble(file.getName(), program, outstr);
+				}
+				catch(IOException ioe) {
+					throw new CoreException(Status.error("Failed to prepare for launch, failed to assemble.", ioe));
+				}
 			}
-			catch(IOException ioe) {
-				throw new CoreException(Status.error("Failed to prepare for launch, failed to assemble.", ioe));
+			finally {
+				PPResourcePreprocessorDecorator.Instance.remove();	
 			}
 		}
 		return outputBin;

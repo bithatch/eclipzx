@@ -3,7 +3,7 @@ package uk.co.bithatch.zxbasic.interpreter;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.bithatch.zxbasic.IReferenceIndex;
+import uk.co.bithatch.eclipzpp.IReferenceIndex;
 import uk.co.bithatch.zxbasic.scoping.ScopingUtils;
 
 public class ZXStdlib implements IReferenceIndex {

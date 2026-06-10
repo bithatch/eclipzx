@@ -9,7 +9,68 @@ import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.util.CancelIndicator;
 
-import uk.co.bithatch.eclipz80.asm.*;
+import uk.co.bithatch.eclipz80.asm.AsmAlignDirective;
+import uk.co.bithatch.eclipz80.asm.AsmAssumeDirective;
+import uk.co.bithatch.eclipz80.asm.AsmBrkStatement;
+import uk.co.bithatch.eclipz80.asm.AsmBrlcStatement;
+import uk.co.bithatch.eclipz80.asm.AsmBslaStatement;
+import uk.co.bithatch.eclipz80.asm.AsmBsraStatement;
+import uk.co.bithatch.eclipz80.asm.AsmBsrfStatement;
+import uk.co.bithatch.eclipz80.asm.AsmBsrlStatement;
+import uk.co.bithatch.eclipz80.asm.AsmCallOzDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCallPkgDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCondition;
+import uk.co.bithatch.eclipz80.asm.AsmCopperMoveDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCopperNopDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCopperStopDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCopperWaitDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR0Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR1Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR2Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR3Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR4Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR5Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR6Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDataDefineGroup;
+import uk.co.bithatch.eclipz80.asm.AsmDataDefineVars;
+import uk.co.bithatch.eclipz80.asm.AsmDefByteDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefDWordDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefPointerDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefSpaceDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefTermStringDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefWordBEDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefcLine;
+import uk.co.bithatch.eclipz80.asm.AsmExternDirective;
+import uk.co.bithatch.eclipz80.asm.AsmImStatement;
+import uk.co.bithatch.eclipz80.asm.AsmInclude;
+import uk.co.bithatch.eclipz80.asm.AsmLabel;
+import uk.co.bithatch.eclipz80.asm.AsmLabelDef;
+import uk.co.bithatch.eclipz80.asm.AsmLabelEQULine;
+import uk.co.bithatch.eclipz80.asm.AsmLddrxStatement;
+import uk.co.bithatch.eclipz80.asm.AsmLddxStatement;
+import uk.co.bithatch.eclipz80.asm.AsmLdirxStatement;
+import uk.co.bithatch.eclipz80.asm.AsmLdixStatement;
+import uk.co.bithatch.eclipz80.asm.AsmLdpirxStatement;
+import uk.co.bithatch.eclipz80.asm.AsmLdwsStatement;
+import uk.co.bithatch.eclipz80.asm.AsmMirrorStatement;
+import uk.co.bithatch.eclipz80.asm.AsmMmuStatement;
+import uk.co.bithatch.eclipz80.asm.AsmModule;
+import uk.co.bithatch.eclipz80.asm.AsmMulStatement;
+import uk.co.bithatch.eclipz80.asm.AsmNextReg;
+import uk.co.bithatch.eclipz80.asm.AsmNumericLabelLine;
+import uk.co.bithatch.eclipz80.asm.AsmOrg;
+import uk.co.bithatch.eclipz80.asm.AsmOutinbStatement;
+import uk.co.bithatch.eclipz80.asm.AsmPixeladStatement;
+import uk.co.bithatch.eclipz80.asm.AsmPixeldnStatement;
+import uk.co.bithatch.eclipz80.asm.AsmProcStatement;
+import uk.co.bithatch.eclipz80.asm.AsmRegisterName;
+import uk.co.bithatch.eclipz80.asm.AsmSection;
+import uk.co.bithatch.eclipz80.asm.AsmSetaeStatement;
+import uk.co.bithatch.eclipz80.asm.AsmStatement;
+import uk.co.bithatch.eclipz80.asm.AsmSwapnibStatement;
+import uk.co.bithatch.eclipz80.asm.AsmTestStatement;
+import uk.co.bithatch.eclipz80.ui.preprocessing.AsmResource;
 
 public class AsmSemanticHighlightingCalculator implements ISemanticHighlightingCalculator {
 
@@ -21,6 +82,14 @@ public class AsmSemanticHighlightingCalculator implements ISemanticHighlightingC
 
         var root = resource.getContents().get(0);
         var allContents = root.eAllContents();
+		var map = ((AsmResource)resource).map();
+
+		System.out.println("HIGHLIGHT!");
+        map.hiddenLines().forEach((ln, text) -> {
+        	System.out.println("   ADDING HIDDEN AT " + ln + ": " + text);
+        	
+            acceptor.addPosition(ln, text.length(), AsmHighlightingConfiguration.PREPROCESSING_ID);
+        });
 
         while (allContents.hasNext()) {
             if (cancelIndicator.isCanceled())
@@ -73,11 +142,13 @@ public class AsmSemanticHighlightingCalculator implements ISemanticHighlightingC
                     || obj instanceof AsmDefSpaceDirective || obj instanceof AsmDataDefineGroup
                     || obj instanceof AsmDataDefineVars
                     || obj instanceof AsmExternDirective || obj instanceof AsmModule
-                    || obj instanceof AsmSection || obj instanceof AsmBinaryDirective
                     || obj instanceof AsmLabelEQULine || obj instanceof AsmDefcLine
-                    || obj instanceof AsmLocalLine
+                    || obj instanceof AsmAssumeDirective
+                    || obj instanceof AsmSection 
+//                    || obj instanceof AsmLocalLine
+//                    || obj instanceof AsmCLINE 
+//                    || obj instanceof AsmBinaryDirective
                     || obj instanceof AsmCallOzDirective || obj instanceof AsmCallPkgDirective
-                    || obj instanceof AsmAssumeDirective || obj instanceof AsmCLINE
                     || obj instanceof AsmProcStatement || obj instanceof AsmImStatement) {
                 highlightKeyword(obj, acceptor, AsmHighlightingConfiguration.DIRECTIVE_ID);
             }
@@ -102,7 +173,12 @@ public class AsmSemanticHighlightingCalculator implements ISemanticHighlightingC
         }
     }
 
-    /**
+	private int lineToOffset(XtextResource resource, int line) {
+		// TODO
+		return 0;
+	}
+
+	/**
      * Highlights the entire node for a given EObject.
      */
     private void highlightNode(EObject obj, IHighlightedPositionAcceptor acceptor, String id) {

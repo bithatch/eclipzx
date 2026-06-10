@@ -10,6 +10,7 @@ import org.eclipse.xtext.resource.IDefaultResourceDescriptionStrategy;
 import org.eclipse.xtext.scoping.IGlobalScopeProvider;
 import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
+import uk.co.bithatch.eclipzpp.PPSyntaxErrorMessageProvider;
 import uk.co.bithatch.zxbasic.generator.BasicGenerator;
 import uk.co.bithatch.zxbasic.scoping.ZXBasicGlobalScopeProvider;
 import uk.co.bithatch.zxbasic.scoping.ZXBasicQualifiedNameConverter;
@@ -57,7 +58,7 @@ public class BasicRuntimeModule extends AbstractBasicRuntimeModule {
 	}
 	
 	public Class<? extends ISyntaxErrorMessageProvider> bindISyntaxErrorMessageProvider() {
-	    return ZxbasicSyntaxErrorMessageProvider.class;
+	    return PPSyntaxErrorMessageProvider.class;
 	}
 
 }

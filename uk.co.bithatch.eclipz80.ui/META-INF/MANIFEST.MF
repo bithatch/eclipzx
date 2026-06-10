@@ -23,7 +23,9 @@ Require-Bundle: uk.co.bithatch.eclipz80,
  uk.co.bithatch.bitzx;bundle-version="[1.0.0,2.0.0)",
  uk.co.bithatch.widgetzx;bundle-version="[1.0.0,2.0.0)",
  uk.co.bithatch.emuzx;bundle-version="[1.0.0,2.0.0)",
- uk.co.bithatch.emuzx.ui;bundle-version="[1.0.0,2.0.0)"
+ uk.co.bithatch.emuzx.ui;bundle-version="[1.0.0,2.0.0)",
+ uk.co.bithatch.eclipzpp;bundle-version="1.0.0",
+ uk.co.bithatch.eclipzpp.ui;bundle-version="[1.0.0,2.0.0)"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Export-Package: uk.co.bithatch.eclipz80.ui.contentassist,

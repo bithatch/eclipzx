@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -15,15 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
 import uk.co.bithatch.eclipz80.asm.*;
+import uk.co.bithatch.eclipzpp.SourceMap;
 
 /**
  * A simple Z80 assembler that walks an Xtext-parsed {@link AsmProgram} AST and
@@ -145,7 +141,6 @@ public class Z80Assembler {
 	}
 
 	private final List<String> warnings = new ArrayList<>();
-	private final Map<String, String> defines;
 	private final Map<String, Symbol> symbols = new LinkedHashMap<>();
 	private int currentAddress = 0;
 	private String effectiveSource;
@@ -167,8 +162,8 @@ public class Z80Assembler {
 	private Optional<Integer> forceORG;
 	private Optional<Integer> defaultORG;
 	private final int defaultFill;
-	private final List<Path> includePaths;
 	private final List<Path> libPaths;
+	private final Optional<SourceMap> sourceMap;
 
 	/**
 	 * An entry in the line-to-address map.
@@ -199,60 +194,27 @@ public class Z80Assembler {
 		private boolean mapEnabled;
 		private boolean farAddresses;
 		private boolean z80n;
-		private final Map<String, String> defines = new LinkedHashMap<>();
 		private WarningCallback warningCallback;
 		private Optional<Integer> defaultORG = Optional.empty();
 		private Optional<Integer> defaultFill = Optional.empty();
-		private List<Path> includePaths = new ArrayList<>();
 		private List<Path> libPaths = new ArrayList<>();
+		private Optional<SourceMap> sourceMap = Optional.empty();
 
 		private Builder() {}
-
+		
 		/**
-		 * Add an array of paths to the list of those searched when locating
-		 * INCLUDE resources.
+		 * If the input has been preprocessed, the resulting Source Map 
+		 * should be passed to the assembler so it's reported errors and warnings and address
+		 * map refer to the original source lines.
 		 * 
-		 * @param includePaths include paths
+		 * @param sourceMap map
 		 * @return this for chaining
 		 */
-		public Builder addIncludePaths(Path... includePaths) {
-			return addIncludePaths(List.of(includePaths));
-		}
-
-		/**
-		 * Add a list of paths to the list of those searched when locating
-		 * INCLUDE resources.
-		 * 
-		 * @param includePaths include paths
-		 * @return this for chaining
-		 */
-		public Builder addIncludePaths(Collection<Path> includePaths) {
-			this.includePaths.addAll(includePaths);
+		public Builder withSourceMap(SourceMap sourceMap) {
+			this.sourceMap = Optional.of(sourceMap);
 			return this;
 		}
 
-		/**
-		 * Set the paths searched when locating
-		 * INCLUDE resources.
-		 * 
-		 * @param includePaths include paths
-		 * @return this for chaining
-		 */
-		public Builder withIncludePaths(Path... includePaths) {
-			return withIncludePaths(List.of(includePaths));
-		}
-		
-		/**
-		 * Set the paths searched when locating
-		 * INCLUDE resources.
-		 * 
-		 * @param includePaths include paths
-		 * @return this for chaining
-		 */
-		public Builder withIncludePaths(Collection<Path> includePaths) {
-			this.includePaths.clear();
-			return addIncludePaths(includePaths);
-		}
 		
 		/**
 		 * Add an array of paths to the list of those searched when locating
@@ -297,7 +259,7 @@ public class Z80Assembler {
 		 */
 		public Builder withLibPaths(Collection<Path> libPaths) {
 			this.libPaths.clear();
-			return addLibPaths(includePaths);
+			return addLibPaths(libPaths);
 		}
 
 		/**
@@ -406,49 +368,6 @@ public class Z80Assembler {
 		}
 
 		/**
-		 * Set a single defines given its name and value. Value
-		 * may be indicating it will evaluated to true but won't
-		 * expand to anything.
-		 * 
-		 * @param name name
-		 * @param value value
-		 */
-		public Builder withDefine(String name, String value) {
-			defines.put(name, value);
-			return this;
-		}
-		
-
-		/**
-		 * Set the defines. Each string can be either just the 
-		 * key, or key=value format. The former will result in a 
-		 * an empty define (i.e. still evaluates to true).
-		 * 
-		 * @param defineSpecs define specs
-		 */
-		public Builder withDefines(String... defines) {
-			return withDefines(Arrays.asList(defines));
-		}
-
-		/**
-		 * Set the defines. Each string can be either just the 
-		 * key, or key=value format. The former will result in a 
-		 * an empty define (i.e. still evaluates to true).
-		 * 
-		 * @param defineSpecs define specs
-		 */
-		public Builder withDefines(Collection<String> defineSpecs) {
-			defineSpecs.forEach(d -> {
-				var idx = d.indexOf('=');
-				defines.put(
-					idx == -1 ? d : d.substring(0, idx), 
-					idx == -1 ? null : d.substring(idx + 1)
-				);
-			});
-			return this;
-		}
-
-		/**
 		 * Set a callback that receives non-fatal warnings during assembly,
 		 * including the source filename and line number.
 		 */
@@ -477,28 +396,26 @@ public class Z80Assembler {
 		this.mapEnabled = false;
 		this.farAddresses = false;
 		this.z80n = false;
-		this.defines = new LinkedHashMap<>();
 		this.outputDir = Optional.empty();
 		this.forceORG = Optional.empty();
 		this.defaultORG = Optional.empty();
 		this.defaultFill = 0;
 		this.libPaths = Collections.emptyList();
-		this.includePaths = Collections.emptyList();
+		this.sourceMap = Optional.empty();
 	}
 
 	private Z80Assembler(Builder builder) {
+		this.sourceMap = builder.sourceMap;
 		this.outputDir = builder.outputDir;
 		this.mapFile = builder.mapFile;
 		this.mapEnabled = builder.mapEnabled;
 		this.farAddresses = builder.farAddresses;
 		this.z80n = builder.z80n;
-		this.defines = new LinkedHashMap<>(builder.defines);
 		this.warningCallback = builder.warningCallback;
 		this.forceORG = builder.forceORG;
 		this.defaultORG = builder.defaultORG;
 		this.defaultFill = builder.defaultFill.orElse(0);
 		this.libPaths = Collections.unmodifiableList(new ArrayList<>(builder.libPaths));
-		this.includePaths = Collections.unmodifiableList(new ArrayList<>(builder.includePaths));
 	}
 
 	/**
@@ -669,6 +586,10 @@ public class Z80Assembler {
 			warn("Failed to write map file: " + e.getMessage());
 		}
 	}
+	
+	private int translateToOriginalSourceLine(int line, String uri) {
+		return sourceMap.map(sm -> sm.translatePreprocessedToOriginalLine(line, uri)).orElse(line);
+	}
 
 	// ─────────────── Program / line assembly ───────────────
 
@@ -723,7 +644,7 @@ public class Z80Assembler {
 				this.currentLine = lineNumber;
 
 				if (!pass1 && lineNumber > 0 && listing) {
-					mapEntries.add(new MapEntry(lineFile, lineNumber, currentAddress & addressMask()));
+					mapEntries.add(new MapEntry(lineFile, translateToOriginalSourceLine(lineNumber, effectiveSource), currentAddress & addressMask()));
 				}
 
 				for (AsmStatement stmt : stmtLine.getStatements()) {
@@ -796,7 +717,7 @@ public class Z80Assembler {
 					Symbol sym = symbols.get(qualifiedName);
 					if (sym == null) sym = symbols.get(name);
 					if (sym != null && sym.isExternal && sym.address == 0) {
-						throw new AssemblyException(effectiveSource, currentLine,
+						throw new AssemblyException(effectiveSource, translateToOriginalSourceLine(currentLine, effectiveSource),
 								"Unresolved external symbol: " + name);
 					}
 				}
@@ -861,38 +782,8 @@ public class Z80Assembler {
 			assembleDefSpace((DefSpace) stmt, out);
 			return;
 		}
-		if(stmt instanceof Define) {
-			assembleDefine((Define) stmt, out);
-			return;
-		}
-		if(stmt instanceof Undefine) {
-			assembleUndefine((Undefine) stmt, out);
-			return;
-		}
 		if (stmt instanceof DataDefineGroup) {
 			assembleDefineGroup((DataDefineGroup) stmt, out);
-			return;
-		}
-		if (stmt instanceof IncBin) {
-			assembleIncBin((IncBin) stmt, out);
-			return;
-		}
-		if (stmt instanceof AsmInclude) {
-			assembleInclude((AsmInclude) stmt, out);
-			return;
-		}
-
-		// ── Conditional compilation ──
-		if (stmt instanceof AsmIf) {
-			assembleIf((AsmIf) stmt, out);
-			return;
-		}
-		if (stmt instanceof AsmIfDef) {
-			assembleIfDef((AsmIfDef) stmt, out);
-			return;
-		}
-		if (stmt instanceof AsmIfNDef) {
-			assembleIfNDef((AsmIfNDef) stmt, out);
 			return;
 		}
 
@@ -1293,12 +1184,17 @@ public class Z80Assembler {
 			emit8(out, page & 0xFF);
 			return;
 		}
+		
+		/* Dealt with by preprocessor */
+		if(stmt instanceof AsmInclude) {
+			return;
+		}
 
 		// If we get here, the instruction/directive is not yet supported — hard fail
 		// TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP
 		// TODO: DMA directives — DMA.WR0 through DMA.WR6/DMA.CMD
 		// TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE
-		throw new AssemblyException(effectiveSource, currentLine,
+		throw new AssemblyException(effectiveSource, translateToOriginalSourceLine(currentLine, effectiveSource),
 				"Unsupported instruction/directive: " + stmt.eClass().getName());
 	}
 
@@ -1818,26 +1714,6 @@ public class Z80Assembler {
 	}
 
 	/**
-	 * DEFINE name[=constr-expression] - Define set of symbols
-	 */
-	private void assembleDefine(Define directive, ByteArrayOutputStream out) {
-		for(var def : directive.getDefines()) {
-			var name = def.getName();
-			var val = resolveConstExpressionAsString(def.getData());
-			defines.put(name, val);
-		}
-	}
-
-	/**
-	 * UNDEFINE name
-	 */
-	private void assembleUndefine(Undefine directive, ByteArrayOutputStream out) {
-		for(var def : directive.getDefines()) {
-			defines.remove(def);
-		}
-	}
-
-	/**
 	 * DEFGROUP { name[=expr] ... } — define a group of symbols.
 	 * Only processes {@link AsmGroupedDefine} entries (ignores AsmVarDefine from DEFVARS).
 	 */
@@ -1845,215 +1721,8 @@ public class Z80Assembler {
 		for (EObject entry : directive.getDefines()) {
 			if (entry instanceof AsmGroupedDefine def) {
 				var name = def.getName();
-				var val = resolveConstExpressionAsString(def.getData());
-				defines.put(name, val);
+				putSymbol(name).address = resolveImmediate(def.getData());
 			}
-		}
-	}
-
-	/**
-	 * BINARY / INCBIN — load a binary file at the current location in the
-	 * object file. The file path is resolved relative to the source file
-	 * being assembled.
-	 */
-	private void assembleIncBin(IncBin directive, ByteArrayOutputStream out) {
-		String fileName = directive.getFile();
-		if (fileName == null || fileName.isEmpty()) {
-			warn("INCBIN: no file specified");
-			return;
-		}
-		Path filePath = sourceDir.resolve(fileName);
-		try {
-			byte[] data = Files.readAllBytes(filePath);
-			for (byte b : data) {
-				emit8(out, b & 0xFF);
-			}
-		} catch (IOException e) {
-			throw new AssemblyException(effectiveSource, currentLine,
-					"INCBIN: cannot read file '" + filePath + "': " + e.getMessage());
-		}
-	}
-
-	/**
-	 * INCLUDE "file" — parse and assemble the included source file at the
-	 * current position. The included file must already be loaded into the
-	 * resource set (Xtext's {@code importURI} mechanism handles this).
-	 * Source-to-address map entries use the included file's name.
-	 */
-	private void assembleInclude(AsmInclude directive, ByteArrayOutputStream out) {
-		String importURI = directive.getImportURI();
-		if (importURI == null || importURI.isEmpty()) {
-			warn("INCLUDE: no file specified");
-			return;
-		}
-
-		// Strip surrounding quotes / angle brackets
-		boolean angleInclude = importURI.startsWith("<") && importURI.endsWith(">");
-		importURI = stripQuotes(importURI);
-		if (angleInclude) {
-			// stripQuotes won't handle angle brackets, strip them manually
-			importURI = importURI.substring(1, importURI.length() - 1);
-		}
-
-		// Resolve the include path
-		Resource containingResource = directive.eResource();
-		if (containingResource == null) {
-			throw new AssemblyException(effectiveSource, currentLine,
-					"INCLUDE: cannot resolve '" + importURI + "' — no containing resource");
-		}
-
-		URI resolvedURI = null;
-
-		// For quoted includes, try relative to the containing resource first
-		if (!angleInclude) {
-			URI baseURI = containingResource.getURI();
-			URI candidateURI = URI.createFileURI(importURI).resolve(baseURI);
-			try {
-				Path candidatePath = Path.of(java.net.URI.create(candidateURI.toString()));
-				if (Files.exists(candidatePath)) {
-					resolvedURI = candidateURI;
-				}
-			} catch (Exception e) {
-				// fall through to include path search
-			}
-		}
-
-		// Search the builder-provided include paths
-		if (resolvedURI == null && !includePaths.isEmpty()) {
-			for (Path incDir : includePaths) {
-				Path candidate = incDir.resolve(importURI);
-				if (Files.exists(candidate)) {
-					resolvedURI = URI.createFileURI(candidate.toAbsolutePath().toString());
-					break;
-				}
-			}
-		}
-
-		// Last resort: resolve relative to containing resource even if file may not exist
-		if (resolvedURI == null) {
-			URI baseURI = containingResource.getURI();
-			resolvedURI = URI.createFileURI(importURI).resolve(baseURI);
-		}
-
-		// Look up or load the resource from the resource set
-		ResourceSet resourceSet = containingResource.getResourceSet();
-		Resource includedResource = null;
-		try {
-			includedResource = resourceSet.getResource(resolvedURI, true);
-		} catch (Exception e) {
-			throw new AssemblyException(effectiveSource, currentLine,
-					"INCLUDE: cannot load '" + importURI + "': " + e.getMessage());
-		}
-
-		if (includedResource == null || includedResource.getContents().isEmpty()) {
-			throw new AssemblyException(effectiveSource, currentLine,
-					"INCLUDE: empty or unresolvable resource '" + importURI + "'");
-		}
-
-		if (!(includedResource.getContents().get(0) instanceof AsmProgram)) {
-			throw new AssemblyException(effectiveSource, currentLine,
-					"INCLUDE: resource '" + importURI + "' does not contain an AsmProgram");
-		}
-
-		AsmProgram includedProgram = (AsmProgram) includedResource.getContents().get(0);
-
-		// Save and switch source context for map entries
-		String previousSource = this.effectiveSource;
-		Path previousSourceDir = this.sourceDir;
-
-		this.effectiveSource = resolvedURI.lastSegment();
-		if (resolvedURI.isFile()) {
-			this.sourceDir = Path.of(resolvedURI.toFileString()).getParent();
-		}
-
-		// Assemble the included program inline
-		assembleLines(includedProgram, out);
-
-		// Restore source context
-		this.effectiveSource = previousSource;
-		this.sourceDir = previousSourceDir;
-	}
-
-	// ─────────────── Conditional compilation ───────────────
-
-	/**
-	 * IF condition ... ELIF ... ELSE ... ENDIF
-	 * Evaluates expression conditions; a non-zero result is true.
-	 */
-	private void assembleIf(AsmIf directive, ByteArrayOutputStream out) {
-		// Check the primary IF condition
-		if (resolveImmediate(directive.getCondition()) != 0) {
-			assembleLines(directive.getProgram(), out);
-			return;
-		}
-
-		// Check ELIF branches
-		EList<AsmExpression> elifConditions = directive.getElifCondition();
-		EList<AsmProgram> elifPrograms = directive.getElifProgram();
-		for (int i = 0; i < elifConditions.size(); i++) {
-			if (resolveImmediate(elifConditions.get(i)) != 0) {
-				assembleLines(elifPrograms.get(i), out);
-				return;
-			}
-		}
-
-		// ELSE fallback
-		if (directive.getElseProgram() != null) {
-			assembleLines(directive.getElseProgram(), out);
-		}
-	}
-
-	/**
-	 * IFDEF name ... ELIFDEF ... ELSE ... ENDIF
-	 * Checks whether a symbol is present in the defines map.
-	 */
-	private void assembleIfDef(AsmIfDef directive, ByteArrayOutputStream out) {
-		// Check the primary IFDEF name
-		if (defines.containsKey(directive.getName())) {
-			assembleLines(directive.getProgram(), out);
-			return;
-		}
-
-		// Check ELIFDEF branches
-		EList<String> elifNames = directive.getElifName();
-		EList<AsmProgram> elifPrograms = directive.getElifProgram();
-		for (int i = 0; i < elifNames.size(); i++) {
-			if (defines.containsKey(elifNames.get(i))) {
-				assembleLines(elifPrograms.get(i), out);
-				return;
-			}
-		}
-
-		// ELSE fallback
-		if (directive.getElseProgram() != null) {
-			assembleLines(directive.getElseProgram(), out);
-		}
-	}
-
-	/**
-	 * IFNDEF name ... ELIFNDEF ... ELSE ... ENDIF
-	 * Checks whether a symbol is <em>not</em> present in the defines map.
-	 */
-	private void assembleIfNDef(AsmIfNDef directive, ByteArrayOutputStream out) {
-		// Check the primary IFNDEF name
-		if (!defines.containsKey(directive.getName())) {
-			assembleLines(directive.getProgram(), out);
-			return;
-		}
-
-		// Check ELIFNDEF branches
-		EList<String> elifNames = directive.getElifName();
-		EList<AsmProgram> elifPrograms = directive.getElifProgram();
-		for (int i = 0; i < elifNames.size(); i++) {
-			if (!defines.containsKey(elifNames.get(i))) {
-				assembleLines(elifPrograms.get(i), out);
-				return;
-			}
-		}
-
-		// ELSE fallback
-		if (directive.getElseProgram() != null) {
-			assembleLines(directive.getElseProgram(), out);
 		}
 	}
 
@@ -2472,7 +2141,7 @@ public class Z80Assembler {
 		}
 		warnings.add(message);
 		if (warningCallback != null && currentLine > 0) {
-			warningCallback.warn(effectiveSource, currentLine, message);
+			warningCallback.warn(effectiveSource, translateToOriginalSourceLine(currentLine, effectiveSource), message);
 		}
 	}
 
@@ -2481,25 +2150,11 @@ public class Z80Assembler {
 	 */
 	private void requireZ80N(String mnemonic) {
 		if (!z80n) {
-			throw new AssemblyException(effectiveSource, currentLine,
+			throw new AssemblyException(effectiveSource, translateToOriginalSourceLine(currentLine, effectiveSource),
 					mnemonic + " requires Z80N mode (use --z80n or withZ80N())");
 		}
 	}
 
-	/**
-	 * Strip surrounding quotes from a string, if present.
-	 */
-	private String stripQuotes(String s) {
-		s = s.trim();
-		if (s.startsWith("\"") && s.endsWith("\"")) {
-			return s.substring(1, s.length() - 1);
-		}
-		if (s.startsWith("'") && s.endsWith("'")) {
-			return s.substring(1, s.length() - 1);
-		}
-		return s;
-	}
-	
 	private Symbol putSymbol(String symbol) {
 		// Strip leading dot — z88dk uses .label to define labels, but
 		// the dot is not part of the name (it is referenced without it)

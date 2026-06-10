@@ -52,6 +52,10 @@ public class AsmHighlightingConfiguration extends DefaultHighlightingConfigurati
     public static final String NUMERIC_LITERAL_ID = "asm-numeric-literal";
     public static final String NUMERIC_LITERAL_DISPLAY_NAME = "Numeric Literal";
 
+    // Preprocessing instruction
+    public static final String PREPROCESSING_ID = "asm-preprocessing";
+    public static final String PREPROCESSING_DISPLAY_NAME = "Preprocessing Instruction";
+
     @Override
     public void configure(IHighlightingConfigurationAcceptor acceptor) {
         super.configure(acceptor);
@@ -66,6 +70,7 @@ public class AsmHighlightingConfiguration extends DefaultHighlightingConfigurati
         acceptor.acceptDefaultHighlighting(INCLUDE_ID, INCLUDE_DISPLAY_NAME, includeStyle());
         acceptor.acceptDefaultHighlighting(COPPER_DMA_ID, COPPER_DMA_DISPLAY_NAME, copperDmaStyle());
         acceptor.acceptDefaultHighlighting(NUMERIC_LITERAL_ID, NUMERIC_LITERAL_DISPLAY_NAME, numericLiteralStyle());
+        acceptor.acceptDefaultHighlighting(PREPROCESSING_ID, PREPROCESSING_DISPLAY_NAME, preprocessingStyle());
     }
 
     private TextStyle labelDefStyle() {
@@ -142,6 +147,13 @@ public class AsmHighlightingConfiguration extends DefaultHighlightingConfigurati
         TextStyle textStyle = defaultTextStyle().copy();
         textStyle.setColor(new RGB(0, 128, 0)); // Dark green
         textStyle.setStyle(SWT.NONE);
+        return textStyle;
+    }
+
+    private TextStyle preprocessingStyle() {
+        TextStyle textStyle = defaultTextStyle().copy();
+        textStyle.setColor(new RGB(255, 64, 64));
+        textStyle.setStyle(SWT.BOLD);
         return textStyle;
     }
 }

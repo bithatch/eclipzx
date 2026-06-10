@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preprocessing;
+package uk.co.bithatch.eclipz80.ui.preprocessing;
 
 import java.util.Optional;
 
@@ -6,21 +6,22 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.emf.ecore.resource.Resource;
 
+import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
 import uk.co.bithatch.eclipzpp.FileSystemResourceResolver;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor.Builder;
 import uk.co.bithatch.eclipzpp.ui.PPResource;
 import uk.co.bithatch.eclipzpp.ui.PPResourceUtil;
-import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
-public class ZXBasicResource extends PPResource {
+public class AsmResource extends PPResource {
 
 
 	public static GenericPreprocessor.Builder builderForProject(IProject project) {
-		var pax = ZXBasicPreferencesAccess.get();
-		var fs = new FileSystemResourceResolver.Builder().withIncludeDirs(pax.getAllLibs(project))
+		var pax = AsmPreferencesAccess.get();
+		var fs = new FileSystemResourceResolver.Builder()
+				.withIncludePaths(pax.getAllIncludePaths(project))
 				.withWorkingDir(project.getLocation().toFile())
-				.withRuntimeDir(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).runtime(pax.getArchitecture(project))).build();
+				.build();
 
 		return new GenericPreprocessor.Builder().
 				withResourceResolver(fs).

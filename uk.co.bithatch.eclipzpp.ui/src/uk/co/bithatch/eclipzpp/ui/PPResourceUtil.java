@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic.ui.preprocessing;
+package uk.co.bithatch.eclipzpp.ui;
 
 import java.util.Optional;
 
@@ -9,7 +9,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 
-public class ZXBasicResourceUtil {
+public class PPResourceUtil {
     public static Optional<IFile> getFile(Resource resource) {
         URI uri = resource.getURI();
         if (uri.isPlatformResource()) {

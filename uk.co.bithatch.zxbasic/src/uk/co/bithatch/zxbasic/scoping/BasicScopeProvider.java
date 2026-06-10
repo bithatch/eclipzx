@@ -25,7 +25,8 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-import uk.co.bithatch.zxbasic.IReferenceIndex;
+import uk.co.bithatch.eclipzpp.IReferenceIndex;
+import uk.co.bithatch.eclipzpp.SourceMapRegistry;
 import uk.co.bithatch.zxbasic.basic.ArgSpec;
 import uk.co.bithatch.zxbasic.basic.Assignment;
 import uk.co.bithatch.zxbasic.basic.BasicFactory;

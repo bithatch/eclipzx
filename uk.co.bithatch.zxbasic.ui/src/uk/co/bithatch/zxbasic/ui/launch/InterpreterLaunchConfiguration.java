@@ -11,8 +11,8 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.xtext.resource.XtextResourceSet;
 
-import uk.co.bithatch.bitzx.pp.FileSystemResourceResolver;
-import uk.co.bithatch.bitzx.pp.GenericPreprocessor;
+import uk.co.bithatch.eclipzpp.FileSystemResourceResolver;
+import uk.co.bithatch.eclipzpp.GenericPreprocessor;
 import uk.co.bithatch.emuzx.AbstractConfigurationDelegate;
 import uk.co.bithatch.zxbasic.BasicStandaloneSetup;
 import uk.co.bithatch.zxbasic.basic.CodeBlock;

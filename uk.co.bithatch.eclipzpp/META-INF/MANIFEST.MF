@@ -7,5 +7,7 @@ Bundle-Version: 1.0.0.qualifier
 Export-Package: uk.co.bithatch.eclipzpp
 Bundle-SymbolicName: uk.co.bithatch.eclipzpp; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: uk.co.bithatch.bitzx;bundle-version="1.0.0"
+Require-Bundle: uk.co.bithatch.bitzx;bundle-version="1.0.0",
+ org.eclipse.emf.ecore;bundle-version="2.42.0",
+ org.eclipse.xtext;bundle-version="2.43.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-21

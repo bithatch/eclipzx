@@ -11,7 +11,8 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.xtext.xbase.lib;bundle-version="2.43.0",
  org.eclipse.emf.common,
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)",
- org.eclipse.core.resources;bundle-version="[3.23.0,4.0.0)"
+ org.eclipse.core.resources;bundle-version="[3.23.0,4.0.0)",
+ uk.co.bithatch.eclipzpp;bundle-version="[1.0.0,2.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Export-Package: uk.co.bithatch.eclipz80.parser.antlr.lexer,
  uk.co.bithatch.eclipz80.asm,

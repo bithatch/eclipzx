@@ -54,9 +54,9 @@ public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
 		return true;
 	}
 
-	protected boolean _isLeaf(AsmLocalLine line) {
-		return true;
-	}
+//	protected boolean _isLeaf(AsmLocalLine line) {
+//		return true;
+//	}
 
 	/**
 	 * Determines whether an AsmLine should appear in the outline.
@@ -66,7 +66,7 @@ public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
 		if (line instanceof LabelOnlyLine
 				|| line instanceof LabelEQULine
 				|| line instanceof AsmDefcLine
-				|| line instanceof AsmLocalLine
+//				|| line instanceof AsmLocalLine
 				|| line instanceof AsmNumericLabelLine) {
 			return true;
 		}
@@ -107,7 +107,7 @@ public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
 				|| stmt instanceof AsmAssumeDirective
 				|| stmt instanceof AsmCallOzDirective
 				|| stmt instanceof AsmCallPkgDirective
-				|| stmt instanceof AsmBinaryDirective
+//				|| stmt instanceof AsmBinaryDirective
 				|| stmt instanceof AsmCopperWaitDirective
 				|| stmt instanceof AsmCopperMoveDirective
 				|| stmt instanceof AsmCopperStopDirective

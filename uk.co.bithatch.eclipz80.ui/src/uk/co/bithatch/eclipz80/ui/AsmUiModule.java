@@ -5,14 +5,18 @@ package uk.co.bithatch.eclipz80.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.xtext.ide.editor.syntaxcoloring.ISemanticHighlightingCalculator;
+import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.ui.editor.XtextEditor;
 
 import uk.co.bithatch.eclipz80.IAsmIncludeSource;
 import uk.co.bithatch.eclipz80.ui.debug.AsmXtextEditor;
 import uk.co.bithatch.eclipz80.ui.library.AsmLibraryIncludeSource;
+import uk.co.bithatch.eclipz80.ui.preprocessing.AsmResource;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmHighlightingConfiguration;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmSemanticHighlightingCalculator;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmTokenToAttributeMapper;
+import uk.co.bithatch.eclipzpp.IReferenceIndex;
+import uk.co.bithatch.eclipzpp.ui.PPReferenceIndex;
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
@@ -21,6 +25,19 @@ public class AsmUiModule extends AbstractAsmUiModule {
 
 	public AsmUiModule(AbstractUIPlugin plugin) {
 		super(plugin);
+	}
+
+	public Class<? extends XtextResource> bindXtextResource() {
+	    return AsmResource.class;
+	}
+//
+//	public Class<? extends ILocationInFileProvider> bindILocationInFileProvider() {
+//	    return AsmLocationInFileProvider.class;
+//	}
+	
+
+	public Class<? extends IReferenceIndex> bindIReferenceIndex() {
+	    return PPReferenceIndex.class;
 	}
 
 	public Class<? extends IAsmIncludeSource> bindIAsmIncludeSource() {

@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Objects;
+
 public class SourceMap {
 
 	public final static class Segment {
@@ -68,6 +70,14 @@ public class SourceMap {
 		public boolean containsPreprocessedOffset(int offset) {
 			return offset >= preprocessedOffset && offset < (preprocessedOffset + preprocessedLength);
 		}
+		
+		public boolean originalLine(int original) {
+			return original >= originalLine && original < originalLine + Math.max(1, originalLines);
+		}
+		
+		public boolean preprocessedLine(int preprocessed) {
+			return preprocessed >= preprocessedLine && preprocessed < preprocessedLine + Math.max(1, preprocessedLines);
+		}
 
 		public int getOriginalOffset() {
 			return originalOffset;
@@ -98,47 +108,41 @@ public class SourceMap {
 
 	private final List<Segment> segments = new ArrayList<>();
 	private final Map<String, String> defines = new HashMap<>();
+	private final Map<Integer, String> hiddenLines = new HashMap<>();
 
 	public void addSegment(Segment segment) {
-//    	System.out.println("Adding segment " + segment);
 		segments.add(segment);
 	}
 
-//	public Optional<Segment> getSegmentForPreprocessedOffset(int offset) {
-//		for (Segment s : segments) {
-//			if (s.containsPreprocessedOffset(offset)) {
-//				return Optional.of(s);
-//			}
-//		}
-//		return Optional.empty();
-//	}
-	
 	public void clear() {
 		segments.clear();
 		defines.clear();
 	}
 	
+	public List<Segment> segments() {
+		return segments;
+	}
+	
 	public Map<String, String> defines() {
 		return defines;
+	}
+	
+	public Map<Integer, String> hiddenLines() {
+		return hiddenLines;
+	}
+	
+	public int translatePreprocessedToOriginalLine(int preprocessedLine, String uri) {
+		for(var seg : segments) {
+			if(Objects.equal(uri, seg.uri) && seg.preprocessedLine(preprocessedLine)) {
+				var delta = preprocessedLine - seg.getPreprocessedLine() - 1;
+				return seg.getOriginalLine() + delta;
+			}
+		}
+		return preprocessedLine;
 	}
 
 	public List<Segment> findSegments(int offset, int length) {
 		return segments.stream().filter(s -> s.spansPreprocessed(offset, length)).toList();
 	}
 
-//	public Optional<ITextRegionWithLineInformation> mapPreprocessedRegionToOriginal(ITextRegionWithLineInformation preprocessed) {
-//		for (Segment seg : segments) {
-//			if (seg.containsPreprocessedOffset(preprocessed.getOffset())) {
-//				int delta = preprocessed.getOffset() - seg.preprocessedOffset;
-//				int lineDelta = preprocessed.getLineNumber() - seg.preprocessedLine;
-//				return Optional.of(new TextRegionWithLineInformation(
-//						seg.originalOffset + delta, 
-//						preprocessed.getLength(),
-//						seg.originalLine + lineDelta,
-//						seg.originalLine + lineDelta + seg.preprocessedLines));
-//			}
-//		}
-//		// fallback
-//		return Optional.empty();
-//	}
 }

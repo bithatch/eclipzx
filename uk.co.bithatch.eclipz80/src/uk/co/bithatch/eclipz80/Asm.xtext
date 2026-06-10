@@ -8,9 +8,7 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * 
  *  - #DEFINE
  *  - #UNDEF
- *  - ASSERT  expression, ["message"]
  *  - DEFL
- *  - EXITM
  *  - MACRO
  *  - REPT
  *  - REPTC
@@ -37,7 +35,7 @@ AsmProgram:
     // ─────────────── ASM ───────────────
 
 AsmLine:
-    AsmNumericLabelLine | AsmLabelEQULine | AsmLocalLine | AsmDefcLine | AsmLabelOnlyLine | AsmStatementLine;
+    AsmNumericLabelLine | AsmLabelEQULine | AsmDefcLine | AsmLabelOnlyLine | AsmStatementLine;
 
 AsmNumericLabelLine:
     {AsmNumericLabelLine}
@@ -54,10 +52,6 @@ AsmDefcLine:
     {AsmDefcLine}
     'DEFC' labelDef=AsmLabelDef '=' value=AsmExpression;
     
-AsmLocalLine:
-    {AsmLocalLine}
-    'LOCAL' labels+=ID (',' labels+=ID)*;
-
 AsmLabelOnlyLine:
     {LabelOnlyLine}
     labelDef=AsmLabelDef ':'?;
@@ -69,7 +63,6 @@ AsmStatementLine:
     
 AsmStatement:
     AsmOrg | 
-    AsmCLINE | 
     AsmCall | 
     AsmInclude | 
     AsmModule | 
@@ -97,11 +90,9 @@ AsmStatement:
     AsmDefDWordDirective |
     AsmDefTermStringDirective |
     AsmDefSpaceDirective |
-    AsmDefineDirective |
     AsmFPPDirective |
     AsmLSTONDirective |
     AsmLSTOFFDirective |
-    AsmUndefineDirective |
     AsmDataDefineGroup |
     AsmDataDefineVars |
     AsmDMAWR0Directive |
@@ -113,9 +104,6 @@ AsmStatement:
     AsmDMAWR6Directive |
     AsmExternDirective |
     AsmGlobalDirective |
-    AsmIfDirective |
-    AsmIfDefDirective |
-    AsmIfNDefDirective | 
     AsmPopStatement |
     AsmAndStatement |
     AsmOrStatement |
@@ -141,7 +129,6 @@ AsmStatement:
     AsmRstStatement |
     AsmProcStatement |
     AsmSlaStatement |
-    AsmBinaryDirective |
     AsmPushStatement |
     AsmBitStatement |
     AsmCpdStatement |
@@ -235,14 +222,6 @@ AsmDataDefineGroup:
     '}'
 ;
 
-AsmDefineDirective:
-    {Define} 'DEFINE' defines += AsmGroupedDefine (',' defines += AsmGroupedDefine)
-;
-
-AsmUndefineDirective:
-    {Undefine} 'UNDEFINE' defines+=ID (',' defines += ID)*
-;
-
 AsmGroupedDefine:
     name = ID ( '=' data = AsmExpression )
 ;
@@ -259,30 +238,6 @@ AsmFPPDirective:
 
 AsmVarDefine:
     (name = ID)? size = ID count = IntegralLiteral
-;
-
-AsmIfDirective:
-    {AsmIf} 'IF' condition=AsmExpression
-        program=AsmProgram
-        ('ELIF' elifCondition+=AsmExpression elifProgram+=AsmProgram)* 
-        ('ELSE' elseProgram=AsmProgram)?
-         'ENDIF'
-;
-
-AsmIfDefDirective:
-    {AsmIfDef} 'IFDEF' name=ID
-        program=AsmProgram
-        ('ELIFDEF' elifName+=ID elifProgram+=AsmProgram)* 
-        ('ELSE' elseProgram=AsmProgram)?
-         'ENDIF'
-;
-
-AsmIfNDefDirective:
-    {AsmIfNDef} 'IFNDEF' name=ID
-        program=AsmProgram
-        ('ELIFNDEF' elifName+=ID elifProgram+=AsmProgram)* 
-        ('ELSE' elseProgram=AsmProgram)?
-         'ENDIF'
 ;
 
 AsmLSTONDirective:
@@ -707,24 +662,12 @@ AsmCondition:
 // Z88DK+Z80N Specific
 
 
-AsmALINE:
-    {ALine} 'LINE' value=IntegralLiteral ',' name=STRING
-;
-
-AsmCLINE:
-    {CLine} 'C_LINE' value=IntegralLiteral ',' name=STRING
-;
-
 AsmCallOzDirective:
     {CallOz} 'CALL_OZ' expr=AsmExpression
 ;
 
 AsmCallPkgDirective:
     {CallPkg} 'CALL_PKG' expr=AsmExpression
-;
-
-AsmBinaryDirective:
-    {IncBin} ('BINARY' |'INCBIN') file=STRING
 ;
 
 AsmAssumeDirective:

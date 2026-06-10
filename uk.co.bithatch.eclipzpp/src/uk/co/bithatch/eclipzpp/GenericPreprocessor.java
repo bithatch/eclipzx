@@ -103,6 +103,49 @@ public class GenericPreprocessor extends AbstractTool {
 			this.defines.putAll(defines);
 			return this;
 		}
+
+		/**
+		 * Set a single defines given its name and value. Value
+		 * may be indicating it will evaluated to true but won't
+		 * expand to anything.
+		 * 
+		 * @param name name
+		 * @param value value
+		 */
+		public Builder withDefine(String name, String value) {
+			defines.put(name, value);
+			return this;
+		}
+		
+
+		/**
+		 * Set the defines. Each string can be either just the 
+		 * key, or key=value format. The former will result in a 
+		 * an empty define (i.e. still evaluates to true).
+		 * 
+		 * @param defineSpecs define specs
+		 */
+		public Builder withDefines(String... defines) {
+			return withDefines(Arrays.asList(defines));
+		}
+
+		/**
+		 * Set the defines. Each string can be either just the 
+		 * key, or key=value format. The former will result in a 
+		 * an empty define (i.e. still evaluates to true).
+		 * 
+		 * @param defineSpecs define specs
+		 */
+		public Builder withDefines(Collection<String> defineSpecs) {
+			defineSpecs.forEach(d -> {
+				var idx = d.indexOf('=');
+				defines.put(
+					idx == -1 ? d : d.substring(0, idx), 
+					idx == -1 ? null : d.substring(idx + 1)
+				);
+			});
+			return this;
+		}	
 		
 		public Builder withDefines(Map<String, String> defines) {
 			this.defines.clear();
@@ -218,6 +261,14 @@ public class GenericPreprocessor extends AbstractTool {
     		}
     	});
     }
+
+	public Mode mode() {
+		return mode;
+	}
+
+	public Format format() {
+		return format;
+	}
     
 	protected Stream<String> doRun(Iterator<String> root, Object context) {
 		var sit = new SourceToTargetIterator(context, root);
@@ -293,7 +344,8 @@ public class GenericPreprocessor extends AbstractTool {
 			var lower = line.toLowerCase();
 			var thisLineNo = res.lineNumber().get();
 			
-//			System.out.println(">>process " + thisLineNo  + " :" + line + " [" + res.lastPrintedLine().get() + "]");
+//			System.out.println(">>process " + thisLineNo  + " :" + 
+//					line + " [" + res.lastPrintedLine().get() + "]");
 			
 			var ln = doProcess(line, res, lower, thisLineNo);
 			if(ln.isPresent()) {
@@ -308,6 +360,7 @@ public class GenericPreprocessor extends AbstractTool {
 //			System.out.println("DO PROCESS: " + line);
 			var cmd = lower.trim().split("\\s+");
 			var directive = cmd[0];
+			var offset = res.preprocessedLength().get();
 			
 			/* Condition branches */
 			
@@ -318,7 +371,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else {
 					res.conditions().peek().enterElse();
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 			}
 			else if(isElifDirective(directive)) {
@@ -328,7 +381,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else {
 					res.conditions().peek().applyElif(elif(line, directive));
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 			}
 			else if(isElifdefDirective(directive)) {
@@ -338,7 +391,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else {
 					res.conditions().peek().applyElif(elifdef(line, directive));
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 			}
 			else if(isElifndefDirective(directive)) {
@@ -348,7 +401,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else {
 					res.conditions().peek().applyElif(elifndef(line, directive));
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 			}
 			else if(isEndifDirective(directive)) {
@@ -359,13 +412,13 @@ public class GenericPreprocessor extends AbstractTool {
 				else {
 					res.conditions().pop();
 				}
-				return includeDirectiveIfEditorMode(line, 1);
+				return includeDirectiveIfEditorMode(offset, line, 1, true);
 			}
 			else if(!res.conditions().isEmpty()) {
 				var cond = res.conditions().peek();
 				if(!cond.matches())
 					if(isDirectiveLine(line, directive))
-						return includeDirectiveIfEditorMode(line, 1);
+						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					else if(mode == Mode.EDITOR) {
 						return Optional.of(replaceWithSpaces(line));
 					}
@@ -377,7 +430,7 @@ public class GenericPreprocessor extends AbstractTool {
 			/* Generic directives supported in all formats */
 			if(cmd[0].equals("#define")) {
 				if(defineMacro(line.trim())) {
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
 					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
@@ -386,7 +439,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			else if(cmd[0].equals("#undef")) {
 				if(undefMacro(line.trim())) {
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
 					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
@@ -395,7 +448,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			else if(isIfndefDirective(directive)) {
 				if(ifndef(line.trim(), directive)) {
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
 					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
@@ -404,7 +457,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			else if(isIfdefDirective(directive)) {
 				if(ifdef(line.trim(), directive)) {
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
 					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
@@ -416,7 +469,7 @@ public class GenericPreprocessor extends AbstractTool {
 			if(format != Format.BORIEL) {
 				if(isIfDirective(directive)) {
 					if(ifExpr(line, directive)) {
-						return includeDirectiveIfEditorMode(line, 1);
+						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -426,7 +479,7 @@ public class GenericPreprocessor extends AbstractTool {
 
 				if(directive.equals("macro") || isAltMacroDirective(lower)) {
 					if(macroDirective(line.trim(), lower, res)) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -444,7 +497,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(directive.equals("assert")) {
 					if(assertDirective(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -454,7 +507,7 @@ public class GenericPreprocessor extends AbstractTool {
 				else if(directive.equals("binary") || directive.equals("incbin")) {
 					var expanded = binaryDirective(line.trim(), directive);
 					if(expanded.isPresent()) {
-						return mode == Mode.EDITOR ? includeDirectiveIfEditorMode(line, 2) : expanded;
+						return mode == Mode.EDITOR ? includeDirectiveIfEditorMode(offset, line, 2, true) : expanded;
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -463,7 +516,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(directive.equals("defl")) {
 					if(deflDirective(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -472,7 +525,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(cmd.length > 1 && cmd[1].equals("defl")) {
 					if(deflDirectiveAlt(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -481,7 +534,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(directive.equals("local")) {
 					if(localDirective(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -489,6 +542,7 @@ public class GenericPreprocessor extends AbstractTool {
 					}
 				}
 				else if(directive.equals("rept")) {
+					// TODO includeDirectiveIfEditorMode
 					var expanded = reptDirective(line.trim(), res);
 					if(expanded.isPresent()) {
 						return expanded;
@@ -500,7 +554,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(cmd[0].equals("undefine")) {
 					if(undefine(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 1);
+						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
@@ -509,6 +563,8 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(directive.equals("reptc")) {
 					var expanded = reptcDirective(line.trim(), res);
+
+					// TODO includeDirectiveIfEditorMode
 					if(expanded.isPresent()) {
 						return expanded;
 					}
@@ -519,6 +575,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(directive.equals("repti")) {
 					var expanded = reptiDirective(line.trim(), res);
+					// TODO includeDirectiveIfEditorMode
 					if(expanded.isPresent()) {
 						return expanded;
 					}
@@ -529,7 +586,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(directive.equals("include")) {
 					if(include(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(offset, line, 2, false);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -538,7 +595,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else if(directive.equals("define")) {
 					if(define(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -557,7 +614,7 @@ public class GenericPreprocessor extends AbstractTool {
 			if(format != Format.BORIEL) {
 				if(directive.equals("#pragma")) {
 					if(pragma(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 1);
+						return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
@@ -566,11 +623,11 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else  if(directive.equals("#error")) {
 					onError.ifPresent(oe -> oe.accept(Error.ERROR_DIRECTIVE, line.trim().substring(7).trim()));
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 				}
 				else if(directive.equals("#warning")) {
 					onWarning.ifPresent(ow -> ow.accept(Warning.WARNING_DIRECTIVE, line.trim().substring(9).trim()));
-					return includeDirectiveIfEditorMode(line, 1);
+					return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 				}
 				else if(directive.equals("#require")) {
 					if(expandRequire) {
@@ -582,12 +639,12 @@ public class GenericPreprocessor extends AbstractTool {
 						}
 					}
 					else {
-						return includeDirectiveIfEditorMode(line, 1);
+						return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 					}
 				}
 				else if(directive.equals("#include")) {
 					if(include(line.trim())) {
-						return includeDirectiveIfEditorMode(line, 2);
+						return includeDirectiveIfEditorMode(thisLineNo, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
@@ -605,7 +662,7 @@ public class GenericPreprocessor extends AbstractTool {
 //	    	    LINE = "LINE"
 				
 				onWarning.ifPresent(ow -> ow.accept(Warning.UNKNOWN_PREPROCESSOR_DIRECTIVE, "Unknown preprocessor directive " + line.trim() + "."));
-				return includeDirectiveIfEditorMode(line, 1);
+				return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 			}
 			else if(mode == Mode.COMPILER || stack.size() == 1) {
 				
@@ -621,10 +678,10 @@ public class GenericPreprocessor extends AbstractTool {
 					nextSegment(res);
 				}
 				
-//				if(mode == Mode.EDITOR)
-//					// TODO not really sure ... macro expansion is the last knotty problem
-//					return Optional.of(line);
-//				else
+				if(mode == Mode.EDITOR)
+					// TODO not really sure ... macro expansion is the last knotty problem
+					return Optional.of(line);
+				else
 					return Optional.of(MacroExpander.expandLine(line, defines));
 			}
 			else {
@@ -1250,13 +1307,21 @@ public class GenericPreprocessor extends AbstractTool {
 			return extractName(directive.length(), line.trim());
 		}
 
-		private Optional<String> includeDirectiveIfEditorMode(String line, int stackSize) {
+		private Optional<String> includeDirectiveIfEditorMode(int offset, String line, int stackSize, boolean replaceWithSpaces) {
 			if(mode == Mode.EDITOR && stack.size() <= stackSize) {
 				/* In EDITOR mode, we output #include statements, but
 				 * only in the top level (we do still continue pre-processing
 				 * the include itself though)
 				 */
-				return Optional.of(line);
+				if(replaceWithSpaces) {
+					sourceMap.ifPresent(sm -> {
+						sm.hiddenLines().put(
+								offset, line);
+					});
+					return Optional.of(replaceWithSpaces(line));
+				}
+				else
+					return Optional.of(line);
 			}
 			else {
 				return Optional.empty();
@@ -1470,10 +1535,12 @@ public class GenericPreprocessor extends AbstractTool {
 					if(!rootMarkerOutput) {
 						rootMarkerOutput = true;
 						if(mode == Mode.COMPILER) {
-							next = lineMarker(res.lineNumber().get() + 1, res.uri());
-							adjustForNext(res, next);
-							nextSegment(res);
-							return;
+							if(format == Format.BORIEL) {
+								next = lineMarker(res.lineNumber().get() + 1, res.uri());
+								adjustForNext(res, next);
+								nextSegment(res);
+								return;
+							}
 						}
 					}
 					
@@ -1522,15 +1589,17 @@ public class GenericPreprocessor extends AbstractTool {
 										 * won't be outputting anything from an included
 										 * file, just processing its #defines. 
 										 */
-										if(mode == Mode.COMPILER) {
-											try {
-												next = lineMarker(res.lineNumber().get(), newRes.uri());									
-												adjustForNext(newRes, next);
-												break;
-											}
-											finally { 
-												/* Started a new segment, commit the previous one  if there is content */
-												nextSegment(res);
+										if(format == Format.BORIEL) {
+											if(mode == Mode.COMPILER) {
+												try {
+													next = lineMarker(res.lineNumber().get(), newRes.uri());									
+													adjustForNext(newRes, next);
+													break;
+												}
+												finally { 
+													/* Started a new segment, commit the previous one  if there is content */
+													nextSegment(res);
+												}
 											}
 										}
 										
@@ -1552,11 +1621,13 @@ public class GenericPreprocessor extends AbstractTool {
 								
 						}
 						res = stack.pop();
-						
-						if(mode == Mode.COMPILER && !stack.isEmpty()) {
-							next = lineMarker(res.lineNumber().get(), stack.peek().uri());									
-							adjustForNext(res, next);
-							break;
+
+						if(format == Format.BORIEL) {
+							if(mode == Mode.COMPILER && !stack.isEmpty()) {
+									next = lineMarker(res.lineNumber().get(), stack.peek().uri());									
+									adjustForNext(res, next);
+								break;
+							}
 						}
 					}
 					else

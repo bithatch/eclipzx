@@ -5,12 +5,14 @@ package uk.co.bithatch.eclipz80;
 
 import org.eclipse.xtext.generator.IOutputConfigurationProvider;
 import org.eclipse.xtext.naming.IQualifiedNameProvider;
+import org.eclipse.xtext.parser.antlr.ISyntaxErrorMessageProvider;
 import org.eclipse.xtext.scoping.IGlobalScopeProvider;
 import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
 import uk.co.bithatch.eclipz80.generator.AsmOutputConfigurationProvider;
 import uk.co.bithatch.eclipz80.scoping.AsmGlobalScopeProvider;
 import uk.co.bithatch.eclipz80.scoping.AsmUriResolver;
+import uk.co.bithatch.eclipzpp.PPSyntaxErrorMessageProvider;
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
@@ -33,4 +35,9 @@ public class AsmRuntimeModule extends AbstractAsmRuntimeModule {
 	public Class<? extends IQualifiedNameProvider> bindIQualifiedNameProvider() {
 		return AsmQualifiedNameProvider.class;
 	}
+	
+	public Class<? extends ISyntaxErrorMessageProvider> bindISyntaxErrorMessageProvider() {
+	    return PPSyntaxErrorMessageProvider.class;
+	}
+
 }

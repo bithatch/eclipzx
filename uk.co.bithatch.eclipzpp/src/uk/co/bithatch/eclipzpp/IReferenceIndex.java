@@ -1,4 +1,4 @@
-package uk.co.bithatch.zxbasic;
+package uk.co.bithatch.eclipzpp;
 
 import java.util.List;
 

@@ -40,13 +40,13 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 		return ele.getLabel() != null ? ele.getLabel() : "<numeric label>";
 	}
 
-	String text(AsmLocalLine ele) {
-		StringBuilder sb = new StringBuilder("LOCAL ");
-		if (ele.getLabels() != null && !ele.getLabels().isEmpty()) {
-			sb.append(String.join(", ", ele.getLabels()));
-		}
-		return sb.toString();
-	}
+//	String text(AsmLocalLine ele) {
+//		StringBuilder sb = new StringBuilder("LOCAL ");
+//		if (ele.getLabels() != null && !ele.getLabels().isEmpty()) {
+//			sb.append(String.join(", ", ele.getLabels()));
+//		}
+//		return sb.toString();
+//	}
 
 	String text(AsmStatementLine ele) {
 		StringBuilder sb = new StringBuilder();
@@ -88,9 +88,9 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 		return "EXTERN";
 	}
 
-	String text(IncBin ele) {
-		return "INCBIN " + (ele.getFile() != null ? ele.getFile() : "");
-	}
+//	String text(IncBin ele) {
+//		return "INCBIN " + (ele.getFile() != null ? ele.getFile() : "");
+//	}
 
 	String text(Proc ele) {
 		return "PROC";
@@ -118,9 +118,9 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 		return "outline-label.png";
 	}
 
-	String image(AsmLocalLine ele) {
-		return "outline-label.png";
-	}
+//	String image(AsmLocalLine ele) {
+//		return "outline-label.png";
+//	}
 
 	String image(AsmStatementLine ele) {
 		// Use label icon if the line has a label
@@ -154,9 +154,9 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 		return "outline-extern.png";
 	}
 
-	String image(IncBin ele) {
-		return "outline-include.png";
-	}
+//	String image(IncBin ele) {
+//		return "outline-include.png";
+//	}
 
 	String image(Proc ele) {
 		return "outline-proc.png";
@@ -180,9 +180,10 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 		} else if (stmt instanceof Extern) {
 			Extern ext = (Extern) stmt;
 			return "EXTERN " + (ext.getName() != null ? String.join(", ", ext.getName()) : "");
-		} else if (stmt instanceof IncBin) {
-			return "INCBIN " + ((IncBin) stmt).getFile();
-		} else if (stmt instanceof Proc) {
+//		} else if (stmt instanceof IncBin) {
+//			return "INCBIN " + ((IncBin) stmt).getFile();
+		} 
+		else if (stmt instanceof Proc) {
 			return "PROC";
 		} else if (stmt instanceof AsmDefByteDirective) {
 			return "DEFB";
@@ -211,7 +212,7 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 		if (stmt instanceof AsmSection) return "outline-section.png";
 		if (stmt instanceof AsmInclude) return "outline-include.png";
 		if (stmt instanceof AsmExternDirective) return "outline-extern.png";
-		if (stmt instanceof AsmBinaryDirective) return "outline-include.png";
+//		if (stmt instanceof AsmBinaryDirective) return "outline-include.png";
 		if (stmt instanceof AsmProcStatement) return "outline-proc.png";
 		if (stmt instanceof AsmDataDefineGroup || stmt instanceof AsmDataDefineVars) return "outline-data.png";
 		if (stmt instanceof AsmDefByteDirective || stmt instanceof AsmDefWordDirective
