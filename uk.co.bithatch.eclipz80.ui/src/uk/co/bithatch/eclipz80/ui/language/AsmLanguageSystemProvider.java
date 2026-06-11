@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,13 +95,18 @@ public class AsmLanguageSystemProvider implements ILanguageSystemProvider {
 	}
 
 	@Override
-	public Set<String> findIncludeSourcePaths(IFile file) {
+	public Set<String> findIncludeSourcePaths(IResource file) {
 		return AsmPreferencesAccess.get().getAllIncludeLocations(file.getProject()).stream().collect(Collectors.toSet());
 	}
 
 	@Override
-	public Map<String, String> findDefines(IFile baseFile) {
+	public Map<String, String> findDefines(IResource baseFile) {
 		return AsmPreferencesAccess.get().getDefinesMap(baseFile.getProject());
+	}
+
+	@Override
+	public Optional<String> findRuntimeDir(IResource baseFile) {
+		return Optional.empty();
 	}
 
 }

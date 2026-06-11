@@ -87,31 +87,6 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 		return map;
 	}
 
-//	@Override
-//	public final void update(int offset, int replacedTextLength, String newText) {
-//		if (!isLoaded())
-//			throw new IllegalStateException("You can't update an unloaded resource.");
-//
-//		var file = getFile(this);
-//		if (file.isEmpty()) {
-//			super.update(offset, replacedTextLength, newText);
-//			return;
-//		}
-//
-//		try {
-//			SourceMapRegistry.set(map);
-//			isUpdating = true;
-//			super.update(offset, replacedTextLength, newText);
-//		}
-////		catch (IOException ioe) {
-////			throw new UncheckedIOException(ioe);
-////		} 
-//		finally {
-//			SourceMapRegistry.set(null);
-//			isUpdating = false;
-//		}
-//	}
-
 	@Override
 	public final void update(int offset, int replacedTextLength, String newText) {
 		if (!isLoaded())
@@ -188,11 +163,11 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 		
 		var bldr = builder(file.getProject()).
 				withSourceMap(map).
-				onWarning((wrn, msg) -> {
-					LOG.warn("[PP] " + wrn+ " : " + msg);
+				onWarning((wrn, ln, msg) -> {
+					LOG.warn("[PP] " + wrn+ " @ " + ln + " : " + msg);
 				}).
-				onError((err, msg) -> {
-					LOG.error("[PP] " + err + " : " + msg);
+				onError((err, ln, msg) -> {
+					LOG.warn("[PP] " + err+ " @ " + ln + " : " + msg);
 				});
 		
 		
@@ -215,6 +190,10 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 		
 		pp.defines().forEach((k,v) -> {
 			System.out.println("DEFINES: "+ k + "=" + v);
+		});
+		
+		map.hiddenLines().forEach((k,v) -> {
+			System.out.println("HIDDEN: " + k + "=" + v);
 		});
 		
 		map.segments().forEach(seg -> {

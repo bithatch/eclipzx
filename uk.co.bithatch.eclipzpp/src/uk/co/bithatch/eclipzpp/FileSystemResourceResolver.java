@@ -101,6 +101,11 @@ public final class FileSystemResourceResolver implements ResourceResolver<Path> 
 			return this;
 		}
 		
+		public Builder withRuntimeDir(String runtimedir) {
+			this.runtimedir = Optional.of(Paths.get(runtimedir));
+			return this;
+		}
+		
 		public FileSystemResourceResolver build() {
 			return new FileSystemResourceResolver(this);
 		}

@@ -18,7 +18,6 @@ import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.resource.EObjectDescription;
 import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.scoping.IScope;
-import org.eclipse.xtext.scoping.Scopes;
 import org.eclipse.xtext.scoping.impl.SimpleScope;
 
 import com.google.common.collect.Iterators;
@@ -34,10 +33,6 @@ import uk.co.bithatch.zxbasic.basic.BasicPackage;
 import uk.co.bithatch.zxbasic.basic.DimDeclaration;
 import uk.co.bithatch.zxbasic.basic.FunctionBlock;
 import uk.co.bithatch.zxbasic.basic.Group;
-import uk.co.bithatch.zxbasic.basic.PPDefine;
-import uk.co.bithatch.zxbasic.basic.PPIfdef;
-import uk.co.bithatch.zxbasic.basic.PPIfndef;
-import uk.co.bithatch.zxbasic.basic.PPUndef;
 import uk.co.bithatch.zxbasic.basic.Program;
 import uk.co.bithatch.zxbasic.basic.SubBlock;
 
@@ -58,14 +53,7 @@ public class BasicScopeProvider extends AbstractBasicScopeProvider {
 	@Override
 	public IScope getScope(EObject context, EReference eRef) {
 
-		if (context instanceof PPUndef || context instanceof PPIfdef  || context instanceof PPIfndef) {
-			var program = findProgram(context);
-			return Scopes.scopeFor(Lists.newArrayList(Iterators.filter(program.eAllContents(), e -> {
-				return e instanceof PPDefine;
-			})), n -> QualifiedName.create(((PPDefine)n).getName()), IScope.NULLSCOPE);
-		}
-
-		else if (eRef.equals(BasicPackage.Literals.REFERABLE_REF__REF)) {
+		if (eRef.equals(BasicPackage.Literals.REFERABLE_REF__REF)) {
 
 			var program = findProgram(context);
 
@@ -209,22 +197,22 @@ public class BasicScopeProvider extends AbstractBasicScopeProvider {
 
         
         // Add defines found by preprocessor
-        SourceMapRegistry.get(context).ifPresent(sm -> {
-        	for(var def : sm.defines().keySet()) {
-    			var fakeFunc = createDefStub(def);
-    			var desc = EObjectDescription.create(QualifiedName.create(def), fakeFunc);
-    			builtIns.add(desc);
-        	}
-        });
+//        SourceMapRegistry.get(context).ifPresent(sm -> {
+//        	for(var def : sm.defines().keySet()) {
+//    			var fakeFunc = createDefStub(def);
+//    			var desc = EObjectDescription.create(QualifiedName.create(def), fakeFunc);
+//    			builtIns.add(desc);
+//        	}
+//        });
 
 		return new SimpleScope(parent, builtIns, true);
 	}
 
-	private EObject createDefStub(String name) {
-		var stub = BasicFactory.eINSTANCE.createPPDefine(); // or FunctionDef
-		stub.setDefine("#define " + name);
-		return stub;
-	}
+//	private EObject createDefStub(String name) {
+//		var stub = BasicFactory.eINSTANCE.createPPDefine(); // or FunctionDef
+//		stub.setDefine("#define " + name);
+//		return stub;
+//	}
 
 	private EObject createFunctionStub(String name) {
 		var stub = BasicFactory.eINSTANCE.createFunctionBlock(); // or FunctionDef

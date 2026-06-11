@@ -35,7 +35,7 @@ BasicLine returns Group:
 // ─────────────── Preprocessor ───────────────
 
 PPDirective:
-    PPInclude | PPDefine | PPLine | PPPragma | PPUndef |  PPElse |  PPWarning |  PPError |  PPEndIf | PPIfdef | PPIfndef | PPElif | PPIf | PPRequire | PPExclude
+    PPInclude | PPRequire | PPExclude
 ;
 
 PPInclude:
@@ -72,55 +72,8 @@ PPRequire:
     {PPRequire} '#require' importURI=PPIncludeSpec
 ;
 
-PPIf:
-    expr = PP_IF
-;
-    
 PPOnce:
     {PPOnce} 'ONCE'
-;
-
-PPUndef:
-    {PPUndef} '#undef' name=ID;
-
-PPDefine:
-    define = PP_DEFINE
-;
-
-PPLine:
-    linemkr = PP_LINE
-;
-
-PPElse:
-   {PPElse} '#else'
-;
-
-PPElif:
-   {PPElse} '#elif'
-;
-
-PPEndIf:
-   {PPEndIf} '#endif'
-;
-
-PPIfdef:
-   {PPIfdef} '#ifdef' name=ID
-;
-
-PPIfndef:
-   {PPIfndef} '#ifndef' name=ID
-;
-
-PPPragma:
-    pragma = PP_PRAGMA
-;
-
-PPError:
-    error = PP_ERROR
-;
-
-PPWarning:
-    warning = PP_WARNING
 ;
 
 // ─────────────── STATEMENTS ───────────────
@@ -878,7 +831,7 @@ terminal INT returns ecore::EInt:  ('-')? ('0'..'9')+;
 terminal ID: ('A'..'Z' | 'a'..'z' | '_')? ('A'..'Z' | 'a'..'z' | '0'..'9' | '_')* ('$')?;
 
 terminal SPLIT:
-    '_' ((' ' | '\t')* SL_COMMENT)?
+    ('_'|'\\') ((' ' | '\t')* SL_COMMENT)?
 ;
              
 @Override
@@ -897,34 +850,4 @@ terminal REM_LINE: 'REM' (!('\r' | '\n'))*;
  */
  
  
-terminal PP_DEFINE: '#' 
-    ('d' | 'D') ('e' | 'E') ('f' | 'F' ) ('i' | 'I') ('n' | 'N') ('e' | 'E') 
-    (('\\' '\r'? '\n') | !('\r' | '\n'))*
-;
-
-terminal PP_PRAGMA: '#' 
-    ('p' |'P') ('r' | 'R') ('a' | 'A' ) ('g' | 'G') ( 'm' | 'M' ) ( 'a' | 'A') 
-    (!('\r' | '\n'))*
-;
-
-terminal PP_LINE: '#' 
-    ('l' |'L') ('i' | 'I') ('n' | 'N' ) ('e' | 'E')  
-    (!('\r' | '\n'))*
-;
-
-terminal PP_ERROR: '#' 
-    ('e' |'E') ('r' | 'R') ('r' | 'R' ) ('o' | 'O') ('r' | 'R')  
-    (!('\r' | '\n'))*
-;
-
-terminal PP_IF: '#' 
-    ('i' | 'I') ('f' | 'F') (' ' | '\t' )  
-    (!('\r' | '\n'))*
-;
-
-terminal PP_WARNING: '#' 
-    ('w' |'W') ('a' | 'A') ('r' | 'R' ) ('n' | 'N') ('i' | 'I') ('n' | 'N') ('g' | 'G')  
-    (!('\r' | '\n'))*
-;
-
 terminal SEP: ':';

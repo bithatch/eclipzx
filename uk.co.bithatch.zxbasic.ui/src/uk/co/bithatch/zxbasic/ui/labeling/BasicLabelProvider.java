@@ -20,7 +20,6 @@ import uk.co.bithatch.zxbasic.basic.FunctionBlock;
 import uk.co.bithatch.zxbasic.basic.Group;
 import uk.co.bithatch.zxbasic.basic.IfStmt;
 import uk.co.bithatch.zxbasic.basic.LetStmt;
-import uk.co.bithatch.zxbasic.basic.PPDefine;
 import uk.co.bithatch.zxbasic.basic.PPDirective;
 import uk.co.bithatch.zxbasic.basic.PPInclude;
 import uk.co.bithatch.zxbasic.basic.PrintStmt;
@@ -62,9 +61,9 @@ public class BasicLabelProvider extends DefaultEObjectLabelProvider {
 		else if (element instanceof PPInclude ppi) {
 			return ppi.getImportURI();
 		}
-		else if (element instanceof PPDefine ppd) {
-			return ppd.getName();
-		}
+//		else if (element instanceof PPDefine ppd) {
+//			return ppd.getName();
+//		}
 		else if (element instanceof FunctionBlock functionBlock) {
 			return functionBlock(functionBlock);
 		} 
@@ -120,10 +119,10 @@ public class BasicLabelProvider extends DefaultEObjectLabelProvider {
 		{
 			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.INCLUDE_PATH);			
 		}
-		else if(element instanceof PPDefine)
-		{
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.DEFINE_PATH);			
-		}
+//		else if(element instanceof PPDefine)
+//		{
+//			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.DEFINE_PATH);			
+//		}
 		else if(element instanceof PPDirective) 
 		{
 			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.PP_PATH);

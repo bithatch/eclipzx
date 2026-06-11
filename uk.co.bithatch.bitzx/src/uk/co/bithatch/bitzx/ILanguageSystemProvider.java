@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -53,7 +54,9 @@ public interface ILanguageSystemProvider {
 
 	List<? extends IArchitecture> architectures(IProject project, String sdkName);
 	
-	Set<String> findIncludeSourcePaths(IFile baseFile);
+	Optional<String> findRuntimeDir(IResource baseFile);
 	
-	Map<String, String> findDefines(IFile baseFile);
+	Set<String> findIncludeSourcePaths(IResource baseFile);
+	
+	Map<String, String> findDefines(IResource baseFile);
 }

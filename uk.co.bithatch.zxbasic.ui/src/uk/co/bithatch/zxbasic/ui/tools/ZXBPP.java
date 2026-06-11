@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 
 import uk.co.bithatch.bitzx.FileNames;
 
+@Deprecated
 public class ZXBPP extends AbstractTool {
 	public static final int DEFAULT_HEAP_SIZE = 4768;
 	

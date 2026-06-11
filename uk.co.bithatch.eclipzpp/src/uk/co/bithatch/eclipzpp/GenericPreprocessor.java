@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +43,16 @@ public class GenericPreprocessor extends AbstractTool {
 		Z88DK, BORIEL, ASM, ALL
 	}
 	
+	@FunctionalInterface
+	public interface ErrorCallback {
+		void error(Error warning, int line, String text);
+	}
+	
+	@FunctionalInterface
+	public interface WarningCallback {
+		void warning(Warning warning, int line, String text);
+	}
+	
 	public record SourceReference(String type, int line, int originalLine, String originalUri) {}
 	
 	/**
@@ -53,8 +62,8 @@ public class GenericPreprocessor extends AbstractTool {
 
 		private final Map<String, String> defines = new  HashMap<>();
 		private final Set<Warning> suppressedWarnings = new HashSet<Warning>(); 
-		private Optional<BiConsumer<Warning, String>> onWarning = Optional.empty(); 
-		private Optional<BiConsumer<Error, String>> onError = Optional.empty(); 
+		private Optional<WarningCallback> onWarning = Optional.empty(); 
+		private Optional<ErrorCallback> onError = Optional.empty(); 
 		private Optional<Consumer<String[]>> onPragma = Optional.empty();
 		private Optional<ResourceResolver<Object>> resourceResolver = Optional.empty();
 		private Optional<SourceMap> sourceMap = Optional.empty();
@@ -166,7 +175,7 @@ public class GenericPreprocessor extends AbstractTool {
 			return this;
 		}
 		
-		public Builder onWarning(BiConsumer<Warning, String> onWarning) {
+		public Builder onWarning(WarningCallback onWarning) {
 			this.onWarning = Optional.of(onWarning);
 			return this;
 		}
@@ -176,7 +185,7 @@ public class GenericPreprocessor extends AbstractTool {
 			return this;
 		}
 		
-		public Builder onError(BiConsumer<Error, String> onError) {
+		public Builder onError(ErrorCallback onError) {
 			this.onError= Optional.of(onError);
 			return this;
 		}
@@ -188,8 +197,8 @@ public class GenericPreprocessor extends AbstractTool {
 
 	private final Map<String, String> defines;
 	private final Set<Warning> suppressedWarnings;  
-	private final Optional<BiConsumer<Warning, String>> onWarning;
-	private final Optional<BiConsumer<Error, String>> onError;
+	private final Optional<WarningCallback> onWarning;
+	private final Optional<ErrorCallback> onError;
 	private final Optional<ResourceResolver<Object>> resourceResolver; 
 	private final Optional<Consumer<String[]>> onPragma;
 	private final Optional<SourceMap> sourceMap;
@@ -257,15 +266,16 @@ public class GenericPreprocessor extends AbstractTool {
 		var it = new ReaderIterator(rdr);
 		var pwtr = wtr instanceof PrintWriter pw ? pw : new PrintWriter(wtr, true);
     	doRun(it, context).forEach(s -> {
-    		var lines = s.split("\\r?\\n");
-			for(var i = 0 ; i < lines.length; i++) {
-				if(lineContinuations.isPresent() && i < lines.length - 1) {
-					pwtr.println(lines[i] + lineContinuations.get());
-				}
-				else {
-					pwtr.println(lines[i]);
-				}
-    		}
+//    		var lines = s.split("\\r?\\n");
+//			for(var i = 0 ; i < lines.length; i++) {
+//				if(lineContinuations.isPresent() && i < lines.length - 1) {
+//					pwtr.println(lines[i] + lineContinuations.get());
+//				}
+//				else {
+//					pwtr.println(lines[i]);
+//				}
+//    		}
+			pwtr.println(s);
     	});
     }
 
@@ -284,14 +294,14 @@ public class GenericPreprocessor extends AbstractTool {
 	}
 
 
-	private String evalConstExpression(String expr) {
-		var evaluator = new ConstExpressionEvaluator(defines, this::emitWarning);
+	private String evalConstExpression(String expr, int thisLineNo) {
+		var evaluator = new ConstExpressionEvaluator(defines, (w,m) -> emitWarning(w, thisLineNo, m));
 		return Long.toString(evaluator.evaluate(expr));
 	}
 
-	private void emitWarning(Warning warning, String message) {
+	private void emitWarning(Warning warning, int lineNo, String message) {
 		if(!suppressedWarnings.contains(warning)) {
-			onWarning.ifPresent(ow -> ow.accept(warning, message));
+			onWarning.ifPresent(ow -> ow.warning(warning, lineNo, message));
 		}
 	}
 
@@ -335,9 +345,9 @@ public class GenericPreprocessor extends AbstractTool {
 			return next != null;
 		}
 		
-		private void error(Error err, String text) {
+		private void error(Error err, int thisLineNo, String text) {
 			onError.ifPresentOrElse(oe -> {
-				oe.accept(err, text);
+				oe.error(err, thisLineNo, text);
 			}, () -> {
 				throw new IllegalArgumentException(text);
 			});	
@@ -373,7 +383,7 @@ public class GenericPreprocessor extends AbstractTool {
 			
 			if(isElseDirective(directive)) {
 				if(res.conditions().isEmpty() || res.conditions().peek().inElse) {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 				else {
@@ -383,17 +393,17 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			else if(isElifDirective(directive)) {
 				if(res.conditions().isEmpty() || res.conditions().peek().inElse) {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 				else {
-					res.conditions().peek().applyElif(elif(line, directive));
+					res.conditions().peek().applyElif(elif(line, directive, thisLineNo));
 					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 			}
 			else if(isElifdefDirective(directive)) {
 				if(res.conditions().isEmpty() || res.conditions().peek().inElse) {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 				else {
@@ -403,7 +413,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			else if(isElifndefDirective(directive)) {
 				if(res.conditions().isEmpty() || res.conditions().peek().inElse) {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 				else {
@@ -413,7 +423,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			else if(isEndifDirective(directive)) {
 				if(res.conditions().isEmpty()) {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 				else {
@@ -436,11 +446,11 @@ public class GenericPreprocessor extends AbstractTool {
 			
 			/* Generic directives supported in all formats */
 			if(cmd[0].equals("#define")) {
-				if(defineMacro(line.trim())) {
+				if(defineMacro(line.trim(), thisLineNo)) {
 					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 			}
@@ -449,7 +459,7 @@ public class GenericPreprocessor extends AbstractTool {
 					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 			}
@@ -458,7 +468,7 @@ public class GenericPreprocessor extends AbstractTool {
 					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 			}
@@ -467,7 +477,7 @@ public class GenericPreprocessor extends AbstractTool {
 					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
-					error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 					return Optional.of(line);
 				}
 			}
@@ -475,11 +485,11 @@ public class GenericPreprocessor extends AbstractTool {
 			/* Z88DK specific directives */
 			if(format != Format.BORIEL) {
 				if(isIfDirective(directive)) {
-					if(ifExpr(line, directive)) {
+					if(ifExpr(line, directive, thisLineNo)) {
 						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -489,7 +499,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -498,16 +508,16 @@ public class GenericPreprocessor extends AbstractTool {
 						return Optional.empty();
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
 				else if(directive.equals("assert")) {
-					if(assertDirective(line.trim())) {
+					if(assertDirective(line.trim(), thisLineNo)) {
 						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -517,7 +527,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return mode == Mode.EDITOR ? includeDirectiveIfEditorMode(offset, line, 2, true) : expanded;
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -526,7 +536,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -535,7 +545,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -544,18 +554,18 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
 				else if(directive.equals("rept")) {
 					// TODO includeDirectiveIfEditorMode
-					var expanded = reptDirective(line.trim(), res);
+					var expanded = reptDirective(line.trim(), res, thisLineNo);
 					if(expanded.isPresent()) {
 						return expanded;
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -564,7 +574,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 						return Optional.of(line);
 					}
 				}
@@ -576,7 +586,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return expanded;
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -587,7 +597,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return expanded;
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -596,7 +606,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(offset, line, 2, false);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -605,16 +615,16 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
 				else if(directive.equals("define")) {
-					if(define(line.trim())) {
+					if(define(line.trim(), thisLineNo)) {
 						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -627,22 +637,22 @@ public class GenericPreprocessor extends AbstractTool {
 
 
 			/* Boriel specific directives */
-			if(format != Format.BORIEL) {
+			if(format != Format.Z88DK) {
 				if(directive.equals("#pragma")) {
 					if(pragma(line.trim())) {
 						return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
 						return Optional.of(line);
 					}
 				}
 				else  if(directive.equals("#error")) {
-					onError.ifPresent(oe -> oe.accept(Error.ERROR_DIRECTIVE, line.trim().substring(7).trim()));
+					onError.ifPresent(oe -> oe.error(Error.ERROR_DIRECTIVE, thisLineNo, line.trim().substring(7).trim()));
 					return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 				}
 				else if(directive.equals("#warning")) {
-					onWarning.ifPresent(ow -> ow.accept(Warning.WARNING_DIRECTIVE, line.trim().substring(9).trim()));
+					onWarning.ifPresent(ow -> ow.warning(Warning.WARNING_DIRECTIVE, thisLineNo, line.trim().substring(9).trim()));
 					return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 				}
 				else if(directive.equals("#require")) {
@@ -650,7 +660,7 @@ public class GenericPreprocessor extends AbstractTool {
 						if(require(line.trim()))
 							return Optional.empty();
 						else {
-							error(Error.SYNTAX_ERROR,"Syntax error " + line.trim() + ".");
+							error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.trim() + ".");
 							return Optional.of(line);
 						}
 					}
@@ -663,7 +673,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return includeDirectiveIfEditorMode(thisLineNo, line, 2, true);
 					}
 					else {
-						error(Error.SYNTAX_ERROR,"Syntax error " + line.translateEscapes() + ".");
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 						return Optional.of(line);
 					}
 				}
@@ -677,7 +687,7 @@ public class GenericPreprocessor extends AbstractTool {
 //	    	    INIT = "INIT"
 //	    	    LINE = "LINE"
 				
-				onWarning.ifPresent(ow -> ow.accept(Warning.UNKNOWN_PREPROCESSOR_DIRECTIVE, "Unknown preprocessor directive " + line.trim() + "."));
+				onWarning.ifPresent(ow -> ow.warning(Warning.UNKNOWN_PREPROCESSOR_DIRECTIVE, thisLineNo, "Unknown preprocessor directive " + line.trim() + "."));
 				return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
 			}
 			else if(mode == Mode.COMPILER || stack.size() == 1) {
@@ -857,21 +867,21 @@ public class GenericPreprocessor extends AbstractTool {
 			return Files.readAllBytes(Path.of(filename));
 		}
 
-		private boolean ifExpr(String line, String directive) {
+		private boolean ifExpr(String line, String directive, int lineNo) {
 			var expr = conditionalExpr(line, directive);
 			if(expr.isEmpty()) {
 				return false;
 			}
-			stack.peek().conditions().push(new Condition(Long.parseLong(evalConstExpression(expr)) != 0L));
+			stack.peek().conditions().push(new Condition(Long.parseLong(evalConstExpression(expr, lineNo)) != 0L));
 			return true;
 		}
 
-		private boolean elif(String line, String directive) {
+		private boolean elif(String line, String directive, int thisLineNo) {
 			var expr = conditionalExpr(line, directive);
 			if(expr.isEmpty()) {
 				throw new IllegalArgumentException("Missing ELIF expression.");
 			}
-			return Long.parseLong(evalConstExpression(expr)) != 0L;
+			return Long.parseLong(evalConstExpression(expr, thisLineNo)) != 0L;
 		}
 
 		private boolean elifdef(String line, String directive) {
@@ -890,7 +900,7 @@ public class GenericPreprocessor extends AbstractTool {
 			return !defines.containsKey(name);
 		}
 
-		private boolean assertDirective(String line) {
+		private boolean assertDirective(String line, int lineNo) {
 			var body = conditionalExpr(line, "assert");
 			if(body.isEmpty()) {
 				return false;
@@ -902,12 +912,12 @@ public class GenericPreprocessor extends AbstractTool {
 				return false;
 			}
 
-			if(Long.parseLong(evalConstExpression(expr)) != 0L) {
+			if(Long.parseLong(evalConstExpression(expr, lineNo)) != 0L) {
 				return true;
 			}
 
 			var msg = split[1] == null ? "Assertion failed: " + expr : stripQuoted(split[1].trim());
-			error(Error.ASSERT_FAILED, msg);
+			error(Error.ASSERT_FAILED, lineNo, msg);
 			return true;
 		}
 
@@ -1100,12 +1110,12 @@ public class GenericPreprocessor extends AbstractTool {
 		private record MacroInvocation(String name, String args) {
 		}
 
-		private Optional<String> reptDirective(String line, IncludeContext<Object> res) {
+		private Optional<String> reptDirective(String line, IncludeContext<Object> res,  int thisLineNo) {
 			var expr = conditionalExpr(line, "rept");
 			if(expr.isBlank()) {
 				return Optional.empty();
 			}
-			var count = Long.parseLong(evalConstExpression(expr));
+			var count = Long.parseLong(evalConstExpression(expr, thisLineNo));
 			if(count < 0) {
 				return Optional.empty();
 			}
@@ -1334,13 +1344,31 @@ public class GenericPreprocessor extends AbstractTool {
 						sm.hiddenLines().put(
 								offset, line);
 					});
-					return Optional.of(replaceWithSpaces(line));
+					return Optional.of(maybeQueueLines(replaceWithSpaces(line), true));
 				}
 				else
-					return Optional.of(line);
+					return Optional.of(maybeQueueLines(line, false));
 			}
 			else {
 				return Optional.empty();
+			}
+		}
+		
+		private String maybeQueueLines(String text, boolean replaceWithSpaces) {
+    		var lines = text.split("\\r?\\n");
+			for(var i = 1 ; i < lines.length; i++) {
+				if(lineContinuations.isPresent() && i < lines.length - 1) {
+					pendingOutput.push(lines[i] + (replaceWithSpaces ? ' ' : lineContinuations.get()));
+				}
+				else {
+					pendingOutput.push(lines[i]);
+				}
+    		}
+			if(lineContinuations.isPresent() && lines.length > 1) {
+				return lines[0] + (replaceWithSpaces ? ' ' : lineContinuations.get() );
+			}
+			else {
+				return lines[0];
 			}
 		}
 
@@ -1460,7 +1488,7 @@ public class GenericPreprocessor extends AbstractTool {
 					included.add(rslv.uri());
 				}
 				catch(IllegalArgumentException iae) {
-					error(Error.MISSING_INCLUDE, iae.getMessage());
+					error(Error.MISSING_INCLUDE, res.lineNumber().get(), iae.getMessage());
 				}
 				return true;
 			}
@@ -1469,7 +1497,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 		}
 
-		private boolean define(String line) {
+		private boolean define(String line, int thisLineNo) {
 			// DEFINE 
 			var nameAndVal = line.substring(7);
 			var valSepIdx = nameAndVal.indexOf('=');
@@ -1477,13 +1505,13 @@ public class GenericPreprocessor extends AbstractTool {
 			String name = nameAndVal;
 			if(valSepIdx > -1) {
 				name = nameAndVal.substring(0, valSepIdx).trim();
-				val = evalConstExpression(nameAndVal.substring(valSepIdx + 1).trim());
+				val = evalConstExpression(nameAndVal.substring(valSepIdx + 1).trim(), thisLineNo);
 			}
 			defines.put(name, val);
 			return true;
 		}
 
-		private boolean defineMacro(String line) {
+		private boolean defineMacro(String line, int thisLineNo) {
 			/* NOTE: below is for benefit of boriel that sometimes seems to use _ separators for continuations! */
 			var chars = line.substring(8).replace("_" + System.lineSeparator(), " ").trim().toCharArray();
 			var notWs = notWs(chars, 0);
@@ -1498,7 +1526,7 @@ public class GenericPreprocessor extends AbstractTool {
 				var value = contentIdx == -1 ? null : new String(chars, contentIdx, chars.length - contentIdx);
 				
 				if(defines.put(key, value) != null) {
-					emitWarning(Warning.MACRO_REDEFINED, String.format("'%s' redefined.", key));
+					emitWarning(Warning.MACRO_REDEFINED, thisLineNo, String.format("'%s' redefined.", key));
 				};
 			}
 			return true;
@@ -1726,15 +1754,16 @@ public class GenericPreprocessor extends AbstractTool {
 	}
 	
 	private static String replaceWithSpaces(String line) {
-		var c = line.toCharArray();
-		var b = new StringBuilder();
-		for(var a : c) {
-			if(a == ' ' || a == '\t' || a == '\r' || a == '\n')
-				b.append(a);
-			else
-				b.append(' ');
-		}
-		return b.toString();
+//		var c = line.toCharArray();
+//		var b = new StringBuilder();
+//		for(var a : c) {
+//			if(a == ' ' || a == '\t' || a == '\r' || a == '\n')
+//				b.append(a);
+//			else
+//				b.append(' ');
+//		}
+//		return b.toString();
+		return line;
 	}
 
 	private static int notWs(char[] chars, int start) {

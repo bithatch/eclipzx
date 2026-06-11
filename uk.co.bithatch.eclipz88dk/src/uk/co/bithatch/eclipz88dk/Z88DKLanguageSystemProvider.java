@@ -195,7 +195,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	}
 
 	@Override
-	public Map<String, String> findDefines(IFile baseFile) {
+	public Map<String, String> findDefines(IResource baseFile) {
 		/* TODO get all the defines from project configuration of the files
 		 * projects and all of its referenced projects
 		 */
@@ -203,7 +203,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	}
 
 	@Override
-	public Set<String> findIncludeSourcePaths(IFile baseFile) {
+	public Set<String> findIncludeSourcePaths(IResource baseFile) {
 		var prj = baseFile.getProject();
 		var sdk = Z88DKPreferencesAccess.get().getSDK(prj).orElse(null);
 		if(sdk != null) {
@@ -261,5 +261,10 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 				}
 			}
 		}
+	}
+
+	@Override
+	public Optional<String> findRuntimeDir(IResource baseFile) {
+		return Z88DKPreferencesAccess.get().getSDK(baseFile.getProject()).map(sdk -> new File(sdk.location(), "lib").getAbsolutePath());
 	}
 }

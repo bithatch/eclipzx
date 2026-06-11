@@ -1,9 +1,11 @@
 package uk.co.bithatch.zxbasic.ui.language;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -112,14 +114,20 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 	}
 
 	@Override
-	public Set<String> findIncludeSourcePaths(IFile file) {
+	public Set<String> findIncludeSourcePaths(IResource file) {
 		var allLibs = ZXBasicPreferencesAccess.get().getAllLibURIs(file.getProject());
 		return allLibs.stream().map(p -> p.toString()).collect(Collectors.toSet());
 	}
 
 	@Override
-	public Map<String, String> findDefines(IFile baseFile) {
-		throw new UnsupportedOperationException("TODO");
+	public Map<String, String> findDefines(IResource baseFile) {
+		return ZXBasicPreferencesAccess.get().getDefines(baseFile.getProject());
+	}
+
+	@Override
+	public Optional<String> findRuntimeDir(IResource baseFile) {
+		var pax = ZXBasicPreferencesAccess.get();
+		return pax.getSDK(baseFile.getProject()).map(sdk -> sdk.runtime(pax.getArchitecture(baseFile.getProject())).getAbsolutePath());
 	}
 
 }

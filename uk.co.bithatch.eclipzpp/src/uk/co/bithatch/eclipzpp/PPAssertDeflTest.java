@@ -26,7 +26,7 @@ public class PPAssertDeflTest {
 		var errors = new ArrayList<ErrorEvent>();
 		var pp = new GenericPreprocessor.Builder()
 				.withMode(Mode.COMPILER)
-				.onError((e, m) -> errors.add(new ErrorEvent(e, m)))
+				.onError((e, ln, m) -> errors.add(new ErrorEvent(e, m)))
 				.build();
 
 		var input = String.join("\n",
@@ -47,7 +47,7 @@ public class PPAssertDeflTest {
 		var errors = new ArrayList<ErrorEvent>();
 		var pp = new GenericPreprocessor.Builder()
 				.withMode(Mode.COMPILER)
-				.onError((e, m) -> errors.add(new ErrorEvent(e, m)))
+				.onError((e, ln, m) -> errors.add(new ErrorEvent(e, m)))
 				.build();
 
 		var out = pp.process("ASSERT 1\ndb 9\n");
@@ -59,7 +59,7 @@ public class PPAssertDeflTest {
 		var errors = new ArrayList<ErrorEvent>();
 		var pp = new GenericPreprocessor.Builder()
 				.withMode(Mode.COMPILER)
-				.onError((e, m) -> errors.add(new ErrorEvent(e, m)))
+				.onError((e, ln, m) -> errors.add(new ErrorEvent(e, m)))
 				.build();
 
 		pp.process("ASSERT 0, \"boom\"\ndb 1\n");

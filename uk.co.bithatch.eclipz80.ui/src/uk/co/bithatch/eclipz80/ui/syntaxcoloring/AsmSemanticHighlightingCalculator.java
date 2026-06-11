@@ -1,12 +1,8 @@
 package uk.co.bithatch.eclipz80.ui.syntaxcoloring;
 
+import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.ide.editor.syntaxcoloring.IHighlightedPositionAcceptor;
-import org.eclipse.xtext.ide.editor.syntaxcoloring.ISemanticHighlightingCalculator;
-import org.eclipse.xtext.nodemodel.ILeafNode;
-import org.eclipse.xtext.nodemodel.INode;
-import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
-import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.util.CancelIndicator;
 
 import uk.co.bithatch.eclipz80.asm.AsmAlignDirective;
@@ -70,28 +66,18 @@ import uk.co.bithatch.eclipz80.asm.AsmSetaeStatement;
 import uk.co.bithatch.eclipz80.asm.AsmStatement;
 import uk.co.bithatch.eclipz80.asm.AsmSwapnibStatement;
 import uk.co.bithatch.eclipz80.asm.AsmTestStatement;
-import uk.co.bithatch.eclipz80.ui.preprocessing.AsmResource;
+import uk.co.bithatch.eclipzpp.ui.PPResource;
+import uk.co.bithatch.eclipzpp.ui.PPSemanticHighlightingCalculator;
 
-public class AsmSemanticHighlightingCalculator implements ISemanticHighlightingCalculator {
+public class AsmSemanticHighlightingCalculator extends PPSemanticHighlightingCalculator {
 
-    @Override
-    public void provideHighlightingFor(XtextResource resource, IHighlightedPositionAcceptor acceptor,
-            CancelIndicator cancelIndicator) {
-        if (resource == null || resource.getContents().isEmpty())
-            return;
-
-        var root = resource.getContents().get(0);
-        var allContents = root.eAllContents();
-		var map = ((AsmResource)resource).map();
-
-		System.out.println("HIGHLIGHT!");
-        map.hiddenLines().forEach((ln, text) -> {
-        	System.out.println("   ADDING HIDDEN AT " + ln + ": " + text);
-        	
-            acceptor.addPosition(ln, text.length(), AsmHighlightingConfiguration.PREPROCESSING_ID);
-        });
-
-        while (allContents.hasNext()) {
+	public AsmSemanticHighlightingCalculator() {
+		super(AsmHighlightingConfiguration.PREPROCESSING_ID);
+	}
+	@Override
+	protected void provideHighlights(PPResource resource, IHighlightedPositionAcceptor acceptor,
+			CancelIndicator cancelIndicator, TreeIterator<EObject> allContents) {
+		while (allContents.hasNext()) {
             if (cancelIndicator.isCanceled())
                 return;
 
@@ -171,36 +157,6 @@ public class AsmSemanticHighlightingCalculator implements ISemanticHighlightingC
                 highlightKeyword(obj, acceptor, AsmHighlightingConfiguration.INSTRUCTION_ID);
             }
         }
-    }
-
-	private int lineToOffset(XtextResource resource, int line) {
-		// TODO
-		return 0;
+		
 	}
-
-	/**
-     * Highlights the entire node for a given EObject.
-     */
-    private void highlightNode(EObject obj, IHighlightedPositionAcceptor acceptor, String id) {
-        INode node = NodeModelUtils.findActualNodeFor(obj);
-        if (node != null) {
-            acceptor.addPosition(node.getOffset(), node.getLength(), id);
-        }
-    }
-
-    /**
-     * Highlights only the first keyword token (non-hidden leaf node) of a statement or directive.
-     * This ensures only the mnemonic/directive keyword is coloured, not its operands.
-     */
-    private void highlightKeyword(EObject obj, IHighlightedPositionAcceptor acceptor, String id) {
-        INode node = NodeModelUtils.findActualNodeFor(obj);
-        if (node != null) {
-            for (ILeafNode leaf : node.getLeafNodes()) {
-                if (!leaf.isHidden()) {
-                    acceptor.addPosition(leaf.getOffset(), leaf.getLength(), id);
-                    return;
-                }
-            }
-        }
-    }
 }

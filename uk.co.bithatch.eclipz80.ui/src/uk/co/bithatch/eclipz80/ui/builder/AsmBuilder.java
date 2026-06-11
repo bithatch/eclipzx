@@ -110,15 +110,15 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		// Configure the preprocessor that AsmResource will use
 		PPResourcePreprocessorDecorator.Instance.set(bldr -> {
 			bldr.withMode(Mode.COMPILER);
-			bldr.onError((err, txt) -> {
+			bldr.onError((err, ln, txt) -> {
 				// TODO line numbers
-				System.out.println("ZZZ Preprocess error: " + txt);
-				addMarker(file, txt, 0, IMarker.SEVERITY_ERROR);
+				System.out.println("ZZZ Preprocess error @ " +ln + ": " + txt);
+				addMarker(file, txt, ln, IMarker.SEVERITY_ERROR);
 			});
-			bldr.onWarning((wrn,txt) -> {
+			bldr.onWarning((wrn, ln, txt) -> {
 				// TODO line numbers
-				System.out.println("ZZZ Preprocess wrn: " + txt);
-				addMarker(file, txt, 0, IMarker.SEVERITY_WARNING);
+				System.out.println("ZZZ Preprocess wrn @ " + ln + ": " + txt);
+				addMarker(file, txt, ln, IMarker.SEVERITY_WARNING);
 			});
 		});
 

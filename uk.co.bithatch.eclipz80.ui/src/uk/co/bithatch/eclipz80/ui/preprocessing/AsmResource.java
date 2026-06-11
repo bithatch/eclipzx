@@ -6,7 +6,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.emf.ecore.resource.Resource;
 
-import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
+import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.eclipzpp.FileSystemResourceResolver;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor.Builder;
@@ -16,18 +16,22 @@ import uk.co.bithatch.eclipzpp.ui.PPResourceUtil;
 
 public class AsmResource extends PPResource {
 
-
 	public static GenericPreprocessor.Builder builderForProject(IProject project) {
-		var pax = AsmPreferencesAccess.get();
-		var fs = new FileSystemResourceResolver.Builder()
-				.withIncludePaths(pax.getAllIncludePaths(project))
-				.withWorkingDir(project.getLocation().toFile())
+		var lang = LanguageSystem.languageSystem(project);
+		
+		var bldr = new FileSystemResourceResolver.Builder()
+				.withIncludes(lang.findIncludeSourcePaths(project))
+				.withWorkingDir(project.getLocation().toFile());
+		
+		lang.findRuntimeDir(project).ifPresent(bldr::withRuntimeDir);
+		
+		var fs = bldr
 				.build();
 
 		return new GenericPreprocessor.Builder().
 				withResourceResolver(fs).
 				withFormat(Format.ASM).
-				withDefines(pax.getDefines(project));
+				withDefines(lang.findDefines(project));
 	}
 
 	@Override
