@@ -43,7 +43,7 @@ AsmStatementLine:
     statements+=AsmStatement /*(':' statements+=AsmStatement)**/;
 
 AsmLabelDef:
-    name=QualifiedID;
+    name=LabelDefID;
     
 AsmStatement:
     AsmOrg | 
@@ -89,6 +89,7 @@ AsmStatement:
     AsmDMAWR6Directive |
     AsmExternDirective |
     AsmGlobalDirective |
+    AsmLocalDirective |
     AsmPopStatement |
     AsmAndStatement |
     AsmOrStatement |
@@ -620,7 +621,7 @@ AsmSignedExpr:
 ;
 
 AsmLabel:
-    ref=[AsmLabelDef]
+    ref=[AsmLabelDef|QualifiedID]
 ;
 
 AsmPrimary returns AsmExpression:
@@ -718,6 +719,10 @@ AsmPublicDirective:
     {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=QualifiedID (',' name+=QualifiedID)*
 ;
 
+AsmLocalDirective:
+    {Local} ( 'LOCAL') name+=AsmLabelDef (',' name+=AsmLabelDef)*
+;
+
 AsmGlobalDirective:
     {Global} ( 'GLOBAL') name+=AsmLabelDef (',' name+=AsmLabelDef)*
 ;
@@ -753,8 +758,12 @@ AsmSection:
     {Section} 'SECTION' name=QualifiedID
 ;
 
-QualifiedID:
+QualifiedID hidden():
     '.'? ID ('.' ID)*
+;
+
+LabelDefID returns ecore::EString hidden():
+    '.'? ID
 ;
     
 // ─────────────── MODEL ELEMENTS ───────────────

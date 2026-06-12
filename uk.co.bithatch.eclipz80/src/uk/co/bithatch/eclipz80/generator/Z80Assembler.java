@@ -678,6 +678,17 @@ public class Z80Assembler {
 			}
 			return;
 		}
+		if (stmt instanceof Local lcl) {
+			if (pass1) {
+				for (AsmLabelDef name : lcl.getName()) {
+					Symbol symbl = putSymbol(name.getName());
+					symbl.isGlobal = false;
+					symbl.isExternal = false;
+					symbl.isPublic = false;
+				}
+			}
+			return;
+		}
 		if (stmt instanceof Extern) {
 			Extern ext = (Extern) stmt;
 			if (pass1) {
