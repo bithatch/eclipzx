@@ -58,7 +58,7 @@ PPModuleSpec returns ecore::EString:
 ValidID returns ecore::EString:
      ID |
      'AND' | 'AS' | 'AT' | 'BEEP' | 'BORDER' | 'BRIGHT' | 'BYREF' | 'BYTE' | 'BYVAL' | 'CIRCLE' | 'CLS' |
-    'CONST' | 'CONTINUE' | 'DATA' | 'DIM' | 'DO' | 'DRAW' | 'ELSE' | 'ELSEIF' | 'END' |
+    'CODE' | 'CONST' | 'CONTINUE' | 'DATA' | 'DIM' | 'DO' | 'DRAW' | 'ELSE' | 'ELSEIF' | 'END' |
     'EXIT' | 'FASTCALL' | 'FIXED' | 'FLASH' | 'FLOAT' | 'FOR' | 'FUNCTION' | 'GO' | 'GOSUB' | 'GOTO' |
     'IF' | 'IN' | 'INK' | 'INTEGER' | 'INVERSE' | 'LET' | 'LOAD' | 'LONG' | 'LOOP' | 'MOD' | 'NEXT' |
     'NOT' | 'ON' | 'ONCE' | 'OR' | 'OUT' | 'OVER' | 'PAPER' | 'PAUSE' | 'PLOT' | 'POKE' | 'PRINT' |
@@ -301,7 +301,7 @@ ResourceType:
 ;
 
 CodeResource:
-    {CodeResource} 'XXXX'
+    {CodeResource} 'CODE'
 ;
 
 ScreenResource:
@@ -527,7 +527,7 @@ EndIfStmt returns Group:
     EndIfLine;
     
 EndIf:
-    ( 'END' 'IF' ) | ('ENDIF')
+    'END' 'IF'
 ;
     
 EndIfLine returns Group:
@@ -781,7 +781,7 @@ LineLabel returns ecore::EString:
 ;
 
 ReferableCall returns ReferableRef:
-     ( => ref=[Referable|ID] | => ref=[LineRef|LineLabelDef]) '(' (args+=Expr (',' args+=Expr)*)? ')'
+   ( => ref=[Referable|ValidID] | => ref=[LineRef|LineLabelDef]) '(' (args+=Expr (',' args+=Expr)*)? ')'
 ;
 
 ReferableVar returns ReferableRef:

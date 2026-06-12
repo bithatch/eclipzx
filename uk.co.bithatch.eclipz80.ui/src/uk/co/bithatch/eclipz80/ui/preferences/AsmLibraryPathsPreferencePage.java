@@ -21,7 +21,7 @@ public class AsmLibraryPathsPreferencePage extends AbstractProjectSpecificPrefer
 		super.createFieldEditors();
 		
 		addField(new LibraryFolderListEditor(AsmPreferenceConstants.LIBRARY_PATHS, "Library Folders:", getFieldEditorParent(), 
-				getWorkbench().getAdapter(IWorkspace.class).getRoot()) {
+				getWorkbench().getAdapter(IWorkspace.class).getRoot(), () -> project != null) {
 
 			@Override
 			protected void doFillIntoGrid(Composite parent, int numColumns) {

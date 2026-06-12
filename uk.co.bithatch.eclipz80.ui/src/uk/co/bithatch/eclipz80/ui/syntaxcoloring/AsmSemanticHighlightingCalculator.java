@@ -36,13 +36,11 @@ import uk.co.bithatch.eclipz80.asm.AsmDefSpaceDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefTermStringDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefWordBEDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefcLine;
 import uk.co.bithatch.eclipz80.asm.AsmExternDirective;
 import uk.co.bithatch.eclipz80.asm.AsmImStatement;
 import uk.co.bithatch.eclipz80.asm.AsmInclude;
 import uk.co.bithatch.eclipz80.asm.AsmLabel;
 import uk.co.bithatch.eclipz80.asm.AsmLabelDef;
-import uk.co.bithatch.eclipz80.asm.AsmLabelEQULine;
 import uk.co.bithatch.eclipz80.asm.AsmLddrxStatement;
 import uk.co.bithatch.eclipz80.asm.AsmLddxStatement;
 import uk.co.bithatch.eclipz80.asm.AsmLdirxStatement;
@@ -128,7 +126,7 @@ public class AsmSemanticHighlightingCalculator extends PPSemanticHighlightingCal
                     || obj instanceof AsmDefSpaceDirective || obj instanceof AsmDataDefineGroup
                     || obj instanceof AsmDataDefineVars
                     || obj instanceof AsmExternDirective || obj instanceof AsmModule
-                    || obj instanceof AsmLabelEQULine || obj instanceof AsmDefcLine
+//                    || obj instanceof AsmLabelEQULine || obj instanceof AsmDefcLine
                     || obj instanceof AsmAssumeDirective
                     || obj instanceof AsmSection 
 //                    || obj instanceof AsmLocalLine

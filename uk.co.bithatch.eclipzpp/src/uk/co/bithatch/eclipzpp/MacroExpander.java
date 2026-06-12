@@ -17,11 +17,11 @@ public class MacroExpander {
 
     private static final int MAX_RECURSION_DEPTH = 10;
 
-    public static String expandLine(String line, Map<String, String> defines) {
+    public static String expandLine(String line, Map<String, DefineDef> defines) {
         return expandLine(line, defines, 0);
     }
 
-    private static String expandLine(String line, Map<String, String> defines, int depth) {
+    private static String expandLine(String line, Map<String, DefineDef> defines, int depth) {
         if (depth > MAX_RECURSION_DEPTH) return line; // prevent infinite recursion
 
     	
@@ -113,9 +113,9 @@ public class MacroExpander {
                 }
 
                 // Simple macro
-                String replacement = defines.get(token);
+                DefineDef replacement = defines.get(token);
                 if (replacement != null) {
-                    result.append(expandLine(replacement, defines, depth + 1));
+                    result.append(expandLine(replacement.value(), defines, depth + 1));
                     index = matcher.end();
                     continue;
                 }
@@ -141,7 +141,7 @@ public class MacroExpander {
         return -1;
     }
 
-    private static String expandParameterizedMacro(String call, Map<String, String> defines, int depth) {
+    private static String expandParameterizedMacro(String call, Map<String, DefineDef> defines, int depth) {
         Matcher matcher = PARAM_MACRO_PATTERN.matcher(call);
         if (!matcher.matches()) return null;
 
@@ -154,7 +154,7 @@ public class MacroExpander {
                 String[] paramNames = splitArgs(defMatcher.group(2), defines, depth);
                 if (paramNames.length != args.length) return null;
 
-                String body = defines.get(key);
+                String body = defines.get(key).value();
                 for (int i = 0; i < paramNames.length; i++) {
                     body = body.replaceAll("\\b" + Pattern.quote(paramNames[i]) + "\\b",
                         Matcher.quoteReplacement(args[i]));
@@ -165,7 +165,7 @@ public class MacroExpander {
         return null;
     }
 
-    private static String[] splitArgs(String argString, Map<String, String> defines, int depth) {
+    private static String[] splitArgs(String argString, Map<String, DefineDef> defines, int depth) {
         List<String> args = new ArrayList<>();
         int depthLevel = 0;
         StringBuilder current = new StringBuilder();

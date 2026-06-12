@@ -23,6 +23,7 @@ import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.LanguageSystem;
+import uk.co.bithatch.eclipz88dk.Z88DKLanguageSystemProvider;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKBuildContext;
 import uk.co.bithatch.emuzx.DebugLaunchConfigurationAttributes;
@@ -61,7 +62,7 @@ public class CLaunchable implements IExternallyLaunchable, IInternallyLaunchable
 		var sourceFile = file.getLocation().toFile();	
 		var fmt = prepCtx.outputFormat();
 		
-		if (FileNames.hasExtensions(sourceFile, "c", "asm")) {
+		if (FileNames.hasExtensions(sourceFile, Z88DKLanguageSystemProvider.EXTENSIONS)) {
 			if (project != null) {
 				
 				prepCtx.buildOptions(IProgramBuildOptionsFactory.accumulate(file));

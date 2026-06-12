@@ -96,7 +96,7 @@ public class AsmPreferencesAccess extends LanguageSystemPreferencesAccess {
 		if (raw.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return new ArrayList<>(Arrays.asList(raw.split(AsmPreferenceConstants.DEFINES_SEPARATOR)));
+		return Arrays.asList(raw.split(AsmPreferenceConstants.DEFINES_SEPARATOR)).stream().map(s -> processProjectPath(s, project)).toList();
 	}
 
 	public List<Path> getLibraryPaths(IProject project) {
@@ -108,7 +108,8 @@ public class AsmPreferencesAccess extends LanguageSystemPreferencesAccess {
 		if (raw.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return new ArrayList<>(Arrays.asList(raw.split(AsmPreferenceConstants.DEFINES_SEPARATOR)));
+		return Arrays.asList(raw.split(AsmPreferenceConstants.DEFINES_SEPARATOR))
+				.stream().map(s -> processProjectPath(s, project)).toList();
 	}
 
 	public List<Path> getIncludePaths(IProject project) {

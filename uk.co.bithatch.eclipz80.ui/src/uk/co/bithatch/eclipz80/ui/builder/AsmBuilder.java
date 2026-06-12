@@ -108,7 +108,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		}
 		
 		// Configure the preprocessor that AsmResource will use
-		PPResourcePreprocessorDecorator.Instance.set(bldr -> {
+		PPResourcePreprocessorDecorator.Instance.set((bldr, resource, ffile) -> {
 			bldr.withMode(Mode.COMPILER);
 			bldr.onError((err, ln, txt) -> {
 				// TODO line numbers
@@ -340,7 +340,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 
 			
 			// Configure the preprocessor that AsmResource will use
-			PPResourcePreprocessorDecorator.Instance.set(bldr -> {
+			PPResourcePreprocessorDecorator.Instance.set((bldr, resource, ffile) -> {
 				bldr.withMode(Mode.COMPILER);
 			});
 

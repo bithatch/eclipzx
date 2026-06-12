@@ -125,6 +125,14 @@ public final class FileSystemResourceResolver implements ResourceResolver<Path> 
 		
 	}
 
+	public Set<Path> includePaths() {
+		return includePaths;
+	}
+
+	public Optional<Path> runtimedir() {
+		return runtimedir;
+	}
+
 	@Override
 	public IncludeContext<Path> resolve(ResolveType resolveType, Path context, String name) {
 		var oname = name;

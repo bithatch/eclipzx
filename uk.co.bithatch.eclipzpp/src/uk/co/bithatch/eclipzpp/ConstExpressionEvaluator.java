@@ -7,10 +7,10 @@ import java.util.function.BiConsumer;
 
 final class ConstExpressionEvaluator {
 
-	private final Map<String, String> defines;
+	private final Map<String, DefineDef> defines;
 	private final BiConsumer<Warning, String> onWarning;
 
-	ConstExpressionEvaluator(Map<String, String> defines, BiConsumer<Warning, String> onWarning) {
+	ConstExpressionEvaluator(Map<String, DefineDef> defines, BiConsumer<Warning, String> onWarning) {
 		this.defines = defines;
 		this.onWarning = onWarning;
 	}
@@ -45,7 +45,7 @@ final class ConstExpressionEvaluator {
 		}
 		resolving.add(symbol);
 		try {
-			var parser = new Parser(expression, resolving);
+			var parser = new Parser(expression.value(), resolving);
 			var value = parser.parseConditional();
 			parser.expectEnd();
 			return value;

@@ -52,7 +52,9 @@ public class BasicScopeProvider extends AbstractBasicScopeProvider {
 
 	@Override
 	public IScope getScope(EObject context, EReference eRef) {
-
+		
+		System.out.println("XXXXX getScope " + eRef);
+		
 		if (eRef.equals(BasicPackage.Literals.REFERABLE_REF__REF)) {
 
 			var program = findProgram(context);
@@ -119,7 +121,8 @@ public class BasicScopeProvider extends AbstractBasicScopeProvider {
 			}).filter(f -> f != null).toList());
 
 			/* Labels are case sensitive */
-			allNames.addAll(getLabels(program).stream().map(l -> {
+			List<Group> lbls = getLabels(program);
+			allNames.addAll(lbls.stream().map(l -> {
 				var lbl = ScopingUtils.numberOrLabel(l);
 				if (!exists.contains(lbl)) {
 					QualifiedName name = QualifiedName.create(lbl);
@@ -208,11 +211,11 @@ public class BasicScopeProvider extends AbstractBasicScopeProvider {
 		return new SimpleScope(parent, builtIns, true);
 	}
 
-//	private EObject createDefStub(String name) {
-//		var stub = BasicFactory.eINSTANCE.createPPDefine(); // or FunctionDef
-//		stub.setDefine("#define " + name);
-//		return stub;
-//	}
+	private EObject createDefStub(String name) {
+		var stub = BasicFactory.eINSTANCE.createFunctionBlock();
+		stub.setName(name);
+		return stub;
+	}
 
 	private EObject createFunctionStub(String name) {
 		var stub = BasicFactory.eINSTANCE.createFunctionBlock(); // or FunctionDef

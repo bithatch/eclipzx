@@ -9,6 +9,7 @@ import org.eclipse.xtext.util.CancelIndicator;
 import uk.co.bithatch.eclipzpp.ui.PPResource;
 import uk.co.bithatch.eclipzpp.ui.PPSemanticHighlightingCalculator;
 import uk.co.bithatch.zxbasic.basic.Group;
+import uk.co.bithatch.zxbasic.basic.PPDefine;
 import uk.co.bithatch.zxbasic.basic.PPExclude;
 import uk.co.bithatch.zxbasic.basic.PPInclude;
 import uk.co.bithatch.zxbasic.scoping.ScopingUtils;
@@ -41,10 +42,10 @@ public class ZXBasicSemanticHighlightingCalculator extends PPSemanticHighlightin
 //                var node = NodeModelUtils.findActualNodeFor(obj);
 //                acceptor.addPosition(node.getOffset(), 6, ZXBasicHighlightingConfiguration.MACRO_ID);
 //            }
-//            else if(obj instanceof PPIfndef || obj instanceof PPDefine) {
-//                var node = NodeModelUtils.findActualNodeFor(obj);
-//                acceptor.addPosition(node.getOffset(), 7, ZXBasicHighlightingConfiguration.MACRO_ID);
-//            }
+			else if (/* obj instanceof PPIfndef || */obj instanceof PPDefine) {
+                var node = NodeModelUtils.findActualNodeFor(obj);
+                acceptor.addPosition(node.getOffset(), 7, ZXBasicHighlightingConfiguration.MACRO_ID);
+            }
 //            else if(obj instanceof PPElif) {
 //                var node = NodeModelUtils.findActualNodeFor(obj);
 //                acceptor.addPosition(node.getOffset(), 5, ZXBasicHighlightingConfiguration.MACRO_ID);

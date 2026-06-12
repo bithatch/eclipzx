@@ -601,56 +601,32 @@ public class Z80Assembler {
 		for (AsmLine line : program.getLines()) {
 
 			// ── Label-only line (e.g. "start:" or ".loop:") ──
-			if (line instanceof LabelOnlyLine) {
-				LabelOnlyLine lol = (LabelOnlyLine) line;
-				if (pass1 && lol.getLabelDef() != null) {
-					putSymbol(lol.getLabelDef().getName()).address = currentAddress;
-				}
-				continue;
-			}
-
 			// ── EQU line (e.g. "SCREEN_ADDR EQU $4000") ──
-			if (line instanceof LabelEQULine) {
-				LabelEQULine equ = (LabelEQULine) line;
-				if (equ.getLabelDef() != null) {
+			if (line instanceof LabelledLine lol) {
+				if(lol.getValue() != null) {
 					// Resolve on both passes — pass 2 re-resolves with all symbols defined
-					putSymbol(equ.getLabelDef().getName()).address = resolveImmediate(equ.getValue());
+					putSymbol(lol.getName().getName()).address = resolveImmediate(lol.getValue());
 				}
-				continue;
-			}
-
-			// ── DEFC line (e.g. "DEFC name = expr") ──
-			if (line instanceof AsmDefcLine) {
-				AsmDefcLine defc = (AsmDefcLine) line;
-				if (defc.getLabelDef() != null) {
-					// Resolve on both passes — pass 2 re-resolves with all symbols defined
-					putSymbol(defc.getLabelDef().getName()).address = resolveImmediate(defc.getValue());
+				if (pass1 && lol.getName() != null) {
+					putSymbol(lol.getName().getName()).address = currentAddress;
 				}
-				continue;
-			}
-
-			// ── Statement line (may have an optional label prefix) ──
-			if (line instanceof AsmStatementLine) {
-				AsmStatementLine stmtLine = (AsmStatementLine) line;
-
-				// Record label on this statement line (e.g. "message: db ...")
-				if (pass1 && stmtLine.getLabelDef() != null) {
-					putSymbol(stmtLine.getLabelDef().getName()).address = currentAddress;
-				}
-
+				
 				// Record line-to-address mapping before emitting
-				int lineNumber = getLineNumber(stmtLine);
-				String lineFile = getSourceFile(stmtLine, effectiveSource);
+				int lineNumber = getLineNumber(lol);
+				String lineFile = getSourceFile(lol, effectiveSource);
 				this.currentLine = lineNumber;
 
 				if (!pass1 && lineNumber > 0 && listing) {
 					mapEntries.add(new MapEntry(lineFile, translateToOriginalSourceLine(lineNumber, effectiveSource), currentAddress & addressMask()));
 				}
 
-				for (AsmStatement stmt : stmtLine.getStatements()) {
+				for (AsmStatement stmt : lol.getStatements()) {
 					assembleStatement(stmt, out);
 				}
+				
+				continue;
 			}
+
 			// Other line types (NUMERIC_LABEL, LOCAL, etc.) are ignored for now
 			// TODO: Numeric label support (AsmNumericLabelLine)
 			// TODO: PROC / LOCAL scoping
@@ -738,6 +714,15 @@ public class Z80Assembler {
 				for (int i = 0; i < padding; i++) {
 					emit8(out, fill);
 				}
+			}
+			return;
+		}
+
+		// ── DEFC line (e.g. "DEFC name = expr") ──
+		if (stmt instanceof DefC defc) {
+			if (defc.getName() != null) {
+				// Resolve on both passes — pass 2 re-resolves with all symbols defined
+				putSymbol(defc.getName().getName()).address = resolveImmediate(defc.getValue());
 			}
 			return;
 		}

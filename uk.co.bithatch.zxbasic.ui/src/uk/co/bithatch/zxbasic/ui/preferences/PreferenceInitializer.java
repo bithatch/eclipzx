@@ -24,7 +24,7 @@ public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer 
 		setIfNotSet(prefs, ZXBasicPreferenceConstants.OPTIMIZATION_LEVEL, "2", keys);
 		setIfNotSet(prefs, ZXBasicPreferenceConstants.OUTPUT_FORMAT, BorielZXBasicOutputFormat.BIN.name(), keys);
 		setIfNotSet(prefs, ZXBasicPreferenceConstants.DEFINES, "ECLIPZX", keys);
-		setIfNotSet(prefs, ZXBasicPreferenceConstants.LIB_PATHS, "lib", keys);
+		setIfNotSet(prefs, ZXBasicPreferenceConstants.LIB_PATHS, "${project_name}/lib", keys);
 		setIfNotSet(prefs, ZXBasicPreferenceConstants.STRICT, "false", keys);
 		setIfNotSet(prefs, ZXBasicPreferenceConstants.STRICT_BOOLEAN, "false", keys);
 		setIfNotSet(prefs, ZXBasicPreferenceConstants.IGNORE_VARIABLE_CASE, "true", keys);

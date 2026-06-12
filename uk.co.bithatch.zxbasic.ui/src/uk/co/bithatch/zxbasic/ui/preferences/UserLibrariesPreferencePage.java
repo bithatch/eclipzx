@@ -23,7 +23,7 @@ public class UserLibrariesPreferencePage extends AbstractProjectSpecificPreferen
 		super.createFieldEditors();
 		
 		addField(new LibraryFolderListEditor(ZXBasicPreferenceConstants.LIB_PATHS, "User Library Folders:", getFieldEditorParent(), 
-				getWorkbench().getAdapter(IWorkspace.class).getRoot()) {
+				getWorkbench().getAdapter(IWorkspace.class).getRoot(), () -> project != null) {
 
 			@Override
 			protected void doFillIntoGrid(Composite parent, int numColumns) {

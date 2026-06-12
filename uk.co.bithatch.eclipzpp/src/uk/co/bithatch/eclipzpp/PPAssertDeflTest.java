@@ -19,6 +19,7 @@ public class PPAssertDeflTest {
 		testReptcDirective();
 		testReptiDirective();
 		testBinaryDirective();
+		testEditorLineSyncWithContinuations();
 		System.out.println("PPAssertDeflTest: OK");
 	}
 
@@ -142,6 +143,37 @@ public class PPAssertDeflTest {
 			Files.deleteIfExists(incDir);
 			Files.deleteIfExists(dir);
 		}
+	}
+
+	private static void testEditorLineSyncWithContinuations() throws Exception {
+		var source = Files.readString(Path.of("samples", "bas.bas"));
+		var expected = Files.readString(Path.of("samples", "bas.expected"));
+
+		var pp = new GenericPreprocessor.Builder()
+				.withMode(Mode.EDITOR)
+				.withFormat(GenericPreprocessor.Format.BORIEL)
+				.build();
+
+		var actual = pp.process(source);
+		var srcLines = splitLines(source);
+		var actualLines = splitLines(actual);
+		var expectedLines = splitLines(expected);
+
+		expect(actualLines.length == srcLines.length,
+				"EDITOR output line count should match source line count.");
+		expect(actualLines.length == expectedLines.length,
+				"EDITOR output line count should match expected sample line count.");
+
+		for(int i = 0; i < actualLines.length; i++) {
+			expect(actualLines[i].length() == srcLines[i].length(),
+					"EDITOR output width mismatch at line " + (i + 1) + ".");
+		}
+
+		expect(actual.equals(expected), "EDITOR output must match bas.expected exactly.");
+	}
+
+	private static String[] splitLines(String text) {
+		return text.replace("\r\n", "\n").split("\n", -1);
 	}
 
 	private static int count(String text, String token) {

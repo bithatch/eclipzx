@@ -1,10 +1,12 @@
 package uk.co.bithatch.bitzx;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Optional;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IPath;
 
 public abstract class LanguageSystemPreferencesAccess extends AbstractPreferencesAccess {
 
@@ -19,6 +21,12 @@ public abstract class LanguageSystemPreferencesAccess extends AbstractPreference
 	
 	public final IOutputFormat getOutputFormat(IProject project) {
 		return LanguageSystem.outputFormatOrDefault(project, getPreference(project, LanguageSystemPreferenceConstants.OUTPUT_FORMAT, ""));
+	}
+	
+	public final String processProjectPath(String path, IProject project) {
+		var p = path.replace("${project_name}", project.getName());
+		p = p.replace(File.separatorChar == '/' ? '\\' : '/', File.separatorChar);
+		return p;
 	}
 
 	public final void setArchitecture(IProject project, IArchitecture arch) {
@@ -49,7 +57,8 @@ public abstract class LanguageSystemPreferencesAccess extends AbstractPreference
 	public abstract IFolder getOutputFolder(IProject project);
 	
 	public static Path resolveWorkspaceRelative(IProject project, String workspaceRelativePathOrAbsolute) {
-		return project.getWorkspace().getRoot().getLocation().toPath().resolve(workspaceRelativePathOrAbsolute);
+		IPath root = project.getWorkspace().getRoot().getLocation();
+		return root.toPath().resolve(workspaceRelativePathOrAbsolute);
 	}
 
 }

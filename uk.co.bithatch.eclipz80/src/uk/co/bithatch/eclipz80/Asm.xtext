@@ -19,37 +19,31 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 AsmProgram:
     lines+=AsmLine*;
 
-//AsmLine:
-//    (label=ID ':')? mnemonic=ID (operands+=ID | operands+=STRING)*;
-    
     // ─────────────── ASM ───────────────
 
-AsmLine:
-    AsmNumericLabelLine | AsmLabelEQULine | AsmDefcLine | AsmLabelOnlyLine | AsmStatementLine;
+AsmLine: 
+    => AsmLabelOnlyLine
+    | 
+    => AsmStatementLine
+    | 
+    => AsmNumericLabelLine;
 
 AsmNumericLabelLine:
-    {AsmNumericLabelLine}
-    label=NUMERIC_LABEL;
-
-AsmLabelDef:
-    name=ID;
-    
-AsmLabelEQULine:
-    {LabelEQULine}
-    labelDef=AsmLabelDef ':'? 'EQU' value=AsmExpression;
-    
-AsmDefcLine:
-    {AsmDefcLine}
-    'DEFC' labelDef=AsmLabelDef '=' value=AsmExpression;
+    {NumberedLine}
+    name=NUMERIC_LABEL
+    line = AsmLine;
     
 AsmLabelOnlyLine:
-    {LabelOnlyLine}
-    labelDef=AsmLabelDef ':'?;
+    {LabelledLine}
+    name=AsmLabelDef ':'? ( 'EQU' value=AsmExpression)?;
 
 AsmStatementLine:
-    {AsmStatementLine}
-    (labelDef=AsmLabelDef ':'?)?
-    statements+=AsmStatement (':' statements+=AsmStatement)*;
+    {LabelledLine}
+    (name=AsmLabelDef ':'?)?
+    statements+=AsmStatement /*(':' statements+=AsmStatement)**/;
+
+AsmLabelDef:
+    name=QualifiedID;
     
 AsmStatement:
     AsmOrg | 
@@ -80,6 +74,7 @@ AsmStatement:
     AsmDefDWordDirective |
     AsmDefTermStringDirective |
     AsmDefSpaceDirective |
+    AsmDefcDirective |
     AsmFPPDirective |
     AsmLSTONDirective |
     AsmLSTOFFDirective |
@@ -178,6 +173,9 @@ AsmStatement:
     AsmMmuStatement
     ;
     
+AsmDefcDirective:
+    {DefC} 'DEFC' name=AsmLabelDef '=' value=AsmExpression;
+    
 AsmDefByteDirective:
     {DefByte} ('DEFB'|'DB'|'DEFM'|'DM'|'BYTE') data+=AsmExpression (',' data+=AsmExpression)*
 ;
@@ -217,7 +215,7 @@ AsmGroupedDefine:
 ;
 
 AsmDataDefineVars:
-    {DataDefineGroup} ( 'DEFVARS' ) name=ID '{'
+    {DataDefineGroup} ( 'DEFVARS' ) name=QualifiedID '{'
         defines += AsmVarDefine 
     '}'
 ;
@@ -333,10 +331,14 @@ AsmSlaStatement:
 ;
 
 AsmPopStatement:
-    {Pop} 'POP' register=AsmExpression
+    {Pop} 'POP' ( register=AsmExpression | 'NAMESPACE' )
 ;
 AsmPushStatement:
-    {Push} 'PUSH' register=AsmExpression
+    {Push} 'PUSH' ( register = AsmExpression | namespace = AsmPushNamespace )
+;
+
+AsmPushNamespace:
+    'NAMESPACE' importedNamespace=ID
 ;
 
 AsmJpStatement:
@@ -617,7 +619,13 @@ AsmSignedExpr:
     ('-'|'+') expr=AsmExpression
 ;
 
+AsmLabel:
+    ref=[AsmLabelDef]
+;
+
 AsmPrimary returns AsmExpression:
+    => AsmLabel
+    |
     =>  AsmIndirect
     |
     =>  AsmSignedExpr
@@ -628,17 +636,11 @@ AsmPrimary returns AsmExpression:
     |
     => StringLiteral
     |
-    => AsmLabel
-    |
     =>  AsmNotExpr
 ;
 
-AsmIndirect:
+AsmIndirect returns AsmExpression:
     {AsmIndirect} '(' expr=AsmExpression ')'
-;
-
-AsmLabel:
-    ref=[AsmLabelDef]
 ;
 
 AsmRegisterName:
@@ -713,7 +715,7 @@ AsmExternDirective:
 ;
 
 AsmPublicDirective:
-    {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=ID (',' name+=ID)*
+    {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=QualifiedID (',' name+=QualifiedID)*
 ;
 
 AsmGlobalDirective:
@@ -736,7 +738,7 @@ AsmOrg:
 ;
 
 AsmModule:
-    {Module} 'MODULE' name=ID
+    {Module} 'MODULE' name=QualifiedID
 ;
 
 AsmCall:
@@ -748,7 +750,11 @@ AsmInclude:
 ;
 
 AsmSection:
-    {Section} 'SECTION' name=ID
+    {Section} 'SECTION' name=QualifiedID
+;
+
+QualifiedID:
+    '.'? ID ('.' ID)*
 ;
     
 // ─────────────── MODEL ELEMENTS ───────────────
@@ -761,8 +767,7 @@ StringLiteral:
 
 FileSpec returns ecore::EString:
     STRING;
-
-
+    
 // ─────────────── TERMINALS ───────────────
 terminal NUMERIC_LABEL:
     ('0' .. '9')+ ':'
@@ -792,12 +797,20 @@ terminal STRING: ( '"' ( '\\' . | !('\\' | '"') )* '"' ) |
 terminal INT returns ecore::EInt: ('0'..'9')+;
 
 @Override
+//terminal ID: '$'
+//            |
+//            ( ('@')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' )* ('$')?
+//            | 
+//            ('@') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' )* ('$')?)
+//            ;
+
 terminal ID: '$'
             |
-            ( ('@'|'.')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?
+            ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' )* ('$')?
             | 
-            ('@'|'.') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')* ('$')?)
+            ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' )* ('$')?
             ;
+
              
 @Override
 terminal WS:

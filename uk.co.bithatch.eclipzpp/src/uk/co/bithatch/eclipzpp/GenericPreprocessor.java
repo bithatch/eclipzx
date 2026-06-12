@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -34,8 +36,19 @@ import uk.co.bithatch.eclipzpp.SourceMap.Segment;
 
 
 /**
- * Generic pre-process compatible with ZX Basic preprocess (zxbpp), but with some additional
+ * Generic pre-process compatible with ZX Basic preprocessor  (zxbpp) and Z88DK preprocessor (z88-asm), but with some additional
  * features we need for editing.
+ * <p>
+ * Eclipse (with Xtext) is basically a pain in the arse to integrate properly with languages that have a pre-processor. To overcome
+ * the various difficulties, this pre-processor is dual mode. With {@link Mode#COMPILER}, it acts the same as any other pre-processor,
+ * expanding macros and including other files (and various other supported directives). 
+ * <p>
+ * When in {@link Mode#EDITOR} mode, all includes and defines will be collected and processed as normal, but we only output the contents
+ * of the root file (i.e. no included files). Also, we do not expand macros or do anything else that changes the input except for replace 
+ * either the entire pre-processor instruction, or part of its with spaces. 
+ * <p>
+ * This means the Eclipse parser never actually sees any pre-processor instructions, with a couple of exceptions, "#include" (and related
+ * instructions) and "#define". These are used to support the linking mechanism, allowing resolving of symbols across files while editing.
  */
 public class GenericPreprocessor extends AbstractTool {
 	
@@ -60,7 +73,7 @@ public class GenericPreprocessor extends AbstractTool {
 	 */
 	public final static class Builder extends AbstractBuilder<Builder, GenericPreprocessor> {
 
-		private final Map<String, String> defines = new  HashMap<>();
+		private final Map<String, DefineDef> defines = new  HashMap<>();
 		private final Set<Warning> suppressedWarnings = new HashSet<Warning>(); 
 		private Optional<WarningCallback> onWarning = Optional.empty(); 
 		private Optional<ErrorCallback> onError = Optional.empty(); 
@@ -110,25 +123,46 @@ public class GenericPreprocessor extends AbstractTool {
 			return this;
 		}
 
-		public Builder addDefines(Map<String, String> defines) {
-			this.defines.putAll(defines);
+		public Builder addDefineDefs(Collection<DefineDef> defineDefs) {
+			this.defines.putAll(defineDefs.
+					stream().
+					map(e -> new AbstractMap.SimpleEntry<>(e.name(), e)).
+					collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 			return this;
+		}
+
+		public Builder addDefines(Map<String, String> defines) {
+			return addDefineDefs(defines.entrySet().
+					stream().
+					map(e -> DefineDef.of(e.getKey(), e.getValue())).
+					toList());
 		}
 
 		/**
 		 * Set a single defines given its name and value. Value
-		 * may be indicating it will evaluated to true but won't
+		 * may be null indicating it will evaluated to true but won't
 		 * expand to anything.
 		 * 
 		 * @param name name
 		 * @param value value
 		 */
 		public Builder withDefine(String name, String value) {
-			defines.put(name, value);
+			return withDefineDef(DefineDef.of(name, value));
+		}
+
+		/**
+		 * Set a single defines Value
+		 * may be null indicating it will evaluated to true but won't
+		 * expand to anything.
+		 * 
+		 * @param name name
+		 * @param value value
+		 */
+		public Builder withDefineDef(DefineDef def) {
+			defines.put(def.name(), def);
 			return this;
 		}
 		
-
 		/**
 		 * Set the defines. Each string can be either just the 
 		 * key, or key=value format. The former will result in a 
@@ -139,6 +173,15 @@ public class GenericPreprocessor extends AbstractTool {
 		public Builder withDefines(String... defines) {
 			return withDefines(Arrays.asList(defines));
 		}
+		
+		/**
+		 * Set the defines. 
+		 * 
+		 * @param defineDefs define defs
+		 */
+		public Builder withDefineDefs(DefineDef... defines) {
+			return withDefineDefs(Arrays.asList(defines));
+		}
 
 		/**
 		 * Set the defines. Each string can be either just the 
@@ -148,13 +191,12 @@ public class GenericPreprocessor extends AbstractTool {
 		 * @param defineSpecs define specs
 		 */
 		public Builder withDefines(Collection<String> defineSpecs) {
-			defineSpecs.forEach(d -> {
-				var idx = d.indexOf('=');
-				defines.put(
-					idx == -1 ? d : d.substring(0, idx), 
-					idx == -1 ? null : d.substring(idx + 1)
-				);
-			});
+			return withDefineDefs(defineSpecs.stream().map(DefineDef::of).toList());
+		}
+		
+		public Builder withDefineDefs(Collection<DefineDef> defines) {
+			this.defines.clear();
+			addDefineDefs(defines);
 			return this;
 		}	
 		
@@ -195,7 +237,7 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 	}
 
-	private final Map<String, String> defines;
+	private final Map<String, DefineDef> defines;
 	private final Set<Warning> suppressedWarnings;  
 	private final Optional<WarningCallback> onWarning;
 	private final Optional<ErrorCallback> onError;
@@ -231,12 +273,16 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 		defines.putAll(bldr.defines);
     }
+
+	public Optional<ResourceResolver<?>> resourceResolver() {
+		return resourceResolver.map(r -> (ResourceResolver<?>)r);
+	}
     
     public Map<Integer, SourceReference> sourceReference() {
     	return sourceReference;
     }
     
-    public Map<String, String> defines() {
+    public Map<String, DefineDef> defines() {
     	return Collections.unmodifiableMap(new HashMap<>(defines));
     }
 
@@ -293,6 +339,9 @@ public class GenericPreprocessor extends AbstractTool {
 		return StreamSupport.stream(iterable.spliterator(), false);
 	}
 
+	private DefineDef putDefineDef(DefineDef def) {
+		return defines.put(def.name(), def);
+	}
 
 	private String evalConstExpression(String expr, int thisLineNo) {
 		var evaluator = new ConstExpressionEvaluator(defines, (w,m) -> emitWarning(w, thisLineNo, m));
@@ -321,6 +370,7 @@ public class GenericPreprocessor extends AbstractTool {
 		private AtomicInteger preprocessedOffset = new AtomicInteger();
 		private AtomicInteger preprocessedLine = new AtomicInteger();
 		private AtomicInteger localCounter = new AtomicInteger();
+		private int bufferedLogicalSourceOffset = -1;
 		
 		private final static byte[] LINESEP = System.lineSeparator().getBytes();
 		
@@ -354,9 +404,12 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 		
 		private Optional<String> process(String line) {
-			if(!pendingOutput.isEmpty()) {
-				return Optional.of(pendingOutput.poll());
-			}
+			var res = stack.peek();
+			var fallbackOffset = res.originalOffset().get() + res.originalLength().get();
+			return process(line, fallbackOffset);
+		}
+
+		private Optional<String> process(String line, int sourceOffset) {
 			var res = stack.peek();
 			var lower = line.toLowerCase();
 			var thisLineNo = res.lineNumber().get();
@@ -364,7 +417,7 @@ public class GenericPreprocessor extends AbstractTool {
 //			System.out.println(">>process " + thisLineNo  + " :" + 
 //					line + " [" + res.lastPrintedLine().get() + "]");
 			
-			var ln = doProcess(line, res, lower, thisLineNo);
+			var ln = doProcess(line, res, lower, thisLineNo, sourceOffset);
 			if(ln.isPresent()) {
 				res.lastPrintedLine().set(thisLineNo);
 			}
@@ -372,12 +425,12 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 		
 
-		private Optional<String> doProcess(String line, IncludeContext<Object> res, String lower, int thisLineNo) {
+		private Optional<String> doProcess(String line, IncludeContext<Object> res, String lower, int thisLineNo, int sourceOffset) {
 			
 //			System.out.println("DO PROCESS: " + line);
 			var cmd = lower.trim().split("\\s+");
 			var directive = cmd[0];
-			var offset = res.preprocessedLength().get();
+			var offset = sourceOffset;
 			
 			/* Condition branches */
 			
@@ -432,20 +485,26 @@ public class GenericPreprocessor extends AbstractTool {
 				return includeDirectiveIfEditorMode(offset, line, 1, true);
 			}
 			else if(!res.conditions().isEmpty()) {
-				var cond = res.conditions().peek();
-				if(!cond.matches())
-					if(isDirectiveLine(line, directive))
+				if(!allConditionsMatch(res.conditions())) {
+					if(isIfDirective(directive) || isIfdefDirective(directive) || isIfndefDirective(directive)) {
+						/* Keep nesting balanced while skipping an inactive parent branch. */
+						res.conditions().push(new Condition(false));
 						return includeDirectiveIfEditorMode(offset, line, 1, true);
-					else if(mode == Mode.EDITOR) {
+					}
+					if(isDirectiveLine(line, directive)) {
+						return includeDirectiveIfEditorMode(offset, line, 1, true);
+					}
+					else if(mode == Mode.EDITOR && stack.size() == 1) {
 						return Optional.of(replaceWithSpaces(line));
 					}
 					else {
 						return Optional.empty();
 					}
+				}
 			}
 			
 			/* Generic directives supported in all formats */
-			if(cmd[0].equals("#define")) {
+			if(directive.equals("#define")) {
 				if(defineMacro(line.trim(), thisLineNo)) {
 					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
@@ -478,6 +537,15 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else {
 					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
+					return Optional.of(line);
+				}
+			}
+			else if(directive.equals("#line")) {
+				if(cLine(line.trim(), thisLineNo)) {
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
+				}
+				else {
+					error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
 					return Optional.of(line);
 				}
 			}
@@ -640,7 +708,7 @@ public class GenericPreprocessor extends AbstractTool {
 			if(format != Format.Z88DK) {
 				if(directive.equals("#pragma")) {
 					if(pragma(line.trim())) {
-						return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
+						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
@@ -649,11 +717,11 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 				else  if(directive.equals("#error")) {
 					onError.ifPresent(oe -> oe.error(Error.ERROR_DIRECTIVE, thisLineNo, line.trim().substring(7).trim()));
-					return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else if(directive.equals("#warning")) {
 					onWarning.ifPresent(ow -> ow.warning(Warning.WARNING_DIRECTIVE, thisLineNo, line.trim().substring(9).trim()));
-					return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
+					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else if(directive.equals("#require")) {
 					if(expandRequire) {
@@ -665,12 +733,12 @@ public class GenericPreprocessor extends AbstractTool {
 						}
 					}
 					else {
-						return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
+						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 				}
 				else if(directive.equals("#include")) {
 					if(include(line.trim())) {
-						return includeDirectiveIfEditorMode(thisLineNo, line, 2, true);
+						return includeDirectiveIfEditorMode(offset, line, 2, true);
 					}
 					else {
 						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
@@ -683,12 +751,10 @@ public class GenericPreprocessor extends AbstractTool {
 			if (line.startsWith("#")) {
 
 				// TODO
-				
 //	    	    INIT = "INIT"
-//	    	    LINE = "LINE"
 				
 				onWarning.ifPresent(ow -> ow.warning(Warning.UNKNOWN_PREPROCESSOR_DIRECTIVE, thisLineNo, "Unknown preprocessor directive " + line.trim() + "."));
-				return includeDirectiveIfEditorMode(thisLineNo, line, 1, true);
+				return includeDirectiveIfEditorMode(offset, line, 1, true);
 			}
 			else if(mode == Mode.COMPILER || stack.size() == 1) {
 				
@@ -704,9 +770,10 @@ public class GenericPreprocessor extends AbstractTool {
 					nextSegment(res);
 				}
 				
-				if(mode == Mode.EDITOR)
+				if(mode == Mode.EDITOR) {
 					// TODO not really sure ... macro expansion is the last knotty problem
 					return Optional.of(line);
+				}
 				else
 					return Optional.of(MacroExpander.expandLine(line, defines));
 			}
@@ -717,6 +784,15 @@ public class GenericPreprocessor extends AbstractTool {
 
 		private boolean isIfDirective(String directive) {
 			return directive.equals("#if") || ( format != Format.BORIEL && directive.equals("if"));
+		}
+
+		private boolean allConditionsMatch(Stack<Condition> conditions) {
+			for(var c : conditions) {
+				if(!c.matches()) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		private boolean isElifDirective(String directive) {
@@ -1027,7 +1103,7 @@ public class GenericPreprocessor extends AbstractTool {
 					}
 					var expandedLine = substituteMacroLine(bodyLine, paramMap, ctx.locals);
 					var out = process(expandedLine);
-					out.ifPresent(pendingOutput::add);
+					out.ifPresent(pendingOutput::addLast);
 				}
 			}
 			finally {
@@ -1035,7 +1111,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 
 			if(!pendingOutput.isEmpty()) {
-				return Optional.of(pendingOutput.poll());
+				return Optional.of(pendingOutput.pollFirst());
 			}
 			return Optional.empty();
 		}
@@ -1102,7 +1178,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			var args = parts.length > 1 ? parts[1] : "";
 			if(!labelPrefix.isEmpty()) {
-				pendingOutput.add(labelPrefix);
+				pendingOutput.addLast(labelPrefix);
 			}
 			return Optional.of(new MacroInvocation(name, args));
 		}
@@ -1271,10 +1347,10 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 
 			var key = name.trim();
-			var previous = Optional.ofNullable(defines.get(key)).orElse("");
+			var previous = Optional.ofNullable(defines.get(key)).map(DefineDef::value).orElse("");
 			var valueExpr = expr == null ? "" : expr;
 			var value = valueExpr.replaceAll("\\b" + Pattern.quote(key) + "\\b", Matcher.quoteReplacement(previous));
-			defines.put(key, value);
+			putDefineDef(DefineDef.of(key, value));
 			return true;
 		}
 
@@ -1340,11 +1416,28 @@ public class GenericPreprocessor extends AbstractTool {
 				 * the include itself though)
 				 */
 				if(replaceWithSpaces) {
-					sourceMap.ifPresent(sm -> {
-						sm.hiddenLines().put(
-								offset, line);
-					});
-					return Optional.of(maybeQueueLines(replaceWithSpaces(line), true));
+					
+					/* Special case for #define. We replace everything with spaces,
+					 * then put the "#define VARNAME" back and adjust the offset of
+					 * the hidden lines by the length of that string. This lets
+					 * the parser do its linking, but without the problems with the
+					 * expanded macro. If there is no value at all (or any  trailing
+					 * spaces), we do NOT treat this as a hidden line
+					 */
+					var lineStr = maybeQueueLines(replaceWithSpaces(line), true);
+					if(line.toLowerCase().startsWith("#define ")) {
+						lineStr = partialDirective(offset, line, lineStr, 8);
+					}
+					else if(line.toLowerCase().startsWith("#include ")) {
+						lineStr = partialDirective(offset, line, lineStr, 9);
+					}
+					else {
+						sourceMap.ifPresent(sm -> {
+							sm.hiddenLines().put(
+									offset, restoreLineContinuations(line));
+						});
+					}
+					return Optional.of(lineStr);
 				}
 				else
 					return Optional.of(maybeQueueLines(line, false));
@@ -1353,15 +1446,53 @@ public class GenericPreprocessor extends AbstractTool {
 				return Optional.empty();
 			}
 		}
+
+		private String partialDirective(int offset, String line, String lineStr, int leadLen) {
+			var parts = line.split("\\s+");
+			var defname = parts[1];
+			var parmidx = defname.indexOf('(');
+			if(parmidx != -1) {
+				defname = defname.substring(0, parmidx);
+			}
+			var newLead = line.substring(0, leadLen) + defname;
+			lineStr = newLead + lineStr.substring(newLead.length());
+			var foffset = offset + newLead.length();
+			if(!lineStr.equals(line)) {
+				sourceMap.ifPresent(sm -> {
+					sm.hiddenLines().put(
+							foffset, restoreLineContinuations(line).substring(newLead.length()));
+				});
+			}
+			return lineStr;
+		}
+
+		private String restoreLineContinuations(String text) {
+			if(lineContinuations.isEmpty() || !text.contains(System.lineSeparator())) {
+				return text;
+			}
+			var lines = text.split("\\r?\\n", -1);
+			if(lines.length <= 1) {
+				return text;
+			}
+			var b = new StringBuilder();
+			for(int i = 0; i < lines.length; i++) {
+				b.append(lines[i]);
+				if(i < lines.length - 1) {
+					b.append(lineContinuations.get());
+					b.append(System.lineSeparator());
+				}
+			}
+			return b.toString();
+		}
 		
 		private String maybeQueueLines(String text, boolean replaceWithSpaces) {
-    		var lines = text.split("\\r?\\n");
+	    	var lines = text.split("\\r?\\n", -1);
 			for(var i = 1 ; i < lines.length; i++) {
 				if(lineContinuations.isPresent() && i < lines.length - 1) {
-					pendingOutput.push(lines[i] + (replaceWithSpaces ? ' ' : lineContinuations.get()));
+					pendingOutput.addLast(lines[i] + (replaceWithSpaces ? ' ' : lineContinuations.get()));
 				}
 				else {
-					pendingOutput.push(lines[i]);
+					pendingOutput.addLast(lines[i]);
 				}
     		}
 			if(lineContinuations.isPresent() && lines.length > 1) {
@@ -1425,10 +1556,18 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 			var type = line.substring(0, idx).trim();
 			var cline = line.substring(idx + 1).trim();
-			var parts =  Arrays.asList(cline.split(",")).stream().map(String::trim).toList();
+//			var parts =  Arrays.asList(cline.split(",")).stream().map(String::trim).toList();
 			try {
-				var num = Integer.parseInt(parts.get(0));
-				var filename = stripQuoted(parts.get(1));
+				idx = cline.indexOf(',');
+				if(idx == -1) {
+					idx = cline.indexOf(' ');					
+				}
+				if(idx == -1) {
+					return false;
+				}
+				
+				var num = Integer.parseInt(cline.substring(0, idx).trim());
+				var filename = stripQuoted(cline.substring(idx + 1).trim());
 				sourceReference.put(thisLineNo + 1, new SourceReference(type, thisLineNo, num, filename));
 				return true;
 			}
@@ -1507,13 +1646,14 @@ public class GenericPreprocessor extends AbstractTool {
 				name = nameAndVal.substring(0, valSepIdx).trim();
 				val = evalConstExpression(nameAndVal.substring(valSepIdx + 1).trim(), thisLineNo);
 			}
-			defines.put(name, val);
+			putDefineDef(DefineDef.of(name, val));
 			return true;
 		}
 
 		private boolean defineMacro(String line, int thisLineNo) {
 			/* NOTE: below is for benefit of boriel that sometimes seems to use _ separators for continuations! */
-			var chars = line.substring(8).replace("_" + System.lineSeparator(), " ").trim().toCharArray();
+			// #define
+			var chars = line.substring(7).replace("_" + System.lineSeparator(), " ").trim().toCharArray();
 			var notWs = notWs(chars, 0);
 			if(notWs == -1) {
 				return false;
@@ -1525,7 +1665,7 @@ public class GenericPreprocessor extends AbstractTool {
 				var contentIdx = notWs(chars, ws);
 				var value = contentIdx == -1 ? null : new String(chars, contentIdx, chars.length - contentIdx);
 				
-				if(defines.put(key, value) != null) {
+				if(putDefineDef(DefineDef.of(key, value)) != null) {
 					emitWarning(Warning.MACRO_REDEFINED, thisLineNo, String.format("'%s' redefined.", key));
 				};
 			}
@@ -1614,8 +1754,15 @@ public class GenericPreprocessor extends AbstractTool {
 					if(sourceIt instanceof SourceToTargetIterator)
 						throw new UnsupportedOperationException("WTF");
 				
-					while(sourceIt.hasNext()) {
+					while(sourceIt.hasNext() || !pendingOutput.isEmpty()) {
+
+						if(!pendingOutput.isEmpty()) {
+							next = pendingOutput.pollFirst();
+							adjustForNext(res, next);
+							break;
+						}
 						
+						var nextSourceOffset = res.originalOffset().get() + res.originalLength().get();
 						var nextSourceLine = sourceIt.next();
 						var inBytes = nextSourceLine.getBytes().length + LINESEP.length;
 						
@@ -1628,19 +1775,27 @@ public class GenericPreprocessor extends AbstractTool {
 						
 						if( lineContinuations.isPresent() && ( ( (buf.length() == 0 && trimmed.startsWith("#")) || buf.length() > 0) 
 								&& nextSourceLine.endsWith(lineContinuations.get().toString()))) {
+							if(buf.length() == 0) {
+								bufferedLogicalSourceOffset = nextSourceOffset;
+							}
 							buf.append(nextSourceLine.substring(0, nextSourceLine.length() - 1) + System.lineSeparator());
 						}
 						else {
+							if(buf.length() == 0) {
+								bufferedLogicalSourceOffset = nextSourceOffset;
+							}
 //							if(buf.length() > 0)
 //								buf.append(nextSourceLine.stripLeading());
 //							else
 								buf.append(nextSourceLine);
 							
 							var procesableLine = buf.toString();
+							var processableOffset = bufferedLogicalSourceOffset;
 							buf.setLength(0);
+							bufferedLogicalSourceOffset = -1;
 							
 							try {
-								var result = process(procesableLine);
+								var result = process(procesableLine, processableOffset);
 								if(result.isPresent()) {
 									next = result.get();
 //									System.out.println("output: " + next);
@@ -1754,16 +1909,15 @@ public class GenericPreprocessor extends AbstractTool {
 	}
 	
 	private static String replaceWithSpaces(String line) {
-//		var c = line.toCharArray();
-//		var b = new StringBuilder();
-//		for(var a : c) {
-//			if(a == ' ' || a == '\t' || a == '\r' || a == '\n')
-//				b.append(a);
-//			else
-//				b.append(' ');
-//		}
-//		return b.toString();
-		return line;
+		var c = line.toCharArray();
+		var b = new StringBuilder();
+		for(var a : c) {
+			if(a == ' ' || a == '\t' || a == '\r' || a == '\n')
+				b.append(a);
+			else
+				b.append(' ');
+		}
+		return b.toString();
 	}
 
 	private static int notWs(char[] chars, int start) {

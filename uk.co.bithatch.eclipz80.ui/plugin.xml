@@ -84,44 +84,9 @@
 		</definition>
 	</extension>
 	<extension
-			point="org.eclipse.ui.preferencePages">
-		<page
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
-			id="uk.co.bithatch.eclipz80.Asm"
-			name="Asm">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
-		</page>
-		<page
-			category="uk.co.bithatch.eclipz80.Asm"
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
-			id="uk.co.bithatch.eclipz80.Asm.coloring"
-			name="Syntax Coloring">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_SyntaxColoring"/>
-		</page>
-		<page
-			category="uk.co.bithatch.eclipz80.Asm"
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
-			id="uk.co.bithatch.eclipz80.Asm.templates"
-			name="Templates">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Templates"/>
-		</page>
-	</extension>
-	<extension
-			point="org.eclipse.ui.propertyPages">
-		<page
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
-			id="uk.co.bithatch.eclipz80.Asm"
-			name="Asm">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Language"/>
-			<enabledWhen>
-				<adapt type="org.eclipse.core.resources.IProject"/>
-			</enabledWhen>
-			<filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature"/>
-		</page>
-	</extension>
-	<extension
 		point="org.eclipse.ui.keywords">
 		<keyword id="uk.co.bithatch.eclipz80.ui.keyword_Asm" label="Asm"/>
+        <keyword id="uk.co.bithatch.eclipz80.ui.keyword_ErrorsWarnings" label="Errors/Warnings"/>
         <keyword id="uk.co.bithatch.eclipz80.ui.keyword_Compiler" label="Compiler"/>
         <keyword id="uk.co.bithatch.eclipz80.ui.keyword_SyntaxColoring" label="Syntax Colouring"/>
         <keyword id="uk.co.bithatch.eclipz80.ui.keyword_Defines" label="Defines"/>
@@ -321,29 +286,42 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.validation.ValidatorPreferencePage"
 			id="uk.co.bithatch.eclipz80.Asm.validator.preferencePage"
 			name="Errors/Warnings">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
-		</page>
-	</extension>
-	<extension point="org.eclipse.xtext.builder.participant">
-		<participant
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
-			fileExtensions="asm"/>
-	</extension>
-	<extension point="org.eclipse.ui.preferencePages">
-		<page
-			category="uk.co.bithatch.eclipz80.Asm"
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmCompilerPreferencePage"
-			id="uk.co.bithatch.eclipz80.Asm.compiler.preferencePage"
-			name="Compiler">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Compiler"/>
+			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_ErrorsWarnings"/>
 		</page>
 		<page
-			category="uk.co.bithatch.eclipz80.Asm"
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmDefinesPreferencePage"
-			id="uk.co.bithatch.eclipz80.Asm.defines.preferencePage"
-			name="Defines">
-			<keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Defines"/>
-		</page>
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm"
+            name="Asm">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Asm"/>
+        </page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.coloring"
+            name="Syntax Coloring">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_SyntaxColoring"/>
+        </page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.templates"
+            name="Templates">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Templates"/>
+        </page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmCompilerPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.compiler.preferencePage"
+            name="Compiler">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Compiler"/>
+        </page>
+        <page
+            category="uk.co.bithatch.eclipz80.Asm"
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmDefinesPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm.defines.preferencePage"
+            name="Defines">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Defines"/>
+        </page>
         <page
             category="uk.co.bithatch.eclipz80.Asm"
             class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmIncludePathsPreferencePage"
@@ -359,7 +337,22 @@
             <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_LibPaths"/>
         </page>
 	</extension>
+	<extension point="org.eclipse.xtext.builder.participant">
+		<participant
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
+			fileExtensions="asm"/>
+	</extension>
 	<extension point="org.eclipse.ui.propertyPages">
+	   <page
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            id="uk.co.bithatch.eclipz80.Asm"
+            name="Asm">
+            <keywordReference id="uk.co.bithatch.eclipz80.ui.keyword_Language"/>
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject"/>
+            </enabledWhen>
+            <filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature"/>
+        </page>
 		<page
 			category="uk.co.bithatch.eclipz80.Asm"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.preferences.AsmCompilerPreferencePage"

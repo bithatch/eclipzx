@@ -24,20 +24,20 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 
 	// ─────────────── Labels ───────────────
 
-	String text(LabelOnlyLine ele) {
-		return ele.getLabelDef() != null ? ele.getLabelDef().getName() : "<label>";
-	}
+//	String text(LabelledLine ele) {
+//		return ele.getName() != null ? ele.getName().getName() : "<label>";
+//	}
 
-	String text(LabelEQULine ele) {
-		return ele.getLabelDef() != null ? ele.getLabelDef().getName() + " EQU" : "EQU";
-	}
+//	String text(LabelEQULine ele) {
+//		return ele.getName() != null ? ele.getName().getName() + " EQU" : "EQU";
+//	}
 
-	String text(AsmDefcLine ele) {
-		return ele.getLabelDef() != null ? "DEFC " + ele.getLabelDef().getName() : "DEFC";
-	}
+//	String text(AsmDefcLine ele) {
+//		return ele.getName() != null ? "DEFC " + ele.getName().getName() : "DEFC";
+//	}
 
-	String text(AsmNumericLabelLine ele) {
-		return ele.getLabel() != null ? ele.getLabel() : "<numeric label>";
+	String text(NumberedLine ele) {
+		return ele.getName() != null ? ele.getName() : "<numeric label>";
 	}
 
 //	String text(AsmLocalLine ele) {
@@ -48,10 +48,10 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 //		return sb.toString();
 //	}
 
-	String text(AsmStatementLine ele) {
+	String text(LabelledLine ele) {
 		StringBuilder sb = new StringBuilder();
-		if (ele.getLabelDef() != null) {
-			sb.append(ele.getLabelDef().getName());
+		if (ele.getName() != null) {
+			sb.append(ele.getName().getName());
 		}
 		if (ele.getStatements() != null && !ele.getStatements().isEmpty()) {
 			for (AsmStatement stmt : ele.getStatements()) {
@@ -102,17 +102,17 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 
 	// ─────────────── Icons ───────────────
 
-	String image(LabelOnlyLine ele) {
-		return "outline-label.png";
-	}
+//	String image(LabelledLine ele) {
+//		return "outline-label.png";
+//	}
 
-	String image(LabelEQULine ele) {
-		return "outline-equ.png";
-	}
+//	String image(LabelEQULine ele) {
+//		return "outline-equ.png";
+//	}
 
-	String image(AsmDefcLine ele) {
-		return "outline-equ.png";
-	}
+//	String image(AsmDefcLine ele) {
+//		return "outline-equ.png";
+//	}
 
 	String image(AsmNumericLabelLine ele) {
 		return "outline-label.png";
@@ -122,9 +122,9 @@ public class AsmLabelProvider extends DefaultEObjectLabelProvider {
 //		return "outline-label.png";
 //	}
 
-	String image(AsmStatementLine ele) {
+	String image(LabelledLine ele) {
 		// Use label icon if the line has a label
-		if (ele.getLabelDef() != null) {
+		if (ele.getName() != null) {
 			return "outline-label.png";
 		}
 		// Otherwise use directive icon based on first statement

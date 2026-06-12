@@ -1,6 +1,7 @@
 package uk.co.bithatch.widgetzx.preferences;
 
 import java.io.File;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -18,10 +19,16 @@ import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 public class LibraryFolderListEditor extends ListEditor {
 
     private final IWorkspaceRoot root;
+	private Supplier<Boolean> isProjectSpecific;
 
     public LibraryFolderListEditor(String name, String labelText, Composite parent, IWorkspaceRoot root) {
+    	this(name, labelText,parent, root, () -> false);
+    }
+
+    public LibraryFolderListEditor(String name, String labelText, Composite parent, IWorkspaceRoot root, Supplier<Boolean> isProjectSpecific) {
         super(name, labelText, parent);
         this.root = root;
+        this.isProjectSpecific= isProjectSpecific;
     }
 
 	@Override
@@ -68,7 +75,7 @@ public class LibraryFolderListEditor extends ListEditor {
                 Object[] selected = projDialog.getResult();
                 if (selected.length > 0) {
                     IPath path = (IPath) selected[0];
-                    return path.makeRelative().toPortableString();
+                    return projectPathToString(path);
                 }
             }
         } else if (result == 1) {
@@ -83,6 +90,21 @@ public class LibraryFolderListEditor extends ListEditor {
 
         return null;
     }
+
+	protected String projectPathToString(IPath path) {
+		if(isProjectSpecific()) {
+			return path.makeRelative().toPortableString();
+		}
+		else {
+			var rel =  path.makeRelative();
+			var withoutProj = rel.removeFirstSegments(1);
+			return "${project_name}" + File.separator + withoutProj.toOSString();
+		}
+	}
+
+	protected boolean isProjectSpecific(){
+		return isProjectSpecific.get();
+	}
 
 	@Override
 	protected void adjustForNumColumns(int numColumns) {

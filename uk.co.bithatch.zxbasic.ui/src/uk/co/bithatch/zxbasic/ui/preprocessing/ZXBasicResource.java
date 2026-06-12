@@ -17,16 +17,21 @@ import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 public class ZXBasicResource extends PPResource {
 
 
-	public static GenericPreprocessor.Builder builderForProject(IProject project) {
+	public static GenericPreprocessor.Builder defaultBuilderForProject(IProject project) {
 		var pax = ZXBasicPreferencesAccess.get();
-		var fs = new FileSystemResourceResolver.Builder().withIncludeDirs(pax.getAllLibs(project))
-				.withWorkingDir(project.getLocation().toFile())
-				.withRuntimeDir(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).runtime(pax.getArchitecture(project))).build();
-
+		var fs = resourceResolveForProject(project);
 		return new GenericPreprocessor.Builder().
 				withResourceResolver(fs).
 				withFormat(Format.BORIEL).
 				withDefines(pax.getDefines(project));
+	}
+
+	public static FileSystemResourceResolver resourceResolveForProject(IProject project) {
+		var pax = ZXBasicPreferencesAccess.get();
+		var fs = new FileSystemResourceResolver.Builder().withIncludeDirs(pax.getAllLibs(project))
+				.withWorkingDir(project.getLocation().toFile())
+				.withRuntimeDir(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).runtime(pax.getArchitecture(project))).build();
+		return fs;
 	}
 
 	@Override
@@ -36,6 +41,6 @@ public class ZXBasicResource extends PPResource {
 
 	@Override
 	public Builder builder(IProject project) {
-		return builderForProject(project);
+		return defaultBuilderForProject(project);
 	}
 }

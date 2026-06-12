@@ -6,7 +6,46 @@ package uk.co.bithatch.eclipz80.ui.outline;
 import org.eclipse.xtext.ui.editor.outline.IOutlineNode;
 import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider;
 
-import uk.co.bithatch.eclipz80.asm.*;
+import uk.co.bithatch.eclipz80.asm.AsmAlignDirective;
+import uk.co.bithatch.eclipz80.asm.AsmAssumeDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCallOzDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCallPkgDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCopperMoveDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCopperNopDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCopperStopDirective;
+import uk.co.bithatch.eclipz80.asm.AsmCopperWaitDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR0Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR1Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR2Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR3Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR4Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR5Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDMAWR6Directive;
+import uk.co.bithatch.eclipz80.asm.AsmDataDefineGroup;
+import uk.co.bithatch.eclipz80.asm.AsmDataDefineVars;
+import uk.co.bithatch.eclipz80.asm.AsmDefByteDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefDWordDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefPointerDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefSpaceDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefTermStringDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefWordBEDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
+import uk.co.bithatch.eclipz80.asm.AsmExternDirective;
+import uk.co.bithatch.eclipz80.asm.AsmInclude;
+import uk.co.bithatch.eclipz80.asm.AsmLine;
+import uk.co.bithatch.eclipz80.asm.AsmMmuStatement;
+import uk.co.bithatch.eclipz80.asm.AsmModule;
+import uk.co.bithatch.eclipz80.asm.AsmNextReg;
+import uk.co.bithatch.eclipz80.asm.AsmNumericLabelLine;
+import uk.co.bithatch.eclipz80.asm.AsmOrg;
+import uk.co.bithatch.eclipz80.asm.AsmProcStatement;
+import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipz80.asm.AsmSection;
+import uk.co.bithatch.eclipz80.asm.AsmStatement;
+import uk.co.bithatch.eclipz80.asm.AsmStatementLine;
+//import uk.co.bithatch.eclipz80.asm.LabelEQULine;
+//import uk.co.bithatch.eclipz80.asm.LabelOnlyLine;
+import uk.co.bithatch.eclipz80.asm.LabelledLine;
 
 /**
  * Customization of the default outline structure.
@@ -38,17 +77,17 @@ public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
 		return true;
 	}
 
-	protected boolean _isLeaf(LabelOnlyLine line) {
+	protected boolean _isLeaf(LabelledLine line) {
 		return true;
 	}
 
-	protected boolean _isLeaf(LabelEQULine line) {
-		return true;
-	}
+//	protected boolean _isLeaf(LabelEQULine line) {
+//		return true;
+//	}
 
-	protected boolean _isLeaf(AsmDefcLine line) {
-		return true;
-	}
+//	protected boolean _isLeaf(AsmDefcLine line) {
+//		return true;
+//	}
 
 	protected boolean _isLeaf(AsmNumericLabelLine line) {
 		return true;
@@ -63,25 +102,24 @@ public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
 	 */
 	private boolean isOutlineWorthy(AsmLine line) {
 		// Label-only lines, EQU lines, DEFC lines, LOCAL lines, numeric labels - always show
-		if (line instanceof LabelOnlyLine
-				|| line instanceof LabelEQULine
-				|| line instanceof AsmDefcLine
+		if (line instanceof LabelledLine
+//				|| line instanceof LabelEQULine
+//				|| line instanceof AsmDefcLine
 //				|| line instanceof AsmLocalLine
 				|| line instanceof AsmNumericLabelLine) {
 			return true;
 		}
 
 		// Statement lines - show if they have a label or contain a directive
-		if (line instanceof AsmStatementLine) {
-			AsmStatementLine stmtLine = (AsmStatementLine) line;
+		if (line instanceof LabelledLine lol) {
 
 			// Has a label? Always show
-			if (stmtLine.getLabelDef() != null) {
+			if (lol.getName() != null) {
 				return true;
 			}
 
 			// Contains at least one directive? Show
-			for (AsmStatement stmt : stmtLine.getStatements()) {
+			for (AsmStatement stmt : lol.getStatements()) {
 				if (isDirective(stmt)) {
 					return true;
 				}

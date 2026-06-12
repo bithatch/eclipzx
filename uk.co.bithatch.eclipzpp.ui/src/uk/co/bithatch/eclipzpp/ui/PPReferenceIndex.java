@@ -10,14 +10,11 @@ public class PPReferenceIndex implements IReferenceIndex {
 	
 	@Override
 	public boolean isDefined(String offending) {
-System.out.println("isDefined : " + offending);
 		var map = SourceMapRegistry.get();
 		if(map != null && map.defines().containsKey(offending)) {
-			System.out.println("  true");
 			return true;
 		}
 
-		System.out.println("  false");
 		return false;
 	}
 

@@ -107,7 +107,7 @@ public class SourceMap {
 	}
 
 	private final List<Segment> segments = new ArrayList<>();
-	private final Map<String, String> defines = new HashMap<>();
+	private final Map<String, DefineDef> defines = new HashMap<>();
 	private final Map<Integer, String> hiddenLines = new HashMap<>();
 
 	public void addSegment(Segment segment) {
@@ -117,13 +117,14 @@ public class SourceMap {
 	public void clear() {
 		segments.clear();
 		defines.clear();
+		hiddenLines.clear();
 	}
 	
 	public List<Segment> segments() {
 		return segments;
 	}
 	
-	public Map<String, String> defines() {
+	public Map<String, DefineDef> defines() {
 		return defines;
 	}
 	

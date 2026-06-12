@@ -536,5 +536,12 @@
 
     <extension point="uk.co.bithatch.bitzx.languageSystemProvider">
         <languageSystemProvider id="uk.co.bithatch.zxbasic.ui.langageSystemProvider.zxbasic" name="Boriels ZX Basic" class="uk.co.bithatch.zxbasic.ui.language.BorielZXBasicLanguageSystemProvider"/> 
+    </extension>
+    
+    <extension
+          point="uk.co.bithatch.eclipzpp.ui.preprocessorDecorator">
+       <preprocessorDecorator
+             class="uk.co.bithatch.zxbasic.ui.preprocessing.ZXBasicPPDecorator">
+       </preprocessorDecorator>
     </extension>     
 </plugin>

@@ -2,9 +2,7 @@ package uk.co.bithatch.zxbasic.interpreter;
 
 import static uk.co.bithatch.zxbasic.interpreter.Var.forBoolean;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,10 +19,8 @@ import uk.co.bithatch.zxbasic.basic.AttributeModifier;
 //import uk.co.bithatch.zxbasic.basic.BNotExpr;
 import uk.co.bithatch.zxbasic.basic.BeepStmt;
 import uk.co.bithatch.zxbasic.basic.BinaryExpr;
-import uk.co.bithatch.zxbasic.basic.CodeResource;
 import uk.co.bithatch.zxbasic.basic.CommentStmt;
 import uk.co.bithatch.zxbasic.basic.ConstStmt;
-import uk.co.bithatch.zxbasic.basic.DataResource;
 import uk.co.bithatch.zxbasic.basic.DataStmt;
 import uk.co.bithatch.zxbasic.basic.DecimalLiteral;
 import uk.co.bithatch.zxbasic.basic.DimDeclaration;
@@ -60,7 +56,6 @@ import uk.co.bithatch.zxbasic.basic.ReferableRef;
 import uk.co.bithatch.zxbasic.basic.ReturnStmt;
 import uk.co.bithatch.zxbasic.basic.RndStmt;
 import uk.co.bithatch.zxbasic.basic.SaveStmt;
-import uk.co.bithatch.zxbasic.basic.ScreenResource;
 import uk.co.bithatch.zxbasic.basic.Statement;
 import uk.co.bithatch.zxbasic.basic.StopStmt;
 import uk.co.bithatch.zxbasic.basic.StringLiteral;
@@ -349,60 +344,60 @@ public class ZXBasicInterpreter extends AbstractTool  {
 		var res = host.load(load.getName().getValue());
 		try(var stream = res.channel()) {
 			
-			var type = load.getType();
-			
-			var addr = Optional.ofNullable(load.getStart()).
-					map(expr -> evaluateExpr(expr, scope).intValue()).
-					orElseGet(() -> {
-				if(type instanceof ScreenResource) {
-					return 16384;
-				}
-				else if(type instanceof CodeResource) {
-					return 0;
-				}
-				else if(type instanceof DataResource) {
-					return 0;
-				}
-				else {
-					throw new UnsupportedOperationException();
-				}
-			});
-			
-			var len = Optional.ofNullable(load.getLength()).
-					map(expr -> evaluateExpr(expr, scope).intValue()).
-					orElseGet(() -> {
-						if(type instanceof ScreenResource) {
-							return 6912;
-						}
-						else if(type instanceof CodeResource) {
-							return res.size().orElseThrow(() -> new IllegalStateException("Could not determine length of resource to load, and it was not specified."));
-						}
-						else if(type instanceof DataResource) {
-							return 0;
-						}
-						else {
-							throw new UnsupportedOperationException();
-						}
-					});
-			
-			if(type.equals("DATA")) {
-				throw new UnsupportedOperationException("De-serialization not yet supported.");
-			}
-			
-			var buf = ByteBuffer.allocate(1024);
-			while(len > 0) {
-				if(len < buf.capacity()) {
-					buf.limit(len);
-				}
-				var rd = stream.read(buf);
-				if(rd == -1) {
-					break;
-				}
-				buf.flip();
-				memory.put(addr += rd, buf, 0, rd);
-				len -= rd;
-				buf.clear();
-			}
+//			var type = load.getType();
+//			
+//			var addr = Optional.ofNullable(load.getStart()).
+//					map(expr -> evaluateExpr(expr, scope).intValue()).
+//					orElseGet(() -> {
+//				if(type instanceof ScreenResource) {
+//					return 16384;
+//				}
+//				else if(type instanceof CodeResource) {
+//					return 0;
+//				}
+//				else if(type instanceof DataResource) {
+//					return 0;
+//				}
+//				else {
+//					throw new UnsupportedOperationException();
+//				}
+//			});
+//			
+//			var len = Optional.ofNullable(load.getLength()).
+//					map(expr -> evaluateExpr(expr, scope).intValue()).
+//					orElseGet(() -> {
+//						if(type instanceof ScreenResource) {
+//							return 6912;
+//						}
+//						else if(type instanceof CodeResource) {
+//							return res.size().orElseThrow(() -> new IllegalStateException("Could not determine length of resource to load, and it was not specified."));
+//						}
+//						else if(type instanceof DataResource) {
+//							return 0;
+//						}
+//						else {
+//							throw new UnsupportedOperationException();
+//						}
+//					});
+//			
+//			if(type.equals("DATA")) {
+//				throw new UnsupportedOperationException("De-serialization not yet supported.");
+//			}
+//			
+//			var buf = ByteBuffer.allocate(1024);
+//			while(len > 0) {
+//				if(len < buf.capacity()) {
+//					buf.limit(len);
+//				}
+//				var rd = stream.read(buf);
+//				if(rd == -1) {
+//					break;
+//				}
+//				buf.flip();
+//				memory.put(addr += rd, buf, 0, rd);
+//				len -= rd;
+//				buf.clear();
+//			}
 		}
 		catch(Exception ex) {
 			log("Failed to load. " + ex.getMessage());
@@ -414,54 +409,54 @@ public class ZXBasicInterpreter extends AbstractTool  {
 		var res = host.load(load.getName().getValue());
 		try(var stream = res.channel()) {
 			
-			var type = load.getType();
-			
-			int addr;
-			if(type instanceof ScreenResource) {
-				addr = 16384;
-			}
-			else if(type instanceof CodeResource) {
-				addr = 0;
-			}
-			else if(type instanceof DataResource) {
-				throw new UnsupportedOperationException("Data verification not yet supported.");
-			}
-			else {
-				throw new UnsupportedOperationException();
-			}
-			
-			int len;
-			if(type instanceof ScreenResource) {
-				len = 6912;
-			}
-			else if(type instanceof CodeResource) {
-				len = res.size().orElseThrow(() -> new IllegalStateException("Could not determine length of resource to load, and it was not specified."));
-			}
-			else {
-				throw new UnsupportedOperationException();
-			}
-			
-			var buf = ByteBuffer.allocate(1024);
-			while(len > 0) {
-				if(len < buf.capacity()) {
-					buf.limit(len);
-				}
-				var rd = stream.read(buf);
-				if(rd == -1) {
-					break;
-				}
-				
-				buf.flip();
-				while(buf.hasRemaining()) {
-					var b = buf.get();
-					if(b != memory.data().get(addr)) {
-						throw new IOException("Mismatch at " + addr + ". Expected " + b);
-					}
-				}
-				
-				len -= rd;
-				buf.clear();
-			}
+//			var type = load.getType();
+//			
+//			int addr;
+//			if(type instanceof ScreenResource) {
+//				addr = 16384;
+//			}
+//			else if(type instanceof CodeResource) {
+//				addr = 0;
+//			}
+//			else if(type instanceof DataResource) {
+//				throw new UnsupportedOperationException("Data verification not yet supported.");
+//			}
+//			else {
+//				throw new UnsupportedOperationException();
+//			}
+//			
+//			int len;
+//			if(type instanceof ScreenResource) {
+//				len = 6912;
+//			}
+//			else if(type instanceof CodeResource) {
+//				len = res.size().orElseThrow(() -> new IllegalStateException("Could not determine length of resource to load, and it was not specified."));
+//			}
+//			else {
+//				throw new UnsupportedOperationException();
+//			}
+//			
+//			var buf = ByteBuffer.allocate(1024);
+//			while(len > 0) {
+//				if(len < buf.capacity()) {
+//					buf.limit(len);
+//				}
+//				var rd = stream.read(buf);
+//				if(rd == -1) {
+//					break;
+//				}
+//				
+//				buf.flip();
+//				while(buf.hasRemaining()) {
+//					var b = buf.get();
+//					if(b != memory.data().get(addr)) {
+//						throw new IOException("Mismatch at " + addr + ". Expected " + b);
+//					}
+//				}
+//				
+//				len -= rd;
+//				buf.clear();
+//			}
 		}
 		catch(Exception ex) {
 			log("Failed to load. " + ex.getMessage());
@@ -473,48 +468,48 @@ public class ZXBasicInterpreter extends AbstractTool  {
 	protected void saveStatement(SaveStmt save, ProgramScope scope) {
 		try(var stream = host.save(save.getName().getValue())) {
 			
-			var type = save.getType();
-			
-			var addr = Optional.ofNullable(save.getStart()).
-					map(expr -> evaluateExpr(expr, scope).intValue()).
-					orElseGet(() -> {
-				if(type instanceof ScreenResource) {
-					return 16384;
-				}
-				else if(type instanceof CodeResource) {
-					return 0;
-				}
-				else if(type instanceof DataResource) {
-					/* TODO */
-					throw new UnsupportedOperationException("Not yet implemented");
-				}
-				else {
-					throw new UnsupportedOperationException();
-				}
-			});
-			
-			var len = Optional.ofNullable(save.getLength()).
-					map(expr -> evaluateExpr(expr, scope).intValue()).
-					orElseGet(() -> {
-						if(type instanceof ScreenResource) {
-							return 6912;
-						}
-						else if(type instanceof CodeResource) {
-							throw new IllegalStateException("Start address of code must be supplied.");
-						}
-						else if(type instanceof DataResource) {
-							throw new UnsupportedOperationException("Not yet implemented");
-						}
-						else {
-							throw new UnsupportedOperationException();
-						}
-					});
-			
-			if(type.equals("DATA")) {
-				throw new UnsupportedOperationException("De-serialization not yet supported.");
-			}
-			
-			stream.write(memory.data().slice(addr, len));
+//			var type = save.getType();
+//			
+//			var addr = Optional.ofNullable(save.getStart()).
+//					map(expr -> evaluateExpr(expr, scope).intValue()).
+//					orElseGet(() -> {
+//				if(type instanceof ScreenResource) {
+//					return 16384;
+//				}
+//				else if(type instanceof CodeResource) {
+//					return 0;
+//				}
+//				else if(type instanceof DataResource) {
+//					/* TODO */
+//					throw new UnsupportedOperationException("Not yet implemented");
+//				}
+//				else {
+//					throw new UnsupportedOperationException();
+//				}
+//			});
+//			
+//			var len = Optional.ofNullable(save.getLength()).
+//					map(expr -> evaluateExpr(expr, scope).intValue()).
+//					orElseGet(() -> {
+//						if(type instanceof ScreenResource) {
+//							return 6912;
+//						}
+//						else if(type instanceof CodeResource) {
+//							throw new IllegalStateException("Start address of code must be supplied.");
+//						}
+//						else if(type instanceof DataResource) {
+//							throw new UnsupportedOperationException("Not yet implemented");
+//						}
+//						else {
+//							throw new UnsupportedOperationException();
+//						}
+//					});
+//			
+//			if(type.equals("DATA")) {
+//				throw new UnsupportedOperationException("De-serialization not yet supported.");
+//			}
+//			
+//			stream.write(memory.data().slice(addr, len));
 		}
 		catch(Exception ex) {
 			log("Failed to load. " + ex.getMessage());

@@ -1,0 +1,29 @@
+asm  
+    ld iy,$5c3a 
+    jp nbtempstackstart
+end asm 
+
+           
+            
+       
+                 
+               
+                  
+                  
+              
+                   
+        
+              
+              
+            
+          
+        end asm 
+
+       
+filename:
+
+asm         
+filename:
+    DEFS 255,0
+endfilename:    
+end asm 

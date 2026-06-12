@@ -1,7 +1,6 @@
 package uk.co.bithatch.zxbasic.ui.preferences;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -9,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -94,8 +94,8 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 		return Integer.parseInt(getPreference(project, ZXBasicPreferenceConstants.STRING_BASE, "0"));
 	}
 
-	public List<Warning> getSuppressedWarnings(IProject project) {
-		var l = new ArrayList<Warning>();
+	public Set<Warning> getSuppressedWarnings(IProject project) {
+		var l = new LinkedHashSet<Warning>();
 		for (var w : Warning.values()) {
 			if (Boolean.parseBoolean(
 					getPreference(project, ZXBasicPreferenceConstants.ERRORS_AND_WARNINGS + "." + w.name(), "false"))) {
@@ -193,7 +193,10 @@ public class ZXBasicPreferencesAccess extends LanguageSystemPreferencesAccess {
 	}
 	
 	public List<String> getConfiguredLibraryPaths(IProject project) {
-		return getStringListPreference(project, ZXBasicPreferenceConstants.LIB_PATHS);
+		return getStringListPreference(project, ZXBasicPreferenceConstants.LIB_PATHS).
+					stream().
+					map(s -> processProjectPath(s, project)).
+					toList();
 	}
 
 	public List<String> getConfiguredDependencies(IProject project) {
