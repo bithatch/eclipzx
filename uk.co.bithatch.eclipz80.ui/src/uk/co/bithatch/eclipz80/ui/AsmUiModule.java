@@ -46,9 +46,9 @@ public class AsmUiModule extends AbstractAsmUiModule {
 	    return AsmLibraryIncludeSource.class;
 	}
 
-	public Class<? extends IHyperlinkDetector> bindIHyperlinkDetector() {
-	    return AsmHyperlinkDetector.class;
-	}
+//	public Class<? extends IHyperlinkDetector> bindIHyperlinkDetector() {
+//	    return AsmHyperlinkDetector.class;
+//	}
 
 	public Class<? extends XtextEditor> bindXtextEditor() {
 		return AsmXtextEditor.class;

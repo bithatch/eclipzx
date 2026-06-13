@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.nodemodel.INode;
@@ -224,6 +225,7 @@ public class Z80Assembler {
 	private final int defaultFill;
 	private final List<Path> libPaths;
 	private final Optional<SourceMap> sourceMap;
+	private final Stack<String> namespace = new Stack<>();
 
 	/**
 	 * An entry in the line-to-address map.
@@ -943,43 +945,59 @@ public class Z80Assembler {
 		if (stmt instanceof Cp)     { assembleAluOp(((Cp) stmt).getName(),     0xB8, 0xFE, out); return; }
 
 		// ── PUSH / POP ──
-		if (stmt instanceof Push) {
-			AsmExpression reg = ((Push) stmt).getRegister();
-			int rr = resolveRegister16Push(reg);
-			if (rr >= 0) {
-				emit8(out, 0xC5 + rr * 16);
-			} else {
-				// Check IX/IY
-				String regName = getRegisterName(reg);
-				int prefix = getIXIYPrefix(regName);
-				if (prefix > 0 && regName != null && ("IX".equalsIgnoreCase(regName) || "IY".equalsIgnoreCase(regName))) {
-					emit8(out, prefix);
-					emit8(out, 0xE5);
+		if (stmt instanceof Push push) {
+			if(push.getNamespace() != null) {
+				// TODO: Handle PUSH symbol namespace 
+				namespace.push(push.getNamespace().getImportedNamespace());
+			}
+			else {
+				AsmExpression reg = push.getRegister();
+				int rr = resolveRegister16Push(reg);
+				if (rr >= 0) {
+					emit8(out, 0xC5 + rr * 16);
 				} else {
-					// PUSH nn (Z80N) — handle immediate
-					requireZ80N("PUSH nn");
-					int val = resolveImmediate(reg);
-					emit8(out, 0xED); emit8(out, 0x8A);
-					// Z80N PUSH nn is big-endian
-					emit8(out, (val >> 8) & 0xFF);
-					emit8(out, val & 0xFF);
+					// Check IX/IY
+					String regName = getRegisterName(reg);
+					int prefix = getIXIYPrefix(regName);
+					if (prefix > 0 && regName != null && ("IX".equalsIgnoreCase(regName) || "IY".equalsIgnoreCase(regName))) {
+						emit8(out, prefix);
+						emit8(out, 0xE5);
+					} else {
+						// PUSH nn (Z80N) — handle immediate
+						requireZ80N("PUSH nn");
+						int val = resolveImmediate(reg);
+						emit8(out, 0xED); emit8(out, 0x8A);
+						// Z80N PUSH nn is big-endian
+						emit8(out, (val >> 8) & 0xFF);
+						emit8(out, val & 0xFF);
+					}
 				}
 			}
 			return;
 		}
-		if (stmt instanceof Pop) {
-			AsmExpression reg = ((Pop) stmt).getRegister();
-			int rr = resolveRegister16Push(reg);
-			if (rr >= 0) {
-				emit8(out, 0xC1 + rr * 16);
-			} else {
-				String regName = getRegisterName(reg);
-				int prefix = getIXIYPrefix(regName);
-				if (prefix > 0 && regName != null && ("IX".equalsIgnoreCase(regName) || "IY".equalsIgnoreCase(regName))) {
-					emit8(out, prefix);
-					emit8(out, 0xE1);
+		if (stmt instanceof Pop pop) {
+			AsmExpression reg = pop.getRegister();
+			if(reg == null) {
+				if(namespace.isEmpty()) {
+					warn("Namespace is empty, cannot POP");
+				}
+				else {
+					namespace.pop();
+				}
+			}
+			else {
+				int rr = resolveRegister16Push(reg);
+				if (rr >= 0) {
+					emit8(out, 0xC1 + rr * 16);
 				} else {
-					warn("POP requires a 16-bit register pair");
+					String regName = getRegisterName(reg);
+					int prefix = getIXIYPrefix(regName);
+					if (prefix > 0 && regName != null && ("IX".equalsIgnoreCase(regName) || "IY".equalsIgnoreCase(regName))) {
+						emit8(out, prefix);
+						emit8(out, 0xE1);
+					} else {
+						warn("POP requires a 16-bit register pair");
+					}
 				}
 			}
 			return;
@@ -2229,8 +2247,9 @@ public class Z80Assembler {
 		// the dot is not part of the name (it is referenced without it)
 		String name = symbol.startsWith(".") ? symbol.substring(1) : symbol;
 		// Store with module-qualified name
-		String qualifiedName = currentModule.isEmpty() ? name : currentModule + "." + name;
-		Symbol sym = symbols.computeIfAbsent(qualifiedName, s -> new Symbol(name));
+		String qualifiedName = namespace.empty() ? name : String.join(".", namespace) + "." + name;
+		String moduleQualifiedName = currentModule.isEmpty() ? qualifiedName : currentModule + "." + qualifiedName;
+		Symbol sym = symbols.computeIfAbsent(moduleQualifiedName, s -> new Symbol(name));
 		sym.section = currentSection;
 		sym.module = currentModule;
 		// Also store unqualified for cross-module access (PUBLIC/GLOBAL symbols)

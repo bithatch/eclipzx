@@ -3,6 +3,12 @@
  */
 package uk.co.bithatch.eclipz80.validation;
 
+import org.eclipse.xtext.validation.Check;
+
+import uk.co.bithatch.eclipz80.asm.AsmPackage;
+import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipz80.scoping.AsmNamespaceSupport;
+
 
 /**
  * This class contains custom validation rules. 
@@ -11,15 +17,14 @@ package uk.co.bithatch.eclipz80.validation;
  */
 public class AsmValidator extends AbstractAsmValidator {
 	
-//	public static final String INVALID_NAME = "invalidName";
-//
-//	@Check
-//	public void checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.getName().charAt(0))) {
-//			warning("Name should start with a capital",
-//					AsmPackage.Literals.GREETING__NAME,
-//					INVALID_NAME);
-//		}
-//	}
-	
+	public static final String UNMATCHED_POP_NAMESPACE = "unmatchedPopNamespace";
+
+	@Check
+	public void checkNamespacePopBalance(AsmProgram program) {
+		AsmNamespaceSupport.forEachUnmatchedPopNamespace(program, pop -> warning(
+				"POP NAMESPACE has no matching PUSH NAMESPACE.",
+				pop,
+				AsmPackage.eINSTANCE.getPop_Register(),
+				UNMATCHED_POP_NAMESPACE));
+	}
 }

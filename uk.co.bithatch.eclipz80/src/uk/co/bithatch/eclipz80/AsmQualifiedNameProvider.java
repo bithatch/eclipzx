@@ -5,6 +5,7 @@ import org.eclipse.xtext.naming.DefaultDeclarativeQualifiedNameProvider;
 import org.eclipse.xtext.naming.QualifiedName;
 
 import uk.co.bithatch.eclipz80.asm.AsmLabelDef;
+import uk.co.bithatch.eclipz80.scoping.AsmNamespaceSupport;
 
 /**
  * Custom qualified name provider that strips leading dots from label names.
@@ -22,9 +23,12 @@ public class AsmQualifiedNameProvider extends DefaultDeclarativeQualifiedNamePro
 	public QualifiedName getFullyQualifiedName(EObject obj) {
 		if (obj instanceof AsmLabelDef) {
 			String name = ((AsmLabelDef) obj).getName();
+			System.out.println("Getting FQN of " + name);
 			if (name != null) {
 				name = stripLeadingDot(name);
+				name = AsmNamespaceSupport.qualifyRelativeName(obj, name);
 				// Let the converter split dotted names into segments for cross-ref matching.
+				System.out.println("    Final name is " + name);
 				return getConverter().toQualifiedName(name);
 			}
 		}
