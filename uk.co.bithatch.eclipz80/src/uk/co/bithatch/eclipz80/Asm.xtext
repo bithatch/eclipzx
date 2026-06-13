@@ -43,7 +43,7 @@ AsmStatementLine:
     statements+=AsmStatement /*(':' statements+=AsmStatement)**/;
 
 AsmLabelDef:
-    name=LabelDefID;
+    name=QualifiedID;
     
 AsmStatement:
     AsmOrg | 
@@ -762,10 +762,6 @@ QualifiedID hidden():
     '.'? ID ('.' ID)*
 ;
 
-LabelDefID returns ecore::EString hidden():
-    '.'? ID
-;
-    
 // ─────────────── MODEL ELEMENTS ───────────────
 
 IntegralLiteral:

@@ -24,7 +24,8 @@ public class AsmQualifiedNameProvider extends DefaultDeclarativeQualifiedNamePro
 			String name = ((AsmLabelDef) obj).getName();
 			if (name != null) {
 				name = stripLeadingDot(name);
-				return QualifiedName.create(name);
+				// Let the converter split dotted names into segments for cross-ref matching.
+				return getConverter().toQualifiedName(name);
 			}
 		}
 		return super.getFullyQualifiedName(obj);
