@@ -28,4 +28,4 @@ NEXT i
  60 PLOT PAPER 0;7,n: DRAW PAPER 0;241,0
  70 NEXT n: INVERSE 0
  
-    
+ FOR i = 1 TO 2: FOR j = 1 TO 2: PRINT i,j: NEXT: NEXT i

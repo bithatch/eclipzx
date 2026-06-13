@@ -4,42 +4,42 @@
     <locations>    
     
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/releases/2026-03"/>
-            <unit id="org.eclipse.platform" version="4.39.0.v20260226-0420"/>
+            <repository location="https://download.eclipse.org/releases/2026-06"/>
+            <unit id="org.eclipse.platform" version="4.40.0.v20260601-0713"/>
             <unit id="org.eclipse.emf.ecore.feature.group" version="2.43.0.v20251210-1145"/>
-            <unit id="org.eclipse.emf.common.feature.group" version="2.38.0.v20251210-1145"/>
+            <unit id="org.eclipse.emf.common.feature.group" version="2.38.0.v20260311-1301"/>
             <unit id="org.eclipse.emf.edit.feature.group" version="2.24.0.v20250910-1205"/>
-            <unit id="org.eclipse.emf.mwe.utils" version="1.19.0.v20260221-0523"/>
-            <unit id="org.eclipse.emf.mwe2.launch" version="2.25.0.v20260221-0523"/>
-            <unit id="org.eclipse.emf.mwe2.lib" version="2.25.0.v20260221-0523"/>
+            <unit id="org.eclipse.emf.mwe.utils" version="1.20.0.v20260523-1243"/>
+            <unit id="org.eclipse.emf.mwe2.launch" version="2.26.0.v20260523-1243"/>
+            <unit id="org.eclipse.emf.mwe2.lib" version="2.26.0.v20260523-1243"/>
             <unit id="org.apache.aries.spifly.dynamic.bundle" version="1.3.7"/>
-            <unit id="org.eclipse.e4.core.tools.feature.feature.group" version="4.30.800.v20260123-1626"/>
-            <unit id="org.eclipse.e4.rcp.feature.group" version="4.39.0.v20260225-1014"/>
-            <unit id="org.eclipse.equinox.p2.core.feature.feature.group" version="1.7.1000.v20260108-1444"/>
-            <unit id="org.eclipse.equinox.p2.extras.feature.feature.group" version="1.4.3100.v20260125-1012"/>
-            <unit id="org.eclipse.equinox.p2.rcp.feature.feature.group" version="1.4.3100.v20260111-1642"/>
-            <unit id="org.eclipse.equinox.p2.user.ui.feature.group" version="2.4.3100.v20260125-1012"/>
-            <unit id="org.eclipse.help.feature.group" version="2.3.2500.v20260226-0420"/>
-            <unit id="org.eclipse.jdt.feature.group" version="3.20.500.v20260226-0420"/>
-            <unit id="org.eclipse.platform.feature.group" version="4.39.0.v20260226-0420"/>
-            <unit id="org.eclipse.equinox.executable.feature.group" version="3.8.3200.v20260203-2149"/>
+            <unit id="org.eclipse.e4.core.tools.feature.feature.group" version="4.30.900.v20260513-1042"/>
+            <unit id="org.eclipse.e4.rcp.feature.group" version="4.40.0.v20260516-1214"/>
+            <unit id="org.eclipse.equinox.p2.core.feature.feature.group" version="1.7.1100.v20260516-0947"/>
+            <unit id="org.eclipse.equinox.p2.extras.feature.feature.group" version="1.4.3200.v20260516-0947"/>
+            <unit id="org.eclipse.equinox.p2.rcp.feature.feature.group" version="1.4.3200.v20260516-0947"/>
+            <unit id="org.eclipse.equinox.p2.user.ui.feature.group" version="2.4.3200.v20260516-0947"/>
+            <unit id="org.eclipse.help.feature.group" version="2.3.2600.v20260601-0713"/>
+            <unit id="org.eclipse.jdt.feature.group" version="3.20.600.v20260601-0713"/>
+            <unit id="org.eclipse.platform.feature.group" version="4.40.0.v20260601-0955"/>
+            <unit id="org.eclipse.equinox.executable.feature.group" version="3.8.3300.v20260414-2255"/>
             <unit id="org.eclipse.terminal.view.core" version="1.0.100.v20251222-1406"/>
-            <unit id="org.eclipse.terminal.view.ui" version="1.1.0.v20260216-1048"/>
-            <unit id="org.eclipse.terminal.control" version="1.1.0.v20260226-0920"/>
+            <unit id="org.eclipse.terminal.view.ui" version="1.1.100.v20260427-0432"/>
+            <unit id="org.eclipse.terminal.control" version="1.1.100.v20260305-1429"/>
             <unit id="org.eclipse.terminal.connector.process" version="1.1.0.v20251219-1227"/>
-            <unit id="org.eclipse.terminal.connector.local" version="1.1.0.v20251219-1227"/>
-            <unit id="org.eclipse.ecf.core.feature.feature.group" version="1.7.0.v20250304-2338"/>
- 			<unit id="org.eclipse.equinox.slf4j" version="1.0.200.v20251003-0638"/>
-            <unit id="org.eclipse.ui.browser" version="3.9.0.v20251217-1052"/>
+            <unit id="org.eclipse.terminal.connector.local" version="1.1.100.v20260427-0432"/>
+            <unit id="org.eclipse.ecf.core.feature.feature.group" version="1.7.100.v20260415-2025"/>
+ 			<unit id="org.eclipse.equinox.slf4j" version="1.0.300.v20260326-0654"/>
+            <unit id="org.eclipse.ui.browser" version="3.9.100.v20260516-1214"/>
             <unit id="org.eclipse.epp.mpc.feature.group" version="1.13.0.v20250816-1241"/>
         </location>
         
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
             <repository location="https://download.eclipse.org/tools/cdt/releases/latest"/>
-            <unit id="org.eclipse.cdt.feature.group" version="12.4.0.202603041756"/>
-            <unit id="org.eclipse.cdt.native.feature.group" version="12.4.0.202603041756"/>
-            <unit id="org.eclipse.cdt.gnu.dsf.feature.group" version="12.4.0.202601271447"/>
-            <unit id="org.eclipse.cdt.dsf.gdb.ui" version="2.9.0.202512020204"/>
+            <unit id="org.eclipse.cdt.feature.group" version="12.5.0.202606022100"/>
+            <unit id="org.eclipse.cdt.native.feature.group" version="12.5.0.202606022100"/>
+            <unit id="org.eclipse.cdt.gnu.dsf.feature.group" version="12.5.0.202603111352"/>
+            <unit id="org.eclipse.cdt.dsf.gdb.ui" version="2.9.100.202603111352"/>
         </location>
         
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
