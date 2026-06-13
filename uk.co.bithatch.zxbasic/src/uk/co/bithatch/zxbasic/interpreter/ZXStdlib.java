@@ -11,7 +11,8 @@ public class ZXStdlib implements IReferenceIndex {
 	private final List<String> FUNCTIONS = Arrays.asList(
 			"ABS", "ASN", "ATN", "CAST", "CHR", "CODE", "COS", "EXP", "INTEGER",
 			"LBOUND", "UBOUND", "LEN", "LN", "SGN", "SIN", "SQR", "STR",
-			"TAN", "USR", "VAL", "INKEY", "INKEY$");
+			"TAN", "USR", "VAL", "INKEY", "INKEY$", "PI", "PEEK", "INT",
+			"CHR$", "POINT");
 	
 	private final static class Defaults {
 		private final static ZXStdlib DEFAULT = new ZXStdlib();

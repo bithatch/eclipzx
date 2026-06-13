@@ -752,7 +752,32 @@ public class GenericPreprocessor extends AbstractTool {
 
 			if (line.startsWith("#")) {
 
-				// TODO
+				/**
+				 * TODO
+				 * 
+				 * Init seems to be an odd one out. It is not really a pre-processor directive,
+				 * but it is used to generate code that will be executed at the start of the
+				 * program. The following code is from the original zxbpp pre-processor, and it
+				 * shows how the INIT directive is handled.
+				 * 
+				 * <pre>
+				 * <code>
+				 *    for label, line in asmparse.INITS:
+				 *        expr_label = expr.Expr.makenode(asmparse.Container(asmparse.MEMORY.get_label(label, line), line))
+				 *        asmparse.MEMORY.add_instruction(asmparse.Asm(0, "CALL NN", expr_label))
+				 *
+				 *    if len(asmparse.INITS) > 0:
+				 *        if asmparse.AUTORUN_ADDR is not None:
+				 *            asmparse.MEMORY.add_instruction(asmparse.Asm(0, "JP NN", asmparse.AUTORUN_ADDR))
+				 *        else:
+				 *            asmparse.MEMORY.add_instruction(
+				 *                asmparse.Asm(0, "JP NN", min(asmparse.MEMORY.orgs.keys()))
+				 *            )  # To the beginning of binary
+				 *
+				 *        asmparse.AUTORUN_ADDR = current_org
+				 * 
+				 * </pre></code>
+				 */
 //	    	    INIT = "INIT"
 				
 				onWarning.ifPresent(ow -> ow.warning(Warning.UNKNOWN_PREPROCESSOR_DIRECTIVE, thisLineNo, "Unknown preprocessor directive " + line.trim() + "."));
