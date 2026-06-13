@@ -1,7 +1,21 @@
 package uk.co.bithatch.bitzx;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class URIS {
 
+
+	public static Path toPath(String uriStr) {
+		try {
+			if (uriStr.startsWith("file:")) {
+				return Paths.get(java.net.URI.create(uriStr));
+			}
+			return Paths.get(uriStr);
+		} catch (Exception e) {
+			return null;
+		}
+	}
 
 	public static String stripLeadingSlash(String path) {
 		while(path.startsWith("/"))

@@ -2,6 +2,7 @@ package uk.co.bithatch.bitzx;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +12,15 @@ import java.util.List;
 import org.eclipse.core.runtime.Platform;
 
 public class FileNames {
+	
+	public static List<Path> findAllChildDirectories(Path dir) {
+		try {
+			return Files.walk(dir).filter(Files::isDirectory).toList();
+		}
+		catch(IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
 	
 	public static String stripExtension(String path) {
 		var idx = path.lastIndexOf('.');

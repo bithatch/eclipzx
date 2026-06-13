@@ -12,6 +12,7 @@ public class AsmReferenceIndex extends PPReferenceIndex {
 	
 	@Override
 	public boolean isDefined(String offending) {
+		System.out.println("ASM isDefined " + offending);
 		if(BUILT_INS.contains(offending.toLowerCase())) {
 			return true;
 		}

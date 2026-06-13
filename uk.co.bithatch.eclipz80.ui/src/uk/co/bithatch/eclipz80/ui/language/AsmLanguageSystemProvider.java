@@ -2,8 +2,10 @@ package uk.co.bithatch.eclipz80.ui.language;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +27,7 @@ import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.ISourceAdressMap;
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
+import uk.co.bithatch.bitzx.URIS;
 import uk.co.bithatch.eclipz80.ui.builder.AsmBuilder;
 import uk.co.bithatch.eclipz80.ui.builder.AsmNature;
 import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
@@ -95,7 +98,7 @@ public class AsmLanguageSystemProvider implements ILanguageSystemProvider {
 	}
 
 	@Override
-	public Set<String> findIncludeSourcePaths(IResource file) {
+	public Set<String> findIncludeSourcePaths(IResource file, int depth) {
 		return AsmPreferencesAccess.get().getAllIncludeLocations(file.getProject()).stream().collect(Collectors.toSet());
 	}
 
@@ -109,4 +112,19 @@ public class AsmLanguageSystemProvider implements ILanguageSystemProvider {
 		return Optional.empty();
 	}
 
+	@Override
+	public Set<Path> findImportUris(IResource baseFile, int depth) {
+		var set = new LinkedHashSet<Path>();
+		for(var path : findIncludeSourcePaths(baseFile, IResource.DEPTH_ONE).stream().map(p -> {
+			return AsmPreferencesAccess.resolveWorkspaceRelative(baseFile.getProject(), p).toUri().toString();
+		}).collect(Collectors.toSet())) {
+			var dir = URIS.toPath(path);
+			try {
+				set.addAll(Files.list(dir).filter(Files::isRegularFile).collect(Collectors.toSet()));
+			} catch (IOException e) {
+//				// skip directories that cannot be listed
+			}
+		}
+		return set;
+	}
 }

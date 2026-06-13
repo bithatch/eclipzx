@@ -1,11 +1,14 @@
 package uk.co.bithatch.bitzx;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -56,7 +59,23 @@ public interface ILanguageSystemProvider {
 	
 	Optional<String> findRuntimeDir(IResource baseFile);
 	
-	Set<String> findIncludeSourcePaths(IResource baseFile);
+	Set<String> findIncludeSourcePaths(IResource baseFile, int depth);
 	
 	Map<String, String> findDefines(IResource baseFile);
+	
+	default Set<Path> findImportUris(IResource baseFile, int depth) {
+		
+		var set = new LinkedHashSet<Path>();
+		for(var path : findIncludeSourcePaths(baseFile, depth).stream().map(p -> {
+			return LanguageSystemPreferencesAccess.resolveWorkspaceRelative(baseFile.getProject(), p).toUri().toString();
+		}).collect(Collectors.toSet())) {
+			var dir = URIS.toPath(path);
+			try {
+				set.addAll(Files.list(dir).filter(Files::isRegularFile).collect(Collectors.toSet()));
+			} catch (IOException e) {
+//					// skip directories that cannot be listed
+			}
+		}
+		return set;
+	}
 }

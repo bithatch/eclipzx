@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -52,7 +53,7 @@ import uk.co.bithatch.eclipzpp.SourceMap;
  *
  * <h2>Outstanding TODOs</h2>
  * <ul>
- *   <li>TODO: Explicit module.label syntax in expressions (needs grammar change for dotted AsmLabel)</li>
+ *   <li>TODO: Explicit module.label syntax in expressions (needs grammar change for dotted AsmLabel - DONE)</li>
  *   <li>TODO: Section ordering in output (CODE, DATA, BSS reordering for linker phase)</li>
  *   <li>TODO: Proper linker-phase extern resolution (currently fails with address 0)</li>
  *   <li>TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP  (Grammar exists, needs wiring up here)</li>
@@ -72,6 +73,55 @@ public class Z80Assembler {
 	
 	public final static class Symbol {
 		
+		public final static class Builder {
+
+			private final String name;
+			private int address;
+			private boolean isGlobal = false;
+			private boolean isExternal = false;
+			private boolean isPublic = false;
+			private String section;
+			private String module;
+			
+			public Builder(String name) {
+				this.name = name;
+			}
+			
+			public Builder withSection(String section) {
+				this.section = section;
+				return  this;
+			}
+			
+			public Builder withModule(String module) {
+				this.module = module;
+				return  this;
+			}
+
+			public Builder asGlobal(boolean isGlobal) {
+				this.isGlobal = isGlobal;
+				return this;
+			}
+
+			public Builder asPublic(boolean isPublic) {
+				this.isPublic = isPublic;
+				return this;
+			}
+
+			public Builder asExternal(boolean isExternal) {
+				this.isExternal = isExternal;
+				return this;
+			}
+			
+			public Builder withAddress(int address) {
+				this.address = address;
+				return this;
+			}
+			
+			public Symbol build() {
+				return new Symbol(this);
+			}
+		}
+		
 		private final String name;
 		private int address;
 		private boolean isGlobal;
@@ -84,6 +134,16 @@ public class Z80Assembler {
 			this.name = name;
 		}	
 		
+		private Symbol(Builder builder) {
+			this.name = builder.name;
+			this.address = builder.address;
+			this.isExternal = builder.isExternal;
+			this.isPublic = builder.isPublic;
+			this.isGlobal = builder.isGlobal;
+			this.section = builder.section;
+			this.module = builder.module;
+		}
+
 		public int address() {
 			return address;
 		}
@@ -199,8 +259,20 @@ public class Z80Assembler {
 		private Optional<Integer> defaultFill = Optional.empty();
 		private List<Path> libPaths = new ArrayList<>();
 		private Optional<SourceMap> sourceMap = Optional.empty();
+		private Map<String, Symbol> symbols = new LinkedHashMap<>();
 
 		private Builder() {}
+		
+		public Builder withSymbols(Symbol... symbols) {
+			return withSymbols(Arrays.asList(symbols));
+		}
+		
+		public Builder withSymbols(Collection<Symbol> symbols) {
+			for(var symbol : symbols) {
+				this.symbols.put(symbol.name, symbol);
+			}
+			return this;
+		}
 		
 		/**
 		 * If the input has been preprocessed, the resulting Source Map 
@@ -416,6 +488,7 @@ public class Z80Assembler {
 		this.defaultORG = builder.defaultORG;
 		this.defaultFill = builder.defaultFill.orElse(0);
 		this.libPaths = Collections.unmodifiableList(new ArrayList<>(builder.libPaths));
+		this.symbols.putAll(builder.symbols);
 	}
 
 	/**

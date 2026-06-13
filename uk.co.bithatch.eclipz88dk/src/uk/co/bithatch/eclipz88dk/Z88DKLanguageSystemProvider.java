@@ -203,7 +203,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	}
 
 	@Override
-	public Set<String> findIncludeSourcePaths(IResource baseFile) {
+	public Set<String> findIncludeSourcePaths(IResource baseFile, int depth) {
 		var prj = baseFile.getProject();
 		var sdk = Z88DKPreferencesAccess.get().getSDK(prj).orElse(null);
 		if(sdk != null) {

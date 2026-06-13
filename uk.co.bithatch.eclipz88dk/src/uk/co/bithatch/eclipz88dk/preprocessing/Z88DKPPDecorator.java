@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 
 import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.eclipz88dk.Z88DKLanguageSystemProvider;
@@ -32,7 +33,7 @@ public class Z88DKPPDecorator implements PPResourcePreprocessorDecorator {
 	public static FileSystemResourceResolver resourceResolveForProject(IProject project) {
 		var zlang = LanguageSystem.languageSystem(project);
 		var sdk = zlang.findRuntimeDir(project);
-		var paths = zlang.findIncludeSourcePaths(project);
+		var paths = zlang.findIncludeSourcePaths(project, IResource.DEPTH_ONE);
 		if(sdk.isPresent()) {
 			paths = Stream.concat(paths.stream(), Stream.of(sdk.get())).collect(Collectors.toSet());
 		}

@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import uk.co.bithatch.bitzx.LanguageSystem;
@@ -20,7 +21,7 @@ public class AsmResource extends PPResource {
 		var lang = LanguageSystem.languageSystem(project);
 		
 		var bldr = new FileSystemResourceResolver.Builder()
-				.withIncludes(lang.findIncludeSourcePaths(project))
+				.withIncludes(lang.findIncludeSourcePaths(project, IResource.DEPTH_ONE))
 				.withWorkingDir(project.getLocation().toFile());
 		
 		lang.findRuntimeDir(project).ifPresent(bldr::withRuntimeDir);

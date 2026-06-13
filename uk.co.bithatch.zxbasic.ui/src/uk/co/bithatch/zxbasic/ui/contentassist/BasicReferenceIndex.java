@@ -13,6 +13,7 @@ public class BasicReferenceIndex extends PPReferenceIndex {
 
 	@Override
 	public boolean isDefined(String offending) {
+		System.out.println("BASIC isDefined " + offending);
 		if(DEFAULT.isDefined(offending))
 			return true;
 

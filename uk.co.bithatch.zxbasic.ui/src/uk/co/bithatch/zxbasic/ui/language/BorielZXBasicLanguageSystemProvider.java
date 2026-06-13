@@ -1,6 +1,5 @@
 package uk.co.bithatch.zxbasic.ui.language;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -114,9 +113,17 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 	}
 
 	@Override
-	public Set<String> findIncludeSourcePaths(IResource file) {
-		var allLibs = ZXBasicPreferencesAccess.get().getAllLibURIs(file.getProject());
-		return allLibs.stream().map(p -> p.toString()).collect(Collectors.toSet());
+	public Set<String> findIncludeSourcePaths(IResource file, int depth) {
+		var pax = ZXBasicPreferencesAccess.get();
+		var allLibs = pax.getAllLibs(file.getProject());
+		if(depth == IResource.DEPTH_INFINITE) {
+			return findIncludeSourcePaths(file, IResource.DEPTH_ONE).stream().flatMap(pstr ->
+				FileNames.findAllChildDirectories(ZXBasicPreferencesAccess.resolveWorkspaceRelative(file.getProject(), pstr)).stream()
+			).map(Path::toString).collect(Collectors.toSet());
+		}
+		else {
+			return allLibs.stream().map(p -> p.toString()).collect(Collectors.toSet());
+		}
 	}
 
 	@Override
@@ -129,5 +136,18 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 		var pax = ZXBasicPreferencesAccess.get();
 		return pax.getSDK(baseFile.getProject()).map(sdk -> sdk.runtime(pax.getArchitecture(baseFile.getProject())).getAbsolutePath());
 	}
+
+	@Override
+	public Set<Path> findImportUris(IResource baseFile, int depth) {
+		if (!"bas".equalsIgnoreCase(baseFile.getFileExtension())) {
+			return ILanguageSystemProvider.super.findImportUris(baseFile, depth).
+					stream().
+					filter(f -> !f.getFileName().toString().toLowerCase().endsWith(".bas")).
+					collect(Collectors.toSet());
+		} else {
+			return ILanguageSystemProvider.super.findImportUris(baseFile, depth);
+		}
+	}
+	
 
 }
