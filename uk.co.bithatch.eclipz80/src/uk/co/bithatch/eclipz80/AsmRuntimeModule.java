@@ -4,6 +4,7 @@
 package uk.co.bithatch.eclipz80;
 
 import org.eclipse.xtext.generator.IOutputConfigurationProvider;
+import org.eclipse.xtext.naming.IQualifiedNameConverter;
 import org.eclipse.xtext.naming.IQualifiedNameProvider;
 import org.eclipse.xtext.parser.antlr.ISyntaxErrorMessageProvider;
 import org.eclipse.xtext.scoping.IGlobalScopeProvider;
@@ -22,7 +23,7 @@ public class AsmRuntimeModule extends AbstractAsmRuntimeModule {
 	public Class<? extends ImportUriResolver> bindImportUriResolver() {
 		return AsmUriResolver.class;
 	}
-	
+
 	@Override
 	public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
 		return AsmGlobalScopeProvider.class;
@@ -32,10 +33,15 @@ public class AsmRuntimeModule extends AbstractAsmRuntimeModule {
 		return AsmOutputConfigurationProvider.class;
 	}
 
+	@Override
 	public Class<? extends IQualifiedNameProvider> bindIQualifiedNameProvider() {
 		return AsmQualifiedNameProvider.class;
 	}
-	
+
+	public Class<? extends IQualifiedNameConverter> bindIQualifiedNameConverter() {
+		return AsmQualifiedNameConverter.class;
+	}
+
 	public Class<? extends ISyntaxErrorMessageProvider> bindISyntaxErrorMessageProvider() {
 	    return PPSyntaxErrorMessageProvider.class;
 	}
