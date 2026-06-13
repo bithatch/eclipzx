@@ -557,7 +557,7 @@
 	<extension
 		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
 		<hyperlinkDetector
-			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.hyperlinking.AsmIncBinHyperlinkDetector"
+			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:uk.co.bithatch.eclipz80.ui.hyperlinking.AsmHyperlinkDetector"
 			id="uk.co.bithatch.eclipz80.ui.IncBinHyperlinkDetector"
 			name="INCBIN File Hyperlink"
 			targetId="org.eclipse.ui.DefaultTextEditor">

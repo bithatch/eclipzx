@@ -132,6 +132,16 @@ public class SourceMap {
 		return hiddenLines;
 	}
 	
+	public String closestHiddenLine(int offset) {
+		var closest = -1;
+		for(var line : hiddenLines.keySet()) {
+			if(line <= offset && line > closest) {
+				closest = line;
+			}
+		}
+		return closest == -1 ? null : hiddenLines.get(closest);
+	}
+	
 	public int translatePreprocessedToOriginalLine(int preprocessedLine, String uri) {
 		for(var seg : segments) {
 			if(Objects.equal(uri, seg.uri) && seg.preprocessedLine(preprocessedLine)) {

@@ -13,6 +13,14 @@ public class Strings {
 		return Arrays.asList(str == null || str.length() == 0 ? new String[0] : str.split(pattern)).stream().map(s -> s.trim()).toList(); 
 	}
 
+	public static String stripQuoted(String txt) {
+		var t = txt.trim();
+		if(t.length() >= 2 && ((t.startsWith("\"") && t.endsWith("\"")) || (t.startsWith("'") && t.endsWith("'")))) {
+			return t.substring(1, t.length() - 1);
+		}
+		return t;
+	}
+
 	public static String limit(String txt, int len) {
 		if(txt.length() > len) {
 			return txt.substring(0, len - 2) + "..";

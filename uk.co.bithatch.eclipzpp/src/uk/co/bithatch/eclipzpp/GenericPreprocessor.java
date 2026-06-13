@@ -1,5 +1,7 @@
 package uk.co.bithatch.eclipzpp;
 
+import static uk.co.bithatch.bitzx.Strings.stripQuoted;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -1387,14 +1389,6 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 			}
 			return new String[] { body, null };
-		}
-
-		private String stripQuoted(String txt) {
-			var t = txt.trim();
-			if(t.length() >= 2 && ((t.startsWith("\"") && t.endsWith("\"")) || (t.startsWith("'") && t.endsWith("'")))) {
-				return t.substring(1, t.length() - 1);
-			}
-			return t;
 		}
 
 		private String conditionalExpr(String line, String directive) {
