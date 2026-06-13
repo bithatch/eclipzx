@@ -575,11 +575,12 @@ ForBlock:
 ;
 
 ForNextSingleLine returns Group:
-    statements += ForNext
+//    statements += ForNext
+    statements += ForNext (SEP statements += ForNext)*
 ;
 
 ForNextLine returns Group:
-   {ForNextLine} ( name=LineLabelDef)? statements += ForNext
+   {ForNextLine} ( name=LineLabelDef)? statements += ForNext (SEP statements += ForNext)*
 ;
 
 ForNext returns Statement:
