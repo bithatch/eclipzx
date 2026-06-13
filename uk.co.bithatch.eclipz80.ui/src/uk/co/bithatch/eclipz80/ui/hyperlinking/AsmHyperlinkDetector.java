@@ -8,26 +8,32 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.xtext.resource.XtextResource;
+import org.eclipse.xtext.ui.editor.hyperlinking.DefaultHyperlinkDetector;
 import org.eclipse.xtext.ui.editor.model.IXtextDocument;
 import org.eclipse.xtext.util.concurrent.IUnitOfWork;
 
 import uk.co.bithatch.bitzx.Strings;
 import uk.co.bithatch.eclipzpp.ui.PPResource;
 
-public class AsmHyperlinkDetector extends AbstractHyperlinkDetector {
+public class AsmHyperlinkDetector extends DefaultHyperlinkDetector {
+	
+	public record Coords(String type, int line, String filename) {
+	}
 
 	@Override
 	public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
-
+		var defaultLinks = super.detectHyperlinks(textViewer, region, canShowMultipleHyperlinks);
+		if(defaultLinks != null && defaultLinks.length > 0) {
+			return defaultLinks;
+		}
 		IXtextDocument document = (IXtextDocument) textViewer.getDocument();
 		if (document == null)
-			return null;
+			return defaultLinks;
 
 		return document.readOnly(new IUnitOfWork<IHyperlink[], XtextResource>() {
 			@Override
@@ -40,40 +46,46 @@ public class AsmHyperlinkDetector extends AbstractHyperlinkDetector {
 					return null;
 				var line = hidden.trim();
 
-				if (line.toLowerCase().startsWith("c_line")) {
-					var idx = line.indexOf(' ');
-					if (idx == -1) {
-						idx = line.indexOf('\t');
-					}
-					if (idx == -1) {
-						return null;
-					}
-					var cline = line.substring(idx + 1).trim();
+				if (line.toLowerCase().startsWith("c_line ") || line.toLowerCase().startsWith("#line ")) {
 					try {
-						idx = cline.indexOf(',');
-						if (idx == -1) {
-							idx = cline.indexOf(' ');
-						}
-						if (idx != -1) {
-							var lineNumber = Integer.parseInt(cline.substring(0, idx).trim());
-							var filename = Strings.stripQuoted(cline.substring(idx + 1).trim()).split("::")[0].trim();
-
-							return createHyperlink(region, resource, lineNumber, filename);
-						}
+						return createHyperlink(region, resource, parseCoords(line));
 					} catch (Exception nfe) {
 					}
 				}
 
 				// Give up
-				return null;
+				return defaultLinks;
 			}
 
 		});
 	}
+	
+	private Coords parseCoords(String line) {
+		var idx = line.indexOf(' ');
+		if (idx == -1) {
+			idx = line.indexOf('\t');
+		}
+		if (idx == -1) {
+			return null;
+		}
+		var type = line.substring(0, idx).trim();
+		var cline = line.substring(idx + 1).trim();
+		try {
+			idx = cline.indexOf(',');
+			if (idx == -1) {
+				idx = cline.indexOf(' ');
+			}
+			var lineNumber = Integer.parseInt(cline.substring(0, idx).trim());
+			var filename = Strings.stripQuoted(cline.substring(idx + 1).trim()).split("::")[0].trim();
+			return new Coords(type, lineNumber, filename);
+		} catch (Exception nfe) {
+			throw new IllegalArgumentException("Invalid line format: " + line, nfe);
+		}
+	}
 
-	private IHyperlink[] createHyperlink(IRegion region, XtextResource resource, int lineNumber, String filename) {
+	private IHyperlink[] createHyperlink(IRegion region, XtextResource resource, Coords coords) {
 		var baseURI = resource.getURI();
-		var resolvedURI = URI.createURI(filename).resolve(baseURI);
+		var resolvedURI = URI.createURI(coords.filename).resolve(baseURI);
 		// Convert to a local file path
 		File file = null;
 		if (resolvedURI.isFile()) {
@@ -89,11 +101,14 @@ public class AsmHyperlinkDetector extends AbstractHyperlinkDetector {
 				}
 			}
 		}
+		else {
+			file = new File(coords.filename);
+		}
 		if (file == null || !file.exists())
 			return null;
 
 		var targetFile = file;
-		var targetLineNumber = lineNumber;
+		var targetLineNumber = coords.line;
 		var linkRegion = new Region(region.getOffset(), Math.max(1, region.getLength()));
 
 		return new IHyperlink[] { new IHyperlink() {
@@ -109,7 +124,7 @@ public class AsmHyperlinkDetector extends AbstractHyperlinkDetector {
 
 			@Override
 			public String getHyperlinkText() {
-				return "Open " + filename;
+				return "Open " + coords.filename;
 			}
 
 			@Override

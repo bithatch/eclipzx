@@ -1,12 +1,11 @@
 package uk.co.bithatch.eclipz80.scoping;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.scoping.impl.ImportUriGlobalScopeProvider;
+import org.eclipse.xtext.util.IResourceScopeCache;
 
 import com.google.inject.Inject;
 
@@ -17,15 +16,18 @@ public class AsmGlobalScopeProvider extends ImportUriGlobalScopeProvider {
 	@Inject(optional = true)
 	private IAsmIncludeSource includeSource;
 
+	@Inject
+	private IResourceScopeCache cache;
+
 	@Override
 	public LinkedHashSet<URI> getImportedUris(Resource resource) {
-		LinkedHashSet<URI> impUris = new LinkedHashSet<>(super.getImportedUris(resource));
-		if (includeSource != null) {
-			impUris.addAll(includeSource.importUris(resource));
-		}
+		return cache.get(AsmGlobalScopeProvider.class.getSimpleName(), resource, () -> {
+			LinkedHashSet<URI> impUris = new LinkedHashSet<>(super.getImportedUris(resource));
+			if (includeSource != null) {
+				impUris.addAll(includeSource.importUris(resource));
+			}
+			return impUris;
+		});
 		
-		System.out.println("ZZZZZ Imported URIS are : " + String.join(", ", impUris.stream().map(URI::toString).toList()));
-		
-		return impUris;
 	}
 }

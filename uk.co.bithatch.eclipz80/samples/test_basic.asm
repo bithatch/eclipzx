@@ -94,12 +94,16 @@
     DEFP core.other_thing ; fails to resolve. but it should
     DEFP third_thing ; works
     DEFP local_thing
-    DEFP inner.local_inner_thing
+    DEFP .inner.local_inner_thing
 
     push namespace inner
     local_inner_thing:
     DEFB 20
+    defp inner.local_inner_thing ; works - should not
+    defp local_inner_thing ; does not work - should (relative to current namespace)
     pop namespace
+
+    DEFP .inner.local_inner_thing
 
 local_thing:
     DEFB 10

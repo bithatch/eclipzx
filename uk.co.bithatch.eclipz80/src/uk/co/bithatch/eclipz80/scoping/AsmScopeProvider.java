@@ -3,6 +3,17 @@
  */
 package uk.co.bithatch.eclipz80.scoping;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.xtext.naming.QualifiedName;
+import org.eclipse.xtext.resource.IEObjectDescription;
+import org.eclipse.xtext.scoping.IScope;
+
+import uk.co.bithatch.eclipz80.asm.AsmPackage;
+
 /**
  * This class contains custom scoping description.
  *
@@ -11,4 +22,69 @@ package uk.co.bithatch.eclipz80.scoping;
  */
 public class AsmScopeProvider extends AbstractAsmScopeProvider {
 
+	@Override
+	public IScope getScope(EObject context, EReference reference) {
+		IScope delegate = super.getScope(context, reference);
+		if (reference == AsmPackage.eINSTANCE.getAsmLabel_Ref()) {
+			return new NamespaceRelativeLabelScope(delegate, AsmNamespaceSupport.namespacesBefore(context));
+		}
+		return delegate;
+	}
+
+	private static final class NamespaceRelativeLabelScope implements IScope {
+		private final IScope delegate;
+		private final List<String> namespaces;
+
+		private NamespaceRelativeLabelScope(IScope delegate, List<String> namespaces) {
+			this.delegate = delegate;
+			this.namespaces = namespaces;
+		}
+
+		@Override
+		public IEObjectDescription getSingleElement(QualifiedName name) {
+			if (name == null) {
+				return null;
+			}
+			// Keep fully-qualified lookup untouched; only add relative lookup for single identifiers.
+			if (name.getSegmentCount() == 1 && !namespaces.isEmpty()) {
+				for (QualifiedName candidate : relativeCandidates(name)) {
+					IEObjectDescription found = delegate.getSingleElement(candidate);
+					if (found != null) {
+						return found;
+					}
+				}
+			}
+			return delegate.getSingleElement(name);
+		}
+
+		@Override
+		public Iterable<IEObjectDescription> getElements(QualifiedName name) {
+			return delegate.getElements(name);
+		}
+
+		@Override
+		public IEObjectDescription getSingleElement(EObject object) {
+			return delegate.getSingleElement(object);
+		}
+
+		@Override
+		public Iterable<IEObjectDescription> getElements(EObject object) {
+			return delegate.getElements(object);
+		}
+
+		@Override
+		public Iterable<IEObjectDescription> getAllElements() {
+			return delegate.getAllElements();
+		}
+
+		private List<QualifiedName> relativeCandidates(QualifiedName leaf) {
+			List<QualifiedName> candidates = new ArrayList<>();
+			for (int i = namespaces.size(); i >= 1; i--) {
+				List<String> segs = new ArrayList<>(namespaces.subList(0, i));
+				segs.addAll(leaf.getSegments());
+				candidates.add(QualifiedName.create(segs));
+			}
+			return candidates;
+		}
+	}
 }

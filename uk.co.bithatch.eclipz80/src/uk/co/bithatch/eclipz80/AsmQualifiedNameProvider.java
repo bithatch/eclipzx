@@ -23,12 +23,10 @@ public class AsmQualifiedNameProvider extends DefaultDeclarativeQualifiedNamePro
 	public QualifiedName getFullyQualifiedName(EObject obj) {
 		if (obj instanceof AsmLabelDef) {
 			String name = ((AsmLabelDef) obj).getName();
-			System.out.println("Getting FQN of " + name);
 			if (name != null) {
 				name = stripLeadingDot(name);
 				name = AsmNamespaceSupport.qualifyRelativeName(obj, name);
 				// Let the converter split dotted names into segments for cross-ref matching.
-				System.out.println("    Final name is " + name);
 				return getConverter().toQualifiedName(name);
 			}
 		}

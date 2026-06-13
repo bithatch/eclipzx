@@ -57,7 +57,6 @@ public class AsmLibraryIncludeSource implements IAsmIncludeSource {
 
 	@Override
 	public Set<URI> importUris(Resource resource) {
-		
 		var resUri = resource.getURI().toString();
 		if (resUri.startsWith("platform:/resource/")) {
 			var file = ResourcesPlugin.getWorkspace().getRoot().findMember(resUri.substring(19));
@@ -80,6 +79,6 @@ public class AsmLibraryIncludeSource implements IAsmIncludeSource {
 				}).filter(f -> f != null).collect(Collectors.toSet());
 			}
 		}
-		return null;
+		return Collections.emptySet();
 	}
 }
