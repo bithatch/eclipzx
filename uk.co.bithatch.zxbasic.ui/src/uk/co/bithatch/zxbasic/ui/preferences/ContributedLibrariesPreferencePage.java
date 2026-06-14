@@ -1,8 +1,8 @@
 package uk.co.bithatch.zxbasic.ui.preferences;
 
-import static uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants.ARCHITECTURE;
-import static uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants.SDK;
+import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.ARCHITECTURE;
 import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.DEPENDENCIES;
+import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.SDK;
 import static uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferenceConstants.SDK_PATHS;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;

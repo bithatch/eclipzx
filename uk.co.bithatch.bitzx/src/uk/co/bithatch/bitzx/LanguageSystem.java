@@ -98,24 +98,35 @@ public class LanguageSystem {
 	}
 
 	public static IOutputFormat outputFormatOrDefault(IProject project, String fmtName) {
-		var hndlrs = new LinkedHashSet<ILanguageSystemProvider>();
+//		var hndlrs = new LinkedHashSet<ILanguageSystemProvider>();
 		var lang = languageSystem(project);
-		for (var d : descriptors()) {
-			var dsc = createHandler(d);
-			for (var a : dsc.outputFormats(project)) {
-				if (fmtName == null || fmtName.equals("") || a.name().equals(fmtName))
-					return a;
-			}
-			hndlrs.add(dsc);
-		}
 
-		for (var hndlr : hndlrs) {
-			var archs = hndlr.outputFormats(project);
-			if (!archs.isEmpty()) {
-				return archs.get(0);
-			}
+		var fmts = lang.outputFormats(project);
+		for (var a : fmts) {
+			if (fmtName == null || fmtName.equals("") || a.name().equals(fmtName))
+				return a;
 		}
-		throw new IllegalStateException("Could not get any output format for this project!");
+		
+//		for (var d : descriptors()) {
+//			var dsc = createHandler(d);
+//			for (var a : dsc.outputFormats(project)) {
+//				if (fmtName == null || fmtName.equals("") || a.name().equals(fmtName))
+//					return a;
+//			}
+//			hndlrs.add(dsc);
+//		}
+//
+//		for (var hndlr : hndlrs) {
+//			var archs = hndlr.outputFormats(project);
+//			if (!archs.isEmpty()) {
+//				return archs.get(0);
+//			}
+//		}
+
+		if(fmts.isEmpty())
+			throw new IllegalStateException("Could not get any output format for this project!");
+		else
+			return fmts.get(0);
 
 	}
 

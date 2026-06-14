@@ -20,12 +20,12 @@ public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer 
 
 	@Override
 	protected void onInit(IEclipsePreferences prefs, Set<String> keys) { 
-		setIfNotSet(prefs, PreferenceConstants.ARCHITECTURE, DEFAULT_SYSTEM, keys);
-		setIfNotSet(prefs, PreferenceConstants.CLIB, DEFAULT_CLIB, keys);
+		setIfNotSet(prefs, Z88DKPreferenceConstants.ARCHITECTURE, DEFAULT_SYSTEM, keys);
+		setIfNotSet(prefs, Z88DKPreferenceConstants.CLIB, DEFAULT_CLIB, keys);
     }
 
 	public static void checkForZCCCFG(AbstractPreferencesAccess pax) {
-		var paths = pax.getPathListPreference(null, PreferenceConstants.SDK_PATHS);
+		var paths = pax.getPathListPreference(null, Z88DKPreferenceConstants.SDK_PATHS);
         var zcccfg = System.getenv("ZCCCFG");
         if(zcccfg != null) {
         	var zcccfgFile = new File(zcccfg);
@@ -34,7 +34,7 @@ public class PreferenceInitializer extends DefaultAbstractPreferenceInitializer 
         		if(!paths.contains(zcc.getAbsolutePath())) {
         			paths = new ArrayList<String>(paths);
         			paths.add(zcc.getAbsolutePath());
-        			pax.setPathListPreference(null, PreferenceConstants.SDK_PATHS, paths);
+        			pax.setPathListPreference(null, Z88DKPreferenceConstants.SDK_PATHS, paths);
         		}
         	}
         }

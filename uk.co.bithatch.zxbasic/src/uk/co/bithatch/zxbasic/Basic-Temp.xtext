@@ -132,7 +132,7 @@ Statement:
     |  ReturnStmt
     |  EndStmt
     ) 
-    ;
+;
 
 // ───── Basic Statements ─────
 
@@ -560,61 +560,85 @@ ElseIfLine:
 
 ForBlock:
     'FOR' 
-        assignment=Assignment 'TO' end=Expr ('STEP' step=Expr)? (SEP statements+= Statement)*
-       ( 
-           =>
-           SEP loop = ForNextSingleLine
-           |
-           =>
-           LINEBREAK
-           block = CodeBlock
-           loop = ForNextLine
-       )
+        assignment=Assignment 'TO' end=Expr ('STEP' step=Expr)? 
+    (
+        => ( 
+             // Multiline FOR must break the line before the block.
+             (SEP? LINEBREAK)
+             block=CodeBlock
+             loop = ForNextLine
+        )
+    |
+        => ( 
+            ( SEP statements+=Statement (SEP statements+=Statement)*)?
+            SEP loop = ForNextSingleLine 
+        )
+    )
 ;
 
-//ForBlock:
-//    'FOR' 
-//        assignment=Assignment 'TO' end=Expr ('STEP' step=Expr)? (SEP statements+= Statement)*
-//        block=CodeBlock?
-//    (
-//        =>  
-//            loop = ForNextLine
-//    |
-//        => ( 
-//            loop = ForNextSingleLine 
-//        )
-//    )
-//;
-
-//ForBlock:
-//    'FOR' 
-//        assignment=Assignment 'TO' end=Expr ('STEP' step=Expr)? 
-//    (
-//        => ( 
-//             SEP? block=CodeBlock
-//            loop = ForNextLine
-//        )
-//    |
-//        => ( 
-//            ( SEP statements+=Statement (SEP statements+=Statement)*)?
-//            SEP loop = ForNextSingleLine 
-//        )
-//    )
-//;
-
-ForNextSingleLine /*returns Group*/:
-//    statements += ForNext
-    statements += ForNext
+ForNextSingleLine returns Group:
+    nexts += ForNext
+    (SEP nexts += ForNext)*
+    // Optional Boriel-style tail after NEXT chain.
+    (SEP tail=ForNextTailStatement)?
 ;
 
-ForNextLine /*returns Group*/:
-   {ForNextLine} => ( name=LineLabelDef)? statements += ForNext (SEP statements += ForNext)*
+ForNextLine returns Group:
+   {ForNextLine} ( name=LineLabelDef)?
+   nexts += ForNext
+   (SEP nexts += ForNext)*
+   // Optional Boriel-style tail after NEXT chain.
+   (SEP tail=ForNextTailStatement)?
+;
+
+ForNextTailStatement returns Statement:
+    (
+       => AsmBlock
+    |  => CommentStmt
+    |  PrintStmt
+    |  PlotStmt
+    |  DrawStmt
+    |  BorderStmt
+    |  BeepStmt
+    |  CircleStmt
+    |  ClsStmt
+    |  ExitStmt
+    |  GoOrSubStmt
+    |  GotoStmt
+    |  GosubStmt
+    |  PokeStmt
+    |  PauseStmt
+    |  RandomizeStmt
+    |  StopStmt
+    |  DimStmt
+    |  ConstStmt
+    |  ContinueStmt
+    |  DataStmt
+    |  ReadStmt
+    |  InStmt
+    |  RndStmt
+    |  NotExpr
+    |  OutStmt
+    |  OverMod
+    |  InverseMod
+    |  PaperMod
+    |  BrightMod
+    |  FlashMod
+    |  InkMod
+    |  SaveStmt
+    |  LoadStmt
+    |  VerifyStmt
+    |  OnStmt
+    |  ReturnStmt
+    |  EndStmt
+    )
 ;
 
 ForNext returns Statement:
     {ForNext} 'NEXT' var2=ReferableVar?
 ;
 
+// ───── While ─────
 
 WhileBlock:
     (
@@ -795,7 +819,7 @@ StringLiteral:
     value=STRING;
 
 Assignment:
-    name=ID ('(' args+=Expr (',' args+=Expr)* ')')? '=' expr=Expr
+    name=ID ('(' args+=Expr (',' args+=Expr)*)? '=' expr=Expr
 ;
     
 // ─────────────── REFERENCES AND REFERABLES ───────────────
@@ -878,8 +902,6 @@ terminal WS:
 terminal LINEBREAK: ('\r'? '\n');
 
 terminal REM_LINE: 'REM' (!('\r' | '\n'))*;
-
-//terminal ASM_COMMENT_LINE: ';' (!('\r' | '\n'))*;
 
 /* #pragma, #define, #ifdef, #ifndef, #undef, #else, #error, #require, #warning
  * #elif, #emdif, #line 

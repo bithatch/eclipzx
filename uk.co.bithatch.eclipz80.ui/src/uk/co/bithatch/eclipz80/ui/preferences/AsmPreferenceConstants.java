@@ -1,7 +1,8 @@
 package uk.co.bithatch.eclipz80.ui.preferences;
 
-public interface AsmPreferenceConstants {
-	String COMPILER = "compiler";
+import uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants;
+
+public interface AsmPreferenceConstants extends LanguageSystemPreferenceConstants {
 	String OUTPUT_PATH = "compiler.outputPath";
 	String LIBRARY_PATHS = "compiler.libraryPaths";
 	String INCLUDE_PATHS = "compiler.includePaths";
@@ -14,5 +15,5 @@ public interface AsmPreferenceConstants {
 	String ASSEMBLER_MODE_EXTERNAL = "external";
 
 	/** Separator used to store multiple defines in a single preference string. */
-	String DEFINES_SEPARATOR = "\n";;
+	String DEFINES_SEPARATOR = "\n";
 }

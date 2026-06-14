@@ -33,7 +33,7 @@ import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 import uk.co.bithatch.eclipz88dk.launch.Z88dkDebugInfoParser;
-import uk.co.bithatch.eclipz88dk.preferences.PreferenceConstants;
+import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferenceConstants;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile;
 
@@ -115,7 +115,7 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		if(resource == null || hasCNature(resource.getProject())) {
 
 			var pax = Z88DKPreferencesAccess.get();
-			var sdks = pax.getPathListPreference(null, PreferenceConstants.SDK_PATHS);
+			var sdks = pax.getPathListPreference(null, Z88DKPreferenceConstants.SDK_PATHS);
 			if (sdks.isEmpty())
 				throw new IllegalStateException("No Z88DK home!");
 

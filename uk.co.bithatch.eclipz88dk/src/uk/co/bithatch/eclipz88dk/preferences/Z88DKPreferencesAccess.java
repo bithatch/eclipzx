@@ -33,9 +33,9 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 
 	public final void setCLibrary(IProject project, String clib) {
 		var prefs = getPreferences(project);
-		prefs.put(PreferenceConstants.CLIB, clib);
+		prefs.put(Z88DKPreferenceConstants.CLIB, clib);
 		if (project != null)
-			setProjectSpecificFor(project, PreferenceConstants.CLIB, true);
+			setProjectSpecificFor(project, Z88DKPreferenceConstants.CLIB, true);
 		flushSilently(prefs);
 	}
 	
@@ -68,23 +68,23 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 	}
 
 	public boolean isAllArchitectures(IProject project) {
-		return "true".equals(getPreference(project, PreferenceConstants.ALL_ARCHITECTURES, "false"));
+		return "true".equals(getPreference(project, Z88DKPreferenceConstants.ALL_ARCHITECTURES, "false"));
 	}
 
 	public String getCLibrary(IProject project) {
-		return getPreference(project, PreferenceConstants.CLIB, PreferenceInitializer.DEFAULT_CLIB);
+		return getPreference(project, Z88DKPreferenceConstants.CLIB, PreferenceInitializer.DEFAULT_CLIB);
 	}
 
 	public void setSDK(IProject project, Z88DKSDK sdk) {
 		var prefs = getPreferences(project);
-		prefs.put(PreferenceConstants.SDK, sdk.location().getAbsolutePath());
+		prefs.put(Z88DKPreferenceConstants.SDK, sdk.location().getAbsolutePath());
 		if (project != null)
-			setProjectSpecificFor(project, PreferenceConstants.SDK, true);
+			setProjectSpecificFor(project, Z88DKPreferenceConstants.SDK, true);
 		flushSilently(prefs);
 	}
 	
 	public Optional<Z88DKSDK> getSDK(IProject project) {
-		var sdk = getPreference(project, PreferenceConstants.SDK, "");
+		var sdk = getPreference(project, Z88DKPreferenceConstants.SDK, "");
 		if(sdk.equals("")) {
 			try {
 				return Optional.of(getAllSDKs().getFirst());
@@ -99,7 +99,7 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 	}
 
 	public List<File> getAllSDKPaths() {
-    	return getPathListPreference(null, PreferenceConstants.SDK_PATHS).stream().map(File::new).toList();
+    	return getPathListPreference(null, Z88DKPreferenceConstants.SDK_PATHS).stream().map(File::new).toList();
 	}
 
 	public Optional<Z88DKSDK> getSDKByName(String name) {

@@ -13,7 +13,7 @@ import org.eclipse.cdt.core.settings.model.ICSettingEntry;
 import org.eclipse.cdt.core.settings.model.util.CDataUtil;
 import org.eclipse.core.resources.IResource;
 
-import uk.co.bithatch.eclipz88dk.preferences.PreferenceConstants;
+import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferenceConstants;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile.Key;
 
@@ -38,7 +38,7 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 			String languageId) {
 		if (rc == null) return Collections.emptyList();
 		var pax = Z88DKPreferencesAccess.get();
-		var sdks = pax.getPathListPreference(null, PreferenceConstants.SDK_PATHS);
+		var sdks = pax.getPathListPreference(null, Z88DKPreferenceConstants.SDK_PATHS);
 		if (sdks.isEmpty())
 			return Collections.emptyList();
 

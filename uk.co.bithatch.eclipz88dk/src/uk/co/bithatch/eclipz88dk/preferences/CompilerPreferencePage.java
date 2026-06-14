@@ -15,7 +15,7 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 	private BooleanFieldEditor allArchs;
 
 	public CompilerPreferencePage() {
-		super(PreferenceConstants.COMPILER, GRID);
+		super(Z88DKPreferenceConstants.COMPILER, GRID);
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 		super.createFieldEditors();
 
 		var sdkChoices = getSDKChoices();
-		sdks = new DynamicComboFieldEditor(PreferenceConstants.SDK, "SDK:", sdkChoices, getFieldEditorParent());
+		sdks = new DynamicComboFieldEditor(Z88DKPreferenceConstants.SDK, "SDK:", sdkChoices, getFieldEditorParent());
 		sdks.getCombo().addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 			updateSystems(getSDKFromCombo());
 		}));
@@ -33,7 +33,7 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 
 		var initSdk = getSDKFromCombo();
 
-		system = new DynamicComboFieldEditor(PreferenceConstants.ARCHITECTURE, "System:", new String[0][0],
+		system = new DynamicComboFieldEditor(Z88DKPreferenceConstants.ARCHITECTURE, "System:", new String[0][0],
 				getFieldEditorParent());
 		system.getCombo().addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 			updateClibs(getSDKFromCombo(), system.getCombo().getText());
@@ -41,11 +41,11 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 
 		addField(system);
 
-		clib = new DynamicComboFieldEditor(PreferenceConstants.CLIB, "C Library:",
+		clib = new DynamicComboFieldEditor(Z88DKPreferenceConstants.CLIB, "C Library:",
 				new String[0][0], getFieldEditorParent());
 		addField(clib);
 
-		allArchs = new BooleanFieldEditor(PreferenceConstants.ALL_ARCHITECTURES, "Enable all (non ZX) systems (not yet recommended)",
+		allArchs = new BooleanFieldEditor(Z88DKPreferenceConstants.ALL_ARCHITECTURES, "Enable all (non ZX) systems (not yet recommended)",
 				BooleanFieldEditor.DEFAULT, getFieldEditorParent()) {
 					@Override
 					protected void valueChanged(boolean oldValue, boolean newValue) {
@@ -58,7 +58,7 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 		addField(allArchs);
 
 		updateSystems(initSdk);
-		updateClibs(initSdk, getPreferenceStore().getString(PreferenceConstants.ARCHITECTURE));
+		updateClibs(initSdk, getPreferenceStore().getString(Z88DKPreferenceConstants.ARCHITECTURE));
 		
 		if(sdkChoices.length == 0) {
 			setErrorMessage("No SDKs found. Please add an SDK path in the main preferences.");
@@ -86,14 +86,14 @@ public class CompilerPreferencePage extends AbstractZ88DKPreferencePage {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
-		if (PreferenceConstants.SDK_PATHS.equals(event.getProperty())) {
+		if (Z88DKPreferenceConstants.SDK_PATHS.equals(event.getProperty())) {
 			sdks.updateEntries(getSDKChoices());
-		} else if (PreferenceConstants.SDK.equals(event.getProperty())) {
+		} else if (Z88DKPreferenceConstants.SDK.equals(event.getProperty())) {
 			updateSystems(getSDKFromCombo());
 			updateClibs(getSDKFromCombo(), system.getCombo().getText());
-		} else if (PreferenceConstants.ARCHITECTURE.equals(event.getProperty())) {
+		} else if (Z88DKPreferenceConstants.ARCHITECTURE.equals(event.getProperty())) {
 			updateClibs(getSDKFromCombo(), (String) event.getNewValue());
-		} else if (PreferenceConstants.ALL_ARCHITECTURES.equals(event.getProperty())) {
+		} else if (Z88DKPreferenceConstants.ALL_ARCHITECTURES.equals(event.getProperty())) {
 			updateSystems(getSDKFromCombo());
 			updateClibs(getSDKFromCombo(), system.getCombo().getText());
 		}

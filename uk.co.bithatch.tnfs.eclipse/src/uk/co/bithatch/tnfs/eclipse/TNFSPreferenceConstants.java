@@ -1,8 +1,6 @@
 package uk.co.bithatch.tnfs.eclipse;
 
-import uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants;
-
-public interface TNFSPreferenceConstants extends LanguageSystemPreferenceConstants {
+public interface TNFSPreferenceConstants {
 
 	String ENABLE = "enable";
 	String PORT = "port";

@@ -2,10 +2,8 @@ package uk.co.bithatch.eclipz88dk.preferences;
 
 import uk.co.bithatch.bitzx.LanguageSystemPreferenceConstants;
 
-public interface PreferenceConstants extends LanguageSystemPreferenceConstants  {
-    
-	String COMPILER = "compiler";
-
+public interface Z88DKPreferenceConstants extends LanguageSystemPreferenceConstants  {
+	
 	String SDKS = "sdks";
 	String SDK_PATHS = "sdks.sdkPaths";
 	

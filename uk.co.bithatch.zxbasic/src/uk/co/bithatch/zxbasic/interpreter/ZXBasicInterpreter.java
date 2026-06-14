@@ -792,52 +792,53 @@ public class ZXBasicInterpreter extends AbstractTool  {
 	}
 
 	protected void forStatement(ProgramScope scope, ForBlock forStmt) {
-		var varName = forStmt.getAssignment().getName();
-		var start = evaluateExpr(forStmt.getAssignment().getExpr(), scope);
-		var end = evaluateExpr(forStmt.getEnd(), scope);
-		var step = forStmt.getStep() != null ? evaluateExpr(forStmt.getStep(), scope) : Var.forUInteger(1);
-		
-		if(step.zero())
-			return;
-		
-		
-		log("FOR loop " + varName + " from " + start + " to " + end + " step " + step);
-		
-		/* TODO arrays */
-		var indexes = evaluateArrayIndexes(forStmt.getAssignment().getArgs(), scope);
-		var wasValue = scope.getVar(varName, indexes);
-		var bestType = wasValue == null ? VarType.best(start.type(), end.type(), step.type()) : wasValue.type();
-		
-		start = start.toType(bestType);
-		end = end.toType(bestType);
-		step = end.toType(bestType);
-		
-		try {
-			var val = new Var(bestType, start.value());
-			while(true) {
-				if(step.gt(Var.ZERO) && val.gt(end)) {
-					break;
-				} else if(val.lt(end)) {
-					break;
-				}
-
-		    	scope.putVar(varName, val, indexes);
-		    	executeStatements(forStmt.getStatements(), scope);
-		    	scope.push(forStmt.getBlock().getGroups());
-		    	try {
-		    		executeLines(scope);
-		    	}
-		    	finally {
-		    		scope.pop();
-		    	}
-				
-				val = val.add(step);
-			}
-		}
-		finally {
-			if(wasValue == null)
-				scope.removeVar(varName);
-		}
+//		var varName = forStmt.getAssignment().getName();
+//		var start = evaluateExpr(forStmt.getAssignment().getExpr(), scope);
+//		var end = evaluateExpr(forStmt.getEnd(), scope);
+//		var step = forStmt.getStep() != null ? evaluateExpr(forStmt.getStep(), scope) : Var.forUInteger(1);
+//		
+//		if(step.zero())
+//			return;
+//		
+//		
+//		log("FOR loop " + varName + " from " + start + " to " + end + " step " + step);
+//		
+//		/* TODO arrays */
+//		var indexes = evaluateArrayIndexes(forStmt.getAssignment().getArgs(), scope);
+//		var wasValue = scope.getVar(varName, indexes);
+//		var bestType = wasValue == null ? VarType.best(start.type(), end.type(), step.type()) : wasValue.type();
+//		
+//		start = start.toType(bestType);
+//		end = end.toType(bestType);
+//		step = end.toType(bestType);
+//		
+//		try {
+//			var val = new Var(bestType, start.value());
+//			while(true) {
+//				if(step.gt(Var.ZERO) && val.gt(end)) {
+//					break;
+//				} else if(val.lt(end)) {
+//					break;
+//				}
+//
+//		    	scope.putVar(varName, val, indexes);
+//		    	executeStatements(forStmt.getStatements(), scope);
+//		    	scope.push(forStmt.getBlock().getGroups());
+//		    	try {
+//		    		executeLines(scope);
+//		    	}
+//		    	finally {
+//		    		scope.pop();
+//		    	}
+//				
+//				val = val.add(step);
+//			}
+//		}
+//		finally {
+//			if(wasValue == null)
+//				scope.removeVar(varName);
+//		}
+		throw new UnsupportedOperationException("TEMP DISABLED");
 	}
 
     
