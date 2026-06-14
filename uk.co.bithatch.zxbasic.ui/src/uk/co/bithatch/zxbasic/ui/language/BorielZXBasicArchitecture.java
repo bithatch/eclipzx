@@ -22,6 +22,15 @@ public enum BorielZXBasicArchitecture implements IArchitecture {
 		}
 	}
 	
+	public String runtimeDir() {
+		switch(this) {
+		case LEGACY:
+			return "zx48k";
+		default:
+			return name().toLowerCase();
+		}
+	}
+	
 	@Override
 	public Optional<WellKnownArchitecture> wellKnown() {
 		return Optional.of(WellKnownArchitecture.valueOf(name()));

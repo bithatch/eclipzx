@@ -9,12 +9,12 @@ import org.eclipse.xtext.util.IResourceScopeCache;
 
 import com.google.inject.Inject;
 
-import uk.co.bithatch.eclipz80.IAsmIncludeSource;
+import uk.co.bithatch.eclipz80.AsmIncludeSource;
 
 public class AsmGlobalScopeProvider extends ImportUriGlobalScopeProvider {
 
 	@Inject(optional = true)
-	private IAsmIncludeSource includeSource;
+	private AsmIncludeSource includeSource;
 
 	@Inject
 	private IResourceScopeCache cache;
@@ -26,6 +26,7 @@ public class AsmGlobalScopeProvider extends ImportUriGlobalScopeProvider {
 			if (includeSource != null) {
 				impUris.addAll(includeSource.importUris(resource));
 			}
+			
 			return impUris;
 		});
 		

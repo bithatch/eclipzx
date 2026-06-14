@@ -1,11 +1,6 @@
 package uk.co.bithatch.zxbasic;
 
-import java.nio.file.Path;
+import uk.co.bithatch.eclipzpp.PPIncludeSource;
 
-import org.eclipse.emf.ecore.resource.Resource;
-
-public interface ZxBasicIncludeSource {
-
-	Path find(Resource resource, String importURI);
-
+public interface ZxBasicIncludeSource extends PPIncludeSource {
 }

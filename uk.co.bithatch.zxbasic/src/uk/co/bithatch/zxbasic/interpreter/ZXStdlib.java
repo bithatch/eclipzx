@@ -25,7 +25,6 @@ public class ZXStdlib implements IReferenceIndex {
 
 	@Override
 	public boolean isDefined(String function) {
-		System.out.println("ZXSTDLIB isDefined " + function);
 		return FUNCTIONS.contains(ScopingUtils.normalize(function));
 	}
 

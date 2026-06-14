@@ -9,7 +9,7 @@ import org.eclipse.xtext.ide.editor.syntaxcoloring.ISemanticHighlightingCalculat
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.ui.editor.XtextEditor;
 
-import uk.co.bithatch.eclipz80.IAsmIncludeSource;
+import uk.co.bithatch.eclipz80.AsmIncludeSource;
 import uk.co.bithatch.eclipz80.ui.debug.AsmXtextEditor;
 import uk.co.bithatch.eclipz80.ui.hyperlinking.AsmHyperlinkDetector;
 import uk.co.bithatch.eclipz80.ui.library.AsmLibraryIncludeSource;
@@ -42,7 +42,7 @@ public class AsmUiModule extends AbstractAsmUiModule {
 	    return AsmReferenceIndex.class;
 	}
 
-	public Class<? extends IAsmIncludeSource> bindIAsmIncludeSource() {
+	public Class<? extends AsmIncludeSource> bindIAsmIncludeSource() {
 	    return AsmLibraryIncludeSource.class;
 	}
 

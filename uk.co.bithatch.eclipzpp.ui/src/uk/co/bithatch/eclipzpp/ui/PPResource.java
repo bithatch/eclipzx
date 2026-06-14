@@ -79,6 +79,12 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 		}
 	}
 
+	@Override
+	public Optional<IFile> getFile() {
+		return getFile(this);
+	}
+	
+
 	protected abstract Optional<IFile> getFile(Resource resource);
 
 	@Override
@@ -204,12 +210,12 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 		
 		var ppd = pp.process(instr);
 
-//		System.out.println("------------------->");
-//		var i = 1;
-//		for(var ln : ppd.split(System.lineSeparator())) {
-//			System.out.println(String.format("%03d : %s",  i++, ln));
-//		}
-//		System.out.println("<-------------------");
+		System.out.println("------------------->");
+		var i = 1;
+		for(var ln : ppd.split(System.lineSeparator())) {
+			System.out.println(String.format("%03d : %s",  i++, ln));
+		}
+		System.out.println("<-------------------");
 //////		
 //		pp.defines().forEach((k,v) -> {
 //			System.out.println("DEFINES: "+ k + "=" + v);

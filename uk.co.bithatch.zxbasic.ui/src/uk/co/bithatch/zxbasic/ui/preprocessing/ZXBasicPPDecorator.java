@@ -23,6 +23,7 @@ public class ZXBasicPPDecorator implements PPResourcePreprocessorDecorator {
 
 			var pax = ZXBasicPreferencesAccess.get();
 			bldr.withFormat(Format.BORIEL);
+			bldr.withExpandRequire();
 			bldr.withDefines(pax.getDefines(file.getProject()));
 			bldr.withResourceResolver(ZXBasicResource.resourceResolveForProject(file.getProject()));
 		}

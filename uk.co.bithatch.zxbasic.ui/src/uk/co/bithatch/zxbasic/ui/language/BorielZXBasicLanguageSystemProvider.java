@@ -1,5 +1,6 @@
 package uk.co.bithatch.zxbasic.ui.language;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -118,7 +120,15 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 		var allLibs = pax.getAllLibs(file.getProject());
 		if(depth == IResource.DEPTH_INFINITE) {
 			return findIncludeSourcePaths(file, IResource.DEPTH_ONE).stream().flatMap(pstr ->
-				FileNames.findAllChildDirectories(ZXBasicPreferencesAccess.resolveWorkspaceRelative(file.getProject(), pstr)).stream()
+				{
+					Path dir = ZXBasicPreferencesAccess.resolveWorkspaceRelative(file.getProject(), pstr);
+					if(Files.isDirectory(dir)) {
+						return FileNames.findAllChildDirectories(dir).stream();
+					}
+					else {
+						return Stream.empty();
+					}
+				}
 			).map(Path::toString).collect(Collectors.toSet());
 		}
 		else {
@@ -134,20 +144,24 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 	@Override
 	public Optional<String> findRuntimeDir(IResource baseFile) {
 		var pax = ZXBasicPreferencesAccess.get();
-		return pax.getSDK(baseFile.getProject()).map(sdk -> sdk.runtime(pax.getArchitecture(baseFile.getProject())).getAbsolutePath());
+		return pax.getSDK(baseFile.getProject()).map(sdk -> sdk.runtime((BorielZXBasicArchitecture)pax.getArchitecture(baseFile.getProject())).getAbsolutePath());
 	}
 
 	@Override
 	public Set<Path> findImportUris(IResource baseFile, int depth) {
-		if (!"bas".equalsIgnoreCase(baseFile.getFileExtension())) {
 			return ILanguageSystemProvider.super.findImportUris(baseFile, depth).
 					stream().
-					filter(f -> !f.getFileName().toString().toLowerCase().endsWith(".bas")).
+					filter(f -> isImportValidForBase(baseFile, f)).
 					collect(Collectors.toSet());
-		} else {
-			return ILanguageSystemProvider.super.findImportUris(baseFile, depth);
-		}
 	}
 	
+	private boolean isImportValidForBase(IResource baseFile, Path path) {
+		if (!"bas".equalsIgnoreCase(baseFile.getFileExtension())) {
+			return !(path.getFileName().toString().toLowerCase().endsWith(".bas"));
+		}
+		else {
+			return path.getFileName().toString().toLowerCase().endsWith(".bas");
+		}
+	}
 
 }

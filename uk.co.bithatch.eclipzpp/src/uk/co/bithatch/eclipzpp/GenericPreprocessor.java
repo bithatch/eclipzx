@@ -728,7 +728,8 @@ public class GenericPreprocessor extends AbstractTool {
 				else if(directive.equals("#require")) {
 					if(expandRequire) {
 						if(require(line.trim()))
-							return Optional.empty();
+							return includeDirectiveIfEditorMode(offset, line, 2, true);
+//							return Optional.empty();
 						else {
 							error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.trim() + ".");
 							return Optional.of(line);

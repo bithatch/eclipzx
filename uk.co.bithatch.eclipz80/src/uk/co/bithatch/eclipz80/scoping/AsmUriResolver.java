@@ -6,7 +6,7 @@
 //
 //import com.google.inject.Inject;
 //
-//import uk.co.bithatch.eclipz80.IAsmIncludeSource;
+//import uk.co.bithatch.eclipz80.AsmIncludeSource;
 //import uk.co.bithatch.eclipz80.asm.AsmInclude;
 //
 //
@@ -16,7 +16,7 @@
 //public class AsmUriResolver  extends ImportUriResolver {
 //
 //	@Inject(optional = true)
-//	private IAsmIncludeSource includeSource;
+//	private AsmIncludeSource includeSource;
 //	
 //	
 //	@Inject
@@ -65,13 +65,13 @@ import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
 import com.google.inject.Inject;
 
-import uk.co.bithatch.eclipz80.IAsmIncludeSource; 
+import uk.co.bithatch.eclipz80.AsmIncludeSource; 
 import uk.co.bithatch.eclipz80.asm.AsmInclude;
 
 public class AsmUriResolver extends ImportUriResolver {
 
 	@Inject(optional = true)
-	private IAsmIncludeSource includeSource;
+	private AsmIncludeSource includeSource;
 
 	@Override
 	public String resolve(EObject object) {
@@ -102,7 +102,7 @@ public class AsmUriResolver extends ImportUriResolver {
 				}
 			}
 
-			// Search include paths via IAsmIncludeSource
+			// Search include paths via AsmIncludeSource
 			if (includeSource != null && object.eResource() != null) {
 				Path found = includeSource.find(object.eResource(), importURI);
 				if (found != null && Files.exists(found)) {

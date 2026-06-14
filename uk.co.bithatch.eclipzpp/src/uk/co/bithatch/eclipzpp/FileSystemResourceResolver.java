@@ -139,23 +139,31 @@ public final class FileSystemResourceResolver implements ResourceResolver<Path> 
 		
 		if(resolveType == ResolveType.RUNTIME && runtimedir.isPresent()) {
 			name = name.substring(1, name.length() - 1);
+			if(name.equals(""))
+				throw new IllegalArgumentException("No filename");
 			var lib = runtimedir.get().resolve(name);
 			if(isValid(lib)) {
-				return new IncludeContext<>(runtimedir.get(), 
-						lib.toAbsolutePath().toString(), 
-						new ReaderIterator(null), new AtomicBoolean(true));
+				try {
+					return new IncludeContext<>(runtimedir.get(), 
+							lib.toAbsolutePath().toString(), 
+							new ReaderIterator(new InputStreamReader(Files.newInputStream(lib))), new AtomicBoolean(true));
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				} 
 			}
 		}
 		else {
 			if(name.startsWith("<") && name.endsWith(">")) {
-				name = name.substring(1, name.length() - 1);
+				name = name.length() > 1 ? name.substring(1, name.length() - 1) : "";
 				var ctx = searchPaths(name);
 				if(ctx != null) {
 					return ctx;
 				}
 			}
 			else if(name.startsWith("\"") && name.endsWith("\"")) {
-				name = name.substring(1, name.length() - 1);
+				name = name.length() > 1 ? name.substring(1, name.length() - 1) : name;
+				if(name.equals(""))
+					throw new IllegalArgumentException("No filename");
 				
 				Path nctx;
 				if(context == null) {

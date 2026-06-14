@@ -12,6 +12,7 @@ import uk.co.bithatch.eclipzpp.GenericPreprocessor.Builder;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor.Format;
 import uk.co.bithatch.eclipzpp.ui.PPResource;
 import uk.co.bithatch.eclipzpp.ui.PPResourceUtil;
+import uk.co.bithatch.zxbasic.ui.language.BorielZXBasicArchitecture;
 import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
 public class ZXBasicResource extends PPResource {
@@ -30,7 +31,7 @@ public class ZXBasicResource extends PPResource {
 		var pax = ZXBasicPreferencesAccess.get();
 		var fs = new FileSystemResourceResolver.Builder().withIncludeDirs(pax.getAllLibs(project))
 				.withWorkingDir(project.getLocation().toFile())
-				.withRuntimeDir(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).runtime(pax.getArchitecture(project))).build();
+				.withRuntimeDir(pax.getSDK(project).orElseThrow(() -> new IllegalStateException("No SDK configured for project.")).runtime((BorielZXBasicArchitecture)pax.getArchitecture(project))).build();
 		return fs;
 	}
 

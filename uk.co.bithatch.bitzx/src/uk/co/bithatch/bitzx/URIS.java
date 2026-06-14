@@ -5,7 +5,6 @@ import java.nio.file.Paths;
 
 public class URIS {
 
-
 	public static Path toPath(String uriStr) {
 		try {
 			if (uriStr.startsWith("file:")) {
