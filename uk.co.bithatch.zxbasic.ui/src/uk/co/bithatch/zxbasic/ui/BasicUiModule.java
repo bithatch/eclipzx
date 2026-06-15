@@ -3,6 +3,7 @@
  */
 package uk.co.bithatch.zxbasic.ui;
 
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.xtext.ide.editor.syntaxcoloring.ISemanticHighlightingCalculator;
 import org.eclipse.xtext.resource.ILocationInFileProvider;
@@ -13,8 +14,9 @@ import uk.co.bithatch.eclipzpp.IReferenceIndex;
 import uk.co.bithatch.zxbasic.ILanguageSettings;
 import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.ui.contentassist.BasicReferenceIndex;
-import uk.co.bithatch.zxbasic.ui.contentassist.ZXBasicPreprocessingContentAssistContextFactory;
 import uk.co.bithatch.zxbasic.ui.contentassist.ProjectPreferencesLanguageSettings;
+import uk.co.bithatch.zxbasic.ui.contentassist.ZXBasicPreprocessingContentAssistContextFactory;
+import uk.co.bithatch.zxbasic.ui.hyperlinking.ZXBasicHyperlinkDetector;
 import uk.co.bithatch.zxbasic.ui.library.ZXBasicLibraryIncludeSource;
 import uk.co.bithatch.zxbasic.ui.outline.ZXBasicOutlineTreeProvider;
 import uk.co.bithatch.zxbasic.ui.preprocessing.ZXBasicLocationInFileProvider;
@@ -33,6 +35,10 @@ public class BasicUiModule extends AbstractBasicUiModule {
 	}
 	public Class<? extends ILocationInFileProvider> bindILocationInFileProvider() {
 	    return ZXBasicLocationInFileProvider.class;
+	}
+
+	public Class<? extends IHyperlinkDetector> bindIHyperlinkDetector() {
+	    return ZXBasicHyperlinkDetector.class;
 	}
 	
 	public Class<? extends XtextResource> bindXtextResource() {
