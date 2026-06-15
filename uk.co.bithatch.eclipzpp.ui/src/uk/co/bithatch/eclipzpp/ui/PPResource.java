@@ -22,10 +22,8 @@ import org.eclipse.xtext.util.TextRegion;
 
 import com.google.common.io.CharStreams;
 
-import uk.co.bithatch.eclipzpp.FileSystemResourceResolver;
 import uk.co.bithatch.eclipzpp.GenericPreprocessor;
 import uk.co.bithatch.eclipzpp.IMappedResource;
-import uk.co.bithatch.eclipzpp.Mode;
 import uk.co.bithatch.eclipzpp.SourceMap;
 import uk.co.bithatch.eclipzpp.SourceMapRegistry;
 
@@ -163,52 +161,8 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 
 	protected final String preprocess(IFile file, String instr) throws IOException {
 		map.clear();
-		
-//		return Files.readString(file.getLocation().toPath());
-		
-		var bldr = builder(file.getProject()).
-				withSourceMap(map).
-				onWarning((wrn, ln, msg) -> {
-					LOG.warn("[PP] " + wrn+ " @ " + ln + " : " + msg);
-				}).
-				onError((err, ln, msg) -> {
-					LOG.warn("[PP] " + err+ " @ " + ln + " : " + msg);
-				});
-		
-		
-		/* Give the current thread a chance to decorate the preprocessor configuration */
-		
-		PPResourcePreprocessorDecorator.Instance.get().ifPresentOrElse(dec -> {
-			LOG.info("Build is adding custom preprocessor configuration");
-			dec.decorate(bldr, this, file);
-		}, () -> {
-			LOG.info("Default build behaviour for preprocessor");
-			bldr.withMode(Mode.EDITOR);
-		});
-		
-		/* Give the decorator extensions (probably language implementations) a chance to further decorate
-		 * the preprocessor builder 
-		 */
-		PPResourcePreprocessorDecorator.decorators().forEach(dec -> {
-			LOG.info("Extension " + dec.getClass().getName() + " is contributing to preprocesor configuration");
-			dec.decorate(bldr, this, file);
-		});
-		
-		/* Preprocess and dump out some debugging stuff */
-		var pp = bldr.build();
-		LOG.info("Preprocessing " +  file + "  [" + pp.mode() + "/" + pp.format() + "]");
 
-		pp.resourceResolver().ifPresent(rr -> {
-			((FileSystemResourceResolver)rr).includePaths().forEach(ip -> {
-				LOG.info("  " + ip);
-			});
-
-			((FileSystemResourceResolver)rr).runtimedir().ifPresent(ip -> {
-				LOG.info("  RT: " + ip);
-			});
-		});
-		
-		var ppd = pp.process(instr);
+		var ppd = PPPreprocessingSupport.preprocess(builder(file.getProject()), this, file, map, LOG, instr);
 
 		System.out.println("------------------->");
 		var i = 1;

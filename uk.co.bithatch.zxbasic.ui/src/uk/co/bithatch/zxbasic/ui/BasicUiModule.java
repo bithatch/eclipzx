@@ -13,6 +13,7 @@ import uk.co.bithatch.eclipzpp.IReferenceIndex;
 import uk.co.bithatch.zxbasic.ILanguageSettings;
 import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.ui.contentassist.BasicReferenceIndex;
+import uk.co.bithatch.zxbasic.ui.contentassist.ZXBasicPreprocessingContentAssistContextFactory;
 import uk.co.bithatch.zxbasic.ui.contentassist.ProjectPreferencesLanguageSettings;
 import uk.co.bithatch.zxbasic.ui.library.ZXBasicLibraryIncludeSource;
 import uk.co.bithatch.zxbasic.ui.outline.ZXBasicOutlineTreeProvider;
@@ -41,6 +42,11 @@ public class BasicUiModule extends AbstractBasicUiModule {
 	public Class<? extends ISemanticHighlightingCalculator> bindISemanticHighlightingCalculator() {
 	    return ZXBasicSemanticHighlightingCalculator.class;
 	}
+
+	public Class<? extends org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext.Factory> bindContentAssistContext$Factory() {
+		return ZXBasicPreprocessingContentAssistContextFactory.class;
+	}
+
 	public Class<? extends ILanguageSettings> bindILanguageSettings() {
 	    return ProjectPreferencesLanguageSettings.class;
 	}
