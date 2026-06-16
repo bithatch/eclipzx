@@ -8,6 +8,7 @@ import org.eclipse.xtext.naming.IQualifiedNameConverter;
 import org.eclipse.xtext.parser.antlr.ISyntaxErrorMessageProvider;
 import org.eclipse.xtext.resource.IDefaultResourceDescriptionStrategy;
 import org.eclipse.xtext.scoping.IGlobalScopeProvider;
+import org.eclipse.xtext.scoping.IScopeProvider;
 import org.eclipse.xtext.scoping.impl.ImportUriResolver;
 
 import uk.co.bithatch.eclipzpp.PPSyntaxErrorMessageProvider;
@@ -16,6 +17,7 @@ import uk.co.bithatch.zxbasic.scoping.ZXBasicGlobalScopeProvider;
 import uk.co.bithatch.zxbasic.scoping.ZXBasicQualifiedNameConverter;
 import uk.co.bithatch.zxbasic.scoping.ZXBasicQualifiedNameProvider;
 import uk.co.bithatch.zxbasic.scoping.ZXBasicResourceDescriptionStrategy;
+import uk.co.bithatch.zxbasic.scoping.ZXBasicScopeProvider;
 import uk.co.bithatch.zxbasic.scoping.ZXBasicUriResolver;
 import uk.co.bithatch.zxbasicconverters.ZXBasicStringConverters;
 
@@ -42,6 +44,11 @@ public class BasicRuntimeModule extends AbstractBasicRuntimeModule {
 	@Override 
 	public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
 		return ZXBasicGlobalScopeProvider.class;
+	}
+
+	@Override 
+	public Class<? extends IScopeProvider> bindIScopeProvider() {
+		return ZXBasicScopeProvider.class;
 	}
 	
 	public Class<? extends IDefaultResourceDescriptionStrategy> bindIDefaultResourceDescriptionStrategy() {
