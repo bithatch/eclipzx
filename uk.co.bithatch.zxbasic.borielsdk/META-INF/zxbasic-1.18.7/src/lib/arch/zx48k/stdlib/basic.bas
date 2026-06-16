@@ -36,7 +36,7 @@ Note that this function returns the value of the BC register.
 BUGS:
 Most probably a lot. I'm still learning how to interact with the BASIC interpreter.
 -------------------------------------------------------------------------------------- '/
-
+ 
 
 #ifndef __LIBRARY_EVALBASIC__
 REM Avoid recursive / multiple inclusion

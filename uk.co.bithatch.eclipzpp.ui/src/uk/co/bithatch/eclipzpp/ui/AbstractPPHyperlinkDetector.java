@@ -49,6 +49,9 @@ public abstract class AbstractPPHyperlinkDetector extends DefaultHyperlinkDetect
 					public java.lang.Void exec(XtextResource resource) throws Exception {
 						if (resource != null) {
 							findHyperlinks(links, document, (PPResource)resource, region, canShowMultipleHyperlinks);
+							if(canShowMultipleHyperlinks || links.isEmpty()) { 
+								findIncludes(links, document, (PPResource)resource, region, canShowMultipleHyperlinks);
+							}
 						}
 						return null;
 					}
@@ -56,7 +59,10 @@ public abstract class AbstractPPHyperlinkDetector extends DefaultHyperlinkDetect
 			}
 		}
 		
-		if(canShowMultipleHyperlinks || links.isEmpty()) {
+		if(links.isEmpty()) {
+			return null;
+		}
+		else if(canShowMultipleHyperlinks) {
 			return  links.toArray(new IHyperlink[0]);
 		}
 		else {

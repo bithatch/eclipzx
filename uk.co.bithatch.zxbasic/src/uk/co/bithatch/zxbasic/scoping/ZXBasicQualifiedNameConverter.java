@@ -15,9 +15,9 @@ public class ZXBasicQualifiedNameConverter extends IQualifiedNameConverter.Defau
     @Override
     public QualifiedName toQualifiedName(String origName) {    	
 		var name = origName;
-		if(ZXStdlib.get().isDefined(origName)) {
+//		if(ZXStdlib.get().isDefined(origName)) {
 			name = ScopingUtils.normalizeIdentifier(origName, languageSettings, null);
-		}
+//		}
 //    	if(name.startsWith("@")) {
 //    		name = origName.substring(1);
 //    		System.out.println("tqn: " + origName + " -> " + name);

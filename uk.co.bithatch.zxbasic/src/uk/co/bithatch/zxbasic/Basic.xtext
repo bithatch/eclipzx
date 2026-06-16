@@ -13,7 +13,7 @@ Program:
 ;
 
 CodeBlock:
-     {CodeBlock} ( groups+=Group LINEBREAK)*;
+     {CodeBlock} ( groups+=Group SEP? LINEBREAK)*;
      
 Group:
     => PPDirective
@@ -64,7 +64,7 @@ ValidID returns ecore::EString:
     'NOT' | 'ON' | 'ONCE' | 'OR' | 'OUT' | 'OVER' | 'PAPER' | 'PAUSE' | 'PLOT' | 'POKE' | 'PRINT' |
     'RANDOMIZE' | 'READ' | 'REM' | 'RETURN' | 'RND' | 'SAVE' | 'SCREEN$' | 'SHL' | 'SHR' | 'STEP' |
     'STOP' | 'STRING' | 'SUB' | 'THEN' | 'TO' | 'UBYTE' | 'UINTEGER' | 'ULONG' | 'UNTIL' | 'VERIFY' |
-    'WEND' | 'WHILE' | 'XOR' 
+    'WEND' | 'WHILE' | 'XOR' | 'USR' 
 ;
 
 
@@ -131,6 +131,7 @@ Statement:
     |  OnStmt
     |  ReturnStmt
     |  EndStmt
+    |  UsrStmt
     ) 
     ;
 
@@ -346,7 +347,15 @@ PrintPart:
 ;
 
 OnStmt:
-    'ON' expression=Expr (('GO' 'TO') | 'GOTO') labels+=LineRef (',' labels+=LineRef)*
+    'ON' expression=Expr (=>type=OnGoto | => type=OnGosub) labels+=LineRef (',' labels+=LineRef)*
+;
+
+OnGoto:
+    ('GO' 'TO') | 'GOTO' 
+;
+
+OnGosub:
+    ('GO' 'SUB') | 'GOSUB'
 ;
 
 LetStmt:
@@ -397,6 +406,10 @@ ReturnStmt:
     )
 ;
 
+
+UsrStmt:
+    'USR' address=Expr;
+
 CommentStmt:
     {CommentStmt} => comment=('REM' | REM_LINE | '\'' | SL_COMMENT | ML_COMMENT);
     
@@ -422,7 +435,7 @@ AtModifier:
 // ───── Attribute Modifiers ─────
 
 AttributeModifier:
-    modifier = OverMod | InverseMod | InkMod | PaperMod | BrightMod | FlashMod
+    modifier = OverMod | InverseMod | InkMod | PaperMod | BrightMod | FlashMod | BoldMod | ItalicMod
 ;
 
 OverMod:
@@ -444,6 +457,12 @@ BrightMod:
   
 FlashMod:
     'FLASH' value=Expr;
+    
+BoldMod:
+    'BOLD' value=Expr;
+    
+ItalicMod:
+    'ITALIC' value=Expr;
 
 
 // ────────────────────────────────────────
@@ -742,10 +761,27 @@ OrExpr returns Expr:
     XorExpr => ({BinaryExpr.left=current} => op='OR' right=OrExpr)?;
     
 XorExpr returns Expr:
-    Primary  => ({BinaryExpr.left=current} => op='XOR' right=XorExpr)?;
+    BAndExpr  => ({BinaryExpr.left=current} => op='XOR' right=XorExpr)?;
+    
+BAndExpr returns Expr:
+    BOrExpr  => ({BinaryExpr.left=current} => op='BAND' right=BAndExpr)?;
+    
+BOrExpr returns Expr:
+    BXorExpr => ({BinaryExpr.left=current} => op='BOR' right=BOrExpr)?;
+    
+BXorExpr returns Expr:
+    Primary  => ({BinaryExpr.left=current} => op='BXOR' right=BXorExpr)?;
 
 NotExpr returns Expr:
     'NOT' expr=Expr
+;
+
+BNotExpr returns Expr:
+    'BNOT' expr=Expr
+;
+
+NegateExpr returns Expr:
+    '-' expr=Expr
 ;
 
 AddressOfExpr returns Expr:
@@ -771,7 +807,7 @@ Primary returns Expr:
     |
     =>  IntegralLiteral
     |
-    =>  ( InStmt | RndStmt | NotExpr )
+    =>  ( InStmt | RndStmt | NotExpr | NegateExpr | BNotExpr )
 ;
 
 // ─────────────── MODEL ELEMENTS ───────────────
@@ -827,7 +863,8 @@ ReferableVar returns ReferableRef:
         )
     |
         (
-        args+=Expr (=> ',' args+=Expr)*
+//        args+=Expr (=> ',' args+=Expr)*
+        args+=Expr
         )
     )?
 ;
