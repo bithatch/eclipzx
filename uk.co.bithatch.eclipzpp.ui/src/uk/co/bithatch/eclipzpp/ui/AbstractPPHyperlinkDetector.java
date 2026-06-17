@@ -76,14 +76,14 @@ public abstract class AbstractPPHyperlinkDetector extends DefaultHyperlinkDetect
 			var thisFile = resource.getFile().get();
 			var thisUri = URI.createPlatformResourceURI(thisFile.getFullPath().toString(), true);
 			var line = document.getLineOfOffset(region.getOffset());
-			var lineText = document.get(document.getLineOffset(line), document.getLineLength(line));
-			if (lineText.toLowerCase().startsWith("#include ")) {
-				var filename = lineText.substring(9).trim();
+			var lineText = document.get(document.getLineOffset(line), document.getLineLength(line)).trim();
+			if (lineText.toLowerCase().startsWith("#include ") || lineText.toLowerCase().startsWith("include ")) {
+				var filename = lineText.substring(lineText.indexOf(' ') + 1).trim();
 
 				if (filename.startsWith("\"") && filename.endsWith("\"")) {
 					/* Relative to this resource */
 					filename = filename.substring(1, filename.length() - 1);
-					var uri = thisUri.resolve(URI.createURI(filename, false));
+					var uri = URI.createURI(filename, false).resolve(thisUri);
 					links.add(createHyperlink(region, resource, new Coords("include", 0, uri.toString())));
 				} else if (filename.startsWith("<") && filename.endsWith(">")) {
 					filename = filename.substring(1, filename.length() - 1);
