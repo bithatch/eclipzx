@@ -592,7 +592,7 @@ public class GenericPreprocessor extends AbstractTool {
 					}
 				}
 				else if(directive.equals("binary") || directive.equals("incbin")) {
-					var expanded = binaryDirective(line.trim(), directive);
+					var expanded = binaryDirective(thisLineNo, line.trim(), directive);
 					if(expanded.isPresent()) {
 						return mode == Mode.EDITOR ? includeDirectiveIfEditorMode(offset, line, 2, true) : expanded;
 					}
@@ -878,7 +878,7 @@ public class GenericPreprocessor extends AbstractTool {
 					|| directive.equals("define");
 		}
 
-		private Optional<String> binaryDirective(String line, String directive) {
+		private Optional<String> binaryDirective(int thisLineNo, String line, String directive) {
 			var arg = conditionalExpr(line, directive);
 			var filename = parseBinaryFilename(arg);
 			if(filename.isEmpty()) {
@@ -908,7 +908,8 @@ public class GenericPreprocessor extends AbstractTool {
 				return Optional.of(out.toString());
 			}
 			catch(IOException ioe) {
-				throw new IllegalArgumentException("Could not read binary file '" + filename.get() + "'.", ioe);
+				error(Error.MISSING_INCLUDE,thisLineNo, "Could not read binary file '" + filename.get() + "'.");
+				return Optional.of(line);
 			}
 		}
 

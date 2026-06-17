@@ -4,7 +4,7 @@ Bundle-Name: EclipZPP UI
 Bundle-SymbolicName: uk.co.bithatch.eclipzpp.ui;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Export-Package: uk.co.bithatch.eclipzpp.ui
-Bundle-Activator: uk.co.bithatch.eclipzpp.ui.Activator
+Bundle-Activator: uk.co.bithatch.eclipzpp.ui.PPUiActivator
 Bundle-Vendor: Bithatch
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

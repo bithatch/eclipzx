@@ -321,7 +321,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 
 
 	private static boolean isCompilable(IResource res) {
-        return res instanceof IFile file && FileNames.hasExtensions(file.getName(), ZXBasicBuilder.EXTENSIONS);
+        return res.exists() && res instanceof IFile file && FileNames.hasExtensions(file.getName(), ZXBasicBuilder.EXTENSIONS);
 	}
 
 	private static boolean isInOutputFolder(IFile file) {
@@ -379,6 +379,8 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 		
 		if(isCompilable(resource)) {
 			var file = (IFile)resource;
+			
+			
 			var project = getProject();
 			
 			/* If the file is in the output folder, or one of the library folders, ignore it */

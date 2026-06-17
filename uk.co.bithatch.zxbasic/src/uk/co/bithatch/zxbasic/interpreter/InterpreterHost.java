@@ -15,7 +15,8 @@ public interface InterpreterHost {
 	
 	public interface PrintInstruction {
 	}
-	
+
+	public record PrintTab(int tabs) implements PrintInstruction {}
 	public record PrintAt(int x, int y) implements PrintInstruction {}
 	public record PrintText(String text) implements PrintInstruction {}
 	public record PrintAttribute(AttributeModifier mod) implements PrintInstruction {}

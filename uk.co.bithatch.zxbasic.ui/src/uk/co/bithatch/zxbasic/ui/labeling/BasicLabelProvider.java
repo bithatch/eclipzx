@@ -4,30 +4,13 @@
 package uk.co.bithatch.zxbasic.ui.labeling;
 
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider;
 
 import com.google.inject.Inject;
 
-import uk.co.bithatch.bitzx.Strings;
-import uk.co.bithatch.emuzx.ui.EmuZXUIActivator;
-import uk.co.bithatch.zxbasic.basic.AsmBlock;
-import uk.co.bithatch.zxbasic.basic.CommentStmt;
-import uk.co.bithatch.zxbasic.basic.ConstStmt;
-import uk.co.bithatch.zxbasic.basic.DataStmt;
-import uk.co.bithatch.zxbasic.basic.DimStmt;
-import uk.co.bithatch.zxbasic.basic.FunctionBlock;
-import uk.co.bithatch.zxbasic.basic.Group;
-import uk.co.bithatch.zxbasic.basic.IfStmt;
-import uk.co.bithatch.zxbasic.basic.LetStmt;
-import uk.co.bithatch.zxbasic.basic.PPDirective;
-import uk.co.bithatch.zxbasic.basic.PPInclude;
-import uk.co.bithatch.zxbasic.basic.PrintStmt;
-import uk.co.bithatch.zxbasic.basic.Program;
-import uk.co.bithatch.zxbasic.basic.SubBlock;
-import uk.co.bithatch.zxbasic.scoping.ScopingUtils;
-import uk.co.bithatch.zxbasic.ui.ZXBasicUiActivator;
-import uk.co.bithatch.zxbasic.ui.outline.LabelAdapter;
+import uk.co.bithatch.eclipzpp.ui.IPPOutlineModel;
+import uk.co.bithatch.eclipzpp.ui.PPLabelProvider;
+import uk.co.bithatch.eclipzpp.ui.PPUiActivator;
+import uk.co.bithatch.zxbasic.basic.impl.PPIncludeImpl;
 
 /**
  * Provides labels for EObjects.
@@ -35,158 +18,152 @@ import uk.co.bithatch.zxbasic.ui.outline.LabelAdapter;
  * See
  * https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#label-provider
  */
-public class BasicLabelProvider extends DefaultEObjectLabelProvider {
+public class BasicLabelProvider extends PPLabelProvider {
 	
 
 	@Inject
-	public BasicLabelProvider(AdapterFactoryLabelProvider delegate) {
-		super(delegate);
+	public BasicLabelProvider(IPPOutlineModel model, AdapterFactoryLabelProvider delegate) {
+		super(model, delegate);
 	}
 
-	@Override
-	public Object text(Object element) {
-
-		if(element instanceof Group grp) {
-			var lbl = grp.eAdapters().stream().filter(a -> a.isAdapterForType(LabelAdapter.class)).map(a -> (LabelAdapter)a).findFirst().map(a -> a.getLabel()).orElse(null);
-			if(lbl != null)
-				return lbl;
-		}
-		
-		if (element instanceof Program) {
-			return "Program";
-		}
-		else if (element instanceof AsmBlock asm) {
-			return Strings.cutAndLimit(4, asm.getAsm().trim(), 16);
-		}
-		else if (element instanceof PPInclude ppi) {
-			return ppi.getImportURI();
-		}
-//		else if (element instanceof PPDefine ppd) {
-//			return ppd.getName();
+//	@Override
+//	public Object text(Object element) {
+//
+//		if(element instanceof Group grp) {
+//			var lbl = grp.eAdapters().stream().filter(a -> a.isAdapterForType(LabelAdapter.class)).map(a -> (LabelAdapter)a).findFirst().map(a -> a.getLabel()).orElse(null);
+//			if(lbl != null)
+//				return lbl;
 //		}
-		else if (element instanceof FunctionBlock functionBlock) {
-			return functionBlock(functionBlock);
-		} 
-		else if (element instanceof SubBlock subBlock) {
-			return subBlock(subBlock);
-		}
-		else if (element instanceof DimStmt dimStmt) {
-			return dimStmt(dimStmt);
-		} 
-		else if (element instanceof ConstStmt constStmt) {
-			return constStmt(constStmt);
-		}
-		else if (element instanceof DataStmt dataStmt) {
-			return dataStmt(dataStmt);
-		}
-		else if (element instanceof LetStmt letStmt) {
-			return letStmt(letStmt);
-		} else if (element instanceof IfStmt ifStmt) {
-			return ifStmt(ifStmt);
-		}
-		else if (element instanceof CommentStmt cmt) {
-			return commentStmt(cmt);
-		} else {
-			return defaultText(element);
-		}
-	}
-
-	@Override
-	public Image getImage(Object element) {
-		
-		if(element instanceof Group grp) {
-			var lbl = grp.eAdapters().stream().filter(a -> a.isAdapterForType(LabelAdapter.class)).map(a -> (LabelAdapter)a).findFirst().map(a -> a.getLabel()).orElse(null);
-			if(lbl != null)
-				return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.LABEL_PATH);
-		}
-		
-		if(element instanceof AsmBlock) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(EmuZXUIActivator.CHIP_PATH);
-		}
-		else if(element instanceof FunctionBlock) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.FUNCTION_PATH);
-		}
-		else if(element instanceof Program) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.PROGRAM_PATH);
-		}
-		else if(element instanceof DataStmt) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.DATA_PATH);
-		}
-		else if(element instanceof LetStmt) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.LOCAL_PATH);
-		}
-		else if(element instanceof PPInclude)
-		{
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.INCLUDE_PATH);			
-		}
-//		else if(element instanceof PPDefine)
+//		
+//		if (element instanceof Program) {
+//			return "Program";
+//		}
+//		else if (element instanceof AsmBlock asm) {
+//			return Strings.cutAndLimit(4, asm.getAsm().trim(), 16);
+//		}
+////		else if (element instanceof PPDefine ppd) {
+////			return ppd.getName();
+////		}
+//		else if (element instanceof FunctionBlock functionBlock) {
+//			return functionBlock(functionBlock);
+//		} 
+//		else if (element instanceof SubBlock subBlock) {
+//			return subBlock(subBlock);
+//		}
+//		else if (element instanceof DimStmt dimStmt) {
+//			return dimStmt(dimStmt);
+//		} 
+//		else if (element instanceof ConstStmt constStmt) {
+//			return constStmt(constStmt);
+//		}
+//		else if (element instanceof DataStmt dataStmt) {
+//			return dataStmt(dataStmt);
+//		}
+//		else if (element instanceof LetStmt letStmt) {
+//			return letStmt(letStmt);
+//		} else if (element instanceof IfStmt ifStmt) {
+//			return ifStmt(ifStmt);
+//		}
+//		else if (element instanceof CommentStmt cmt) {
+//			return commentStmt(cmt);
+//		} else {
+//			return defaultText(element);
+//		}
+//	}
+//
+//	@Override
+//	public Image getImage(Object element) {
+//		
+//		if(element instanceof Group grp) {
+//			var lbl = grp.eAdapters().stream().filter(a -> a.isAdapterForType(LabelAdapter.class)).map(a -> (LabelAdapter)a).findFirst().map(a -> a.getLabel()).orElse(null);
+//			if(lbl != null) {
+//				return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.LABEL_PATH);
+//			}
+//		}
+//		
+//		if(element instanceof AsmBlock) {
+//			return ZXBasicUiActivator.getInstance().getImageRegistry().get(EmuZXUIActivator.CHIP_PATH);
+//		}
+//		else if(element instanceof FunctionBlock) {
+//			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.FUNCTION_PATH);
+//		}
+//		else if(element instanceof Program) {
+//			return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.PROGRAM_PATH);
+//		}
+//		else if(element instanceof DataStmt) {
+//			return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.DATA_PATH);
+//		}
+//		else if(element instanceof LetStmt) {
+//			return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.LOCAL_PATH);
+//		}
+////		else if(element instanceof PPDefine)
+////		{
+////			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.DEFINE_PATH);			
+////		}
+//		else if(element instanceof PPDirective) 
 //		{
-//			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.DEFINE_PATH);			
+//			return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.PP_PATH);
 //		}
-		else if(element instanceof PPDirective) 
-		{
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.PP_PATH);
-		}
-		else if(element instanceof CommentStmt) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.COMMENT_PATH);
-		}
-		else if(element instanceof SubBlock) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.SUB_PATH);
-		}
-		else if(element instanceof DimStmt) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.VAR_PATH);
-		}
-		else if(element instanceof ConstStmt) {
-			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.CONST_PATH);
-		}
-		return super.getImage(element);
-	}
-
-	public String functionBlock(FunctionBlock function) {
-		return function.getName() + "()";
-	}
-
-	public String subBlock(SubBlock function) {
-		return function.getName() + "()";
-	}
-
-	public String printStmt(PrintStmt stmt) {
-		return "PRINT";
-	}
-
-	public String letStmt(LetStmt stmt) {
-		return "LET " + stmt.getAssignment().getName();
-	}
-
-	public String dataStmt(DataStmt stmt) {
-		return "DATA (" + stmt.getData().size() + " items)";
-	}
-
-	public String dimStmt(DimStmt stmt) {
-		return "DIM " + String.join(", ", stmt.getDecls().stream().map(dec -> dec.getName()).toList());
-	}
-
-	public String constStmt(ConstStmt stmt) {
-		return "CONST " + String.join(", ", stmt.getDecls().stream().map(dec -> dec.getName()).toList());
-	}
-
-	public String ifStmt(IfStmt stmt) {
-		return "IF " + getText(stmt.getCondition());
-	}
-
-	public String commentStmt(CommentStmt stmt) {
-		var str = Strings.normalizeMultilineString(stmt.getComment());
-		
-		if(str.startsWith("REM"))
-			str = str.substring(4);
-		
-		if(str.length() > 20) {
-			str = str.substring(0, 18) + "..";
-		}
-		return Strings.limit(str, 20);
-	}
-
-	public String defaultText(Object obj) {
-		return ScopingUtils.normalize(obj.getClass().getSimpleName());
-	}
+//		else if(element instanceof CommentStmt) {
+//			return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.COMMENT_PATH);
+//		}
+//		else if(element instanceof SubBlock) {
+//			return ZXBasicUiActivator.getInstance().getImageRegistry().get(ZXBasicUiActivator.SUB_PATH);
+//		}
+//		else if(element instanceof DimStmt) {
+//			return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.VAR_PATH);
+//		}
+//		else if(element instanceof ConstStmt) {
+//			return PPUiActivator.getDefault().getImageRegistry().get(PPUiActivator.CONST_PATH);
+//		}
+//		return super.getImage(element);
+//	}
+//
+//	public String functionBlock(FunctionBlock function) {
+//		return function.getName() + "()";
+//	}
+//
+//	public String subBlock(SubBlock function) {
+//		return function.getName() + "()";
+//	}
+//
+//	public String printStmt(PrintStmt stmt) {
+//		return "PRINT";
+//	}
+//
+//	public String letStmt(LetStmt stmt) {
+//		return "LET " + stmt.getAssignment().getName();
+//	}
+//
+//	public String dataStmt(DataStmt stmt) {
+//		return "DATA (" + stmt.getData().size() + " items)";
+//	}
+//
+//	public String dimStmt(DimStmt stmt) {
+//		return "DIM " + String.join(", ", stmt.getDecls().stream().map(dec -> dec.getName()).toList());
+//	}
+//
+//	public String constStmt(ConstStmt stmt) {
+//		return "CONST " + String.join(", ", stmt.getDecls().stream().map(dec -> dec.getName()).toList());
+//	}
+//
+//	public String ifStmt(IfStmt stmt) {
+//		return "IF " + getText(stmt.getCondition());
+//	}
+//
+//	public String commentStmt(CommentStmt stmt) {
+//		var str = Strings.normalizeMultilineString(stmt.getComment());
+//		
+//		if(str.startsWith("REM"))
+//			str = str.substring(4);
+//		
+//		if(str.length() > 20) {
+//			str = str.substring(0, 18) + "..";
+//		}
+//		return Strings.limit(str, 20);
+//	}
+//
+//	public String defaultText(Object obj) {
+//		return ScopingUtils.normalize(obj.getClass().getSimpleName());
+//	}
 }

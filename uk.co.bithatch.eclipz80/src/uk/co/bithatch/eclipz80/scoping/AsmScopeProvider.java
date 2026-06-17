@@ -6,13 +6,21 @@ package uk.co.bithatch.eclipz80.scoping;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.xtext.naming.QualifiedName;
+import org.eclipse.xtext.resource.EObjectDescription;
 import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.scoping.IScope;
+import org.eclipse.xtext.scoping.impl.SimpleScope;
 
+import uk.co.bithatch.eclipz80.asm.AsmFactory;
 import uk.co.bithatch.eclipz80.asm.AsmPackage;
+import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipzpp.DefineDef;
+import uk.co.bithatch.eclipzpp.IMappedResource;
 
 /**
  * This class contains custom scoping description.
@@ -21,14 +29,46 @@ import uk.co.bithatch.eclipz80.asm.AsmPackage;
  * on how and when to use it.
  */
 public class AsmScopeProvider extends AbstractAsmScopeProvider {
+	
 
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
 		IScope delegate = super.getScope(context, reference);
 		if (reference == AsmPackage.eINSTANCE.getAsmLabel_Ref()) {
+
+			var program = findProgram(context);
+			var res = (IMappedResource)program.eResource();
+			var defineObjects = new ArrayList<IEObjectDescription>();
+			for(var def : res.map().defines().values()) {
+				var stub = createDefineStub(def);
+				var desc = EObjectDescription.create(QualifiedName.create(def.name()), stub);
+				defineObjects.add(desc);
+			}
+			
+			if(!defineObjects.isEmpty()) {
+				delegate = new SimpleScope(delegate, defineObjects, true);
+			}
+			
 			return new NamespaceRelativeLabelScope(delegate, AsmNamespaceSupport.namespacesBefore(context));
 		}
 		return delegate;
+	}
+
+	private EObject createDefineStub(DefineDef def) {
+		var stub = AsmFactory.eINSTANCE.createAsmDefine(); 
+		stub.setName(def.name());
+
+		var dummyResource = new ResourceImpl(URI.createURI("asm://" + def.name()));
+		dummyResource.getContents().add(stub);
+
+		return stub;
+	}
+
+	private AsmProgram findProgram(EObject obj) {
+		while (obj != null && !(obj instanceof AsmProgram)) {
+			obj = obj.eContainer();
+		}
+		return (AsmProgram) obj;
 	}
 
 	private static final class NamespaceRelativeLabelScope implements IScope {

@@ -64,6 +64,7 @@ import uk.co.bithatch.zxbasic.basic.VerifyStmt;
 import uk.co.bithatch.zxbasic.interpreter.InterpreterHost.PrintAt;
 import uk.co.bithatch.zxbasic.interpreter.InterpreterHost.PrintAttribute;
 import uk.co.bithatch.zxbasic.interpreter.InterpreterHost.PrintInstruction;
+import uk.co.bithatch.zxbasic.interpreter.InterpreterHost.PrintTab;
 import uk.co.bithatch.zxbasic.interpreter.InterpreterHost.PrintText;
 import uk.co.bithatch.zxbasic.interpreter.util.ArrayUtils;
 import uk.co.bithatch.zxbasic.tools.AbstractTool;
@@ -611,9 +612,11 @@ public class ZXBasicInterpreter extends AbstractTool  {
 		host.print(print.getParts().stream().map(p -> {
 			if(p.getAttributes() != null)
 				return new PrintAttribute(p.getAttributes());
+			else if(p.getTab() != null)
+				return new PrintTab(evaluateExpr(p.getTab().getTabs(), scope).intValue());
 			else if(p.getAt() != null)
-				return new PrintAt(evaluateExpr(p.getAt().getAddresses().get(0), scope).intValue(),
-						evaluateExpr(p.getAt().getAddresses().get(1), scope).intValue());
+				return new PrintAt(evaluateExpr(p.getAt().getRow(), scope).intValue(),
+						evaluateExpr(p.getAt().getCol(), scope).intValue());
 			else
 				return new PrintText(evaluateExpr(p.getExpr(), scope).stringValue());
 		}).toList().toArray(new PrintInstruction[0]));

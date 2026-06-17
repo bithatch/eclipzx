@@ -1,5 +1,6 @@
 package uk.co.bithatch.eclipz80.generator;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -65,6 +66,11 @@ import uk.co.bithatch.eclipzpp.SourceMap;
  *   <li>TODO: Allow command line ORG setting that overrides the default and what assembly specifies</li>
  *   <li>TODO: Add all same command line options z80asm has</li>
  * </ul>
+ * 
+ * 
+ * 
+ * 
+ * 
  */
 public class Z80Assembler {
 	
@@ -226,6 +232,7 @@ public class Z80Assembler {
 	private final List<Path> libPaths;
 	private final Optional<SourceMap> sourceMap;
 	private final Stack<String> namespace = new Stack<>();
+	private FloatType floatType = FloatType.ZX;
 
 	/**
 	 * An entry in the line-to-address map.
@@ -804,6 +811,12 @@ public class Z80Assembler {
 			return;
 		}
 
+		// ── ALIGN directive ──
+		if (stmt instanceof SetFloat setFloat) {
+			floatType  = setFloat.getType();
+			return;
+		}
+
 		// ── DEFC line (e.g. "DEFC name = expr") ──
 		if (stmt instanceof DefC defc) {
 			if (defc.getName() != null) {
@@ -1009,8 +1022,8 @@ public class Z80Assembler {
 			AsmExpression target = jp.getValue();
 			if (jp.getCondition() == null) {
 				// Check for JP (HL) / JP (IX) / JP (IY)
-				if (target instanceof AsmIndirect) {
-					AsmExpression inner = ((AsmIndirect) target).getExpr();
+				if (target instanceof AsmIndirectExpr) {
+					AsmExpression inner = ((AsmIndirectExpr) target).getRight();
 					String regName = getRegisterName(inner);
 					if (regName != null) {
 						String rn = regName.toUpperCase();
@@ -1162,8 +1175,8 @@ public class Z80Assembler {
 				}
 			}
 			// EX (SP), HL
-			if (ex.getName() instanceof AsmIndirect) {
-				String inner = getRegisterName(((AsmIndirect) ex.getName()).getExpr());
+			if (ex.getName() instanceof AsmIndirectExpr) {
+				String inner = getRegisterName(((AsmIndirectExpr) ex.getName()).getRight());
 				if (inner != null && "SP".equalsIgnoreCase(inner) && second != null && "HL".equalsIgnoreCase(second)) {
 					emit8(out, 0xE3); return;
 				}
@@ -1291,12 +1304,12 @@ public class Z80Assembler {
 		AsmExpression dest = ld.getName();
 		AsmExpression src = ld.getValue();
 
-		boolean destIndirect = dest instanceof AsmIndirect;
-		boolean srcIndirect = src instanceof AsmIndirect;
+		boolean destIndirect = dest instanceof AsmIndirectExpr;
+		boolean srcIndirect = src instanceof AsmIndirectExpr;
 
 		// ── IX/IY indexed source: LD r, (IX+d) / (IY+d) ──
 		if (srcIndirect) {
-			IndexedInfo idx = resolveIndexed((AsmIndirect) src);
+			IndexedInfo idx = resolveIndexed((AsmIndirectExpr) src);
 			if (idx != null) {
 				int dr = resolveRegister8(dest);
 				if (dr >= 0) {
@@ -1310,7 +1323,7 @@ public class Z80Assembler {
 
 		// ── IX/IY indexed dest: LD (IX+d), r / LD (IX+d), n ──
 		if (destIndirect) {
-			IndexedInfo idx = resolveIndexed((AsmIndirect) dest);
+			IndexedInfo idx = resolveIndexed((AsmIndirectExpr) dest);
 			if (idx != null) {
 				int sr = srcIndirect ? -1 : resolveRegister8(src);
 				if (sr >= 0) {
@@ -1363,7 +1376,7 @@ public class Z80Assembler {
 		if (destIndirect && !srcIndirect && srcReg != null) {
 			int srcPrefix = getIXIYPrefix(srcReg);
 			if (srcPrefix > 0 && ("IX".equalsIgnoreCase(srcReg) || "IY".equalsIgnoreCase(srcReg))) {
-				int nn = resolveImmediate(((AsmIndirect) dest).getExpr());
+				int nn = resolveImmediate(((AsmIndirectExpr) dest).getRight());
 				emit8(out, srcPrefix);
 				emit8(out, 0x22);
 				emit16LE(out, nn);
@@ -1375,7 +1388,7 @@ public class Z80Assembler {
 		if (srcIndirect && !destIndirect && destReg != null) {
 			int destPrefix = getIXIYPrefix(destReg);
 			if (destPrefix > 0 && ("IX".equalsIgnoreCase(destReg) || "IY".equalsIgnoreCase(destReg))) {
-				int nn = resolveImmediate(((AsmIndirect) src).getExpr());
+				int nn = resolveImmediate(((AsmIndirectExpr) src).getRight());
 				emit8(out, destPrefix);
 				emit8(out, 0x2A);
 				emit16LE(out, nn);
@@ -1405,7 +1418,7 @@ public class Z80Assembler {
 
 		// LD r, (HL) — load from indirect
 		if (dr >= 0 && srcIndirect) {
-			String innerReg = getRegisterName(((AsmIndirect) src).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) src).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, 0x40 + dr * 8 + 6);
 				return;
@@ -1414,7 +1427,7 @@ public class Z80Assembler {
 
 		// LD (HL), r — store to indirect
 		if (destIndirect && sr >= 0) {
-			String innerReg = getRegisterName(((AsmIndirect) dest).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) dest).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, 0x70 + sr);
 				return;
@@ -1431,7 +1444,7 @@ public class Z80Assembler {
 
 		// LD (HL), n — immediate to indirect
 		if (destIndirect && !srcIndirect) {
-			String innerReg = getRegisterName(((AsmIndirect) dest).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) dest).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				int n = resolveImmediate(src);
 				emit8(out, 0x36);
@@ -1451,13 +1464,13 @@ public class Z80Assembler {
 
 		// LD A, (BC) / LD A, (DE)
 		if (dr == 7 && srcIndirect) {
-			String innerReg = getRegisterName(((AsmIndirect) src).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) src).getRight());
 			if (innerReg != null) {
 				if ("BC".equalsIgnoreCase(innerReg)) { emit8(out, 0x0A); return; }
 				if ("DE".equalsIgnoreCase(innerReg)) { emit8(out, 0x1A); return; }
 			}
 			// LD A, (nn)
-			int nn = resolveImmediate(((AsmIndirect) src).getExpr());
+			int nn = resolveImmediate(((AsmIndirectExpr) src).getRight());
 			emit8(out, 0x3A);
 			emit16LE(out, nn);
 			return;
@@ -1465,13 +1478,13 @@ public class Z80Assembler {
 
 		// LD (BC), A / LD (DE), A
 		if (destIndirect && sr == 7) {
-			String innerReg = getRegisterName(((AsmIndirect) dest).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) dest).getRight());
 			if (innerReg != null) {
 				if ("BC".equalsIgnoreCase(innerReg)) { emit8(out, 0x02); return; }
 				if ("DE".equalsIgnoreCase(innerReg)) { emit8(out, 0x12); return; }
 			}
 			// LD (nn), A
-			int nn = resolveImmediate(((AsmIndirect) dest).getExpr());
+			int nn = resolveImmediate(((AsmIndirectExpr) dest).getRight());
 			emit8(out, 0x32);
 			emit16LE(out, nn);
 			return;
@@ -1481,7 +1494,7 @@ public class Z80Assembler {
 		if (destIndirect && !srcIndirect) {
 			int srr = resolveRegister16(src);
 			if (srr >= 0) {
-				int nn = resolveImmediate(((AsmIndirect) dest).getExpr());
+				int nn = resolveImmediate(((AsmIndirectExpr) dest).getRight());
 				if (srr == 2) { // HL
 					emit8(out, 0x22);
 				} else {
@@ -1495,7 +1508,7 @@ public class Z80Assembler {
 		if (srcIndirect && !destIndirect) {
 			drr = resolveRegister16(dest);
 			if (drr >= 0) {
-				int nn = resolveImmediate(((AsmIndirect) src).getExpr());
+				int nn = resolveImmediate(((AsmIndirectExpr) src).getRight());
 				if (drr == 2) { // HL
 					emit8(out, 0x2A);
 				} else {
@@ -1566,8 +1579,8 @@ public class Z80Assembler {
 
 	private void assembleAluOp(AsmExpression operand, int regBase, int immOpcode, ByteArrayOutputStream out) {
 		// Check for indexed (IX+d)/(IY+d)
-		if (operand instanceof AsmIndirect) {
-			IndexedInfo idx = resolveIndexed((AsmIndirect) operand);
+		if (operand instanceof AsmIndirectExpr) {
+			IndexedInfo idx = resolveIndexed((AsmIndirectExpr) operand);
 			if (idx != null) {
 				emit8(out, idx.prefix);
 				emit8(out, regBase + 6);
@@ -1575,7 +1588,7 @@ public class Z80Assembler {
 				return;
 			}
 			// Check for indirect (HL)
-			String innerReg = getRegisterName(((AsmIndirect) operand).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) operand).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, regBase + 6);
 				return;
@@ -1596,8 +1609,8 @@ public class Z80Assembler {
 
 	private void assembleIncDec(AsmExpression operand, boolean isInc, ByteArrayOutputStream out) {
 		// Check for (IX+d)/(IY+d) indexed
-		if (operand instanceof AsmIndirect) {
-			IndexedInfo idx = resolveIndexed((AsmIndirect) operand);
+		if (operand instanceof AsmIndirectExpr) {
+			IndexedInfo idx = resolveIndexed((AsmIndirectExpr) operand);
 			if (idx != null) {
 				emit8(out, idx.prefix);
 				emit8(out, isInc ? 0x34 : 0x35);
@@ -1605,7 +1618,7 @@ public class Z80Assembler {
 				return;
 			}
 			// Check for (HL) indirect
-			String innerReg = getRegisterName(((AsmIndirect) operand).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) operand).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, isInc ? 0x34 : 0x35);
 				return;
@@ -1641,8 +1654,8 @@ public class Z80Assembler {
 	// ─────────────── CB-prefix operations (RL, RLC, RR, RRC, SLA, SRA, SRL) ───
 
 	private void assembleCBOp(AsmExpression operand, int baseOpcode, ByteArrayOutputStream out) {
-		if (operand instanceof AsmIndirect) {
-			IndexedInfo idx = resolveIndexed((AsmIndirect) operand);
+		if (operand instanceof AsmIndirectExpr) {
+			IndexedInfo idx = resolveIndexed((AsmIndirectExpr) operand);
 			if (idx != null) {
 				emit8(out, idx.prefix);
 				emit8(out, 0xCB);
@@ -1650,7 +1663,7 @@ public class Z80Assembler {
 				emit8(out, baseOpcode + 6);
 				return;
 			}
-			String innerReg = getRegisterName(((AsmIndirect) operand).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) operand).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, 0xCB);
 				emit8(out, baseOpcode + 6);
@@ -1670,8 +1683,8 @@ public class Z80Assembler {
 
 	private void assembleBitOp(AsmExpression bitNum, AsmExpression target, int baseOpcode, ByteArrayOutputStream out) {
 		int bit = resolveImmediate(bitNum);
-		if (target instanceof AsmIndirect) {
-			IndexedInfo idx = resolveIndexed((AsmIndirect) target);
+		if (target instanceof AsmIndirectExpr) {
+			IndexedInfo idx = resolveIndexed((AsmIndirectExpr) target);
 			if (idx != null) {
 				emit8(out, idx.prefix);
 				emit8(out, 0xCB);
@@ -1679,7 +1692,7 @@ public class Z80Assembler {
 				emit8(out, baseOpcode + bit * 8 + 6);
 				return;
 			}
-			String innerReg = getRegisterName(((AsmIndirect) target).getExpr());
+			String innerReg = getRegisterName(((AsmIndirectExpr) target).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
 				emit8(out, 0xCB);
 				emit8(out, baseOpcode + bit * 8 + 6);
@@ -1828,12 +1841,12 @@ public class Z80Assembler {
 	}
 
 	/**
-	 * If the given AsmIndirect contains an IX+d / IY+d / IX / IY expression,
+	 * If the given AsmIndirectExpr contains an IX+d / IY+d / IX / IY expression,
 	 * return an IndexedInfo with the prefix byte and displacement.
 	 * Returns null if this is not an IX/IY indexed operand.
 	 */
-	private IndexedInfo resolveIndexed(AsmIndirect indirect) {
-		AsmExpression inner = indirect.getExpr();
+	private IndexedInfo resolveIndexed(AsmIndirectExpr indirect) {
+		AsmExpression inner = indirect.getRight();
 
 		// (IX) or (IY) — zero displacement
 		String regName = getRegisterName(inner);
@@ -1844,7 +1857,7 @@ public class Z80Assembler {
 		}
 
 		// (IX+d), (IX-d), (IY+d), (IY-d)
-		if (inner instanceof BinaryExpr bin) {
+		if (inner instanceof AsmBinaryExpr bin) {
 			String op = bin.getOp();
 			if ("+".equals(op) || "-".equals(op)) {
 				String leftReg = getRegisterName(bin.getLeft());
@@ -1887,8 +1900,8 @@ public class Z80Assembler {
 
 		int dr = resolveRegister8(dest);
 
-		if (src instanceof AsmIndirect) {
-			AsmExpression inner = ((AsmIndirect) src).getExpr();
+		if (src instanceof AsmIndirectExpr) {
+			AsmExpression inner = ((AsmIndirectExpr) src).getRight();
 			String innerReg = getRegisterName(inner);
 			if (innerReg != null && "C".equalsIgnoreCase(innerReg)) {
 				// IN r, (C)
@@ -1922,8 +1935,8 @@ public class Z80Assembler {
 		AsmExpression dest = stmt.getName();
 		AsmExpression src = stmt.getValue();
 
-		if (dest instanceof AsmIndirect) {
-			AsmExpression inner = ((AsmIndirect) dest).getExpr();
+		if (dest instanceof AsmIndirectExpr) {
+			AsmExpression inner = ((AsmIndirectExpr) dest).getRight();
 			String innerReg = getRegisterName(inner);
 
 			if (innerReg != null && "C".equalsIgnoreCase(innerReg)) {
@@ -2059,8 +2072,14 @@ public class Z80Assembler {
 		if (operand instanceof IntegralLiteral) {
 			return resolveIntegralLiteral((IntegralLiteral) operand);
 		}
-		if (operand instanceof BinaryExpr) {
-			BinaryExpr bin = (BinaryExpr) operand;
+
+		if (operand instanceof AsmPowerExpr pwr) {
+			int left = resolveImmediate(pwr.getLeft());
+			int right = resolveImmediate(pwr.getRight());
+			return (int)Math.pow(left, right);
+		}
+		
+		if (operand instanceof AsmBinaryExpr bin) {
 			int left = resolveImmediate(bin.getLeft());
 			int right = resolveImmediate(bin.getRight());
 			switch (bin.getOp()) {
@@ -2080,20 +2099,78 @@ public class Z80Assembler {
 					return 0;
 			}
 		}
-		if (operand instanceof AsmSignedExpr) {
-			AsmSignedExpr signed = (AsmSignedExpr) operand;
-			int val = resolveImmediate(signed.getExpr());
+
+		if (operand instanceof AsmEqualityExpr eql) {
+			int left = resolveImmediate(eql.getLeft());
+			int right = resolveImmediate(eql.getRight());
+			switch (eql.getOp()) {
+				case "==":  return evaluate(left == right);
+				case "=":  return evaluate(left == right);
+				case "!=":  return evaluate(left != right);
+				case "<>":  return evaluate(left != right);
+				case "<=":  return evaluate(left <= right);
+				case ">=":  return evaluate(left >= right);
+				case "<":  return evaluate(left < right);
+				case ">":  return evaluate(left > right);
+				default:
+					warn("Unknown operator: " + eql.getOp());
+					return 0;
+			}
+		}
+		
+		if (operand instanceof AsmBitwiseExpr bwise) {
+			int left = resolveImmediate(bwise.getLeft());
+			int right = resolveImmediate(bwise.getRight());
+			switch (bwise.getOp()) {
+				case "|":  return left | right;
+				case "&":  return left & right;
+				case "^":  return left ^ right;
+				default:
+					warn("Unknown operator: " + bwise.getOp());
+					return 0;
+			}
+		}
+		
+		
+		if (operand instanceof AsmUnaryExpr unary) {
+			int val = resolveImmediate(unary.getRight());
 			// Determine the sign from the source text node
-			INode node = NodeModelUtils.getNode(signed);
+			INode node = NodeModelUtils.getNode(unary.getRight());
 			if (node != null && node.getText().trim().startsWith("-")) {
 				return -val;
 			}
 			return val;
 		}
-		if (operand instanceof AsmNotExpr) {
-			int val = resolveImmediate(((AsmNotExpr) operand).getExpr());
-			return val == 0 ? 1 : 0;
+		
+		if (operand instanceof AsmNotExpr lnot) {
+			int val = resolveImmediate(lnot.getRight());
+			switch (lnot.getOp()) {
+				case "!":  return val == 0 ? 1 : 0;
+				case "~":  return ~val;
+				default:
+					warn("Unknown operator: " + lnot.getOp());
+					return 0;
+			}
 		}
+		
+		if (operand instanceof AsmLogicExpr logic) {
+			boolean left = resolveImmediate(logic.getLeft()) != 0;
+			boolean right = resolveImmediate(logic.getRight()) != 0;
+			switch (logic.getOp()) {
+				case "&&": return evaluate(left && right);
+				case "||":  return evaluate(left || right);
+				default:
+					warn("Unknown operator: " + logic.getOp());
+					return 0;
+			}
+		}
+		
+		if (operand instanceof AsmTernaryExpr ternary) {
+			return resolveImmediate(ternary.getLeft()) != 0 
+					? resolveImmediate(ternary.getRight()) 
+					: resolveImmediate(ternary.getElse());
+		}
+		
 		if (operand instanceof StringLiteral) {
 			String s = resolveString(operand);
 			if (s != null && !s.isEmpty()) {
@@ -2135,12 +2212,24 @@ public class Z80Assembler {
 			warn("Undefined label: " + (labelName != null ? labelName : "?"));
 			return 0;
 		}
-		if (operand instanceof AsmIndirect) {
+		if (operand instanceof AsmIndirectExpr) {
 			// In immediate contexts (e.g. LD A,(nn)), resolve the inner expression
-			return resolveImmediate(((AsmIndirect) operand).getExpr());
+			return resolveImmediate(((AsmIndirectExpr) operand).getRight());
 		}
+		
+
+		if (operand instanceof AsmIndexExpr idx) {
+			var left = resolveImmediate(idx.getLeft());
+			var index = resolveImmediate(idx.getRight());
+			return left+index;
+		}
+		
 		warn("Cannot resolve operand to immediate value: " + operand.eClass().getName());
 		return 0;
+	}
+
+	private int evaluate(boolean bool) {
+		return bool ? 1 : 0;
 	}
 	
 	/**

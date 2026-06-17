@@ -22,6 +22,12 @@ public class PPSyntaxErrorMessageProvider extends SyntaxErrorMessageProvider {
 			if (offending.equals("")) {
 				return null;
 			}
+			
+			var res = context.getCurrentNode().getGrammarElement().eResource();
+			if(res instanceof IMappedResource mr && mr.map().defines().containsKey(offending)) {
+				return null;
+			}
+			
 			if (offending != null && referenceIndex.isDefined(offending)) {
 				return null;
 			} else {

@@ -49,6 +49,7 @@ AsmStatement:
     AsmOrg | 
     AsmCall | 
     AsmInclude | 
+    AsmDefine | 
     AsmModule | 
     AsmSection | 
     AsmNextReg | 
@@ -94,6 +95,8 @@ AsmStatement:
     AsmAndStatement |
     AsmOrStatement |
     AsmPublicDirective |
+    AsmSetFloatDirective |
+    AsmFloatDirective |
     AsmXorStatement |
     AsmCpStatement |
     AsmCplStatement |
@@ -590,36 +593,50 @@ AsmMmuStatement:
 ;
 
 AsmExpression:
-    AsmAddExpr;
-
-AsmAddExpr returns AsmExpression:
-    AsmSubtractExpr => ({BinaryExpr.left=current} => op='+' right=AsmAddExpr)?;
+    AsmUnaryExpr;
     
-AsmSubtractExpr returns AsmExpression:
-    AsmMulExpr  => ({BinaryExpr.left=current} => op='-' right=AsmSubtractExpr)?;
-
-AsmMulExpr returns AsmExpression:
-    AsmDivExpr  => ({BinaryExpr.left=current} => op='*' right=AsmMulExpr)?;
-
-AsmDivExpr returns AsmExpression:
-    AsmModExpr  => ({BinaryExpr.left=current} => op='/' right=AsmDivExpr)?;
-
-AsmModExpr returns AsmExpression:
-    AsmShrExpr  => ({BinaryExpr.left=current} => op='%' right=AsmModExpr)?;
-
-AsmShrExpr returns AsmExpression:
-    AsmShlExpr  => ({BinaryExpr.left=current} => op='>>' right=AsmShrExpr)?;
-
-AsmShlExpr returns AsmExpression:
-    AsmPrimary  => ({BinaryExpr.left=current} => op='<<' right=AsmShlExpr)?;
-    
-AsmNotExpr:
-    '!' expr=AsmExpression
+AsmUnaryExpr returns AsmExpression:
+    AsmNotExpr ({AsmUnaryExpr.left=current} ('+'|'-') right=AsmUnaryExpr)?
 ;
-AsmSignedExpr:
-    ('-'|'+') expr=AsmExpression
+AsmNotExpr returns AsmExpression:
+    AsmIndexExpr ({AsmNotExpr.left=current} op=('!'|'~') right=AsmNotExpr)?
 ;
 
+AsmIndexExpr returns AsmExpression:
+    AsmIndirectExpr ({AsmIndexExpr.left=current} '[' right=AsmIndexExpr ']')?
+;
+
+AsmIndirectExpr returns AsmExpression:
+    => ({AsmIndirectExpr} => '(' => right=AsmExpression ')')
+    |
+    AsmPowerExpr
+;
+
+AsmPowerExpr returns AsmExpression:
+    AsmBinaryExpr ({AsmPowerExpr.left=current} '**' right=AsmPowerExpr)?
+;
+
+AsmBinaryExpr returns AsmExpression:
+    AsmEqualityExpr => ({AsmBinaryExpr.left=current} => op=('*'|'/'|'%'|'+'|'-'|'<<'|'>>') => right=AsmEqualityExpr)*
+;
+
+AsmEqualityExpr returns AsmExpression:
+    AsmLogicExpr ({AsmEqualityExpr.left=current} op=('=='|'='|'!='|'<>'|'<='|'>='|'<'|'>') right=AsmLogicExpr)*
+;
+
+AsmLogicExpr returns AsmExpression:
+    AsmBitwiseExpr ({AsmLogicExpr.left=current}  op=('&&'|'||') right=AsmBitwiseExpr)*
+;
+
+AsmBitwiseExpr returns AsmExpression:
+    AsmTernaryExpr  ({AsmBitwiseExpr.left=current}  op=('&'|'|'|'^') right=AsmTernaryExpr)*
+;
+
+AsmTernaryExpr returns AsmExpression:
+    /* TODO not sure this is correct */
+    AsmPrimary ({AsmTernaryExpr.left=current} '?' right=AsmTernaryExpr ':' else=AsmTernaryExpr)?
+;
+    
 AsmLabel:
     ref=[AsmLabelDef|QualifiedID]
 ;
@@ -627,21 +644,11 @@ AsmLabel:
 AsmPrimary returns AsmExpression:
     => AsmLabel
     |
-    =>  AsmIndirect
-    |
-    =>  AsmSignedExpr
-    |
     => AsmRegisterName
     |
     => IntegralLiteral
     |
     => StringLiteral
-    |
-    =>  AsmNotExpr
-;
-
-AsmIndirect returns AsmExpression:
-    {AsmIndirect} '(' expr=AsmExpression ')'
 ;
 
 AsmRegisterName:
@@ -727,6 +734,18 @@ AsmGlobalDirective:
     {Global} ( 'GLOBAL') name+=AsmLabelDef (',' name+=AsmLabelDef)*
 ;
 
+AsmSetFloatDirective:
+    {SetFloat} ( 'SETFLOAT') type=FloatType
+;
+
+AsmFloatDirective:
+    {Float} ( 'FLOAT') expressions+=AsmExpression
+;
+
+enum FloatType:
+    GENMATH | MATH48 | IEEE16 | IEEE32 | IEEE64 | Z80 | ZX81 | ZX | Z88 | MBFS | MBF40 | MBF64 | AM9511
+;
+
 // ─────────────── Boriel Specific ───────────────
 
 AsmNextReg:
@@ -751,7 +770,11 @@ AsmCall:
 ;
 
 AsmInclude:
-    'INCLUDE' importURI=FileSpec
+    ( 'INCLUDE' |'#include' ) importURI=FileSpec
+;
+
+AsmDefine:
+    {AsmDefine} '#define' name=ID
 ;
 
 AsmSection:

@@ -11,6 +11,7 @@ import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.ui.editor.outline.IOutlineTreeProvider;
 
 import uk.co.bithatch.eclipzpp.IReferenceIndex;
+import uk.co.bithatch.eclipzpp.ui.IPPOutlineModel;
 import uk.co.bithatch.zxbasic.ILanguageSettings;
 import uk.co.bithatch.zxbasic.ZxBasicIncludeSource;
 import uk.co.bithatch.zxbasic.ui.contentassist.BasicReferenceIndex;
@@ -18,6 +19,7 @@ import uk.co.bithatch.zxbasic.ui.contentassist.ProjectPreferencesLanguageSetting
 import uk.co.bithatch.zxbasic.ui.contentassist.ZXBasicPreprocessingContentAssistContextFactory;
 import uk.co.bithatch.zxbasic.ui.hyperlinking.ZXBasicHyperlinkDetector;
 import uk.co.bithatch.zxbasic.ui.library.ZXBasicLibraryIncludeSource;
+import uk.co.bithatch.zxbasic.ui.outline.ZXBasicOutlineModel;
 import uk.co.bithatch.zxbasic.ui.outline.ZXBasicOutlineTreeProvider;
 import uk.co.bithatch.zxbasic.ui.preprocessing.ZXBasicLocationInFileProvider;
 import uk.co.bithatch.zxbasic.ui.preprocessing.ZXBasicResource;
@@ -39,6 +41,10 @@ public class BasicUiModule extends AbstractBasicUiModule {
 
 	public Class<? extends IHyperlinkDetector> bindIHyperlinkDetector() {
 	    return ZXBasicHyperlinkDetector.class;
+	}
+
+	public Class<? extends IPPOutlineModel> bindIPPOutlineModel() {
+	    return ZXBasicOutlineModel.class;
 	}
 	
 	public Class<? extends XtextResource> bindXtextResource() {
