@@ -29,11 +29,11 @@ public abstract class PPSemanticHighlightingCalculator implements ISemanticHighl
 		var ppResource = (PPResource)resource;
 		var map = ppResource.map();
 
-        map.hiddenLines().forEach((ln, text) -> {
-            acceptor.addPosition(ln, text.length(), ppHighlightId);
-        });
-
         provideHighlights(ppResource, acceptor, cancelIndicator, allContents);
+
+        map.hiddenOffsets().forEach((offset, text) -> {
+            acceptor.addPosition(offset - 1, text.length() + 1, ppHighlightId);
+        });
     }
 
 	protected abstract void provideHighlights(PPResource resource, IHighlightedPositionAcceptor acceptor, CancelIndicator cancelIndicator,

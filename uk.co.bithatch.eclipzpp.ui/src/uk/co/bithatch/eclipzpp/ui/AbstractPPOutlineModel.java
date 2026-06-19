@@ -1,6 +1,6 @@
 package uk.co.bithatch.eclipzpp.ui;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -9,7 +9,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 public abstract class AbstractPPOutlineModel implements IPPOutlineModel {
-	private final Map<Class<?>, PPOutlineItem> values = new HashMap<Class<?>, PPOutlineItem>();
+	private final Map<Class<?>, PPOutlineItem> values = new LinkedHashMap<Class<?>, PPOutlineItem>();
 
 	public void add(Class<?> type, String text, ImageDescriptor image) {
 		add(type, text, image, null);
@@ -31,7 +31,12 @@ public abstract class AbstractPPOutlineModel implements IPPOutlineModel {
 
 	@SuppressWarnings("unchecked")
 	public <E> void add(Class<E> type, Function<E, String> textMapper, ImageDescriptor image, Function<E, EList<? extends Object>> mapper) {
-		values.put(type, new PPOutlineItem((Function<Object, String>)textMapper, image, (Function<Object, EList<? extends Object>>)mapper));
+		PPOutlineItem value = new PPOutlineItem((Function<Object, String>)textMapper, image, (Function<Object, EList<? extends Object>>)mapper);
+		add(type, value);
+	}
+
+	public <E> void add(Class<E> type, PPOutlineItem value) {
+		values.put(type, value);
 	}
 
 	@Override
@@ -44,7 +49,7 @@ public abstract class AbstractPPOutlineModel implements IPPOutlineModel {
 		var val = values.get(clazz);
 		if(val == null) {
 			for(var ent : values.entrySet()) {
-				if(clazz.isAssignableFrom(ent.getKey())) {
+				if(ent.getKey().isAssignableFrom(clazz)) {
 					return ent.getValue();
 				}
 			}

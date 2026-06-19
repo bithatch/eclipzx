@@ -36,6 +36,7 @@ import uk.co.bithatch.eclipz80.asm.AsmDefSpaceDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefTermStringDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefWordBEDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefine;
 import uk.co.bithatch.eclipz80.asm.AsmExternDirective;
 import uk.co.bithatch.eclipz80.asm.AsmImStatement;
 import uk.co.bithatch.eclipz80.asm.AsmInclude;
@@ -81,7 +82,10 @@ public class AsmSemanticHighlightingCalculator extends PPSemanticHighlightingCal
 
             EObject obj = allContents.next();
 
-            // Label definitions
+            // Define directive
+            if (obj instanceof AsmDefine) {
+                highlightNode(obj, acceptor, AsmHighlightingConfiguration.PREPROCESSING_ID);
+            }
             if (obj instanceof AsmLabelDef) {
                 highlightNode(obj, acceptor, AsmHighlightingConfiguration.LABEL_DEF_ID);
             }

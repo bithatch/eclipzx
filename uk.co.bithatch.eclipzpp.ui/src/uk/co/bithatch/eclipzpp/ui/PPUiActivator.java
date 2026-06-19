@@ -15,7 +15,7 @@ public class PPUiActivator extends AbstractUIPlugin {
     public static final String COMMENT_PATH = "icons/comment16.png";
     public static final String LABEL_PATH = "icons/label16.png";
     public static final String VAR_PATH = "icons/var16.png";
-    public static final String CONST_PATH = "icons/const16.png";
+    public static final String PUBLIC_PATH = "icons/public16.png";
     public static final String INCLUDE_PATH = "icons/include16.png";
     public static final String PROGRAM_PATH = "icons/program16.png";
     public static final String LOCAL_PATH = "icons/local16.png";
@@ -28,7 +28,7 @@ public class PPUiActivator extends AbstractUIPlugin {
 		reg.put(COMMENT_PATH, imageDescriptorFromPlugin(PLUGIN_ID, COMMENT_PATH));
 		reg.put(LABEL_PATH, imageDescriptorFromPlugin(PLUGIN_ID, LABEL_PATH));
 		reg.put(VAR_PATH, imageDescriptorFromPlugin(PLUGIN_ID, VAR_PATH));
-		reg.put(CONST_PATH, imageDescriptorFromPlugin(PLUGIN_ID, CONST_PATH));
+		reg.put(PUBLIC_PATH, imageDescriptorFromPlugin(PLUGIN_ID, PUBLIC_PATH));
 		reg.put(INCLUDE_PATH, imageDescriptorFromPlugin(PLUGIN_ID, INCLUDE_PATH));
 		reg.put(PROGRAM_PATH, imageDescriptorFromPlugin(PLUGIN_ID, PROGRAM_PATH));
 		reg.put(LOCAL_PATH, imageDescriptorFromPlugin(PLUGIN_ID, LOCAL_PATH));

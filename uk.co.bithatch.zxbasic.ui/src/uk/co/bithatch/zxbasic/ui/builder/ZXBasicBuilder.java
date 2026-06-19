@@ -89,6 +89,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 			if (project != null) {
 				
 				if(mode.equals("debug")) {
+					LOG.info("Debug mode, generating assembly");
 					ZXDebugBuild.generateAsm(file);
 				}
 				
@@ -109,6 +110,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 
 				if (zxbc.isNeedsProcessing(sourceFile)) {
 					try {
+						LOG.info("First compile pass of " + sourceFile);
 						firstPassOutput = zxbc.compile(sourceFile);
 					} catch (IOException ioe) {
 						throw new UncheckedIOException(ioe);
@@ -124,6 +126,7 @@ public class ZXBasicBuilder extends IncrementalProjectBuilder {
 						fmt.name().toLowerCase());
 				
 				if(fmt.requiresSecondPass()) {
+					LOG.info("Seconding compile pass of " + firstPassOutput.toPath());
 					switch(fmt) {
 					case BorielZXBasicOutputFormat.NEX:
 						var org = prepCtx.buildOptions().orgOrDefault();

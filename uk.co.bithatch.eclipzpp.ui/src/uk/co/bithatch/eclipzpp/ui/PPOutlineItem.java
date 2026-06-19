@@ -6,7 +6,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 public record PPOutlineItem(Function<Object, String> textMapper, ImageDescriptor image, Function<Object, EList<? extends Object>> childMapper) {
-
+	
 	public PPOutlineItem(String text, ImageDescriptor image, Function<Object, EList<? extends Object>> mapper) {
 		this(e -> text, image, mapper);
 	}

@@ -6,10 +6,9 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
  * 
  * TODO - Remaining Z88DK directives (https://github.com/z88dk/z88dk/wiki/Tool---z80asm---directives).
  * 
- *  - FLOAT (will require float expression support and lots of functions!)
+ *  - FLOAT (functions TODO!)
  *  - INVOKE
  *  - PHASE
- *  - SETFLOAT
  */
 
 generate asm "http://www.co.uk/bithatch/eclipz80/Asm"
@@ -26,7 +25,9 @@ AsmLine:
     | 
     => AsmStatementLine
     | 
-    => AsmNumericLabelLine;
+    => AsmNumericLabelLine
+    | 
+    => AsmDefine;
 
 AsmNumericLabelLine:
     {NumberedLine}
@@ -36,6 +37,12 @@ AsmNumericLabelLine:
 AsmLabelOnlyLine:
     {LabelledLine}
     name=AsmLabelDef ':'? ( 'EQU' value=AsmExpression)?;
+    
+AsmDefine:
+    {Define}
+    /* Note the value of the define is pre-processed away, we never see it */
+    '#define' name=AsmLabelDef
+;
 
 AsmStatementLine:
     {LabelledLine}
@@ -49,7 +56,7 @@ AsmStatement:
     AsmOrg | 
     AsmCall | 
     AsmInclude | 
-    AsmDefine | 
+    AsmIncBin | 
     AsmModule | 
     AsmSection | 
     AsmNextReg | 
@@ -209,18 +216,18 @@ AsmDefSpaceDirective:
 ;
   
 AsmDataDefineGroup:
-    {DataDefineGroup} ( 'DEFGROUP' ) '{'
-        defines += AsmGroupedDefine 
+    {DataDefineGroup} 'DEFGROUP' '{'
+        defines += AsmGroupedDefine  (',' defines += AsmGroupedDefine)*
     '}'
 ;
 
 AsmGroupedDefine:
-    name = ID ( '=' data = AsmExpression )
+    => name = QualifiedID ( => '=' data = AsmExpression )?
 ;
 
 AsmDataDefineVars:
     {DataDefineGroup} ( 'DEFVARS' ) name=QualifiedID '{'
-        defines += AsmVarDefine 
+        defines += AsmVarDefine
     '}'
 ;
 
@@ -229,7 +236,7 @@ AsmFPPDirective:
 ;
 
 AsmVarDefine:
-    (name = ID)? size = ID count = IntegralLiteral
+    (name = QualifiedID)? size = QualifiedID count = IntegralLiteral
 ;
 
 AsmLSTONDirective:
@@ -596,10 +603,17 @@ AsmExpression:
     AsmUnaryExpr;
     
 AsmUnaryExpr returns AsmExpression:
-    AsmNotExpr ({AsmUnaryExpr.left=current} ('+'|'-') right=AsmUnaryExpr)?
+    
+    => ({AsmUnaryExpr} op=('-'|'+') right=AsmUnaryExpr)
+    |
+    AsmNotExpr
 ;
+    
 AsmNotExpr returns AsmExpression:
-    AsmIndexExpr ({AsmNotExpr.left=current} op=('!'|'~') right=AsmNotExpr)?
+    
+    => ({AsmNotExpr} op=('!' | '~') right=AsmNotExpr)
+    |
+    AsmIndexExpr
 ;
 
 AsmIndexExpr returns AsmExpression:
@@ -645,6 +659,8 @@ AsmPrimary returns AsmExpression:
     => AsmLabel
     |
     => AsmRegisterName
+    |
+    => FloatLiteral
     |
     => IntegralLiteral
     |
@@ -739,7 +755,7 @@ AsmSetFloatDirective:
 ;
 
 AsmFloatDirective:
-    {Float} ( 'FLOAT') expressions+=AsmExpression
+    {FloatData} ( 'FLOAT') expressions+=AsmExpression
 ;
 
 enum FloatType:
@@ -773,8 +789,8 @@ AsmInclude:
     ( 'INCLUDE' |'#include' ) importURI=FileSpec
 ;
 
-AsmDefine:
-    {AsmDefine} '#define' name=ID
+AsmIncBin:
+    ( 'INCBIN' ) filename=FileSpec
 ;
 
 AsmSection:
@@ -786,6 +802,9 @@ QualifiedID hidden():
 ;
 
 // ─────────────── MODEL ELEMENTS ───────────────
+
+FloatLiteral:
+    value=FLOAT;
 
 IntegralLiteral:
     value=INT | litvalue=HEX_LITERAL | litvalue=BIN_LITERAL;
@@ -811,7 +830,7 @@ terminal BIN_LITERAL:
   | (('0b') ('0' | '1')+);
 
 @Override
-terminal SL_COMMENT     : (';' | '#') !('\n'|'\r')*;
+terminal SL_COMMENT     : ';' !('\n'|'\r')*;
 
 @Override
 terminal ML_COMMENT: "/'" -> "'/";
@@ -821,6 +840,9 @@ terminal STRING: ( '"' ( '\\' . | !('\\' | '"') )* '"' ) |
                  ( '\'' ( '\\' . | !('\\' | '\'') )* '\'' )
 ;
 
+terminal FLOAT returns ecore::EDouble:
+    ('0'..'9')* '.' ('0'..'9')* (('e' | 'E') ('+' | '-')? ('0'..'9')+)?;
+    
 @Override
 terminal INT returns ecore::EInt: ('0'..'9')+;
 

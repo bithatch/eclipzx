@@ -3,41 +3,57 @@
  */
 package uk.co.bithatch.eclipz80.ui.labeling;
 
-import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider;
+import java.util.List;
 
-import com.google.inject.Inject;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider;
 
-import uk.co.bithatch.eclipzpp.ui.IPPOutlineModel;
-import uk.co.bithatch.eclipzpp.ui.PPLabelProvider;
+import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
+import uk.co.bithatch.eclipz80.asm.AsmDefine;
+import uk.co.bithatch.eclipz80.asm.AsmExpression;
+import uk.co.bithatch.eclipz80.asm.AsmIncBin;
+import uk.co.bithatch.eclipz80.asm.AsmInclude;
+import uk.co.bithatch.eclipz80.asm.AsmLabel;
+import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipz80.asm.DataDefineGroup;
+import uk.co.bithatch.eclipz80.asm.DefByte;
+import uk.co.bithatch.eclipz80.asm.DefC;
+import uk.co.bithatch.eclipz80.asm.DefDWord;
+import uk.co.bithatch.eclipz80.asm.DefPointer;
+import uk.co.bithatch.eclipz80.asm.DefTermString;
+import uk.co.bithatch.eclipz80.asm.DefWord;
+import uk.co.bithatch.eclipz80.asm.DefWordBE;
+import uk.co.bithatch.eclipz80.asm.Define;
+import uk.co.bithatch.eclipz80.asm.IntegralLiteral;
+import uk.co.bithatch.eclipz80.asm.LabelledLine;
+import uk.co.bithatch.eclipz80.asm.Org;
+import uk.co.bithatch.eclipz80.asm.StringLiteral;
+import uk.co.bithatch.eclipz80.generator.ModelHelpers;
+import uk.co.bithatch.eclipz80.ui.AsmUiActivator;
+import uk.co.bithatch.eclipz80.ui.outline.AsmOutlineModel;
+import uk.co.bithatch.eclipzpp.ui.PPUiActivator;
 
 /**
  * Provides labels and icons for EObjects in the outline view.
  * 
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#label-provider
  */
-public class AsmLabelProvider extends PPLabelProvider {
+public class AsmLabelProvider extends/* PPLabelProvider*/ DefaultEObjectLabelProvider {
 
-	@Inject
-	public AsmLabelProvider(IPPOutlineModel model, AdapterFactoryLabelProvider delegate) {
-		super(model, delegate);
-	}
+//	@Inject
+//	public AsmLabelProvider(IPPOutlineModel model, AdapterFactoryLabelProvider delegate) {
+//		super(model, delegate);
+//	}
 
 	// ─────────────── Labels ───────────────
 
-//	String text(LabelledLine ele) {
-//		return ele.getName() != null ? ele.getName().getName() : "<label>";
-//	}
-
-//	String text(LabelEQULine ele) {
-//		return ele.getName() != null ? ele.getName().getName() + " EQU" : "EQU";
-//	}
+	String text(LabelledLine ele) {
+		return ele.getName() != null ? ele.getName().getName() : "<label>";
+	}
 
 //	String text(AsmDefcLine ele) {
 //		return ele.getName() != null ? "DEFC " + ele.getName().getName() : "DEFC";
-//	}
-
-//	String text(NumberedLine ele) {
-//		return ele.getName() != null ? ele.getName() : "<numeric label>";
 //	}
 
 //	String text(AsmLocalLine ele) {
@@ -65,9 +81,9 @@ public class AsmLabelProvider extends PPLabelProvider {
 //		return sb.length() > 0 ? sb.toString() : "<statement>";
 //	}
 //
-//	String text(Org ele) {
-//		return "ORG " + formatIntegralLiteral(ele.getValue());
-//	}
+	String text(Org ele) {
+		return "ORG " + formatIntegralLiteral(ModelHelpers.resolveIntegralLiteral(ele.getValue()));
+	}
 //
 //	String text(uk.co.bithatch.eclipz80.asm.Module ele) {
 //		return "MODULE " + (ele.getName() != null ? ele.getName() : "");
@@ -92,15 +108,43 @@ public class AsmLabelProvider extends PPLabelProvider {
 //		return "PROC";
 //	}
 //
-//	String text(DataDefineGroup ele) {
-//		return "DEFGROUP";
-//	}
+	String text(DataDefineGroup ele) {
+		return ele.getName();
+	}
+	
+	String text(Define defc) {
+		return defc.getName() == null ? "??" : defc.getName().getName();
+	}
+
+	String text(DefByte def) {
+		return eval(def.getData());
+	}
+
+	String text(DefWord def) {
+		return eval(def.getData());
+	}
+
+	String text(DefWordBE def) {
+		return eval(def.getData());
+	}
+
+	String text(DefPointer def) {
+		return eval(def.getData());
+	}
+
+	String text(DefDWord def) {
+		return eval(def.getData());
+	}
+
+	String text(DefTermString def) {
+		return eval(def.getData());
+	}
+
+	String text(DefC defc) {
+		return defc.getName() == null ? "??" : defc.getName().getName();
+	}
 
 	// ─────────────── Icons ───────────────
-
-//	String image(LabelledLine ele) {
-//		return "outline-label.png";
-//	}
 
 //	String image(LabelEQULine ele) {
 //		return "outline-equ.png";
@@ -110,30 +154,35 @@ public class AsmLabelProvider extends PPLabelProvider {
 //		return "outline-equ.png";
 //	}
 //
-//	String image(AsmNumericLabelLine ele) {
-//		return "outline-label.png";
-//	}
+	Object image(AsmProgram prg) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.PROGRAM_PATH);
+	}
+	
+	Object image(AsmDefine def) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.DEFINE_PATH);
+	}
 
-//	String image(AsmLocalLine ele) {
-//		return "outline-label.png";
-//	}
+	Object image(EObject fallback) {
+		if(AsmOutlineModel.isData(fallback))
+			return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.DATA_PATH);
+		else if(AsmOutlineModel.isConstant(fallback))
+			return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.LOCAL_PATH);
+		else
+			return null;
+	}
 
-//	Object image(LabelledLine ele) {
-//		// Use label icon if the line has a label
-//		if (ele.getName() != null) {
-//			return "outline-label.png";
-//		}
-//		// Otherwise use directive icon based on first statement
-//		if (ele.getStatements() != null && !ele.getStatements().isEmpty()) {
-//			return getStatementIcon(ele.getStatements().get(0));
-//		}
-//		return "outline-directive.png";
-//	}
+	Object image(AsmDefWordDirective prg) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.DATA_PATH);
+	}
+	
+	Object image(LabelledLine ele) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.LABEL_PATH);
+	}
 //
-//	String image(Org ele) {
-//		return "outline-org.png";
-//	}
-//
+	Object image(Org ele) {
+		return AsmUiActivator.getInstance().getImageRegistry().getDescriptor(AsmUiActivator.ORG_PATH);
+	}
+	
 //	String image(AsmModule ele) {
 //		return "outline-module.png";
 //	}
@@ -146,10 +195,6 @@ public class AsmLabelProvider extends PPLabelProvider {
 //		return "outline-extern.png";
 //	}
 
-//	String image(IncBin ele) {
-//		return "outline-include.png";
-//	}
-
 //	String image(Proc ele) {
 //		return "outline-proc.png";
 //	}
@@ -157,6 +202,14 @@ public class AsmLabelProvider extends PPLabelProvider {
 //	String image(DataDefineGroup ele) {
 //		return "outline-data.png";
 //	}
+
+	Object image(AsmIncBin ele) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.INCLUDE_PATH);
+	}
+
+	Object image(AsmInclude ele) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.INCLUDE_PATH);
+	}
 
 	// ─────────────── Helpers ───────────────
 
@@ -213,9 +266,34 @@ public class AsmLabelProvider extends PPLabelProvider {
 //		return "outline-directive.png";
 //	}
 //
-//	private String formatIntegralLiteral(IntegralLiteral lit) {
-//		if (lit == null) return "";
-//		if (lit.getLitvalue() != null) return lit.getLitvalue();
-//		return String.valueOf(lit.getValue());
-//	}
+	
+	private String eval(List<AsmExpression> expressions) {
+		return String.join(", ", expressions.stream().map(this::eval).toList());
+	}
+	
+	private String eval(AsmExpression expression) {
+		if(expression instanceof AsmLabel asmlabel) {
+			return asmlabel.getRef().getName();
+		}
+		else if(expression instanceof StringLiteral slit) {
+			return slit.getValue();
+		}
+		else if(expression instanceof IntegralLiteral ilit) {
+			return String.valueOf(ilit.getValue());
+		}
+		else  {
+		
+			EObject eObject = (EObject) expression;
+			EStructuralFeature labelFeature = getLabelFeature(eObject.eClass());
+			if(labelFeature != null) {
+				return String.valueOf(expression.eGet(labelFeature));
+			}
+			return "??";
+		
+		}
+	}
+	
+	private String formatIntegralLiteral(int val) {
+		return String.format("%04x (%5d)", val, val);
+	}
 }

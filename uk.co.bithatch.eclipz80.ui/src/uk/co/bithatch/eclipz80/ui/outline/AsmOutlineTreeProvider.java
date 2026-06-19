@@ -3,172 +3,104 @@
  */
 package uk.co.bithatch.eclipz80.ui.outline;
 
+import java.util.stream.Stream;
+
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.ui.editor.outline.IOutlineNode;
 import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider;
 
-import uk.co.bithatch.eclipz80.asm.AsmAlignDirective;
-import uk.co.bithatch.eclipz80.asm.AsmAssumeDirective;
-import uk.co.bithatch.eclipz80.asm.AsmCallOzDirective;
-import uk.co.bithatch.eclipz80.asm.AsmCallPkgDirective;
-import uk.co.bithatch.eclipz80.asm.AsmCopperMoveDirective;
-import uk.co.bithatch.eclipz80.asm.AsmCopperNopDirective;
-import uk.co.bithatch.eclipz80.asm.AsmCopperStopDirective;
-import uk.co.bithatch.eclipz80.asm.AsmCopperWaitDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDMAWR0Directive;
-import uk.co.bithatch.eclipz80.asm.AsmDMAWR1Directive;
-import uk.co.bithatch.eclipz80.asm.AsmDMAWR2Directive;
-import uk.co.bithatch.eclipz80.asm.AsmDMAWR3Directive;
-import uk.co.bithatch.eclipz80.asm.AsmDMAWR4Directive;
-import uk.co.bithatch.eclipz80.asm.AsmDMAWR5Directive;
-import uk.co.bithatch.eclipz80.asm.AsmDMAWR6Directive;
-import uk.co.bithatch.eclipz80.asm.AsmDataDefineGroup;
-import uk.co.bithatch.eclipz80.asm.AsmDataDefineVars;
-import uk.co.bithatch.eclipz80.asm.AsmDefByteDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefDWordDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefPointerDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefSpaceDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefTermStringDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefWordBEDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
-import uk.co.bithatch.eclipz80.asm.AsmExternDirective;
-import uk.co.bithatch.eclipz80.asm.AsmInclude;
-import uk.co.bithatch.eclipz80.asm.AsmLine;
-import uk.co.bithatch.eclipz80.asm.AsmMmuStatement;
-import uk.co.bithatch.eclipz80.asm.AsmModule;
-import uk.co.bithatch.eclipz80.asm.AsmNextReg;
-import uk.co.bithatch.eclipz80.asm.AsmNumericLabelLine;
-import uk.co.bithatch.eclipz80.asm.AsmOrg;
-import uk.co.bithatch.eclipz80.asm.AsmProcStatement;
+import uk.co.bithatch.eclipz80.asm.AsmGroupedDefine;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
-import uk.co.bithatch.eclipz80.asm.AsmSection;
-import uk.co.bithatch.eclipz80.asm.AsmStatement;
-import uk.co.bithatch.eclipz80.asm.AsmStatementLine;
-//import uk.co.bithatch.eclipz80.asm.LabelEQULine;
-//import uk.co.bithatch.eclipz80.asm.LabelOnlyLine;
 import uk.co.bithatch.eclipz80.asm.LabelledLine;
 
-/**
- * Customization of the default outline structure.
- *
- * Excludes Z80 CPU instructions from the outline, keeping only structural
- * elements: labels, directives, modules, sections, includes, etc.
- *
- * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#outline
- */
-public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider {
+public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider
+{
 
-	/**
-	 * Create children for the program root. Iterates lines and only creates nodes
-	 * for lines that contain structural elements (labels, directives).
-	 */
 	protected void _createChildren(IOutlineNode parentNode, AsmProgram program) {
-		for (AsmLine line : program.getLines()) {
-			if (isOutlineWorthy(line)) {
-				createNode(parentNode, line);
+		var dataRun = new DataRun(parentNode);
+
+		program.getLines().stream().flatMap(ln -> {
+			if(ln instanceof LabelledLine lln) {
+				if(lln.getName() == null)  {
+					return lln.getStatements().stream();
+				}
+				else {
+					return Stream.concat(
+						Stream.of(ln),
+						lln.getStatements().stream()
+					);
+				}
 			}
-		}
+			else {
+				return Stream.of(ln);
+			}
+		}).filter(this::isOutlineWorthy).forEachOrdered(dataRun::accept);
+
+		dataRun.flush();
 	}
 
-	/**
-	 * Statement lines are always leaves in the outline (no need to drill into
-	 * instruction details).
-	 */
-	protected boolean _isLeaf(AsmStatementLine line) {
-		return true;
+	protected void _createChildren(IOutlineNode parentNode, LabelledLine lln) {
+		lln.getStatements().stream().filter(this::isOutlineWorthy).forEach(ln -> createNode(parentNode, ln));
 	}
 
-	protected boolean _isLeaf(LabelledLine line) {
-		return true;
+	protected boolean _isLeaf(EObject line) {
+		return !(line instanceof AsmGroupedDefine) && isOutlineWorthy(line);
 	}
 
-//	protected boolean _isLeaf(LabelEQULine line) {
-//		return true;
-//	}
+	private boolean isOutlineWorthy(EObject line) {
 
-//	protected boolean _isLeaf(AsmDefcLine line) {
-//		return true;
-//	}
-
-	protected boolean _isLeaf(AsmNumericLabelLine line) {
-		return true;
-	}
-
-//	protected boolean _isLeaf(AsmLocalLine line) {
-//		return true;
-//	}
-
-	/**
-	 * Determines whether an AsmLine should appear in the outline.
-	 */
-	private boolean isOutlineWorthy(AsmLine line) {
-		// Label-only lines, EQU lines, DEFC lines, LOCAL lines, numeric labels - always show
-		if (line instanceof LabelledLine
-//				|| line instanceof LabelEQULine
-//				|| line instanceof AsmDefcLine
-//				|| line instanceof AsmLocalLine
-				|| line instanceof AsmNumericLabelLine) {
+		if(AsmOutlineModel.isDirective(line)) {
 			return true;
 		}
 
-		// Statement lines - show if they have a label or contain a directive
 		if (line instanceof LabelledLine lol) {
-
-			// Has a label? Always show
-			if (lol.getName() != null) {
-				return true;
-			}
-
-			// Contains at least one directive? Show
-			for (AsmStatement stmt : lol.getStatements()) {
-				if (isDirective(stmt)) {
-					return true;
-				}
-			}
-
-			return false;
+			return lol.getName() != null;
 		}
-
+		System.out.println("ZZZZZ " + line.getClass() + " is not worthy");
 		return false;
 	}
 
-	/**
-	 * Determines whether an AsmStatement is a directive (structural) rather than
-	 * a Z80 CPU instruction. Directives are shown in the outline; instructions
-	 * are not.
-	 */
-	private boolean isDirective(AsmStatement stmt) {
-		return stmt instanceof AsmOrg
-				|| stmt instanceof AsmInclude
-				|| stmt instanceof AsmModule
-				|| stmt instanceof AsmSection
-				|| stmt instanceof AsmAlignDirective
-				|| stmt instanceof AsmAssumeDirective
-				|| stmt instanceof AsmCallOzDirective
-				|| stmt instanceof AsmCallPkgDirective
-//				|| stmt instanceof AsmBinaryDirective
-				|| stmt instanceof AsmCopperWaitDirective
-				|| stmt instanceof AsmCopperMoveDirective
-				|| stmt instanceof AsmCopperStopDirective
-				|| stmt instanceof AsmCopperNopDirective
-				|| stmt instanceof AsmDefByteDirective
-				|| stmt instanceof AsmDefWordDirective
-				|| stmt instanceof AsmDefWordBEDirective
-				|| stmt instanceof AsmDefPointerDirective
-				|| stmt instanceof AsmDefDWordDirective
-				|| stmt instanceof AsmDefTermStringDirective
-				|| stmt instanceof AsmDefSpaceDirective
-				|| stmt instanceof AsmDataDefineGroup
-				|| stmt instanceof AsmDataDefineVars
-				|| stmt instanceof AsmDMAWR0Directive
-				|| stmt instanceof AsmDMAWR1Directive
-				|| stmt instanceof AsmDMAWR2Directive
-				|| stmt instanceof AsmDMAWR3Directive
-				|| stmt instanceof AsmDMAWR4Directive
-				|| stmt instanceof AsmDMAWR5Directive
-				|| stmt instanceof AsmDMAWR6Directive
-				|| stmt instanceof AsmExternDirective
-				|| stmt instanceof AsmNextReg
-				|| stmt instanceof AsmMmuStatement
-				|| stmt instanceof AsmProcStatement;
+	private final class DataRun {
+		private final IOutlineNode parentNode;
+		private EObject firstData;
+		private int count;
+
+		private DataRun(IOutlineNode parentNode) {
+			this.parentNode = parentNode;
+		}
+
+		private void accept(EObject line) {
+			if (AsmOutlineModel.isData(line)) {
+				if (firstData == null) {
+					firstData = line;
+					count = 1;
+				}
+				else {
+					count++;
+				}
+				return;
+			}
+
+			flush();
+			createNode(parentNode, line);
+		}
+
+		private void flush() {
+			if (firstData == null) {
+				return;
+			}
+
+			if (count == 1) {
+				createNode(parentNode, firstData);
+			}
+			else {
+				var mergedText = String.format("%s (x%d consecutive data directives)", _text(firstData), count);
+				createEObjectNode(parentNode, firstData, _image(firstData), mergedText, _isLeaf(firstData));
+			}
+
+			firstData = null;
+			count = 0;
+		}
 	}
+
 }

@@ -7,4 +7,5 @@ public interface IPPOutlineModel {
 	List<PPOutlineItem> items();
 
 	PPOutlineItem get(Class<?> class1);
+
 }

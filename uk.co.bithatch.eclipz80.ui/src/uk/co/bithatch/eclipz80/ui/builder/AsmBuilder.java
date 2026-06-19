@@ -165,6 +165,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		}
 
 		// Configure the assembler with project defines
+		LOG.info("Compiling Z80 " + file);
 		var assembler = Z80Assembler.builder()
 				.withLibPaths(prefs.getAllIncludePaths(project))
 				.withZ80N() /* TODO temporarily always enable this, need arch property on projects */

@@ -175,9 +175,9 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 			System.out.println("DEFINES: "+ k + "=" + v);
 		});
 //////		
-//		map.hiddenLines().keySet().stream().sorted().forEach(k -> {
-//			System.out.println("HIDDEN: " + k + "=" + map.hiddenLines().get(k));
-//		});
+		map.hiddenOffsets().keySet().stream().sorted().forEach(k -> {
+			System.out.println("HIDDEN: " + k + "=" + map.hiddenOffsets().get(k));
+		});
 //		
 //		map.segments().forEach(seg -> {
 //			System.out.println("Seg " + seg.getUri() + " : " + seg.getOriginalLine() + " (" + seg.getOriginalLines()

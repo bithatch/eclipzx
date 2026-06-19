@@ -7,8 +7,12 @@ import org.eclipse.xtext.parser.antlr.SyntaxErrorMessageProvider;
 import com.google.inject.Inject;
 
 public class PPSyntaxErrorMessageProvider extends SyntaxErrorMessageProvider {
+	private final IReferenceIndex referenceIndex;
+	
 	@Inject
-	private IReferenceIndex referenceIndex;
+	public PPSyntaxErrorMessageProvider(IReferenceIndex referenceIndex) {
+		this.referenceIndex = referenceIndex;
+	}
 
 	@Override
 	public SyntaxErrorMessage getSyntaxErrorMessage(IParserErrorContext context) {

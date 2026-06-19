@@ -10,6 +10,7 @@ import uk.co.bithatch.eclipz80.ui.internal.Eclipz80Activator;
 public class AsmUiActivator extends Eclipz80Activator {
 	
     public static final String ASM_PATH = "icons/asm16.png";
+    public static final String ORG_PATH = "icons/org16.png";
     
 	public static AsmUiActivator getInstance() {
 		return (AsmUiActivator)Eclipz80Activator.getInstance();
@@ -24,6 +25,7 @@ public class AsmUiActivator extends Eclipz80Activator {
 	@Override
 	protected void initializeImageRegistry(ImageRegistry reg) {
 		reg.put(ASM_PATH, checkDescriptor(imageDescriptorFromPlugin(PLUGIN_ID, ASM_PATH)));
+		reg.put(ORG_PATH, checkDescriptor(imageDescriptorFromPlugin(PLUGIN_ID, ORG_PATH)));
 	}
 
 	private ImageDescriptor checkDescriptor(ImageDescriptor d) {

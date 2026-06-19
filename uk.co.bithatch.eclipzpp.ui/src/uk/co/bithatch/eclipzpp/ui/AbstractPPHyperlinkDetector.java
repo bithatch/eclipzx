@@ -101,7 +101,7 @@ public abstract class AbstractPPHyperlinkDetector extends DefaultHyperlinkDetect
 	protected abstract Path findInclude(PPResource resource, String filename);
 	
 	protected void findHyperlinks(List<IHyperlink> links, IXtextDocument document, PPResource resource, IRegion region, boolean canShowMultipleHyperlinks) {
-		var hidden = resource.map().closestHiddenLine(region.getOffset());
+		var hidden = resource.map().closestHiddenOffset(region.getOffset());
 		if (hidden == null)
 			return;
 		var line = hidden.trim();

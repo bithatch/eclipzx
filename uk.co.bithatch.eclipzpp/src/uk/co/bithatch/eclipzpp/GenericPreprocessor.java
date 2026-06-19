@@ -594,7 +594,7 @@ public class GenericPreprocessor extends AbstractTool {
 				else if(directive.equals("binary") || directive.equals("incbin")) {
 					var expanded = binaryDirective(thisLineNo, line.trim(), directive);
 					if(expanded.isPresent()) {
-						return mode == Mode.EDITOR ? includeDirectiveIfEditorMode(offset, line, 2, true) : expanded;
+						return mode == Mode.EDITOR ? includeDirectiveIfEditorMode(offset, line, 2, false) : expanded;
 					}
 					else {
 						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line.translateEscapes() + ".");
@@ -1447,14 +1447,14 @@ public class GenericPreprocessor extends AbstractTool {
 					 */
 					var lineStr = maybeQueueLines(replaceWithSpaces(line), true);
 					if(line.toLowerCase().startsWith("#define ")) {
-						lineStr = partialDirective(offset, line, lineStr, 8);
+						lineStr = partialDirective(offset, line, lineStr, 10);
 					}
 					else if(line.toLowerCase().startsWith("#include ")) {
 						lineStr = partialDirective(offset, line, lineStr, 9);
 					}
 					else {
 						sourceMap.ifPresent(sm -> {
-							sm.hiddenLines().put(
+							sm.hiddenOffsets().put(
 									offset, restoreLineContinuations(line));
 						});
 					}
@@ -1476,12 +1476,13 @@ public class GenericPreprocessor extends AbstractTool {
 				defname = defname.substring(0, parmidx);
 			}
 			var newLead = line.substring(0, leadLen) + defname;
-			lineStr = newLead + lineStr.substring(newLead.length());
+			lineStr = newLead + lineStr.substring(Math.min(lineStr.length(), newLead.length()));
 			var foffset = offset + newLead.length();
 			if(!lineStr.equals(line)) {
 				sourceMap.ifPresent(sm -> {
-					sm.hiddenLines().put(
-							foffset, restoreLineContinuations(line).substring(newLead.length()));
+					var lineCont = restoreLineContinuations(line);
+					sm.hiddenOffsets().put(
+							foffset, lineCont.substring(Math.min(lineCont.length(), newLead.length())));
 				});
 			}
 			return lineStr;

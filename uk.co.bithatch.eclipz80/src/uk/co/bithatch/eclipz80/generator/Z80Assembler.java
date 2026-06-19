@@ -1,10 +1,13 @@
 package uk.co.bithatch.eclipz80.generator;
 
 
+import static uk.co.bithatch.eclipz80.generator.ModelHelpers.resolveIntegralLiteral;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
+import uk.co.bithatch.bitzx.SinclairFloat;
 import uk.co.bithatch.eclipz80.asm.*;
 import uk.co.bithatch.eclipzpp.SourceMap;
 
@@ -687,7 +691,7 @@ public class Z80Assembler {
 			if (line instanceof LabelledLine lol) {
 				if(lol.getValue() != null) {
 					// Resolve on both passes — pass 2 re-resolves with all symbols defined
-					putSymbol(lol.getName().getName()).address = resolveImmediate(lol.getValue());
+					putSymbol(lol.getName().getName()).address = resolveInteger(lol.getValue());
 				}
 				if (pass1 && lol.getName() != null) {
 					putSymbol(lol.getName().getName()).address = currentAddress;
@@ -797,12 +801,12 @@ public class Z80Assembler {
 		// ── ALIGN directive ──
 		if (stmt instanceof AlignDirective) {
 			AlignDirective align = (AlignDirective) stmt;
-			int boundary = resolveImmediate(align.getExpression());
+			int boundary = resolveInteger(align.getExpression());
 			if (boundary > 0) {
 				int padding = (boundary - (currentAddress % boundary)) % boundary;
 				int fill = 0x00;
 				if (align.getFiller() != null) {
-					fill = resolveImmediate(align.getFiller()) & 0xFF;
+					fill = resolveInteger(align.getFiller()) & 0xFF;
 				}
 				for (int i = 0; i < padding; i++) {
 					emit8(out, fill);
@@ -821,7 +825,7 @@ public class Z80Assembler {
 		if (stmt instanceof DefC defc) {
 			if (defc.getName() != null) {
 				// Resolve on both passes — pass 2 re-resolves with all symbols defined
-				putSymbol(defc.getName().getName()).address = resolveImmediate(defc.getValue());
+				putSymbol(defc.getName().getName()).address = resolveInteger(defc.getValue());
 			}
 			return;
 		}
@@ -838,6 +842,10 @@ public class Z80Assembler {
 		}
 
 		// ── Data directives ──
+		if (stmt instanceof FloatData fdata) {
+			assembleFloat(fdata, out);
+			return;
+		}
 		if (stmt instanceof DefByte) {
 			assembleDefByte((DefByte) stmt, out);
 			return;
@@ -978,7 +986,7 @@ public class Z80Assembler {
 					} else {
 						// PUSH nn (Z80N) — handle immediate
 						requireZ80N("PUSH nn");
-						int val = resolveImmediate(reg);
+						int val = resolveInteger(reg);
 						emit8(out, 0xED); emit8(out, 0x8A);
 						// Z80N PUSH nn is big-endian
 						emit8(out, (val >> 8) & 0xFF);
@@ -1037,12 +1045,12 @@ public class Z80Assembler {
 					}
 				}
 				// JP nn
-				int addr = resolveImmediate(target);
+				int addr = resolveInteger(target);
 				emit8(out, 0xC3);
 				emit16LE(out, addr);
 			} else {
 				int cc = resolveCondition(jp.getCondition());
-				int addr = resolveImmediate(target);
+				int addr = resolveInteger(target);
 				emit8(out, 0xC2 + cc * 8);
 				emit16LE(out, addr);
 			}
@@ -1118,12 +1126,12 @@ public class Z80Assembler {
 		if (stmt instanceof AsmCall) {
 			AsmCall call = (AsmCall) stmt;
 			if (call.getCondition() == null) {
-				int addr = resolveImmediate(call.getName());
+				int addr = resolveInteger(call.getName());
 				emit8(out, 0xCD);
 				emit16LE(out, addr);
 			} else {
 				int cc = resolveCondition(call.getCondition());
-				int addr = resolveImmediate(call.getName());
+				int addr = resolveInteger(call.getName());
 				emit8(out, 0xC4 + cc * 8);
 				emit16LE(out, addr);
 			}
@@ -1132,7 +1140,7 @@ public class Z80Assembler {
 
 		// ── DJNZ ──
 		if (stmt instanceof Djnz) {
-			int target = resolveImmediate(((Djnz) stmt).getValue());
+			int target = resolveInteger(((Djnz) stmt).getValue());
 			emit8(out, 0x10);
 			int offset = target - (currentAddress + 1); // +1 because we've already emitted the opcode
 			if (!pass1 && (offset < -128 || offset > 127)) {
@@ -1145,7 +1153,7 @@ public class Z80Assembler {
 		// ── JR ──
 		if (stmt instanceof Jr) {
 			Jr jr = (Jr) stmt;
-			int target = resolveImmediate(jr.getValue());
+			int target = resolveInteger(jr.getValue());
 			if (jr.getCondition() == null) {
 				emit8(out, 0x18);
 			} else {
@@ -1225,7 +1233,7 @@ public class Z80Assembler {
 		// ── Z80N TEST nn ──
 		if (stmt instanceof Test) {
 			requireZ80N("TEST");
-			int val = resolveImmediate(((Test) stmt).getValue());
+			int val = resolveInteger(((Test) stmt).getValue());
 			emit8(out, 0xED); emit8(out, 0x27);
 			emit8(out, val & 0xFF);
 			return;
@@ -1235,7 +1243,7 @@ public class Z80Assembler {
 		if (stmt instanceof NextReg) {
 			requireZ80N("NEXTREG");
 			NextReg nr = (NextReg) stmt;
-			int reg = resolveImmediate(nr.getName());
+			int reg = resolveInteger(nr.getName());
 			String valReg = getRegisterName(nr.getValue());
 			if (valReg != null && "A".equalsIgnoreCase(valReg)) {
 				// NEXTREG reg, A → ED 92 reg
@@ -1243,7 +1251,7 @@ public class Z80Assembler {
 				emit8(out, reg & 0xFF);
 			} else {
 				// NEXTREG reg, val → ED 91 reg val
-				int val = resolveImmediate(nr.getValue());
+				int val = resolveInteger(nr.getValue());
 				emit8(out, 0xED); emit8(out, 0x91);
 				emit8(out, reg & 0xFF);
 				emit8(out, val & 0xFF);
@@ -1258,7 +1266,7 @@ public class Z80Assembler {
 			int slot;
 			if (mmu.getName() != null) {
 				// MMU slot, page form
-				slot = resolveImmediate(mmu.getName());
+				slot = resolveInteger(mmu.getName());
 			} else {
 				// MMU0..MMU7 form — extract slot number from the keyword in the source text
 				INode node = NodeModelUtils.getNode(mmu);
@@ -1277,7 +1285,7 @@ public class Z80Assembler {
 					slot = 0;
 				}
 			}
-			int page = resolveImmediate(mmu.getValue());
+			int page = resolveInteger(mmu.getValue());
 			// MMU is assembled as NEXTREG $50+slot, page
 			emit8(out, 0xED); emit8(out, 0x91);
 			emit8(out, (0x50 + slot) & 0xFF);
@@ -1334,7 +1342,7 @@ public class Z80Assembler {
 				}
 				// LD (IX+d), n
 				if (!srcIndirect) {
-					int n = resolveImmediate(src);
+					int n = resolveInteger(src);
 					emit8(out, idx.prefix);
 					emit8(out, 0x36);
 					emit8(out, idx.displacement);
@@ -1353,7 +1361,7 @@ public class Z80Assembler {
 			if ("IX".equals(du) || "IY".equals(du)) {
 				// LD IX, nn / LD IY, nn
 				if (!srcIndirect) {
-					int nn = resolveImmediate(src);
+					int nn = resolveInteger(src);
 					emit8(out, ixiyPrefix);
 					emit8(out, 0x21);
 					emit16LE(out, nn);
@@ -1376,7 +1384,7 @@ public class Z80Assembler {
 		if (destIndirect && !srcIndirect && srcReg != null) {
 			int srcPrefix = getIXIYPrefix(srcReg);
 			if (srcPrefix > 0 && ("IX".equalsIgnoreCase(srcReg) || "IY".equalsIgnoreCase(srcReg))) {
-				int nn = resolveImmediate(((AsmIndirectExpr) dest).getRight());
+				int nn = resolveInteger(((AsmIndirectExpr) dest).getRight());
 				emit8(out, srcPrefix);
 				emit8(out, 0x22);
 				emit16LE(out, nn);
@@ -1388,7 +1396,7 @@ public class Z80Assembler {
 		if (srcIndirect && !destIndirect && destReg != null) {
 			int destPrefix = getIXIYPrefix(destReg);
 			if (destPrefix > 0 && ("IX".equalsIgnoreCase(destReg) || "IY".equalsIgnoreCase(destReg))) {
-				int nn = resolveImmediate(((AsmIndirectExpr) src).getRight());
+				int nn = resolveInteger(((AsmIndirectExpr) src).getRight());
 				emit8(out, destPrefix);
 				emit8(out, 0x2A);
 				emit16LE(out, nn);
@@ -1436,7 +1444,7 @@ public class Z80Assembler {
 
 		// LD r, n — register, immediate 8-bit
 		if (dr >= 0 && !srcIndirect) {
-			int n = resolveImmediate(src);
+			int n = resolveInteger(src);
 			emit8(out, 0x06 + dr * 8);
 			emit8(out, n & 0xFF);
 			return;
@@ -1446,7 +1454,7 @@ public class Z80Assembler {
 		if (destIndirect && !srcIndirect) {
 			String innerReg = getRegisterName(((AsmIndirectExpr) dest).getRight());
 			if (innerReg != null && "HL".equalsIgnoreCase(innerReg)) {
-				int n = resolveImmediate(src);
+				int n = resolveInteger(src);
 				emit8(out, 0x36);
 				emit8(out, n & 0xFF);
 				return;
@@ -1456,7 +1464,7 @@ public class Z80Assembler {
 		// LD rr, nn — 16-bit register, immediate 16-bit
 		int drr = resolveRegister16(dest);
 		if (drr >= 0 && !srcIndirect) {
-			int nn = resolveImmediate(src);
+			int nn = resolveInteger(src);
 			emit8(out, 0x01 + drr * 16);
 			emit16LE(out, nn);
 			return;
@@ -1470,7 +1478,7 @@ public class Z80Assembler {
 				if ("DE".equalsIgnoreCase(innerReg)) { emit8(out, 0x1A); return; }
 			}
 			// LD A, (nn)
-			int nn = resolveImmediate(((AsmIndirectExpr) src).getRight());
+			int nn = resolveInteger(((AsmIndirectExpr) src).getRight());
 			emit8(out, 0x3A);
 			emit16LE(out, nn);
 			return;
@@ -1484,7 +1492,7 @@ public class Z80Assembler {
 				if ("DE".equalsIgnoreCase(innerReg)) { emit8(out, 0x12); return; }
 			}
 			// LD (nn), A
-			int nn = resolveImmediate(((AsmIndirectExpr) dest).getRight());
+			int nn = resolveInteger(((AsmIndirectExpr) dest).getRight());
 			emit8(out, 0x32);
 			emit16LE(out, nn);
 			return;
@@ -1494,7 +1502,7 @@ public class Z80Assembler {
 		if (destIndirect && !srcIndirect) {
 			int srr = resolveRegister16(src);
 			if (srr >= 0) {
-				int nn = resolveImmediate(((AsmIndirectExpr) dest).getRight());
+				int nn = resolveInteger(((AsmIndirectExpr) dest).getRight());
 				if (srr == 2) { // HL
 					emit8(out, 0x22);
 				} else {
@@ -1508,7 +1516,7 @@ public class Z80Assembler {
 		if (srcIndirect && !destIndirect) {
 			drr = resolveRegister16(dest);
 			if (drr >= 0) {
-				int nn = resolveImmediate(((AsmIndirectExpr) src).getRight());
+				int nn = resolveInteger(((AsmIndirectExpr) src).getRight());
 				if (drr == 2) { // HL
 					emit8(out, 0x2A);
 				} else {
@@ -1599,7 +1607,7 @@ public class Z80Assembler {
 		if (r >= 0) {
 			emit8(out, regBase + r);
 		} else {
-			int n = resolveImmediate(operand);
+			int n = resolveInteger(operand);
 			emit8(out, immOpcode);
 			emit8(out, n & 0xFF);
 		}
@@ -1682,7 +1690,7 @@ public class Z80Assembler {
 	// ─────────────── BIT / SET / RES ───────────────
 
 	private void assembleBitOp(AsmExpression bitNum, AsmExpression target, int baseOpcode, ByteArrayOutputStream out) {
-		int bit = resolveImmediate(bitNum);
+		int bit = resolveInteger(bitNum);
 		if (target instanceof AsmIndirectExpr) {
 			IndexedInfo idx = resolveIndexed((AsmIndirectExpr) target);
 			if (idx != null) {
@@ -1711,7 +1719,23 @@ public class Z80Assembler {
 	}
 
 	// ─────────────── Data directive assembly ───────────────
-
+	/**
+	 * FLOAT, output in the format set by SETFLOAT
+	 */
+	private void assembleFloat(FloatData floatData, ByteArrayOutputStream out) {
+		for(var expr : floatData.getExpressions()) {
+			double val = resolveFloatingPoint(expr);
+			switch(floatType) {
+			case ZX:
+				emit(out, SinclairFloat.encode(val));
+				break;
+			default:
+				/* TODO all the Z88DK formats */
+				throw new UnsupportedOperationException("Unsupported float type.");
+			}
+		}
+	}
+	
 	/**
 	 * DEFB / DB / DEFM / DM / BYTE — emit 1 byte per numeric expression,
 	 * or each character of a string as a separate byte.
@@ -1724,7 +1748,7 @@ public class Z80Assembler {
 					emit8(out, str.charAt(i) & 0xFF);
 				}
 			} else {
-				emit8(out, resolveImmediate(expr) & 0xFF);
+				emit8(out, resolveInteger(expr) & 0xFF);
 			}
 		}
 	}
@@ -1734,7 +1758,7 @@ public class Z80Assembler {
 	 */
 	private void assembleDefWord(DefWord directive, ByteArrayOutputStream out) {
 		for (AsmExpression expr : directive.getData()) {
-			emit16LE(out, resolveImmediate(expr));
+			emit16LE(out, resolveInteger(expr));
 		}
 	}
 
@@ -1743,7 +1767,7 @@ public class Z80Assembler {
 	 */
 	private void assembleDefWordBE(DefWordBE directive, ByteArrayOutputStream out) {
 		for (AsmExpression expr : directive.getData()) {
-			int val = resolveImmediate(expr);
+			int val = resolveInteger(expr);
 			emit8(out, (val >> 8) & 0xFF);
 			emit8(out, val & 0xFF);
 		}
@@ -1754,7 +1778,7 @@ public class Z80Assembler {
 	 */
 	private void assembleDefPointer(DefPointer directive, ByteArrayOutputStream out) {
 		for (AsmExpression expr : directive.getData()) {
-			int val = resolveImmediate(expr);
+			int val = resolveInteger(expr);
 			emit8(out, val & 0xFF);
 			emit8(out, (val >> 8) & 0xFF);
 			emit8(out, (val >> 16) & 0xFF);
@@ -1766,7 +1790,7 @@ public class Z80Assembler {
 	 */
 	private void assembleDefDWord(DefDWord directive, ByteArrayOutputStream out) {
 		for (AsmExpression expr : directive.getData()) {
-			int val = resolveImmediate(expr);
+			int val = resolveInteger(expr);
 			emit8(out, val & 0xFF);
 			emit8(out, (val >> 8) & 0xFF);
 			emit8(out, (val >> 16) & 0xFF);
@@ -1787,7 +1811,7 @@ public class Z80Assembler {
 					bytes.add(str.charAt(i) & 0xFF);
 				}
 			} else {
-				bytes.add(resolveImmediate(expr) & 0xFF);
+				bytes.add(resolveInteger(expr) & 0xFF);
 			}
 		}
 		for (int i = 0; i < bytes.size(); i++) {
@@ -1803,10 +1827,10 @@ public class Z80Assembler {
 	 * DEFS / DS — emit 'count' bytes, each filled with 'fill' (default 0x00).
 	 */
 	private void assembleDefSpace(DefSpace directive, ByteArrayOutputStream out) {
-		int count = resolveImmediate(directive.getCount());
+		int count = resolveInteger(directive.getCount());
 		int fill = defaultFill;
 		if (directive.getFill() != null) {
-			fill = resolveImmediate(directive.getFill()) & 0xFF;
+			fill = resolveInteger(directive.getFill()) & 0xFF;
 		}
 		for (int i = 0; i < count; i++) {
 			emit8(out, fill);
@@ -1818,10 +1842,13 @@ public class Z80Assembler {
 	 * Only processes {@link AsmGroupedDefine} entries (ignores AsmVarDefine from DEFVARS).
 	 */
 	private void assembleDefineGroup(DataDefineGroup directive, ByteArrayOutputStream out) {
+		var nextVal  = 0;
 		for (EObject entry : directive.getDefines()) {
 			if (entry instanceof AsmGroupedDefine def) {
 				var name = def.getName();
-				putSymbol(name).address = resolveImmediate(def.getData());
+				var val = def.getData() == null ? nextVal : resolveInteger(def.getData());
+				putSymbol(name).address = val;
+				nextVal = val + 1;
 			}
 		}
 	}
@@ -1866,7 +1893,7 @@ public class Z80Assembler {
 					if ("IX".equalsIgnoreCase(leftReg)) prefix = 0xDD;
 					else if ("IY".equalsIgnoreCase(leftReg)) prefix = 0xFD;
 					else return null;
-					int d = resolveImmediate(bin.getRight());
+					int d = resolveInteger(bin.getRight());
 					if ("-".equals(op)) d = -d;
 					return new IndexedInfo(prefix, d & 0xFF);
 				}
@@ -1917,7 +1944,7 @@ public class Z80Assembler {
 			}
 			// IN A, (n)
 			if (dr == 7) { // A
-				int n = resolveImmediate(inner);
+				int n = resolveInteger(inner);
 				emit8(out, 0xDB);
 				emit8(out, n & 0xFF);
 				return;
@@ -1954,7 +1981,7 @@ public class Z80Assembler {
 			// OUT (n), A
 			int sr = resolveRegister8(src);
 			if (sr == 7) { // A
-				int n = resolveImmediate(inner);
+				int n = resolveInteger(inner);
 				emit8(out, 0xD3);
 				emit8(out, n & 0xFF);
 				return;
@@ -2063,25 +2090,40 @@ public class Z80Assembler {
 	}
 
 	/**
-	 * Resolve an operand to an integer value. Recursively evaluates
+	 * Resolve an operand to a integer value. Recursively evaluates
 	 * expressions including binary operators, unary sign/not, literals,
 	 * strings (first char ordinal), and symbols (looked up from the symbol
 	 * table populated during pass&nbsp;1).
 	 */
-	private int resolveImmediate(AsmExpression operand) {
+	private int resolveInteger(AsmExpression operand) {
+		return (int)resolveFloatingPoint(operand);
+	}
+
+	/**
+	 * Resolve an operand to a double value. Recursively evaluates
+	 * expressions including binary operators, unary sign/not, literals,
+	 * strings (first char ordinal), and symbols (looked up from the symbol
+	 * table populated during pass&nbsp;1).
+	 */
+	private double resolveFloatingPoint(AsmExpression operand) {
+		
+		if (operand instanceof FloatLiteral flt) {
+			return flt.getValue();
+		}
+		
 		if (operand instanceof IntegralLiteral) {
 			return resolveIntegralLiteral((IntegralLiteral) operand);
 		}
 
 		if (operand instanceof AsmPowerExpr pwr) {
-			int left = resolveImmediate(pwr.getLeft());
-			int right = resolveImmediate(pwr.getRight());
+			double left = resolveInteger(pwr.getLeft());
+			double right = resolveInteger(pwr.getRight());
 			return (int)Math.pow(left, right);
 		}
 		
 		if (operand instanceof AsmBinaryExpr bin) {
-			int left = resolveImmediate(bin.getLeft());
-			int right = resolveImmediate(bin.getRight());
+			double left = (int)resolveInteger(bin.getLeft());
+			double right = (int)resolveInteger(bin.getRight());
 			switch (bin.getOp()) {
 				case "+":  return left + right;
 				case "-":  return left - right;
@@ -2091,9 +2133,9 @@ public class Z80Assembler {
 					return left / right;
 				case "%":
 					if (right == 0) { warn("Modulo by zero"); return 0; }
-					return left % right;
-				case "<<": return left << right;
-				case ">>": return left >> right;
+					return (int)left % (int)right;
+				case "<<": return (int)left << (int)right;
+				case ">>": return (int)left >> (int)right;
 				default:
 					warn("Unknown operator: " + bin.getOp());
 					return 0;
@@ -2101,8 +2143,8 @@ public class Z80Assembler {
 		}
 
 		if (operand instanceof AsmEqualityExpr eql) {
-			int left = resolveImmediate(eql.getLeft());
-			int right = resolveImmediate(eql.getRight());
+			double left = resolveInteger(eql.getLeft());
+			double right = resolveInteger(eql.getRight());
 			switch (eql.getOp()) {
 				case "==":  return evaluate(left == right);
 				case "=":  return evaluate(left == right);
@@ -2119,8 +2161,8 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmBitwiseExpr bwise) {
-			int left = resolveImmediate(bwise.getLeft());
-			int right = resolveImmediate(bwise.getRight());
+			int left = (int)resolveInteger(bwise.getLeft());
+			int right = (int)resolveInteger(bwise.getRight());
 			switch (bwise.getOp()) {
 				case "|":  return left | right;
 				case "&":  return left & right;
@@ -2133,7 +2175,7 @@ public class Z80Assembler {
 		
 		
 		if (operand instanceof AsmUnaryExpr unary) {
-			int val = resolveImmediate(unary.getRight());
+			double val = resolveInteger(unary.getRight());
 			// Determine the sign from the source text node
 			INode node = NodeModelUtils.getNode(unary.getRight());
 			if (node != null && node.getText().trim().startsWith("-")) {
@@ -2143,7 +2185,7 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmNotExpr lnot) {
-			int val = resolveImmediate(lnot.getRight());
+			int val = (int)resolveInteger(lnot.getRight());
 			switch (lnot.getOp()) {
 				case "!":  return val == 0 ? 1 : 0;
 				case "~":  return ~val;
@@ -2154,8 +2196,8 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmLogicExpr logic) {
-			boolean left = resolveImmediate(logic.getLeft()) != 0;
-			boolean right = resolveImmediate(logic.getRight()) != 0;
+			boolean left = resolveInteger(logic.getLeft()) != 0;
+			boolean right = resolveInteger(logic.getRight()) != 0;
 			switch (logic.getOp()) {
 				case "&&": return evaluate(left && right);
 				case "||":  return evaluate(left || right);
@@ -2166,9 +2208,9 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmTernaryExpr ternary) {
-			return resolveImmediate(ternary.getLeft()) != 0 
-					? resolveImmediate(ternary.getRight()) 
-					: resolveImmediate(ternary.getElse());
+			return resolveInteger(ternary.getLeft()) != 0 
+					? resolveInteger(ternary.getRight()) 
+					: resolveInteger(ternary.getElse());
 		}
 		
 		if (operand instanceof StringLiteral) {
@@ -2214,17 +2256,17 @@ public class Z80Assembler {
 		}
 		if (operand instanceof AsmIndirectExpr) {
 			// In immediate contexts (e.g. LD A,(nn)), resolve the inner expression
-			return resolveImmediate(((AsmIndirectExpr) operand).getRight());
+			return resolveInteger(((AsmIndirectExpr) operand).getRight());
 		}
 		
 
 		if (operand instanceof AsmIndexExpr idx) {
-			var left = resolveImmediate(idx.getLeft());
-			var index = resolveImmediate(idx.getRight());
+			var left = resolveInteger(idx.getLeft());
+			var index = resolveInteger(idx.getRight());
 			return left+index;
 		}
 		
-		warn("Cannot resolve operand to immediate value: " + operand.eClass().getName());
+		warn("Cannot resolve operand to immediate value: " + (operand == null ? "<null>" : operand.eClass().getName()));
 		return 0;
 	}
 
@@ -2257,48 +2299,15 @@ public class Z80Assembler {
 		return null;
 	}
 
-	/**
-	 * Parse an IntegralLiteral to an int, handling decimal, hex ($, 0x, h suffix),
-	 * and binary (%, 0b, b suffix) formats.
-	 */
-	private int resolveIntegralLiteral(IntegralLiteral lit) {
-		String litStr = lit.getLitvalue();
-		if (litStr != null && !litStr.isEmpty()) {
-			return parseLitvalue(litStr);
-		}
-		// Decimal — the parser already converted to int
-		return lit.getValue();
-	}
-
-	private int parseLitvalue(String s) {
-		s = s.trim();
-		// Hex: $XXXX or 0xXXXX
-		if (s.startsWith("$")) {
-			return (int) Long.parseLong(s.substring(1), 16);
-		}
-		if (s.toLowerCase().startsWith("0x")) {
-			return (int) Long.parseLong(s.substring(2), 16);
-		}
-		// Hex: XXXXh or XXXXH
-		if (s.endsWith("h") || s.endsWith("H")) {
-			return (int) Long.parseLong(s.substring(0, s.length() - 1), 16);
-		}
-		// Binary: %XXXX or 0bXXXX
-		if (s.startsWith("%")) {
-			return (int) Long.parseLong(s.substring(1), 2);
-		}
-		if (s.toLowerCase().startsWith("0b")) {
-			return (int) Long.parseLong(s.substring(2), 2);
-		}
-		// Binary: XXXXb or XXXXB
-		if (s.endsWith("b") || s.endsWith("B")) {
-			return (int) Long.parseLong(s.substring(0, s.length() - 1), 2);
-		}
-		// Fallback decimal
-		return (int) Long.parseLong(s);
-	}
-
 	// ─────────────── Byte emission helpers ───────────────
+	private void emit(ByteArrayOutputStream out, byte... values) {
+		try {
+			out.write(values);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+		currentAddress += values.length;
+	}
 
 	private void emit8(ByteArrayOutputStream out, int value) {
 		out.write(value & 0xFF);

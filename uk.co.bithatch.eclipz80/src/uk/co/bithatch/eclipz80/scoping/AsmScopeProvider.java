@@ -55,13 +55,12 @@ public class AsmScopeProvider extends AbstractAsmScopeProvider {
 	}
 
 	private EObject createDefineStub(DefineDef def) {
-		var stub = AsmFactory.eINSTANCE.createAsmDefine(); 
-		stub.setName(def.name());
-
-		var dummyResource = new ResourceImpl(URI.createURI("asm://" + def.name()));
-		dummyResource.getContents().add(stub);
-
-		return stub;
+		var labelDef = AsmFactory.eINSTANCE.createAsmLabelDef();
+		labelDef.setName(def.name());
+		// Put the synthetic target in a dummy resource so it has a valid EObject URI.
+		var dummyResource = new ResourceImpl(URI.createURI("asm://define/" + def.name()));
+		dummyResource.getContents().add(labelDef);
+		return labelDef;
 	}
 
 	private AsmProgram findProgram(EObject obj) {

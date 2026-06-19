@@ -25,8 +25,8 @@ public class MacroExpander {
         if (depth > MAX_RECURSION_DEPTH) return line; // prevent infinite recursion
 
     	
-    	String trimmed =line.trim();
-    	if(trimmed.startsWith("'") || trimmed.startsWith("REM")) {
+    	String trimmed = line == null ? "" : line.trim();
+    	if(trimmed.equals("") || trimmed.startsWith("'") || trimmed.startsWith("REM")) {
     		return line;
     	}
     	

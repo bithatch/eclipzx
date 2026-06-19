@@ -8,19 +8,24 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.xtext.ide.editor.syntaxcoloring.ISemanticHighlightingCalculator;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.ui.editor.XtextEditor;
+import org.eclipse.xtext.ui.editor.outline.actions.IOutlineContribution;
+
+import com.google.inject.Binder;
+import com.google.inject.name.Names;
 
 import uk.co.bithatch.eclipz80.AsmIncludeSource;
 import uk.co.bithatch.eclipz80.ui.debug.AsmXtextEditor;
 import uk.co.bithatch.eclipz80.ui.hyperlinking.AsmHyperlinkDetector;
 import uk.co.bithatch.eclipz80.ui.library.AsmLibraryIncludeSource;
-import uk.co.bithatch.eclipz80.ui.outline.AsmOutlineModel;
+import uk.co.bithatch.eclipz80.ui.outline.FilterLocalSymbolsContribution;
+import uk.co.bithatch.eclipz80.ui.outline.FilterPublicSymbolsContribution;
+import uk.co.bithatch.eclipz80.ui.outline.FilterDataContribution;
 import uk.co.bithatch.eclipz80.ui.preprocessing.AsmReferenceIndex;
 import uk.co.bithatch.eclipz80.ui.preprocessing.AsmResource;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmHighlightingConfiguration;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmSemanticHighlightingCalculator;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmTokenToAttributeMapper;
 import uk.co.bithatch.eclipzpp.IReferenceIndex;
-import uk.co.bithatch.eclipzpp.ui.IPPOutlineModel;
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
@@ -33,14 +38,6 @@ public class AsmUiModule extends AbstractAsmUiModule {
 
 	public Class<? extends XtextResource> bindXtextResource() {
 	    return AsmResource.class;
-	}
-//
-//	public Class<? extends ILocationInFileProvider> bindILocationInFileProvider() {
-//	    return AsmLocationInFileProvider.class;
-//	}
-
-	public Class<? extends IPPOutlineModel> bindIPPOutlineModel() {
-	    return AsmOutlineModel.class;
 	}
 
 	public Class<? extends IReferenceIndex> bindIReferenceIndex() {
@@ -70,4 +67,10 @@ public class AsmUiModule extends AbstractAsmUiModule {
 	public Class<? extends org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
 		return AsmTokenToAttributeMapper.class;
 	}
+
+    public void configureFilterContribution(Binder binder) {
+      binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterDataContribution")).to(FilterDataContribution.class);
+      binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterLocalSymbolsContribution")).to(FilterLocalSymbolsContribution.class);
+      binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterPublicSymbolsContribution")).to(FilterPublicSymbolsContribution.class);
+    }
 }
