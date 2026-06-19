@@ -83,7 +83,6 @@ AsmStatement:
     AsmDefTermStringDirective |
     AsmDefSpaceDirective |
     AsmDefcDirective |
-    AsmFPPDirective |
     AsmLSTONDirective |
     AsmLSTOFFDirective |
     AsmDataDefineGroup |
@@ -229,10 +228,6 @@ AsmDataDefineVars:
     {DataDefineGroup} ( 'DEFVARS' ) name=QualifiedID '{'
         defines += AsmVarDefine
     '}'
-;
-
-AsmFPPDirective:
-    {FPP} expression=AsmExpression
 ;
 
 AsmVarDefine:

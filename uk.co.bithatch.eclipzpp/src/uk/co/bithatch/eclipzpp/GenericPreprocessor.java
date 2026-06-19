@@ -1883,7 +1883,7 @@ public class GenericPreprocessor extends AbstractTool {
 			var outlineBytes = txt.getBytes().length + LINESEP.length;
 			res.preprocessedLength().addAndGet(outlineBytes);
 			res.preprocessedLines().addAndGet(1);
-		}
+		} 
 
 		protected void nextSegment(IncludeContext<Object> res) {
 			var pplen = res.preprocessedLength().getAndSet(0);

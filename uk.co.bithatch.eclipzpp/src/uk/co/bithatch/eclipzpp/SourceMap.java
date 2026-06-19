@@ -76,6 +76,7 @@ public class SourceMap {
 		}
 		
 		public boolean preprocessedLine(int preprocessed) {
+			System.out.println("ZZZZZ " + preprocessed + " looking in range " + preprocessed + " -> " + preprocessedLength);
 			return preprocessed >= preprocessedLine && preprocessed < preprocessedLine + Math.max(1, preprocessedLines);
 		}
 

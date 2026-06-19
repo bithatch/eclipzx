@@ -16,11 +16,14 @@ import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.scoping.IScope;
 import org.eclipse.xtext.scoping.impl.SimpleScope;
 
+import com.google.inject.Inject;
+
 import uk.co.bithatch.eclipz80.asm.AsmFactory;
 import uk.co.bithatch.eclipz80.asm.AsmPackage;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
 import uk.co.bithatch.eclipzpp.DefineDef;
 import uk.co.bithatch.eclipzpp.IMappedResource;
+import uk.co.bithatch.eclipzpp.IReferenceIndex;
 
 /**
  * This class contains custom scoping description.
@@ -29,8 +32,10 @@ import uk.co.bithatch.eclipzpp.IMappedResource;
  * on how and when to use it.
  */
 public class AsmScopeProvider extends AbstractAsmScopeProvider {
-	
 
+	@Inject
+	private IReferenceIndex referenceIndex;
+	
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
 		IScope delegate = super.getScope(context, reference);
@@ -49,16 +54,35 @@ public class AsmScopeProvider extends AbstractAsmScopeProvider {
 				delegate = new SimpleScope(delegate, defineObjects, true);
 			}
 			
+			delegate = addBuiltInFunctions(delegate, context);
+			
 			return new NamespaceRelativeLabelScope(delegate, AsmNamespaceSupport.namespacesBefore(context));
 		}
 		return delegate;
 	}
 
+	private IScope addBuiltInFunctions(IScope parent, EObject context) {
+		var builtIns = new ArrayList<IEObjectDescription>();
+
+		for (var name : referenceIndex.definitions()) {
+			var fname = name;
+			var fakeFunc = createStub("built-in", name);
+			var desc = EObjectDescription.create(QualifiedName.create(fname), fakeFunc);
+			builtIns.add(desc);
+		}
+
+		return new SimpleScope(parent, builtIns, true);
+	}
+
 	private EObject createDefineStub(DefineDef def) {
+		String name = def.name();
+		return createStub("define", name);
+	}
+
+	public EObject createStub(String type, String name) {
 		var labelDef = AsmFactory.eINSTANCE.createAsmLabelDef();
-		labelDef.setName(def.name());
-		// Put the synthetic target in a dummy resource so it has a valid EObject URI.
-		var dummyResource = new ResourceImpl(URI.createURI("asm://define/" + def.name()));
+		labelDef.setName(name);
+		var dummyResource = new ResourceImpl(URI.createURI("asm://" + type + "/" + name));
 		dummyResource.getContents().add(labelDef);
 		return labelDef;
 	}

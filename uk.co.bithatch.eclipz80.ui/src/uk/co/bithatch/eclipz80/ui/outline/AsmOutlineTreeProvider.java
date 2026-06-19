@@ -56,7 +56,6 @@ public class AsmOutlineTreeProvider extends DefaultOutlineTreeProvider
 		if (line instanceof LabelledLine lol) {
 			return lol.getName() != null;
 		}
-		System.out.println("ZZZZZ " + line.getClass() + " is not worthy");
 		return false;
 	}
 

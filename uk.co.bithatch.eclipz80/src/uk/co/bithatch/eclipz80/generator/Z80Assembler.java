@@ -25,6 +25,7 @@ import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
 import uk.co.bithatch.bitzx.SinclairFloat;
+import uk.co.bithatch.eclipz80.AsmStdlib;
 import uk.co.bithatch.eclipz80.asm.*;
 import uk.co.bithatch.eclipzpp.SourceMap;
 
@@ -2096,7 +2097,7 @@ public class Z80Assembler {
 	 * table populated during pass&nbsp;1).
 	 */
 	private int resolveInteger(AsmExpression operand) {
-		return (int)resolveFloatingPoint(operand);
+		return (int)resolve(operand, false);
 	}
 
 	/**
@@ -2106,9 +2107,18 @@ public class Z80Assembler {
 	 * table populated during pass&nbsp;1).
 	 */
 	private double resolveFloatingPoint(AsmExpression operand) {
+		return resolve(operand, true);
+	}
+
+	private double resolve(AsmExpression operand, boolean allowFp) {
 		
 		if (operand instanceof FloatLiteral flt) {
-			return flt.getValue();
+			if(allowFp)
+				return flt.getValue();
+			else {
+				warn("Floating point number not allowed here");
+				return 0;
+			}
 		}
 		
 		if (operand instanceof IntegralLiteral) {
@@ -2116,14 +2126,14 @@ public class Z80Assembler {
 		}
 
 		if (operand instanceof AsmPowerExpr pwr) {
-			double left = resolveInteger(pwr.getLeft());
-			double right = resolveInteger(pwr.getRight());
+			double left = resolve(pwr.getLeft(), allowFp);
+			double right = resolve(pwr.getRight(), allowFp);
 			return (int)Math.pow(left, right);
 		}
 		
 		if (operand instanceof AsmBinaryExpr bin) {
-			double left = (int)resolveInteger(bin.getLeft());
-			double right = (int)resolveInteger(bin.getRight());
+			double left = (int)resolve(bin.getLeft(), allowFp);
+			double right = (int)resolve(bin.getRight(), allowFp);
 			switch (bin.getOp()) {
 				case "+":  return left + right;
 				case "-":  return left - right;
@@ -2143,8 +2153,8 @@ public class Z80Assembler {
 		}
 
 		if (operand instanceof AsmEqualityExpr eql) {
-			double left = resolveInteger(eql.getLeft());
-			double right = resolveInteger(eql.getRight());
+			double left = resolve(eql.getLeft(), allowFp);
+			double right = resolve(eql.getRight(), allowFp);
 			switch (eql.getOp()) {
 				case "==":  return evaluate(left == right);
 				case "=":  return evaluate(left == right);
@@ -2161,8 +2171,8 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmBitwiseExpr bwise) {
-			int left = (int)resolveInteger(bwise.getLeft());
-			int right = (int)resolveInteger(bwise.getRight());
+			int left = (int)resolve(bwise.getLeft(), allowFp);
+			int right = (int)resolve(bwise.getRight(), allowFp);
 			switch (bwise.getOp()) {
 				case "|":  return left | right;
 				case "&":  return left & right;
@@ -2175,7 +2185,7 @@ public class Z80Assembler {
 		
 		
 		if (operand instanceof AsmUnaryExpr unary) {
-			double val = resolveInteger(unary.getRight());
+			double val = resolve(unary.getRight(), allowFp);
 			// Determine the sign from the source text node
 			INode node = NodeModelUtils.getNode(unary.getRight());
 			if (node != null && node.getText().trim().startsWith("-")) {
@@ -2185,7 +2195,7 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmNotExpr lnot) {
-			int val = (int)resolveInteger(lnot.getRight());
+			int val = (int)resolve(lnot.getRight(), allowFp);
 			switch (lnot.getOp()) {
 				case "!":  return val == 0 ? 1 : 0;
 				case "~":  return ~val;
@@ -2196,8 +2206,8 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmLogicExpr logic) {
-			boolean left = resolveInteger(logic.getLeft()) != 0;
-			boolean right = resolveInteger(logic.getRight()) != 0;
+			boolean left = resolve(logic.getLeft(), allowFp) != 0;
+			boolean right = resolve(logic.getRight(), allowFp) != 0;
 			switch (logic.getOp()) {
 				case "&&": return evaluate(left && right);
 				case "||":  return evaluate(left || right);
@@ -2208,9 +2218,9 @@ public class Z80Assembler {
 		}
 		
 		if (operand instanceof AsmTernaryExpr ternary) {
-			return resolveInteger(ternary.getLeft()) != 0 
-					? resolveInteger(ternary.getRight()) 
-					: resolveInteger(ternary.getElse());
+			return resolve(ternary.getLeft(), allowFp) != 0 
+					? resolve(ternary.getRight(), allowFp) 
+					: resolve(ternary.getElse(), allowFp);
 		}
 		
 		if (operand instanceof StringLiteral) {
@@ -2237,6 +2247,19 @@ public class Z80Assembler {
 				if (labelName.startsWith(".")) {
 					labelName = labelName.substring(1);
 				}
+				
+				if(AsmStdlib.get().isDefined(labelName)) {
+					if(!allowFp) {
+						warn("Floating point number not allowed here : " + labelName);
+						return 0;
+					}
+					
+					/* TODO how do we get parameters */
+					var parms = new double[0];
+					
+					return AsmStdlib.get().invoke(labelName, parms);
+				}
+				
 				// Try module-qualified lookup first, then bare name
 				// TODO: Support explicit module.label syntax in expressions (needs grammar change)
 				String qualifiedName = currentModule + "." + labelName;
@@ -2256,13 +2279,13 @@ public class Z80Assembler {
 		}
 		if (operand instanceof AsmIndirectExpr) {
 			// In immediate contexts (e.g. LD A,(nn)), resolve the inner expression
-			return resolveInteger(((AsmIndirectExpr) operand).getRight());
+			return resolve(((AsmIndirectExpr) operand).getRight(), allowFp);
 		}
 		
 
 		if (operand instanceof AsmIndexExpr idx) {
-			var left = resolveInteger(idx.getLeft());
-			var index = resolveInteger(idx.getRight());
+			var left = resolve(idx.getLeft(), allowFp);
+			var index = resolve(idx.getRight(), false);
 			return left+index;
 		}
 		

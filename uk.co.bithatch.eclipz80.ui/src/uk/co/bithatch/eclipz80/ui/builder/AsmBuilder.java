@@ -111,13 +111,9 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		PPResourcePreprocessorDecorator.Instance.set((bldr, resource, ffile) -> {
 			bldr.withMode(Mode.COMPILER);
 			bldr.onError((err, ln, txt) -> {
-				// TODO line numbers
-				System.out.println("ZZZ Preprocess error @ " +ln + ": " + txt);
 				addMarker(file, txt, ln, IMarker.SEVERITY_ERROR);
 			});
 			bldr.onWarning((wrn, ln, txt) -> {
-				// TODO line numbers
-				System.out.println("ZZZ Preprocess wrn @ " + ln + ": " + txt);
 				addMarker(file, txt, ln, IMarker.SEVERITY_WARNING);
 			});
 		});
@@ -148,7 +144,6 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 					}
 					
 					if(include) {
-						System.out.println("ZZZ Parse err: " + ln + " " + diag.getMessage());
 						addMarker(file, diag.getMessage(), ln, IMarker.SEVERITY_ERROR);
 					}
 				}
@@ -173,7 +168,6 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 				.withMap(prefs.isGenerateMap(project))
 				.withSourceMap(resource.map())
 				.withWarningCallback((filename, line, warning) -> {
-					System.out.println("ZZZ Assemble warn: " + warning);
 					addMarker(file, warning, line, IMarker.SEVERITY_WARNING);
 				})
 				.build();
