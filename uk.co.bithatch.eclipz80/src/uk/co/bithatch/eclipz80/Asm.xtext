@@ -650,7 +650,17 @@ AsmLabel:
     ref=[AsmLabelDef|QualifiedID]
 ;
 
+AsmFunctionCall returns AsmExpression:
+    {AsmFunctionCall}
+    name=QualifiedID
+    '('
+        (args+=AsmExpression (',' args+=AsmExpression)*)?
+    ')'
+;
+
 AsmPrimary returns AsmExpression:
+    => AsmFunctionCall
+    |
     => AsmLabel
     |
     => AsmRegisterName

@@ -2110,7 +2110,74 @@ public class Z80Assembler {
 		return resolve(operand, true);
 	}
 
+	private double invokeBuiltIn(String name, List<AsmExpression> args, boolean allowFp) {
+		if (!allowFp) {
+			warn("Floating point number not allowed here : " + name);
+			return 0;
+		}
+
+		double[] parms = new double[args.size()];
+		for (int i = 0; i < args.size(); i++) {
+			parms[i] = resolve(args.get(i), true);
+		}
+
+		try {
+			return AsmStdlib.get().invoke(name, parms);
+		} catch (RuntimeException re) {
+			warn("Failed to evaluate built-in '" + name + "': " + re.getMessage());
+			return 0;
+		}
+	}
+
+	private boolean isFunctionCallExpr(AsmExpression operand) {
+		return operand != null && "AsmFunctionCall".equals(operand.eClass().getName());
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<AsmExpression> getFunctionCallArgs(EObject functionCall) {
+		var argsFeature = functionCall.eClass().getEStructuralFeature("args");
+		if (argsFeature == null) {
+			return List.of();
+		}
+		var argsValue = functionCall.eGet(argsFeature);
+		if (argsValue instanceof List<?>) {
+			return (List<AsmExpression>) argsValue;
+		}
+		return List.of();
+	}
+
+	private String getFunctionCallName(EObject functionCall) {
+		var nameFeature = functionCall.eClass().getEStructuralFeature("name");
+		if (nameFeature == null) {
+			return null;
+		}
+		var nameValue = functionCall.eGet(nameFeature);
+		return nameValue instanceof String ? (String) nameValue : null;
+	}
+
 	private double resolve(AsmExpression operand, boolean allowFp) {
+		if (isFunctionCallExpr(operand)) {
+			String functionName = getFunctionCallName(operand);
+			if (functionName != null && functionName.startsWith(".")) {
+				functionName = functionName.substring(1);
+			}
+			if (functionName == null || functionName.isBlank()) {
+				warn("Function call has no name.");
+				return 0;
+			}
+
+			String qualifiedName = currentModule + "." + functionName;
+			if (symbols.containsKey(qualifiedName) || symbols.containsKey(functionName)) {
+				warn("Ambiguous identifier: '" + functionName + "' matches both a symbol and a built-in function; using built-in function call syntax.");
+			}
+
+			if (!AsmStdlib.get().isDefined(functionName)) {
+				warn("Undefined function: " + functionName);
+				return 0;
+			}
+
+			return invokeBuiltIn(functionName, getFunctionCallArgs(operand), allowFp);
+		}
 		
 		if (operand instanceof FloatLiteral flt) {
 			if(allowFp)
@@ -2247,26 +2314,26 @@ public class Z80Assembler {
 				if (labelName.startsWith(".")) {
 					labelName = labelName.substring(1);
 				}
+
+				// Try module-qualified lookup first, then bare name
+				String qualifiedName = currentModule + "." + labelName;
+				boolean hasQualifiedSymbol = symbols.containsKey(qualifiedName);
+				boolean hasBareSymbol = symbols.containsKey(labelName);
 				
 				if(AsmStdlib.get().isDefined(labelName)) {
-					if(!allowFp) {
-						warn("Floating point number not allowed here : " + labelName);
-						return 0;
+					if (hasQualifiedSymbol || hasBareSymbol) {
+						warn("Ambiguous identifier: '" + labelName + "' matches both a symbol and a built-in; using symbol value.");
 					}
-					
-					/* TODO how do we get parameters */
-					var parms = new double[0];
-					
-					return AsmStdlib.get().invoke(labelName, parms);
+					else {
+						return invokeBuiltIn(labelName, List.of(), allowFp);
+					}
 				}
 				
-				// Try module-qualified lookup first, then bare name
 				// TODO: Support explicit module.label syntax in expressions (needs grammar change)
-				String qualifiedName = currentModule + "." + labelName;
-				if (symbols.containsKey(qualifiedName)) {
+				if (hasQualifiedSymbol) {
 					return symbols.get(qualifiedName).address;
 				}
-				if (symbols.containsKey(labelName)) {
+				if (hasBareSymbol) {
 					return symbols.get(labelName).address;
 				}
 			}
