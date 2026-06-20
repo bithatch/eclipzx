@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: EclipZX
+Bundle-Name: EclipZX IDE
 Bundle-SymbolicName: uk.co.bithatch.eclipzx;singleton:=true
 Bundle-Vendor: Bithatch
 Bundle-Version: 1.0.0.qualifier
