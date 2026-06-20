@@ -49,7 +49,7 @@ public abstract class AbstractPreparedLaunchConfigurationDelegate<L extends ILau
 		try {
 
 			/* Pick the best format to use */		
-			var actualFormat = externallyLaunchable.getOutputFormat(file.getProject());
+			var actualFormat = externallyLaunchable.getLaunchFormat(configuration, file);
 			prepCtx.outputFormat(actualFormat);
 
 			/* Compile to the chosen format for the launch. */

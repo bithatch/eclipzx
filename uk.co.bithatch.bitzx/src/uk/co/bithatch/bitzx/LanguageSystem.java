@@ -2,7 +2,6 @@ package uk.co.bithatch.bitzx;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -16,42 +15,8 @@ public class LanguageSystem {
 
 	public static final String EXTENSION_POINT_ID = "uk.co.bithatch.bitzx.languageSystemProvider";
 
-	public static Optional<IArchitecture> architecture(WellKnownArchitecture architecture) {
-		for (var arch : architectures()) {
-			if (architecture.equals(arch.wellKnown().orElse(null))) {
-				return Optional.of(arch);
-			}
-		}
-		return Optional.empty();
-	}
-
-	public static Optional<IOutputFormat> architecture(WellKnownOutputFormat wellKnown) {
-		for (var fmt : outputFormats()) {
-			if (wellKnown.equals(fmt.wellKnown().orElse(null))) {
-				return Optional.of(fmt);
-			}
-		}
-		return Optional.empty();
-	}
-
 	public static IArchitecture architectureOrDefault(IProject project, String archName) {
-		var hndlrs = new LinkedHashSet<ILanguageSystemProvider>();
-		for (var d : descriptors()) {
-			var dsc = createHandler(d);
-			for (var a : dsc.architectures(project)) {
-				if (archName == null || archName.equals("") || a.name().equals(archName))
-					return a;
-			}
-			hndlrs.add(dsc);
-		}
-
-		for (var hndlr : hndlrs) {
-			var archs = hndlr.architectures(project);
-			if (!archs.isEmpty()) {
-				return archs.get(0);
-			}
-		}
-		throw new IllegalStateException("Could not get any architectures for this project!");
+		return languageSystem(project).architectureOrDefault(project, archName);
 	}
 
 	public static List<? extends IArchitecture> architectures() {

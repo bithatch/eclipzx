@@ -36,6 +36,7 @@ public class ExternalEmulatorLaunchConfigurationTabGroup extends AbstractLaunchC
 			public void initializeFrom(ILaunchConfigurationWorkingCopy cfg) {
 				preparationTab.initializeFrom(cfg);	
 				configFileTab.initializeFrom(cfg);
+				launchTab.reselectOutputFormat(cfg);
 			}
 
 			@Override

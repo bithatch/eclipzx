@@ -1,6 +1,5 @@
 package uk.co.bithatch.emuzx.ui;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import org.eclipse.core.resources.IWorkspace;

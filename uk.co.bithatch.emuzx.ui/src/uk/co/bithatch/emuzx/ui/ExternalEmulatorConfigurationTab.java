@@ -299,7 +299,7 @@ public class ExternalEmulatorConfigurationTab extends AbstractLaunchConfiguratio
 			var newCfg = cfg.doSave().getWorkingCopy();
 			initializeFrom(newCfg);
 
-			context.initializeFrom(cfg);
+			context.initializeFrom(newCfg);
 //			}
 			updateLaunchConfigurationDialog();
 		} catch (CoreException e) {

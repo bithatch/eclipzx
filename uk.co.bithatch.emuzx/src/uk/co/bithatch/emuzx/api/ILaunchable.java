@@ -21,6 +21,7 @@ import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.LanguageSystem;
+import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 
 public interface ILaunchable {
 

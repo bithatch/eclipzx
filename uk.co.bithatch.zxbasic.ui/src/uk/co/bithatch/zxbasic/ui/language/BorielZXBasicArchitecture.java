@@ -9,7 +9,10 @@ import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
 
 public enum BorielZXBasicArchitecture implements IArchitecture {
-	LEGACY, ZXNEXT;
+	ZX, 
+	@Deprecated
+	LEGACY, 
+	ZXNEXT;
 	
 	public String description() {
 		switch(this) {
@@ -33,7 +36,12 @@ public enum BorielZXBasicArchitecture implements IArchitecture {
 	
 	@Override
 	public Optional<WellKnownArchitecture> wellKnown() {
-		return Optional.of(WellKnownArchitecture.valueOf(name()));
+		switch(this) {
+		case LEGACY:
+			return Optional.of(WellKnownArchitecture.ZX);
+		default:
+			return Optional.of(WellKnownArchitecture.valueOf(name())); 
+		}
 	}
 
 	@Override
@@ -45,6 +53,7 @@ public enum BorielZXBasicArchitecture implements IArchitecture {
 	public BorielZXBasicOutputFormat[] formats() {
 		switch(this) {
 		case LEGACY:
+		case ZX:
 			return new BorielZXBasicOutputFormat[] {  
 					BorielZXBasicOutputFormat.Z80, 
 					BorielZXBasicOutputFormat.BIN,  

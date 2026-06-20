@@ -1,10 +1,11 @@
 package uk.co.bithatch.emuzx.ui;
 
-import static uk.co.bithatch.emuzx.ExternalEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
+import static uk.co.bithatch.emuzx.IEmulatorLaunchConfigurationAttributes.OUTPUT_FORMAT;
 
 import java.util.ArrayList;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -22,6 +23,8 @@ import uk.co.bithatch.widgetzx.AbstractLaunchProgramConfigurationTab;
 
 public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgramConfigurationTab {
 
+	public final static ILog LOG = ILog.of(ExternalEmulatorLaunchConfigurationTab.class);
+	
 	private record OutputFormatWrapper(IOutputFormat format, IOutputFormat projectFormat) {
 		String description() {
 			return format == null ? "Same as project or workspace (" + projectFormat.description() + ")" : format.fullDescription();
@@ -108,7 +111,7 @@ public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgra
 			
 		}
 		catch(CoreException ce) {
-			ce.printStackTrace();
+			LOG.error("Failed to setup launch configuration.", ce);
 		}
 		
 
@@ -130,18 +133,29 @@ public class ExternalEmulatorLaunchConfigurationTab extends AbstractLaunchProgra
 		super.initializeFrom(configuration);
 		try {
 			rebuildOutputFormats();
-			var fmtName = configuration.getAttribute(OUTPUT_FORMAT, "");
-			for (var i = 0; i < wrappers.size(); i++) {
-				var fmt = wrappers.get(i);
-				if (fmt.value().equals(fmtName)) {
-					outputFormatCombo.select(i);
-					break;
-				}
-			}
-			if (outputFormatCombo.getSelectionIndex() == -1)
-				outputFormatCombo.select(0);
+			reselectOutputFormat(configuration);
 		} catch (Exception e) {
 			setErrorMessage("Could not initialize fields: " + e.getMessage());
+		}
+	}
+
+	public void reselectOutputFormat(ILaunchConfiguration configuration)  {
+		try {
+			var fmtName = configuration.getAttribute(OUTPUT_FORMAT, "");
+			if(!fmtName.equals("")) {
+				for (var i = 0; i < wrappers.size(); i++) {
+					var fmt = wrappers.get(i);
+					if (fmt.value().equals(fmtName)) {
+						outputFormatCombo.select(i);
+						break;
+					}
+				}
+				if (outputFormatCombo.getSelectionIndex() == -1)
+					outputFormatCombo.select(0);
+			}
+		}
+		catch(CoreException ce) {
+			LOG.error("Failed to reselect output format.", ce);
 		}
 	}
 

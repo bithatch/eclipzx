@@ -39,7 +39,7 @@ import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile;
 
 public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	
-	private final static class Z88DKOutputFormat extends AbstractDescribable implements IOutputFormat {
+	public final static class Z88DKOutputFormat extends AbstractDescribable implements IOutputFormat {
 
 		private String extension;
 
