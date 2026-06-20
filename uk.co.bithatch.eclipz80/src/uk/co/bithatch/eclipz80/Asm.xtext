@@ -612,13 +612,7 @@ AsmNotExpr returns AsmExpression:
 ;
 
 AsmIndexExpr returns AsmExpression:
-    AsmIndirectExpr ({AsmIndexExpr.left=current} '[' right=AsmIndexExpr ']')?
-;
-
-AsmIndirectExpr returns AsmExpression:
-    => ({AsmIndirectExpr} => '(' => right=AsmExpression ')')
-    |
-    AsmPowerExpr
+    AsmPowerExpr ({AsmIndexExpr.left=current} '[' right=AsmIndexExpr ']')?
 ;
 
 AsmPowerExpr returns AsmExpression:
@@ -659,6 +653,8 @@ AsmFunctionCall returns AsmExpression:
 ;
 
 AsmPrimary returns AsmExpression:
+    => AsmIndirectExpr
+    |
     => AsmFunctionCall
     |
     => AsmLabel
@@ -670,6 +666,10 @@ AsmPrimary returns AsmExpression:
     => IntegralLiteral
     |
     => StringLiteral
+;
+
+AsmIndirectExpr returns AsmExpression:
+    => ({AsmIndirectExpr} '(' right=AsmExpression ')')
 ;
 
 AsmRegisterName:
