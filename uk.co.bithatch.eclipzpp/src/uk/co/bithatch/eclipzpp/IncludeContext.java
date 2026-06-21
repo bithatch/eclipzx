@@ -16,7 +16,6 @@ public record IncludeContext<CONTEXT>(
 		AtomicInteger originalLength,
 		AtomicInteger originalLine, 
 		AtomicInteger originalLines,  
-		AtomicInteger preprocessedLength,   
 		AtomicInteger preprocessedLines,
 		AtomicBoolean runtimeModule,
 		AtomicInteger lastPrintedLine) {
@@ -34,7 +33,6 @@ public record IncludeContext<CONTEXT>(
 				new AtomicInteger(), 
 				new AtomicInteger(), 
 				new AtomicInteger(),  
-				new AtomicInteger(), 
 				new AtomicInteger(), 
 				new AtomicInteger(),
 				runtimeModule,

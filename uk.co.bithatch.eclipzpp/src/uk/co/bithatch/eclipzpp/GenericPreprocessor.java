@@ -134,10 +134,10 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 
 		public Builder addDefines(Map<String, String> defines) {
-			return addDefineDefs(defines.entrySet().
-					stream().
-					map(e -> DefineDef.of(e.getKey(), e.getValue())).
-					toList());
+			return addDefineDefs(defines.entrySet()
+					.stream()
+					.map(e -> DefineDef.of(e.getKey(), e.getValue()))
+					.collect(Collectors.toList()));
 		}
 
 		/**
@@ -369,7 +369,6 @@ public class GenericPreprocessor extends AbstractTool {
 		private Stack<IncludeContext<Object>> stack = new Stack<>();
 		private Map<String, MacroDefinition> macros = new HashMap<>();
 		private Stack<MacroInvocationContext> macroStack = new Stack<>();
-		private AtomicInteger preprocessedOffset = new AtomicInteger();
 		private AtomicInteger preprocessedLine = new AtomicInteger();
 		private AtomicInteger localCounter = new AtomicInteger();
 		private int bufferedLogicalSourceOffset = -1;
@@ -749,7 +748,7 @@ public class GenericPreprocessor extends AbstractTool {
 					}
 				}
 				else if(directive.equals("#init")) {
-					if(pragma(line.trim())) {
+					if(init(line.trim())) {
 						return includeDirectiveIfEditorMode(offset, line, 1, false);
 					}
 					else {
@@ -1809,32 +1808,32 @@ public class GenericPreprocessor extends AbstractTool {
 								var result = process(procesableLine, processableOffset);
 								if(result.isPresent()) {
 									next = result.get();
-//									System.out.println("output: " + next);
 									adjustForNext(res, next);
 									break;
-								}	
+								}
 								else {
 									var newRes = stack.peek();
 									if(newRes != res) {
-										/* If COMPILER mode, the start a new segment
-										 * for the new context. In EDITOR mode, we
-										 * won't be outputting anything from an included
-										 * file, just processing its #defines. 
+										/* We have switched source context (e.g. include). Commit the previous
+										 * segment in COMPILER mode for all formats so global preprocessed line
+										 * numbering stays correct. BORIEL additionally emits line markers.
 										 */
-										if(format == Format.BORIEL) {
-											if(mode == Mode.COMPILER) {
+										if(mode == Mode.COMPILER) {
+											if(format == Format.BORIEL) {
 												try {
-													next = lineMarker(res.lineNumber().get(), newRes.uri());									
+													next = lineMarker(res.lineNumber().get(), newRes.uri());
 													adjustForNext(newRes, next);
 													break;
 												}
-												finally { 
-													/* Started a new segment, commit the previous one  if there is content */
+												finally {
 													nextSegment(res);
 												}
 											}
+											else {
+												nextSegment(res);
+											}
 										}
-										
+
 										res = newRes;
 										sourceIt = res.stream();
 									}
@@ -1856,8 +1855,8 @@ public class GenericPreprocessor extends AbstractTool {
 
 						if(format == Format.BORIEL) {
 							if(mode == Mode.COMPILER && !stack.isEmpty()) {
-									next = lineMarker(res.lineNumber().get(), stack.peek().uri());									
-									adjustForNext(res, next);
+								next = lineMarker(res.lineNumber().get(), stack.peek().uri());									
+								adjustForNext(res, next);
 								break;
 							}
 						}
@@ -1869,32 +1868,24 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 
 		protected void adjustForNext(IncludeContext<Object> res, String txt) {
-			var outlineBytes = txt.getBytes().length + LINESEP.length;
-			res.preprocessedLength().addAndGet(outlineBytes);
 			res.preprocessedLines().addAndGet(1);
 		} 
 
 		protected void nextSegment(IncludeContext<Object> res) {
-			var pplen = res.preprocessedLength().getAndSet(0);
 			var pplines = res.preprocessedLines().getAndSet(0);
-			if(pplen > 0) {
+			if(pplines > 0) {
 				if(sourceMap.isPresent()) {
 					var sm = sourceMap.get();
 					sm.addSegment(new Segment(
-						res.originalOffset().get(), 
 						res.originalLine().get(),
-						res.originalLength().get(), 
 						res.originalLines().get(),
-						preprocessedOffset.get(), 
 						preprocessedLine.get(),
-						pplen,
 						pplines,
 						res.uri()));
 				}
 				res.originalOffset().addAndGet(res.originalLength().getAndSet(0));
 				res.originalLine().addAndGet(res.originalLines().getAndSet(0));
 
-				preprocessedOffset.addAndGet(pplen); 
 				preprocessedLine.addAndGet(pplines);
 			}
 		}

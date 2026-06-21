@@ -40,7 +40,7 @@ import uk.co.bithatch.emuzx.ui.ResourceProperties;
 public class AsmBuilder extends IncrementalProjectBuilder {
 
 	public static final String BUILDER_ID = "uk.co.bithatch.eclipz80.ui.AsmBuilder";
-	public static final String MARKER_TYPE = "uk.co.bithatch.eclipz80.ui.asmProblem";
+	public static final String MARKER_TYPE = "asm.check.normal";
 	public static final String[] EXTENSIONS = new String[] { "asm" };
 
 	public static final ILog LOG = ILog.of(AsmBuilder.class);
@@ -126,26 +126,13 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 
 			// Report parse errors as markers
 			if (resource.getErrors() != null && !resource.getErrors().isEmpty()) {
-				for (Resource.Diagnostic diag : resource.getErrors()) {
-					var ln = resource.map().translatePreprocessedToOriginalLine(diag.getLine(), null);
-					
-					/* The parser will also output undefined macro errors, we only want one for a particular line!
-					 */
-					var include = true;
-					if(diag.getMessage().startsWith("Undefined macro ")) {
-						for(var mkr : file.findMarkers(null, false, IResource.DEPTH_ONE)) {
-							var mln = mkr.getAttribute(IMarker.LINE_NUMBER, 0);
-							String mmsg = mkr.getAttribute(IMarker.MESSAGE, "");
-							if(mmsg.equals(diag.getMessage()) && mln == ln) {
-								include = false;
-								break;
-							}
-						}
-					}
-					
-					if(include) {
-						addMarker(file, diag.getMessage(), ln, IMarker.SEVERITY_ERROR);
-					}
+				for (var diag : resource.getErrors()) {
+					addMarker(
+						resolveMarkerFile(file, diag.getLocation()), 
+						diag.getMessage(), 
+						resource.map().translatePreprocessedToOriginalLine(diag.getLine(), null), 
+						IMarker.SEVERITY_ERROR
+					);
 				}
 				return;
 			}
@@ -204,6 +191,19 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 			addMarker(file, "Failed to write output: " + e.getMessage(), 1, IMarker.SEVERITY_ERROR);
 			LOG.error("Failed to write output for " + file.getFullPath(), e);
 		}
+	}
+
+	public IFile resolveMarkerFile(IFile file, String loc) {
+		if(loc != null) {
+			try {
+				return file.getProject().getWorkspace().getRoot().getFile(
+					org.eclipse.core.runtime.Path.fromPortableString(loc).makeRelativeTo(file.getLocation()));
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return file;
 	}
 
 	public static Resource parseFile(IFile file) throws CoreException {

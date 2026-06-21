@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Objects;
@@ -12,31 +13,19 @@ import com.google.common.base.Objects;
 public class SourceMap {
 
 	public final static class Segment {
-		private final int originalOffset;
-		private final int originalLength;
 		private final int originalLine;
 		private final int originalLines;
-		private final int preprocessedOffset;
-		private final int preprocessedLength;
 		private final int preprocessedLine;
 		private final int preprocessedLines;
 		private final String uri;
 
 		public Segment(
-				int originalOffset, 
 				int originalLine, 
-				int originalLength, 
 				int originalLines, 
-				int preprocessedOffset, 
 				int preprocessedLine, 
-				int preprocessedLength, 
 				int preprocessedLines,
 				String uri) {
 			
-			this.originalOffset = originalOffset;
-			this.originalLength = originalLength;
-			this.preprocessedOffset = preprocessedOffset;
-			this.preprocessedLength = preprocessedLength;
 			this.preprocessedLine = preprocessedLine;
 			this.preprocessedLines = preprocessedLines;
 			this.originalLine = originalLine;
@@ -65,48 +54,24 @@ public class SourceMap {
 			return uri;
 		}
 
-		public boolean spansPreprocessed(int offset, int length) {
-			return containsPreprocessedOffset(offset) || ( length > 0 && containsPreprocessedOffset(offset + length - 1));
-		}
-
-		public boolean containsPreprocessedOffset(int offset) {
-			return offset >= preprocessedOffset && offset < (preprocessedOffset + preprocessedLength);
-		}
-		
 		public boolean originalLine(int original) {
 			return original >= originalLine && original < originalLine + Math.max(1, originalLines);
 		}
 		
 		public boolean preprocessedLine(int preprocessed) {
-			System.out.println("ZZZZZ " + preprocessed + " looking in range " + preprocessed + " -> " + preprocessedLength);
 			return preprocessed >= preprocessedLine && preprocessed < preprocessedLine + Math.max(1, preprocessedLines);
-		}
-
-		public int getOriginalOffset() {
-			return originalOffset;
-		}
-
-		public int getOriginalLength() {
-			return originalLength;
-		}
-
-		public int getPreprocessedOffset() {
-			return preprocessedOffset;
-		}
-
-		public int getPreprocessedLength() {
-			return preprocessedLength;
 		}
 
 		@Override
 		public String toString() {
-			return "Segment [originalOffset=" + originalOffset + ", originalLength=" + originalLength
-					+ ", originalLine=" + originalLine + ", originalLines=" + originalLines + ", preprocessedOffset="
-					+ preprocessedOffset + ", preprocessedLength=" + preprocessedLength + ", preprocessedLine="
+			return "Segment [originalLine=" + originalLine + ", originalLines=" + originalLines + ", preprocessedLine="
 					+ preprocessedLine + ", preprocessedLines=" + preprocessedLines + ", uri=" + uri + "]";
 		}
 
 
+	}
+
+	public record TranslatedLocation(String uri, int originalLine, int preprocessedLine) {
 	}
 
 	private final List<Segment> segments = new ArrayList<>();
@@ -114,6 +79,12 @@ public class SourceMap {
 	private final Map<Integer, String> hiddenOffsets = new HashMap<>();
 	private final Set<String> inits = new LinkedHashSet<>();
 	public void addSegment(Segment segment) {
+		if(!segments.isEmpty()) {
+			var previous = segments.get(segments.size() - 1);
+			if(segment.getPreprocessedLine() < previous.getPreprocessedLine()) {
+				throw new IllegalArgumentException("Segments must be added in encounter order.");
+			}
+		}
 		segments.add(segment);
 	}
 
@@ -151,18 +122,105 @@ public class SourceMap {
 		return closest == -1 ? null : hiddenOffsets.get(closest);
 	}
 	
-	public int translatePreprocessedToOriginalLine(int preprocessedLine, String uri) {
+	/**
+	 * Translate a zero-based global preprocessed line index to source provenance.
+	 * Returned uri may be null for root source.
+	 */
+	public Optional<TranslatedLocation> translatePreprocessedToOriginal(int preprocessedLine) {
 		for(var seg : segments) {
-			if(Objects.equal(uri, seg.uri) && seg.preprocessedLine(preprocessedLine)) {
-				var delta = preprocessedLine - seg.getPreprocessedLine() - 1;
-				return seg.getOriginalLine() + delta;
+			// Count prior segments for the uri of the matching segment; segment order is encounter order.
+			if(seg.preprocessedLine(preprocessedLine)) {
+				var uri = seg.getUri();
+				int prior = 0;
+				for(var prev : segments) {
+					if(prev == seg) {
+						break;
+					}
+					if(Objects.equal(prev.getUri(), uri)) {
+						prior++;
+					}
+				}
+				var delta = preprocessedLine - seg.getPreprocessedLine();
+				int originalLine = seg.getOriginalLine() + delta - prior;
+				return Optional.of(new TranslatedLocation(uri, originalLine, preprocessedLine));
 			}
 		}
-		return preprocessedLine;
+		return Optional.empty();
 	}
 
-	public List<Segment> findSegments(int offset, int length) {
-		return segments.stream().filter(s -> s.spansPreprocessed(offset, length)).toList();
+	/**
+	 * Translate a zero-based global preprocessed line index to a zero-based line
+	 * index in the original source identified by {@code uri}.
+	 */
+	public int translatePreprocessedToOriginalLine(int preprocessedLine, String uri) {
+		var translated = translatePreprocessedToOriginal(preprocessedLine);
+		if(translated.isEmpty()) {
+			return preprocessedLine;
+		}
+		var loc = translated.get();
+		return Objects.equal(uri, loc.uri()) ? loc.originalLine() : preprocessedLine;
+	}
+
+	/**
+	 * Diagnostic helper for translation issues. Returns a readable trace of the
+	 * segment scan and the exact arithmetic used for the selected segment.
+	 */
+	public String explainPreprocessedToOriginalLine(int preprocessedLine, String uri) {
+		var out = new StringBuilder();
+		out.append("translatePreprocessedToOriginalLine(preprocessedLine=")
+				.append(preprocessedLine)
+				.append(", uri=")
+				.append(uri)
+				.append(")")
+				.append(System.lineSeparator());
+
+		for(int i = 0; i < segments.size(); i++) {
+			var seg = segments.get(i);
+			var sameUri = isSameUri(uri, seg);
+			var inRange = seg.preprocessedLine(preprocessedLine);
+			out.append("[").append(i).append("] ").append(seg)
+					.append(" sameUri=").append(sameUri)
+					.append(" inRange=").append(inRange)
+					.append(System.lineSeparator());
+
+			if(sameUri && inRange) {
+				int prior = 0;
+				for(int p = 0; p < i; p++) {
+					if(Objects.equal(segments.get(p).getUri(), seg.getUri())) {
+						prior++;
+					}
+				}
+				var delta = preprocessedLine - seg.getPreprocessedLine();
+				var result = seg.getOriginalLine() + delta - prior;
+				out.append("  MATCH: delta = ")
+						.append(preprocessedLine)
+						.append(" - ")
+						.append(seg.getPreprocessedLine())
+						.append(" = ")
+						.append(delta)
+						.append(System.lineSeparator());
+				out.append("  ADJUST: subtract prior same-uri segments = ")
+						.append(prior)
+						.append(System.lineSeparator());
+				out.append("  RESULT: originalLine = ")
+						.append(seg.getOriginalLine())
+						.append(" + ")
+						.append(delta)
+						.append(" - ")
+						.append(prior)
+						.append(" = ")
+						.append(result)
+						.append(System.lineSeparator());
+				return out.toString();
+			}
+		}
+
+		out.append("  NO MATCH: returns input line ").append(preprocessedLine).append(System.lineSeparator());
+		return out.toString();
+	}
+
+	public boolean isSameUri(String uri, Segment seg) {
+		return Objects.equal(uri, seg.uri);
 	}
 
 }

@@ -273,13 +273,13 @@
 		<super type="org.eclipse.xtext.ui.check.expensive"/>
 		<persistent value="true"/>
 	</extension>
-	<extension
+	<!--<extension
 			id="asmProblem"
 			name="Assembler Problem"
 			point="org.eclipse.core.resources.markers">
 		<super type="org.eclipse.core.resources.problemmarker"/>
 		<persistent value="true"/>
-	</extension>
+	</extension>-->
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
 			category="uk.co.bithatch.eclipz80.Asm"
