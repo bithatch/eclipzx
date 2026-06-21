@@ -29,7 +29,7 @@ import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.TAPBuilder;
 import uk.co.bithatch.bitzx.TZXBuilder;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
-import uk.co.bithatch.eclipz80.generator.Z80Assembler;
+import uk.co.bithatch.eclipz80.assembler.Z80Assembler;
 import uk.co.bithatch.eclipz80.ui.internal.Eclipz80Activator;
 import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
 import uk.co.bithatch.eclipz80.ui.preprocessing.AsmResource;

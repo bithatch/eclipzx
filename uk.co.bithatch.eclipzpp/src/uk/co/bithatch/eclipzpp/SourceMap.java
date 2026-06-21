@@ -2,8 +2,10 @@ package uk.co.bithatch.eclipzpp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Objects;
 
@@ -110,7 +112,7 @@ public class SourceMap {
 	private final List<Segment> segments = new ArrayList<>();
 	private final Map<String, DefineDef> defines = new HashMap<>();
 	private final Map<Integer, String> hiddenOffsets = new HashMap<>();
-
+	private final Set<String> inits = new LinkedHashSet<>();
 	public void addSegment(Segment segment) {
 		segments.add(segment);
 	}
@@ -119,6 +121,12 @@ public class SourceMap {
 		segments.clear();
 		defines.clear();
 		hiddenOffsets.clear();
+		inits.clear();
+	}
+
+	
+	public Set<String> inits() {
+		return inits;
 	}
 	
 	public List<Segment> segments() {

@@ -1,4 +1,4 @@
-package uk.co.bithatch.eclipz80.generator;
+package uk.co.bithatch.eclipz80.assembler;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,7 +16,7 @@ import com.google.inject.Injector;
 
 import uk.co.bithatch.eclipz80.AsmStandaloneSetup;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
-import uk.co.bithatch.eclipz80.generator.Z80Assembler.Results;
+import uk.co.bithatch.eclipz80.assembler.Z80Assembler.Results;
 
 /**
  * Standalone command-line Z80 assembler. Parses a {@code .asm} file using the

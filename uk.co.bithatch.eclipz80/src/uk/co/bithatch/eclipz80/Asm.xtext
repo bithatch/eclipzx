@@ -3,12 +3,6 @@ grammar uk.co.bithatch.eclipz80.Asm with org.eclipse.xtext.common.Terminals
 /*
  * Z80 Grammar that covers Z88DK Assembler and Boriels ZX Basic assembler (and 
  * maybe others, i've no idea!)
- * 
- * TODO - Remaining Z88DK directives (https://github.com/z88dk/z88dk/wiki/Tool---z80asm---directives).
- * 
- *  - FLOAT (functions TODO!)
- *  - INVOKE
- *  - PHASE
  */
 
 generate asm "http://www.co.uk/bithatch/eclipz80/Asm"
@@ -101,6 +95,8 @@ AsmStatement:
     AsmAndStatement |
     AsmOrStatement |
     AsmPublicDirective |
+    AsmPhaseDirective |
+    AsmInvokeDirective |
     AsmSetFloatDirective |
     AsmFloatDirective |
     AsmXorStatement |
@@ -228,6 +224,16 @@ AsmDataDefineVars:
     {DataDefineGroup} ( 'DEFVARS' ) name=QualifiedID '{'
         defines += AsmVarDefine
     '}'
+;
+
+AsmPhaseDirective:
+    {Phase} ( 'PHASE' ) org=AsmExpression
+        lines+=AsmLine*
+    'DEPHASE'
+;
+
+AsmInvokeDirective:
+    {Invoke} ( 'INVOKE' ) expr=AsmExpression
 ;
 
 AsmVarDefine:

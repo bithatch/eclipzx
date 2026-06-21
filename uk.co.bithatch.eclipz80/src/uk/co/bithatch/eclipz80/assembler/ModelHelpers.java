@@ -1,4 +1,4 @@
-package uk.co.bithatch.eclipz80.generator;
+package uk.co.bithatch.eclipz80.assembler;
 
 import uk.co.bithatch.eclipz80.asm.IntegralLiteral;
 

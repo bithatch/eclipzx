@@ -1,7 +1,7 @@
-package uk.co.bithatch.eclipz80.generator;
+package uk.co.bithatch.eclipz80.assembler;
 
 
-import static uk.co.bithatch.eclipz80.generator.ModelHelpers.resolveIntegralLiteral;
+import static uk.co.bithatch.eclipz80.assembler.ModelHelpers.resolveIntegralLiteral;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
@@ -60,7 +61,7 @@ import uk.co.bithatch.eclipzpp.SourceMap;
  *
  * <h2>Outstanding TODOs</h2>
  * <ul>
- *   <li>TODO: Explicit module.label syntax in expressions (needs grammar change for dotted AsmLabel - DONE)</li>
+ *   <li>TODO: Explicit module.label syntax in expressions (Grammar exists, needs wiring here)</li>
  *   <li>TODO: Section ordering in output (CODE, DATA, BSS reordering for linker phase)</li>
  *   <li>TODO: Proper linker-phase extern resolution (currently fails with address 0)</li>
  *   <li>TODO: Copper directives — CU.WAIT, CU.MOVE, CU.STOP, CU.NOP  (Grammar exists, needs wiring up here)</li>
@@ -68,8 +69,9 @@ import uk.co.bithatch.eclipzpp.SourceMap;
  *   <li>TODO: Z88DK directives — CALL_OZ, CALL_PKG, FPP, .ASSUME ADL, C_LINE  (Grammar exists, needs wiring up here)</li>
  *   <li>TODO: PROC / LOCAL scoping (Grammar exists, needs wiring up here)</li>
  *   <li>TODO: Numeric label support (AsmNumericLabelLine)</li>
- *   <li>TODO: Allow command line ORG setting that overrides the default and what assembly specifies</li>
  *   <li>TODO: Add all same command line options z80asm has</li>
+ *   <li>TODO: Implement INVOKE (grammar done)<li>
+ *   <li>TODO: Implement SourceMap.inits handle (#init ZXBPP preprocess directive)<li>
  * </ul>
  * 
  * 
@@ -685,7 +687,11 @@ public class Z80Assembler {
 	 * Used both for the top-level program and for conditional branch bodies.
 	 */
 	private void assembleLines(AsmProgram program, ByteArrayOutputStream out) {
-		for (AsmLine line : program.getLines()) {
+		assembleLines(program.getLines(), out);
+	}
+
+	private void assembleLines(EList<AsmLine> lines, ByteArrayOutputStream out) {
+		for (AsmLine line : lines) {
 
 			// ── Label-only line (e.g. "start:" or ".loop:") ──
 			// ── EQU line (e.g. "SCREEN_ADDR EQU $4000") ──
@@ -734,6 +740,17 @@ public class Z80Assembler {
 			}
 			currentAddress = resolveIntegralLiteral(((Org) stmt).getValue());
 			return;
+		}
+		
+		if(stmt instanceof Phase phase) {
+			var addressWas = currentAddress;
+			try {
+				currentAddress = resolveInteger(phase.getOrg());
+				assembleLines(phase.getLines(), out);
+			}
+			finally {
+				currentAddress = addressWas;
+			}
 		}
 
 		// ── Module / Section directives ──

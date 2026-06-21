@@ -748,38 +748,20 @@ public class GenericPreprocessor extends AbstractTool {
 						return Optional.of(line);
 					}
 				}
+				else if(directive.equals("#init")) {
+					if(pragma(line.trim())) {
+						return includeDirectiveIfEditorMode(offset, line, 1, false);
+					}
+					else {
+						error(Error.SYNTAX_ERROR,thisLineNo, "Syntax error " + line + ".");
+						return Optional.of(line);
+					}
+				}
 			}
 			
 
 			if (line.startsWith("#")) {
 
-				/**
-				 * TODO
-				 * 
-				 * Init seems to be an odd one out. It is not really a pre-processor directive,
-				 * but it is used to generate code that will be executed at the start of the
-				 * program. The following code is from the original zxbpp pre-processor, and it
-				 * shows how the INIT directive is handled.
-				 * 
-				 * <pre>
-				 * <code>
-				 *    for label, line in asmparse.INITS:
-				 *        expr_label = expr.Expr.makenode(asmparse.Container(asmparse.MEMORY.get_label(label, line), line))
-				 *        asmparse.MEMORY.add_instruction(asmparse.Asm(0, "CALL NN", expr_label))
-				 *
-				 *    if len(asmparse.INITS) > 0:
-				 *        if asmparse.AUTORUN_ADDR is not None:
-				 *            asmparse.MEMORY.add_instruction(asmparse.Asm(0, "JP NN", asmparse.AUTORUN_ADDR))
-				 *        else:
-				 *            asmparse.MEMORY.add_instruction(
-				 *                asmparse.Asm(0, "JP NN", min(asmparse.MEMORY.orgs.keys()))
-				 *            )  # To the beginning of binary
-				 *
-				 *        asmparse.AUTORUN_ADDR = current_org
-				 * 
-				 * </pre></code>
-				 */
-//	    	    INIT = "INIT"
 				
 				onWarning.ifPresent(ow -> ow.warning(Warning.UNKNOWN_PREPROCESSOR_DIRECTIVE, thisLineNo, "Unknown preprocessor directive " + line.trim() + "."));
 				return includeDirectiveIfEditorMode(offset, line, 1, true);
@@ -1432,7 +1414,7 @@ public class GenericPreprocessor extends AbstractTool {
 
 		private Optional<String> includeDirectiveIfEditorMode(int offset, String line, int stackSize, boolean replaceWithSpaces) {
 			if(mode == Mode.EDITOR && stack.size() <= stackSize) {
-				/* In EDITOR mode, we output #include statements, but
+				/* In EDITOR mode, we output #include statements and #define, but
 				 * only in the top level (we do still continue pre-processing
 				 * the include itself though)
 				 */
@@ -1706,6 +1688,13 @@ public class GenericPreprocessor extends AbstractTool {
 				var ws = ws(chars, notWs);
 				return new String(chars, notWs, ws - notWs);
 			}
+		}
+
+		private boolean init(String line) {
+			return sourceMap.map(sm -> { 
+				sm.inits().add(line.split("\\s+")[0]);
+				return true;
+			}).orElse(false);
 		}
 
 		private boolean pragma(String line) {

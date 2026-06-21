@@ -42,7 +42,7 @@ Workflow {
                 generateDeprecationValidation = true
             }
             generator = {
-                generateStub = true
+                generateStub = false
                 generateXtendStub = false
             }
         }

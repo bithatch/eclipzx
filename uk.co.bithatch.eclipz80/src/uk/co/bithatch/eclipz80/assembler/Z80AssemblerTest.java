@@ -1,4 +1,4 @@
-package uk.co.bithatch.eclipz80.generator;
+package uk.co.bithatch.eclipz80.assembler;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -17,7 +17,7 @@ import com.google.inject.Injector;
 
 import uk.co.bithatch.eclipz80.AsmStandaloneSetup;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
-import uk.co.bithatch.eclipz80.generator.Z80Assembler.Results;
+import uk.co.bithatch.eclipz80.assembler.Z80Assembler.Results;
 
 /**
  * Simple test that assembles sample .asm files with both our Z80Assembler and

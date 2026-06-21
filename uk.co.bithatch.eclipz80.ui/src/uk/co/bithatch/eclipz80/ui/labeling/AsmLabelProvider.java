@@ -33,7 +33,7 @@ import uk.co.bithatch.eclipz80.asm.Org;
 import uk.co.bithatch.eclipz80.asm.Public;
 import uk.co.bithatch.eclipz80.asm.Push;
 import uk.co.bithatch.eclipz80.asm.StringLiteral;
-import uk.co.bithatch.eclipz80.generator.ModelHelpers;
+import uk.co.bithatch.eclipz80.assembler.ModelHelpers;
 import uk.co.bithatch.eclipz80.ui.AsmUiActivator;
 import uk.co.bithatch.eclipz80.ui.outline.AsmOutlineModel;
 import uk.co.bithatch.eclipzpp.ui.PPUiActivator;
