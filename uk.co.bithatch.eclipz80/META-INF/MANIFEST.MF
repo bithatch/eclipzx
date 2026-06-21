@@ -15,16 +15,18 @@ Require-Bundle: org.eclipse.xtext,
  uk.co.bithatch.eclipzpp;bundle-version="[1.0.0,2.0.0)";visibility:=reexport,
  uk.co.bithatch.bitzx;bundle-version="1.0.0";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-21
-Export-Package: uk.co.bithatch.eclipz80.parser.antlr.lexer,
+Export-Package: uk.co.bithatch.eclipz80,
  uk.co.bithatch.eclipz80.asm,
  uk.co.bithatch.eclipz80.asm.impl,
- uk.co.bithatch.eclipz80.parser.antlr,
- uk.co.bithatch.eclipz80,
- uk.co.bithatch.eclipz80.serializer,
+ uk.co.bithatch.eclipz80.asm.util,
+ uk.co.bithatch.eclipz80.assembler,
  uk.co.bithatch.eclipz80.generator,
- uk.co.bithatch.eclipz80.validation,
+ uk.co.bithatch.eclipz80.linking,
+ uk.co.bithatch.eclipz80.parser.antlr,
  uk.co.bithatch.eclipz80.parser.antlr.internal,
- uk.co.bithatch.eclipz80.services,
+ uk.co.bithatch.eclipz80.parser.antlr.lexer,
  uk.co.bithatch.eclipz80.scoping,
- uk.co.bithatch.eclipz80.asm.util
+ uk.co.bithatch.eclipz80.serializer,
+ uk.co.bithatch.eclipz80.services,
+ uk.co.bithatch.eclipz80.validation
 Import-Package: org.apache.log4j
