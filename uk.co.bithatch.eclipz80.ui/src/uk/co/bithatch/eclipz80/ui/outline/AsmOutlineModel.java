@@ -30,6 +30,7 @@ import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefcDirective;
 import uk.co.bithatch.eclipz80.asm.AsmDefine;
 import uk.co.bithatch.eclipz80.asm.AsmExternDirective;
+import uk.co.bithatch.eclipz80.asm.AsmGlobalDirective;
 import uk.co.bithatch.eclipz80.asm.AsmGroupedDefine;
 import uk.co.bithatch.eclipz80.asm.AsmIncBin;
 import uk.co.bithatch.eclipz80.asm.AsmInclude;
@@ -39,20 +40,59 @@ import uk.co.bithatch.eclipz80.asm.AsmNextReg;
 import uk.co.bithatch.eclipz80.asm.AsmOrg;
 import uk.co.bithatch.eclipz80.asm.AsmProcStatement;
 import uk.co.bithatch.eclipz80.asm.AsmSection;
+import uk.co.bithatch.eclipz80.asm.DataDefineGroup;
+import uk.co.bithatch.eclipz80.asm.DefC;
+import uk.co.bithatch.eclipz80.asm.LabelledLine;
+import uk.co.bithatch.eclipz80.asm.Push;
 
 public class AsmOutlineModel  {
-
-	public static boolean isConstant(EObject stmt) {
-		return stmt instanceof AsmDefcDirective
-			|| stmt instanceof AsmGroupedDefine
-			|| stmt instanceof AsmDefine
-			|| stmt instanceof AsmDataDefineGroup;
+	
+	public static String symbolLabel(EObject el) {
+		if(el instanceof DefC defc) {
+			return defc.getName() == null ? "" : defc.getName().getName();
+		}
+		else if(el instanceof DataDefineGroup defg) {
+			return defg.getName() == null ? "" : defg.getName();
+		}
+		else  {
+			return "";
+		}
 	}
 
-	public static boolean isConstant(EObjectNode node) {
+	public static boolean isLabel(EObject stmt) {
+		return stmt instanceof LabelledLine;
+	}
+
+	public static boolean isSymbol(EObject stmt) {
+		return stmt instanceof AsmDefcDirective
+			|| stmt instanceof AsmGroupedDefine
+			|| stmt instanceof AsmDataDefineGroup
+			|| stmt instanceof AsmGlobalDirective;
+	}
+
+	public static boolean isExternalSymbol(EObject stmt) {
+		return stmt instanceof AsmExternDirective
+			|| stmt instanceof AsmGlobalDirective;
+	}
+
+	public static boolean isLabel(EObjectNode node) {
+		return isAssignableFrom(LabelledLine.class, node);
+	}
+
+	public static boolean isExternalSymbol(EObjectNode node) {
+		return isAssignableFrom(AsmExternDirective.class, node) ||
+				isAssignableFrom(AsmGlobalDirective.class, node);
+	}
+
+	public static boolean isSymbol(EObjectNode node) {
 		return isAssignableFrom(AsmDefcDirective.class, node) ||
 				isAssignableFrom(AsmGroupedDefine.class, node) ||
 				isAssignableFrom(AsmDataDefineGroup.class, node);
+	}
+
+	public static boolean isPP(EObjectNode node) {
+		return isAssignableFrom(AsmDefine.class, node) ||
+				isAssignableFrom(AsmInclude.class, node);
 	}
 	
 	public static boolean isData(EObjectNode node) {
@@ -78,6 +118,11 @@ public class AsmOutlineModel  {
 				|| stmt instanceof AsmDefDWordDirective
 				|| stmt instanceof AsmDefTermStringDirective
 				|| stmt instanceof AsmDefSpaceDirective;
+	}
+
+	
+	public static boolean isPushNamespace(EObject stmt) {
+		return stmt instanceof Push ps && ps.getNamespace() != null;
 	}
 	
 	public static boolean isDirective(EObject stmt) {
@@ -109,6 +154,8 @@ public class AsmOutlineModel  {
 				|| stmt instanceof AsmMmuStatement
 				|| stmt instanceof AsmProcStatement
 				|| isData(stmt)
-				|| isConstant(stmt);
+				|| isExternalSymbol(stmt)
+				|| isSymbol(stmt)
+				|| isPushNamespace(stmt);
 	}
 }

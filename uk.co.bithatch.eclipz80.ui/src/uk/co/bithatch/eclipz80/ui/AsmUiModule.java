@@ -18,8 +18,11 @@ import uk.co.bithatch.eclipz80.ui.debug.AsmXtextEditor;
 import uk.co.bithatch.eclipz80.ui.hyperlinking.AsmHyperlinkDetector;
 import uk.co.bithatch.eclipz80.ui.library.AsmLibraryIncludeSource;
 import uk.co.bithatch.eclipz80.ui.outline.FilterLocalSymbolsContribution;
+import uk.co.bithatch.eclipz80.ui.outline.FilterPreprocessorContribution;
 import uk.co.bithatch.eclipz80.ui.outline.FilterPublicSymbolsContribution;
 import uk.co.bithatch.eclipz80.ui.outline.FilterDataContribution;
+import uk.co.bithatch.eclipz80.ui.outline.FilterExternalSymbolsContribution;
+import uk.co.bithatch.eclipz80.ui.outline.FilterLabelsContribution;
 import uk.co.bithatch.eclipz80.ui.preprocessing.AsmReferenceIndex;
 import uk.co.bithatch.eclipz80.ui.preprocessing.AsmResource;
 import uk.co.bithatch.eclipz80.ui.syntaxcoloring.AsmHighlightingConfiguration;
@@ -72,5 +75,8 @@ public class AsmUiModule extends AbstractAsmUiModule {
       binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterDataContribution")).to(FilterDataContribution.class);
       binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterLocalSymbolsContribution")).to(FilterLocalSymbolsContribution.class);
       binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterPublicSymbolsContribution")).to(FilterPublicSymbolsContribution.class);
+      binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterExternalSymbolsContribution")).to(FilterExternalSymbolsContribution.class);
+      binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterLabelsContribution")).to(FilterLabelsContribution.class);
+      binder.bind(IOutlineContribution.class).annotatedWith(Names.named("FilterPreprocessorContribution")).to(FilterPreprocessorContribution.class);
     }
 }

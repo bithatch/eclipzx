@@ -750,8 +750,8 @@ public class Z80Assembler {
 		if (stmt instanceof Public) {
 			Public pub = (Public) stmt;
 			if (pass1) {
-				for (String name : pub.getName()) {
-					putSymbol(name).isPublic = true;
+				for (AsmLabel name : pub.getName()) {
+					putSymbol(name.getRef().getName()).isPublic = true;
 				}
 			}
 			return;
@@ -759,16 +759,16 @@ public class Z80Assembler {
 		if (stmt instanceof Global) {
 			Global glob = (Global) stmt;
 			if (pass1) {
-				for (AsmLabelDef name : glob.getName()) {
-					putSymbol(name.getName()).isGlobal = true;
+				for (AsmLabel name : glob.getName()) {
+					putSymbol(name.getRef().getName()).isGlobal = true;
 				}
 			}
 			return;
 		}
 		if (stmt instanceof Local lcl) {
 			if (pass1) {
-				for (AsmLabelDef name : lcl.getName()) {
-					Symbol symbl = putSymbol(name.getName());
+				for (AsmLabel name : lcl.getName()) {
+					Symbol symbl = putSymbol(name.getRef().getName());
 					symbl.isGlobal = false;
 					symbl.isExternal = false;
 					symbl.isPublic = false;
@@ -779,20 +779,20 @@ public class Z80Assembler {
 		if (stmt instanceof Extern) {
 			Extern ext = (Extern) stmt;
 			if (pass1) {
-				for (AsmLabelDef name : ext.getName()) {
-					Symbol sym = putSymbol(name.getName());
+				for (AsmLabel name : ext.getName()) {
+					Symbol sym = putSymbol(name.getRef().getName());
 					sym.isExternal = true;
 					sym.address = 0;
 				}
 			} else {
 				// TODO: Proper linker-phase extern resolution (currently fails with address 0)
-				for (AsmLabelDef name : ext.getName()) {
-					String qualifiedName = currentModule + "." + name.getName();
+				for (AsmLabel name : ext.getName()) {
+					String qualifiedName = currentModule + "." + name.getRef().getName();
 					Symbol sym = symbols.get(qualifiedName);
-					if (sym == null) sym = symbols.get(name.getName());
+					if (sym == null) sym = symbols.get(name.getRef().getName());
 					if (sym != null && sym.isExternal && sym.address == 0) {
 						throw new AssemblyException(effectiveSource, translateToOriginalSourceLine(currentLine, effectiveSource),
-								"Unresolved external symbol: " + name.getName());
+								"Unresolved external symbol: " + name.getRef().getName());
 					}
 				}
 			}

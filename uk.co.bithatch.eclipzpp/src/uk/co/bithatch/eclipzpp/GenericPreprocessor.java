@@ -1447,7 +1447,7 @@ public class GenericPreprocessor extends AbstractTool {
 					 */
 					var lineStr = maybeQueueLines(replaceWithSpaces(line), true);
 					if(line.toLowerCase().startsWith("#define ")) {
-						lineStr = partialDirective(offset, line, lineStr, 10);
+						lineStr = partialDirective(offset + 2, line, lineStr, 8);
 					}
 					else if(line.toLowerCase().startsWith("#include ")) {
 						lineStr = partialDirective(offset, line, lineStr, 9);

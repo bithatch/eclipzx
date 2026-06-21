@@ -740,19 +740,19 @@ AsmDMAWR6Directive:
 ;
 
 AsmExternDirective:
-    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=AsmLabelDef (',' name+=AsmLabelDef)*
+    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=AsmLabel (',' name+=AsmLabel)*
 ;
 
 AsmPublicDirective:
-    {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=QualifiedID (',' name+=QualifiedID)*
+    {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=AsmLabel (',' name+=AsmLabel)*
 ;
 
 AsmLocalDirective:
-    {Local} ( 'LOCAL') name+=AsmLabelDef (',' name+=AsmLabelDef)*
+    {Local} ( 'LOCAL') name+=AsmLabel (',' name+=AsmLabel)*
 ;
 
 AsmGlobalDirective:
-    {Global} ( 'GLOBAL') name+=AsmLabelDef (',' name+=AsmLabelDef)*
+    {Global} ( 'GLOBAL') name+=AsmLabel (',' name+=AsmLabel)*
 ;
 
 AsmSetFloatDirective:

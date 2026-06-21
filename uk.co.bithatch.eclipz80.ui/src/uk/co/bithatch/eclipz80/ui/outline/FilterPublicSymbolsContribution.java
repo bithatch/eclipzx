@@ -14,7 +14,7 @@ public class FilterPublicSymbolsContribution extends AbstractFilterOutlineContri
 	@Override
 	protected boolean apply(IOutlineNode node) {
 		return !(node instanceof EObjectNode enode)
-				|| !AsmOutlineModel.isConstant(enode);
+				|| !AsmOutlineModel.isSymbol(enode);
 	}
 
 	@Override

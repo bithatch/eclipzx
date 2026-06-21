@@ -16,12 +16,15 @@ public class PPUiActivator extends AbstractUIPlugin {
     public static final String LABEL_PATH = "icons/label16.png";
     public static final String VAR_PATH = "icons/var16.png";
     public static final String PUBLIC_PATH = "icons/public16.png";
+    public static final String EXTERN_PATH = "icons/extern16.png";
     public static final String INCLUDE_PATH = "icons/include16.png";
     public static final String PROGRAM_PATH = "icons/program16.png";
     public static final String LOCAL_PATH = "icons/local16.png";
     public static final String DATA_PATH = "icons/data16.png";
     public static final String PP_PATH = "icons/pp16.png";
     public static final String DEFINE_PATH = "icons/define16.png";;
+    public static final String MODULE_PATH = "icons/module16.png";;
+    public static final String NS_PATH = "icons/ns16.png";;
 
 	@Override
 	protected void initializeImageRegistry(ImageRegistry reg) {
@@ -29,12 +32,15 @@ public class PPUiActivator extends AbstractUIPlugin {
 		reg.put(LABEL_PATH, imageDescriptorFromPlugin(PLUGIN_ID, LABEL_PATH));
 		reg.put(VAR_PATH, imageDescriptorFromPlugin(PLUGIN_ID, VAR_PATH));
 		reg.put(PUBLIC_PATH, imageDescriptorFromPlugin(PLUGIN_ID, PUBLIC_PATH));
+		reg.put(EXTERN_PATH, imageDescriptorFromPlugin(PLUGIN_ID, EXTERN_PATH));
 		reg.put(INCLUDE_PATH, imageDescriptorFromPlugin(PLUGIN_ID, INCLUDE_PATH));
 		reg.put(PROGRAM_PATH, imageDescriptorFromPlugin(PLUGIN_ID, PROGRAM_PATH));
 		reg.put(LOCAL_PATH, imageDescriptorFromPlugin(PLUGIN_ID, LOCAL_PATH));
 		reg.put(DATA_PATH, imageDescriptorFromPlugin(PLUGIN_ID, DATA_PATH));
 		reg.put(PP_PATH, imageDescriptorFromPlugin(PLUGIN_ID, PP_PATH));
 		reg.put(DEFINE_PATH, imageDescriptorFromPlugin(PLUGIN_ID, DEFINE_PATH));
+		reg.put(MODULE_PATH, imageDescriptorFromPlugin(PLUGIN_ID, MODULE_PATH));
+		reg.put(NS_PATH, imageDescriptorFromPlugin(PLUGIN_ID, NS_PATH));
 	}
 
 	// The shared instance

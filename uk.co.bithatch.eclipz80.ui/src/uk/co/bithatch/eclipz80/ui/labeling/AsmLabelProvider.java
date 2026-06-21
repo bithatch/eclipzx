@@ -9,13 +9,13 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider;
 
-import uk.co.bithatch.eclipz80.asm.AsmDefWordDirective;
-import uk.co.bithatch.eclipz80.asm.AsmDefine;
 import uk.co.bithatch.eclipz80.asm.AsmExpression;
+import uk.co.bithatch.eclipz80.asm.AsmGlobalDirective;
 import uk.co.bithatch.eclipz80.asm.AsmIncBin;
 import uk.co.bithatch.eclipz80.asm.AsmInclude;
 import uk.co.bithatch.eclipz80.asm.AsmLabel;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipz80.asm.AsmPushNamespace;
 import uk.co.bithatch.eclipz80.asm.DataDefineGroup;
 import uk.co.bithatch.eclipz80.asm.DefByte;
 import uk.co.bithatch.eclipz80.asm.DefC;
@@ -25,9 +25,13 @@ import uk.co.bithatch.eclipz80.asm.DefTermString;
 import uk.co.bithatch.eclipz80.asm.DefWord;
 import uk.co.bithatch.eclipz80.asm.DefWordBE;
 import uk.co.bithatch.eclipz80.asm.Define;
+import uk.co.bithatch.eclipz80.asm.Extern;
+import uk.co.bithatch.eclipz80.asm.Global;
 import uk.co.bithatch.eclipz80.asm.IntegralLiteral;
 import uk.co.bithatch.eclipz80.asm.LabelledLine;
 import uk.co.bithatch.eclipz80.asm.Org;
+import uk.co.bithatch.eclipz80.asm.Public;
+import uk.co.bithatch.eclipz80.asm.Push;
 import uk.co.bithatch.eclipz80.asm.StringLiteral;
 import uk.co.bithatch.eclipz80.generator.ModelHelpers;
 import uk.co.bithatch.eclipz80.ui.AsmUiActivator;
@@ -41,75 +45,17 @@ import uk.co.bithatch.eclipzpp.ui.PPUiActivator;
  */
 public class AsmLabelProvider extends/* PPLabelProvider*/ DefaultEObjectLabelProvider {
 
-//	@Inject
-//	public AsmLabelProvider(IPPOutlineModel model, AdapterFactoryLabelProvider delegate) {
-//		super(model, delegate);
-//	}
-
-	// ─────────────── Labels ───────────────
-
+	// Labels
 	String text(LabelledLine ele) {
 		return ele.getName() != null ? ele.getName().getName() : "<label>";
 	}
 
-//	String text(AsmDefcLine ele) {
-//		return ele.getName() != null ? "DEFC " + ele.getName().getName() : "DEFC";
-//	}
-
-//	String text(AsmLocalLine ele) {
-//		StringBuilder sb = new StringBuilder("LOCAL ");
-//		if (ele.getLabels() != null && !ele.getLabels().isEmpty()) {
-//			sb.append(String.join(", ", ele.getLabels()));
-//		}
-//		return sb.toString();
-//	}
-
-//	String text(LabelledLine ele) {
-//		StringBuilder sb = new StringBuilder();
-//		if (ele.getName() != null) {
-//			sb.append(ele.getName().getName());
-//		}
-//		if (ele.getStatements() != null && !ele.getStatements().isEmpty()) {
-//			for (AsmStatement stmt : ele.getStatements()) {
-//				String stmtText = getStatementText(stmt);
-//				if (stmtText != null) {
-//					if (sb.length() > 0) sb.append(": ");
-//					sb.append(stmtText);
-//				}
-//			}
-//		}
-//		return sb.length() > 0 ? sb.toString() : "<statement>";
-//	}
-//
 	String text(Org ele) {
 		return "ORG " + formatIntegralLiteral(ModelHelpers.resolveIntegralLiteral(ele.getValue()));
 	}
-//
-//	String text(uk.co.bithatch.eclipz80.asm.Module ele) {
-//		return "MODULE " + (ele.getName() != null ? ele.getName() : "");
-//	}
-//
-//	String text(Section ele) {
-//		return "SECTION " + (ele.getName() != null ? ele.getName() : "");
-//	}
-//
-//	String text(Extern ele) {
-//		if (ele.getName() != null && !ele.getName().isEmpty()) {
-//			return "EXTERN " + String.join(", ", ele.getName().stream().map(e -> e.getName()).toList());
-//		}
-//		return "EXTERN";
-//	}
-//
-////	String text(IncBin ele) {
-////		return "INCBIN " + (ele.getFile() != null ? ele.getFile() : "");
-////	}
-//
-//	String text(Proc ele) {
-//		return "PROC";
-//	}
-//
+
 	String text(DataDefineGroup ele) {
-		return ele.getName();
+		return ele.getName() == null ? "??" : ele.getName();
 	}
 	
 	String text(Define defc) {
@@ -144,35 +90,69 @@ public class AsmLabelProvider extends/* PPLabelProvider*/ DefaultEObjectLabelPro
 		return defc.getName() == null ? "??" : defc.getName().getName();
 	}
 
-	// ─────────────── Icons ───────────────
+	String text(Global defc) {
+		return String.join(", ", defc.getName().stream().map(e -> e.getRef().getName()).toList());
+	}
 
-//	String image(LabelEQULine ele) {
-//		return "outline-equ.png";
-//	}
+	String text(uk.co.bithatch.eclipz80.asm.Module mod) {
+		return mod.getName();
+	}
+	
+	String text(Extern extern) {
+		return String.join(", ", extern.getName().stream().map(e -> e.getRef().getName()).toList());
+	}
 
-//	String image(AsmDefcLine ele) {
-//		return "outline-equ.png";
-//	}
+	String text(Push ns) {
+		return ns.getNamespace() == null ? "??" : ns.getNamespace().getImportedNamespace();
+	}
+
+	// Icons
 //
 	Object image(AsmProgram prg) {
 		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.PROGRAM_PATH);
 	}
 	
-	Object image(AsmDefine def) {
+	Object module(uk.co.bithatch.eclipz80.asm.Module mod) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.MODULE_PATH);
+	}
+	
+	Object image(Define def) {
 		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.DEFINE_PATH);
 	}
-
+	
+	Object image(Extern extern) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.EXTERN_PATH);
+	}
+	
+	Object image(Push ns) {
+		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.NS_PATH);
+	}
+	
 	Object image(EObject fallback) {
 		if(AsmOutlineModel.isData(fallback))
 			return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.DATA_PATH);
-		else if(AsmOutlineModel.isConstant(fallback))
-			return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.LOCAL_PATH);
+		else if(AsmOutlineModel.isSymbol(fallback)) {
+			var symlab = AsmOutlineModel.symbolLabel(fallback);
+			var it = fallback.eResource().getAllContents();
+			while(it.hasNext()) {
+				var nxt = it.next();
+				if(nxt instanceof Public pub && pub.getName().stream().map(e -> e.getRef().getName()).toList().contains(symlab)) {
+					return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.PUBLIC_PATH);					
+				}
+				else if(nxt instanceof Global glob && glob.getName().stream().map(e -> e.getRef().getName()).toList().contains(symlab)) {
+					return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.PUBLIC_PATH);					
+				}
+			}
+			
+			if(fallback instanceof  AsmGlobalDirective) {
+				return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.EXTERN_PATH);
+			}
+			else {
+				return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.LOCAL_PATH);
+			}
+		}
 		else
 			return null;
-	}
-
-	Object image(AsmDefWordDirective prg) {
-		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.DATA_PATH);
 	}
 	
 	Object image(LabelledLine ele) {
@@ -183,89 +163,14 @@ public class AsmLabelProvider extends/* PPLabelProvider*/ DefaultEObjectLabelPro
 		return AsmUiActivator.getInstance().getImageRegistry().getDescriptor(AsmUiActivator.ORG_PATH);
 	}
 	
-//	String image(AsmModule ele) {
-//		return "outline-module.png";
-//	}
-//
-//	String image(AsmSection ele) {
-//		return "outline-section.png";
-//	}
-//
-//	String image(Extern ele) {
-//		return "outline-extern.png";
-//	}
-
-//	String image(Proc ele) {
-//		return "outline-proc.png";
-//	}
-//
-//	String image(DataDefineGroup ele) {
-//		return "outline-data.png";
-//	}
-
 	Object image(AsmIncBin ele) {
-		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.INCLUDE_PATH);
+		return AsmUiActivator.getInstance().getImageRegistry().getDescriptor(AsmUiActivator.INCBIN_PATH);
 	}
 
 	Object image(AsmInclude ele) {
 		return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.INCLUDE_PATH);
 	}
 
-	// ─────────────── Helpers ───────────────
-
-//	private String getStatementText(AsmStatement stmt) {
-//		if (stmt instanceof Org) {
-//			return "ORG " + formatIntegralLiteral(((Org) stmt).getValue());
-//		} else if (stmt instanceof uk.co.bithatch.eclipz80.asm.Module) {
-//			return "MODULE " + ((uk.co.bithatch.eclipz80.asm.Module) stmt).getName();
-//		} else if (stmt instanceof Section) {
-//			return "SECTION " + ((Section) stmt).getName();
-//		} else if (stmt instanceof AsmInclude) {
-//			return "INCLUDE " + ((AsmInclude) stmt).getImportURI();
-//		} else if (stmt instanceof Extern) {
-//			Extern ext = (Extern) stmt;
-//			return "EXTERN " + (ext.getName() != null ? String.join(", ", ext.getName().stream().map(e -> e.getName()).toList()) : "");
-////		} else if (stmt instanceof IncBin) {
-////			return "INCBIN " + ((IncBin) stmt).getFile();
-//		} 
-//		else if (stmt instanceof Proc) {
-//			return "PROC";
-//		} else if (stmt instanceof AsmDefByteDirective) {
-//			return "DEFB";
-//		} else if (stmt instanceof AsmDefWordDirective) {
-//			return "DEFW";
-//		} else if (stmt instanceof AsmDefSpaceDirective) {
-//			return "DEFS";
-//		} else if (stmt instanceof AsmAlignDirective) {
-//			return "ALIGN";
-//		} else if (stmt instanceof AsmNextReg) {
-//			return "NEXTREG";
-//		} else if (stmt instanceof AsmMmuStatement) {
-//			return "MMU";
-//		} else if (stmt instanceof AsmDataDefineGroup) {
-//			return "DEFGROUP";
-//		} else if (stmt instanceof AsmDataDefineVars) {
-//			return "DEFVARS";
-//		}
-//		// Generic directive fallback
-//		return stmt.eClass().getName();
-//	}
-//
-//	private Object getStatementIcon(AsmStatement stmt) {
-//		if (stmt instanceof AsmOrg) return "outline-org.png";
-//		if (stmt instanceof AsmModule) return "outline-module.png";
-//		if (stmt instanceof AsmSection) return "outline-section.png";
-//		if (stmt instanceof AsmExternDirective) return "outline-extern.png";
-////		if (stmt instanceof AsmBinaryDirective) return "outline-include.png";
-//		if (stmt instanceof AsmProcStatement) return "outline-proc.png";
-//		if (stmt instanceof AsmDataDefineGroup || stmt instanceof AsmDataDefineVars) return "outline-data.png";
-//		if (stmt instanceof AsmDefByteDirective || stmt instanceof AsmDefWordDirective
-//				|| stmt instanceof AsmDefWordBEDirective || stmt instanceof AsmDefPointerDirective
-//				|| stmt instanceof AsmDefDWordDirective || stmt instanceof AsmDefTermStringDirective
-//				|| stmt instanceof AsmDefSpaceDirective) return "outline-data.png";
-//		return "outline-directive.png";
-//	}
-//
 	
 	private String eval(List<AsmExpression> expressions) {
 		return String.join(", ", expressions.stream().map(this::eval).toList());
