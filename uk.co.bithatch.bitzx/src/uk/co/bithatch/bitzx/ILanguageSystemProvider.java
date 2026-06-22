@@ -19,6 +19,10 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 public interface ILanguageSystemProvider {
+
+	public static final String ASM_EDITOR_ID = "uk.co.bithatch.eclipz80.Asm";
+	
+	String getEditorId(IFile file);
 	
 	ISourceAdressMap createSourceAddressMap(Path file);
 

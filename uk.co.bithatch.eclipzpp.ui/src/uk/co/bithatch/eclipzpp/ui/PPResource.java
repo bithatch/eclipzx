@@ -164,26 +164,26 @@ public abstract class PPResource extends LazyLinkingResource implements IMappedR
 
 		var ppd = PPPreprocessingSupport.preprocess(builder(file.getProject()), this, file, map, LOG, instr);
 
-//		System.out.println("------------------->");
-//		var i = 1;
-//		for(var ln : ppd.split(System.lineSeparator())) {
-//			System.out.println(String.format("%03d : %s",  i++, ln));
-//		}
-//		System.out.println("<-------------------");
-//
-//		map.defines().forEach((k,v) -> {
-//			System.out.println("DEFINES: "+ k + "=" + v);
-//		});
-//
-//		map.hiddenOffsets().keySet().stream().sorted().forEach(k -> {
-//			System.out.println("HIDDEN: " + k + "=" + map.hiddenOffsets().get(k));
-//		});
-//		
-//		System.out.println(map.explainPreprocessedToOriginalLine(89, null));
-//
-//		map.segments().forEach(seg -> {
-//			System.out.println(seg);
-//		});
+		System.out.println("------------------->");
+		var i = 1;
+		for(var ln : ppd.split(System.lineSeparator())) {
+			System.out.println(String.format("%03d : %s",  i++, ln));
+		}
+		System.out.println("<-------------------");
+
+		map.defines().forEach((k,v) -> {
+			System.out.println("DEFINES: "+ k + "=" + v);
+		});
+
+		map.hiddenOffsets().keySet().stream().sorted().forEach(k -> {
+			System.out.println("HIDDEN: " + k + "=" + map.hiddenOffsets().get(k));
+		});
+		
+		System.out.println(map.explainPreprocessedToOriginalLine(89, null));
+
+		map.segments().forEach(seg -> {
+			System.out.println(seg);
+		});
 		
 		return ppd;
 	}

@@ -267,4 +267,16 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	public Optional<String> findRuntimeDir(IResource baseFile) {
 		return Z88DKPreferencesAccess.get().getSDK(baseFile.getProject()).map(sdk -> new File(sdk.location(), "lib").getAbsolutePath());
 	}
+
+	@Override
+	public String getEditorId(IFile file) {
+		var name = file.getName().toLowerCase();
+		if (name.endsWith(".c") || name.endsWith(".h")) {
+			return "org.eclipse.cdt.ui.editor.CEditor";
+		}
+		if (name.endsWith(".asm")) {
+			return ASM_EDITOR_ID;
+		}
+		return null;
+	}
 }

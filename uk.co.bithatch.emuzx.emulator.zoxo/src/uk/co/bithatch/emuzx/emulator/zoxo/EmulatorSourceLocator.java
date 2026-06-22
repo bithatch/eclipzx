@@ -9,6 +9,8 @@ import org.eclipse.debug.ui.ISourcePresentation;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
+import uk.co.bithatch.bitzx.LanguageSystem;
+
 /**
  * Simple source locator for the GDB RSP debugger.
  * Maps stack frame source names (e.g., "main.asm") to workspace {@link IFile}s
@@ -44,9 +46,9 @@ public class EmulatorSourceLocator implements ISourceLocator, ISourcePresentatio
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
 		if (element instanceof IFile file) {
-			var name = file.getName().toLowerCase();
-			if (name.endsWith(".asm") || name.endsWith(".s") || name.endsWith(".z80")) {
-				return "uk.co.bithatch.eclipz80.Asm";
+			var ed = LanguageSystem.languageSystem(file.getProject()).getEditorId(file);
+			if(ed != null) {
+				return ed;
 			}
 		}
 		return "org.eclipse.ui.DefaultTextEditor";

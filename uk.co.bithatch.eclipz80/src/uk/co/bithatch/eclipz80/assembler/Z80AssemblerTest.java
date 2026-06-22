@@ -17,7 +17,6 @@ import com.google.inject.Injector;
 
 import uk.co.bithatch.eclipz80.AsmStandaloneSetup;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
-import uk.co.bithatch.eclipz80.assembler.Z80Assembler.Results;
 
 /**
  * Simple test that assembles sample .asm files with both our Z80Assembler and

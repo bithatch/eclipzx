@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +18,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
 
@@ -81,139 +83,6 @@ import uk.co.bithatch.eclipzpp.SourceMap;
  */
 public class Z80Assembler {
 	
-	public interface Results {
-		Path mapFile();
-	}
-	
-	public final static class Symbol {
-		
-		public final static class Builder {
-
-			private final String name;
-			private int address;
-			private boolean isGlobal = false;
-			private boolean isExternal = false;
-			private boolean isPublic = false;
-			private String section;
-			private String module;
-			
-			public Builder(String name) {
-				this.name = name;
-			}
-			
-			public Builder withSection(String section) {
-				this.section = section;
-				return  this;
-			}
-			
-			public Builder withModule(String module) {
-				this.module = module;
-				return  this;
-			}
-
-			public Builder asGlobal(boolean isGlobal) {
-				this.isGlobal = isGlobal;
-				return this;
-			}
-
-			public Builder asPublic(boolean isPublic) {
-				this.isPublic = isPublic;
-				return this;
-			}
-
-			public Builder asExternal(boolean isExternal) {
-				this.isExternal = isExternal;
-				return this;
-			}
-			
-			public Builder withAddress(int address) {
-				this.address = address;
-				return this;
-			}
-			
-			public Symbol build() {
-				return new Symbol(this);
-			}
-		}
-		
-		private final String name;
-		private int address;
-		private boolean isGlobal;
-		private boolean isExternal;
-		private boolean isPublic;
-		private String section;
-		private String module;
-		
-		private Symbol(String name) {
-			this.name = name;
-		}	
-		
-		private Symbol(Builder builder) {
-			this.name = builder.name;
-			this.address = builder.address;
-			this.isExternal = builder.isExternal;
-			this.isPublic = builder.isPublic;
-			this.isGlobal = builder.isGlobal;
-			this.section = builder.section;
-			this.module = builder.module;
-		}
-
-		public int address() {
-			return address;
-		}
-		
-		public boolean isPublic() {
-			return isPublic;
-		}
-		
-		public boolean isExternal() {
-			return isExternal;
-		}
-		
-		public boolean isGlobal() {
-			return isGlobal;
-		}
-		
-		public String name() {
-			return name;
-		}
-		
-		public String section() {
-			return section;
-		}
-		
-		public String module() {
-			return module;
-		}
-	}
-
-	/**
-	 * Callback for non-fatal warnings emitted during assembly.
-	 */
-	@FunctionalInterface
-	public interface WarningCallback {
-		void warn(String filename, int line, String warning);
-	}
-
-	/**
-	 * Thrown when the assembler encounters a fatal error (e.g. an
-	 * unimplemented instruction or directive).
-	 */
-	public static class AssemblyException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
-		private final String filename;
-		private final int line;
-
-		public AssemblyException(String filename, int line, String message) {
-			super(filename + ":" + line + ": " + message);
-			this.filename = filename;
-			this.line = line;
-		}
-
-		public String getFilename() { return filename; }
-		public int getLine() { return line; }
-	}
-
 	private final List<String> warnings = new ArrayList<>();
 	private final Map<String, Symbol> symbols = new LinkedHashMap<>();
 	private int currentAddress = 0;
@@ -224,7 +93,7 @@ public class Z80Assembler {
 	private WarningCallback warningCallback;
 	private String currentSection = "";
 	private String currentModule = "";
-	private boolean listing = false;
+	private boolean listing = true;
 	private boolean forcedORG;
 
 	private final Optional<Path> mapFile;
@@ -240,25 +109,8 @@ public class Z80Assembler {
 	private final Optional<SourceMap> sourceMap;
 	private final Stack<String> namespace = new Stack<>();
 	private FloatType floatType = FloatType.ZX;
-
-	/**
-	 * An entry in the line-to-address map.
-	 */
-	public static class MapEntry {
-		private final String fileName;
-		private final int lineNumber;
-		private final long address;
-
-		MapEntry(String fileName, int lineNumber, long address) {
-			this.fileName = fileName;
-			this.lineNumber = lineNumber;
-			this.address = address;
-		}
-
-		public String getFileName() { return fileName; }
-		public int getLineNumber() { return lineNumber; }
-		public long getAddress() { return address; }
-	}
+	private String defaulSource;
+	private Optional<Path> workingDir = Optional.empty();
 
 	/**
 	 * Builder for configuring a {@link Z80Assembler}.
@@ -276,6 +128,7 @@ public class Z80Assembler {
 		private List<Path> libPaths = new ArrayList<>();
 		private Optional<SourceMap> sourceMap = Optional.empty();
 		private Map<String, Symbol> symbols = new LinkedHashMap<>();
+		private Optional<Path> workingDir = Optional.empty();
 
 		private Builder() {}
 		
@@ -412,6 +265,20 @@ public class Z80Assembler {
 		}
 
 		/**
+		 * Specify working directory. Will be used to calculate relative
+		 * paths in map files and error messages. When not specfied, assumed
+		 * to be the directory of the root source file, or the current runtime
+		 * working directory if the root source input is pipeed.
+		 * 
+		 * @param workingDir working dir
+		 * @return this for chaining
+		 */
+		public Builder withWorkingDir(Path workingDir) {
+			this.workingDir = Optional.of(workingDir);
+			return this;
+		}
+
+		/**
 		 * Enable .zmap output and specify an explicit file path.
 		 * 
 		 * @param mapFile map file
@@ -490,6 +357,7 @@ public class Z80Assembler {
 		this.defaultFill = 0;
 		this.libPaths = Collections.emptyList();
 		this.sourceMap = Optional.empty();
+		this.workingDir = Optional.empty();
 	}
 
 	private Z80Assembler(Builder builder) {
@@ -505,6 +373,7 @@ public class Z80Assembler {
 		this.defaultFill = builder.defaultFill.orElse(0);
 		this.libPaths = Collections.unmodifiableList(new ArrayList<>(builder.libPaths));
 		this.symbols.putAll(builder.symbols);
+		this.workingDir = builder.workingDir;
 	}
 
 	/**
@@ -530,12 +399,13 @@ public class Z80Assembler {
 
 		// Derive source file name from the resource URI if not explicitly set
 		this.effectiveSource = calcEffectiveSource(sourceFileName, program);
+		this.defaulSource = this.effectiveSource;
 
 		// Derive the source directory for resolving relative paths (e.g. INCBIN)
 		if (program.eResource() != null && program.eResource().getURI().isFile()) {
-			this.sourceDir = Path.of(program.eResource().getURI().toFileString()).getParent();
+			sourceDir = Path.of(program.eResource().getURI().toFileString()).getParent();
 		} else {
-			this.sourceDir = Path.of("").toAbsolutePath();
+			sourceDir = workingDir.orElseGet(() ->  Path.of("").toAbsolutePath());
 		}
 
 		// Default module name derived from source file (Z88DK convention)
@@ -566,7 +436,7 @@ public class Z80Assembler {
 		if (mapEnabled) {
 			mapOutputFile = mapFile.orElseGet(() -> {
 				int dot = effectiveSource.lastIndexOf('.');
-				return outputDir.orElse(this.sourceDir).resolve((dot >= 0 ? effectiveSource.substring(0, dot) : effectiveSource) + ".zmap");
+				return outputDir.orElse(sourceDir).resolve((dot >= 0 ? effectiveSource.substring(0, dot) : effectiveSource) + ".zmap");
 			});
 			writeMapFile(mapOutputFile);
 		}
@@ -640,14 +510,6 @@ public class Z80Assembler {
 		return -1;
 	}
 
-	private String getSourceFile(AsmLine line, String defaultSource) {
-		// For now, all lines come from the main source file.
-		// When preprocessing / includes are supported, this can be
-		// extended to return the included file path relative to the
-		// original source.
-		return defaultSource;
-	}
-
 	private long addressMask() {
 		return farAddresses ? 0xFFFFFFFFL : 0xFFFFL;
 	}
@@ -657,7 +519,7 @@ public class Z80Assembler {
 			String lastFile = null;
 			for (MapEntry entry : mapEntries) {
 				String fileCol;
-				if (lastFile == null || !entry.fileName.equals(lastFile)) {
+				if (lastFile == null || !Objects.equals(entry.fileName, lastFile)) {
 					fileCol = entry.fileName;
 					lastFile = entry.fileName;
 				} else {
@@ -704,13 +566,30 @@ public class Z80Assembler {
 					putSymbol(lol.getName().getName()).address = currentAddress;
 				}
 				
+				
+				
 				// Record line-to-address mapping before emitting
 				int lineNumber = getLineNumber(lol);
-				String lineFile = getSourceFile(lol, effectiveSource);
+				var actualSource = getSourceFile(line, effectiveSource);
 				this.currentLine = lineNumber;
 
 				if (!pass1 && lineNumber > 0 && listing) {
-					mapEntries.add(new MapEntry(lineFile, translateToOriginalSourceLine(lineNumber, effectiveSource), currentAddress & addressMask()));
+					
+					
+					
+					
+					if(sourceMap.isPresent()) {
+						var loc = sourceMap.get().translatePreprocessedToOriginal(lineNumber).orElse(null);
+						if(loc == null || loc.uri() == null) {
+							mapEntries.add(new MapEntry(getRelativeToRootSource(actualSource), lineNumber, currentAddress & addressMask()));							
+						}
+						else {
+							mapEntries.add(new MapEntry(getRelativeToRootSource(loc.uri()), loc.originalLine(), currentAddress & addressMask()));
+						}
+					} 
+					else {
+						mapEntries.add(new MapEntry(getRelativeToRootSource(actualSource), lineNumber, currentAddress & addressMask()));
+					}
 				}
 
 				for (AsmStatement stmt : lol.getStatements()) {
@@ -724,6 +603,28 @@ public class Z80Assembler {
 			// TODO: Numeric label support (AsmNumericLabelLine)
 			// TODO: PROC / LOCAL scoping
 		}
+	}
+	
+
+	private String getRelativeToRootSource(String actualSource) {
+		var path = Paths.get(actualSource);
+		if(!path.isAbsolute()) {
+			path = sourceDir.resolve(actualSource);
+		}
+		var cwd = workingDir.orElse(sourceDir);
+		if(path.startsWith(cwd)) {
+			return cwd.relativize(path).toString();
+		}
+		else {
+			return path.toAbsolutePath().toString();
+		}
+	}
+
+	private String getSourceFile(AsmLine line, String currentSource) {
+		if(currentSource == null) {
+			return this.defaulSource;
+		}
+		return currentSource;
 	}
 
 	// ─────────────── Statement dispatch ───────────────
@@ -2379,20 +2280,6 @@ public class Z80Assembler {
 
 	private int evaluate(boolean bool) {
 		return bool ? 1 : 0;
-	}
-	
-	/**
-	 * Resolve a constant expression
-	 * Returns null if the operand is not a constant.
-	 */
-	private String resolveConstExpressionAsString(AsmExpression operand) {
-		if (operand instanceof StringLiteral) {
-			return ((StringLiteral) operand).getValue();
-		}
-		else if (operand instanceof IntegralLiteral lv) {
-			return String.valueOf(resolveIntegralLiteral(lv));
-		}
-		return null;
 	}
 
 	/**

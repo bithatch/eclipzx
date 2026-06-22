@@ -61,7 +61,7 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IL
 			var loc = debugInfo.getSourceLocation(pc);
 			if (loc != null) {
 				sourceName = loc.fileName();
-				sourceLine = loc.line();
+				sourceLine = loc.line() + 1;
 			} else {
 				sourceName = null;
 				sourceLine = -1;
@@ -240,7 +240,7 @@ public final class GdbZ80StackFrame extends DelegatingDebugElement implements IL
 			if (debugInfo != null) {
 				var loc = debugInfo.getSourceLocation(pc);
 				if (loc != null) {
-					return String.format("%s:%d [0x%04X]", loc.fileName(), loc.line(), pc);
+					return String.format("%s:%d [0x%04X]", loc.fileName(), loc.line() + 1, pc);
 				}
 			}
 			return String.format("0x%04X", pc);

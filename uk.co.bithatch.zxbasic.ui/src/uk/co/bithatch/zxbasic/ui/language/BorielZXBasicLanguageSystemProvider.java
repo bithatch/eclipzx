@@ -33,6 +33,7 @@ import uk.co.bithatch.zxbasic.ui.preferences.ZXBasicPreferencesAccess;
 
 public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvider {
 
+
 	@Override
 	public List<IOutputFormat> outputFormats(IResource resource) {
 		return Arrays.asList(BorielZXBasicOutputFormat.values());
@@ -153,6 +154,18 @@ public class BorielZXBasicLanguageSystemProvider implements ILanguageSystemProvi
 					stream().
 					filter(f -> isImportValidForBase(baseFile, f)).
 					collect(Collectors.toSet());
+	}
+
+	@Override
+	public String getEditorId(IFile file) {
+		var name = file.getName().toLowerCase();
+		if (name.endsWith(".bas")) {
+			return "uk.co.bithatch.zxbasic.Basic";
+		}
+		if (name.endsWith(".asm")) {
+			return ASM_EDITOR_ID;
+		}
+		return null;
 	}
 	
 	private boolean isImportValidForBase(IResource baseFile, Path path) {

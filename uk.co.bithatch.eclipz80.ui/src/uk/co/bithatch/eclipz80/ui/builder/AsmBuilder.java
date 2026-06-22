@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -24,11 +25,13 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 
+import uk.co.bithatch.bitzx.FileAttrs;
 import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.TAPBuilder;
 import uk.co.bithatch.bitzx.TZXBuilder;
 import uk.co.bithatch.eclipz80.asm.AsmProgram;
+import uk.co.bithatch.eclipz80.assembler.AssemblyException;
 import uk.co.bithatch.eclipz80.assembler.Z80Assembler;
 import uk.co.bithatch.eclipz80.ui.internal.Eclipz80Activator;
 import uk.co.bithatch.eclipz80.ui.preferences.AsmPreferencesAccess;
@@ -153,6 +156,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 				.withZ80N() /* TODO temporarily always enable this, need arch property on projects */
 				.withOutputDir(prefs.getOutputFolder(project).getLocation().toPath())
 				.withMap(prefs.isGenerateMap(project))
+				.withWorkingDir(file.getProject().getLocation().toPath())
 				.withSourceMap(resource.map())
 				.withWarningCallback((filename, line, warning) -> {
 					addMarker(file, warning, line, IMarker.SEVERITY_WARNING);
@@ -163,7 +167,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		var out = new ByteArrayOutputStream();
 		try {
 			assembler.assemble(file.getName(), program, out);
-		} catch (Z80Assembler.AssemblyException e) {
+		} catch (AssemblyException e) {
 			addMarker(file, e.getMessage(), e.getLine(), IMarker.SEVERITY_ERROR);
 			return;
 		} catch (Exception e) {
@@ -324,14 +328,16 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 		var project = file.getProject();
 		var prefs = AsmPreferencesAccess.get();
 		var outputFolder = prefs.getOutputFolder(project).getLocation().toPath();
-		
-		// TODO just BIN at the moment
-		var sourceFileName = file.getLocation().toPath().getFileName();
+		var sourceFile = file.getLocation().toPath();
+		var sourceFileName = sourceFile.getFileName();
 		var mapFile =  outputFolder.resolve(FileNames.changeExtension(sourceFileName, "zmap"));
 		var outputBin = outputFolder.resolve(FileNames.changeExtension(sourceFileName, "bin"));
 		var needMap = mode.equals("debug") || prefs.isGenerateMap(project);
+		var mapChanged = !Files.exists(mapFile) || 
+						FileAttrs.safeSize(mapFile) == 0 ||
+						!Objects.equals(FileAttrs.safeLastModified(mapFile), FileAttrs.safeLastModified(sourceFile));
 		
-		if(!Files.exists(outputBin) || (needMap && !Files.exists(mapFile))) {
+		if(!Files.exists(outputBin) || (needMap && mapChanged)) {
 
 			
 			// Configure the preprocessor that AsmResource will use
@@ -353,6 +359,7 @@ public class AsmBuilder extends IncrementalProjectBuilder {
 				var assembler = Z80Assembler.builder()
 						.withLibPaths(prefs.getAllIncludePaths(project))
 						.withMap(mapFile)
+						.withWorkingDir(project.getLocation().toPath())
 						.withSourceMap(((AsmResource)resource).map())
 						.build();
 		

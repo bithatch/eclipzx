@@ -9,6 +9,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
+import uk.co.bithatch.bitzx.LanguageSystem;
+
 /**
  * Debug model presentation for the Zoxo internal emulator debugger.
  * Registered via {@code org.eclipse.debug.ui.debugModelPresentations}
@@ -51,12 +53,9 @@ public class EmulatorDebugModelPresentation extends LabelProvider implements IDe
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
 		if (element instanceof IFile file) {
-			var name = file.getName().toLowerCase();
-			if (name.endsWith(".c") || name.endsWith(".h")) {
-				return "org.eclipse.cdt.ui.editor.CEditor";
-			}
-			if (name.endsWith(".asm") || name.endsWith(".s") || name.endsWith(".z80")) {
-				return "uk.co.bithatch.eclipz80.Asm";
+			var ed = LanguageSystem.languageSystem(file.getProject()).getEditorId(file);
+			if(ed != null) {
+				return ed;
 			}
 		}
 		return "org.eclipse.ui.DefaultTextEditor";
