@@ -105,9 +105,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 		 * for debug builds we emit a shell 'case' conditional that only runs
 		 * the --c-code-in-asm pass when the input file ends in .c.
 		 * Make expands $< to the real filename before the shell sees it. */
-		String rawInput = (inputResources != null && inputResources.length > 0) ? inputResources[0] : "";
-		final String input = normalizePathSeparators(rawInput);
-		final String normalizedOutput = normalizePathSeparators(output);
+		String input = (inputResources != null && inputResources.length > 0) ? inputResources[0] : "";
 
 		/* Check if this is a Debug configuration */
 		boolean debugCfg = false;
@@ -152,10 +150,10 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 							+ " --assemble-only " + input
 							+ " && " + moveCommand() + " " + moveArg(input + ".asm") + " . &&) "
 							+ cmd + " " + mergedFlags + " -c "
-							+ outputFlag + " " + normalizedOutput + " " + input;
+							+ outputFlag + " " + output + " " + input;
 				} else {
 					return cmd + " " + mergedFlags + " -c "
-							+ outputFlag + " " + normalizedOutput + " " + input;
+							+ outputFlag + " " + output + " " + input;
 				}
 			}
 			@Override public String getCommandLinePattern() { return commandLinePattern; }
@@ -163,7 +161,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 			@Override public String getFlags() { return mergedFlags + " -c"; }
 			@Override public String getOutputFlag() { return outputFlag; }
 			@Override public String getOutputPrefix() { return outputPrefix; }
-			@Override public String getOutput() { return normalizedOutput; }
+			@Override public String getOutput() { return output; }
 			@Override public String getInputs() { return input; }
 		};
 	}
@@ -393,13 +391,5 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 
 	private static boolean isWindows() {
 		return System.getProperty("os.name", "").toLowerCase().contains("win");
-	}
-
-	private static String normalizePathSeparators(String path) {
-		if (path == null || path.isEmpty()) {
-			return path;
-		}
-		char other = File.separatorChar == '/' ? '\\' : '/';
-		return path.replace(other, File.separatorChar);
 	}
 }
