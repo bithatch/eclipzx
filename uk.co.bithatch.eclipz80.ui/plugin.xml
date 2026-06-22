@@ -7,7 +7,7 @@
         class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
         contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
         default="true"
-        extensions="asm,inc"
+        extensions="asm,inc,hdr"
         icon="icons/asm16.png"
         id="uk.co.bithatch.eclipz80.Asm"
         name="Asm Editor">
@@ -199,7 +199,7 @@
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 		<content-type
 			base-type="org.eclipse.core.runtime.text"
-			file-extensions="asm,inc"
+			file-extensions="asm,inc,hdr"
 			id="uk.co.bithatch.eclipz80.Asm.contenttype"
 			name="Asm File"
 			priority="normal">
@@ -216,6 +216,10 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
 			type="inc">
 		</parser>
+        <parser
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+            type="hdr">
+        </parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 		<resourceServiceProvider
@@ -226,6 +230,10 @@
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 			uriExtension="inc">
 		</resourceServiceProvider>
+		<resourceServiceProvider
+            class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+            uriExtension="hdr">
+        </resourceServiceProvider>
 	</extension>
 	<!-- marker definitions for uk.co.bithatch.eclipz80.Asm -->
 	<extension point="org.eclipse.core.resources.markers" id="debug.lineBreakpointMarker" name="Z80 Line Breakpoint">
@@ -527,7 +535,7 @@
 	<extension point="org.eclipse.compare.contentViewers">
 		<viewer id="uk.co.bithatch.eclipz80.Asm.compare.contentViewers"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="asm,inc">
+			extensions="asm,inc,hdr">
 		</viewer>
 		<contentTypeBinding
 			contentTypeId="uk.co.bithatch.eclipz80.Asm.contenttype"
@@ -536,7 +544,7 @@
 	<extension point="org.eclipse.compare.contentMergeViewers">
 		<viewer id="uk.co.bithatch.eclipz80.Asm.compare.contentMergeViewers"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="asm,inc" label="Asm Compare">
+			extensions="asm,inc,hdr" label="Asm Compare">
 		</viewer>
 		<contentTypeBinding
 			contentTypeId="uk.co.bithatch.eclipz80.Asm.contenttype"
@@ -545,12 +553,12 @@
 	<extension point="org.eclipse.ui.editors.documentProviders">
 		<provider id="uk.co.bithatch.eclipz80.Asm.editors.documentProviders"
 			class="uk.co.bithatch.eclipz80.ui.AsmExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
-			extensions="asm,inc">
+			extensions="asm,inc,hdr">
 		</provider>
 	</extension>
 	<extension point="org.eclipse.team.core.fileTypes">
 		<fileTypes
-			extension="asm,inc"
+			extension="asm,inc,hdr"
 			type="text">
 		</fileTypes>
 	</extension>

@@ -99,7 +99,7 @@ public class AsmLabelProvider extends/* PPLabelProvider*/ DefaultEObjectLabelPro
 	}
 	
 	String text(Extern extern) {
-		return String.join(", ", extern.getName().stream().map(e -> e.getRef().getName()).toList());
+		return String.join(", ", extern.getName().stream().map(e -> e.getName()).toList());
 	}
 
 	String text(Push ns) {

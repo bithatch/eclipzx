@@ -697,20 +697,20 @@ public class Z80Assembler {
 		if (stmt instanceof Extern) {
 			Extern ext = (Extern) stmt;
 			if (pass1) {
-				for (AsmLabel name : ext.getName()) {
-					Symbol sym = putSymbol(name.getRef().getName());
+				for (AsmLabelDef name : ext.getName()) {
+					Symbol sym = putSymbol(name.getName());
 					sym.isExternal = true;
 					sym.address = 0;
 				}
 			} else {
 				// TODO: Proper linker-phase extern resolution (currently fails with address 0)
-				for (AsmLabel name : ext.getName()) {
-					String qualifiedName = currentModule + "." + name.getRef().getName();
+				for (AsmLabelDef name : ext.getName()) {
+					String qualifiedName = currentModule + "." + name.getName();
 					Symbol sym = symbols.get(qualifiedName);
-					if (sym == null) sym = symbols.get(name.getRef().getName());
+					if (sym == null) sym = symbols.get(name.getName());
 					if (sym != null && sym.isExternal && sym.address == 0) {
 						throw new AssemblyException(effectiveSource, translateToOriginalSourceLine(currentLine, effectiveSource),
-								"Unresolved external symbol: " + name.getRef().getName());
+								"Unresolved external symbol: " + name.getName());
 					}
 				}
 			}

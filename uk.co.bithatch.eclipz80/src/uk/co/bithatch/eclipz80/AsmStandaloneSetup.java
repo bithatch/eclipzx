@@ -25,6 +25,8 @@ public class AsmStandaloneSetup extends AsmStandaloneSetupGenerated {
 		IResourceFactory resourceFactory = injector.getInstance(IResourceFactory.class);
 		IResourceServiceProvider serviceProvider = injector.getInstance(IResourceServiceProvider.class);
 		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("inc", resourceFactory);
+		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("hdr", resourceFactory);
 		IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put("inc", serviceProvider);
+		IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put("hdr", serviceProvider);
 	}
 }

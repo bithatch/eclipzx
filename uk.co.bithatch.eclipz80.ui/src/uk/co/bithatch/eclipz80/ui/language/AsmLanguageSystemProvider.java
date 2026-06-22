@@ -131,7 +131,7 @@ public class AsmLanguageSystemProvider implements ILanguageSystemProvider {
 	@Override
 	public String getEditorId(IFile file) {
 		var name = file.getName().toLowerCase();
-		if (name.endsWith(".inc") || name.endsWith(".asm") || name.endsWith(".s") || name.endsWith(".z80")) {
+		if (name.endsWith(".hdr") || name.endsWith(".inc") || name.endsWith(".asm") || name.endsWith(".s") || name.endsWith(".z80")) {
 			return ASM_EDITOR_ID;
 		}
 		return null;

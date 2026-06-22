@@ -78,6 +78,8 @@ public class SourceMap {
 	private final Map<String, DefineDef> defines = new HashMap<>();
 	private final Map<Integer, String> hiddenOffsets = new HashMap<>();
 	private final Set<String> inits = new LinkedHashSet<>();
+	private final Map<Integer, SourceReference> sourceReference = new HashMap<>();
+	
 	public void addSegment(Segment segment) {
 		if(!segments.isEmpty()) {
 			var previous = segments.get(segments.size() - 1);
@@ -93,6 +95,7 @@ public class SourceMap {
 		defines.clear();
 		hiddenOffsets.clear();
 		inits.clear();
+		sourceReference.clear();
 	}
 
 	
@@ -102,6 +105,10 @@ public class SourceMap {
 	
 	public List<Segment> segments() {
 		return segments;
+	}
+	
+	public Map<Integer, SourceReference> sourceReference() {
+		return sourceReference;
 	}
 	
 	public Map<String, DefineDef> defines() {

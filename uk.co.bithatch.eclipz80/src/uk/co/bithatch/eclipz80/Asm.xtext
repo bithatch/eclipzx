@@ -746,7 +746,7 @@ AsmDMAWR6Directive:
 ;
 
 AsmExternDirective:
-    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=AsmLabel (',' name+=AsmLabel)*
+    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=AsmLabelDef (',' name+=AsmLabelDef)*
 ;
 
 AsmPublicDirective:
@@ -801,7 +801,7 @@ AsmInclude:
 ;
 
 AsmIncBin:
-    ( 'INCBIN' ) filename=FileSpec
+    ( 'INCBIN' | 'BINARY' ) filename=FileSpec
 ;
 
 AsmSection:
@@ -824,7 +824,7 @@ StringLiteral:
     value=STRING;
 
 FileSpec returns ecore::EString:
-    STRING;
+    STRING | INCLUDE;
     
 // ─────────────── TERMINALS ───────────────
 terminal NUMERIC_LABEL:
@@ -848,8 +848,9 @@ terminal ML_COMMENT: "/'" -> "'/";
 
 @Override
 terminal STRING: ( '"' ( '\\' . | !('\\' | '"') )* '"' ) | 
-                 ( '\'' ( '\\' . | !('\\' | '\'') )* '\'' )
-;
+                 ( '\'' ( '\\' . | !('\\' | '\'') )* '\'' );
+
+terminal INCLUDE: ( '<' ( '\\' . | !('\\' | '>') )* '>' );
 
 terminal FLOAT returns ecore::EDouble:
     ('0'..'9')* '.' ('0'..'9')* (('e' | 'E') ('+' | '-')? ('0'..'9')+)?;

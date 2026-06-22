@@ -1,6 +1,8 @@
 package uk.co.bithatch.eclipz88dk;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -29,7 +31,9 @@ import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.ISourceAdressMap;
+import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
+import uk.co.bithatch.bitzx.URIS;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
 import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 import uk.co.bithatch.eclipz88dk.launch.Z88dkDebugInfoParser;
@@ -278,5 +282,26 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			return ASM_EDITOR_ID;
 		}
 		return null;
+	}
+	
+	@Override
+	public Set<Path> findImportUris(IResource baseFile, int depth) {
+		var set = new LinkedHashSet<Path>(ILanguageSystemProvider.super.findImportUris(baseFile, depth));
+		if(baseFile.getName().toLowerCase().endsWith(".c.asm")) {
+			Z88DKPreferencesAccess.get().getSDK(baseFile.getProject()).ifPresent(sdk -> {
+				set.add(sdk.location().toPath().resolve("lib").resolve("z80_crt0.hdr"));
+			});
+		}
+		for(var path : findIncludeSourcePaths(baseFile, depth).stream().map(p -> {
+			return LanguageSystemPreferencesAccess.resolveWorkspaceRelative(baseFile.getProject(), p).toUri().toString();
+		}).collect(Collectors.toSet())) {
+			var dir = URIS.toPath(path);
+			try {
+				set.addAll(Files.list(dir).filter(Files::isRegularFile).collect(Collectors.toSet()));
+			} catch (IOException e) {
+//					// skip directories that cannot be listed
+			}
+		}
+		return set;
 	}
 }

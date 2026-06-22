@@ -68,8 +68,6 @@ public class GenericPreprocessor extends AbstractTool {
 		void warning(Warning warning, int line, String text);
 	}
 	
-	public record SourceReference(String type, int line, int originalLine, String originalUri) {}
-	
 	/**
 	 * Builder
 	 */
@@ -250,7 +248,6 @@ public class GenericPreprocessor extends AbstractTool {
 	private final Mode mode;
 	private final Optional<Character> lineContinuations;
 	private final Format format;
-	private final Map<Integer, SourceReference> sourceReference = new HashMap<>();
     
     private GenericPreprocessor(Builder bldr) {
     	super(bldr);
@@ -279,10 +276,6 @@ public class GenericPreprocessor extends AbstractTool {
 	public Optional<ResourceResolver<?>> resourceResolver() {
 		return resourceResolver.map(r -> (ResourceResolver<?>)r);
 	}
-    
-    public Map<Integer, SourceReference> sourceReference() {
-    	return sourceReference;
-    }
     
     public Map<String, DefineDef> defines() {
     	return Collections.unmodifiableMap(new HashMap<>(defines));
@@ -534,7 +527,7 @@ public class GenericPreprocessor extends AbstractTool {
 				}
 			}
 			else if(directive.equals("#line")) {
-				if(cLine(line.trim(), thisLineNo)) {
+				if(sourceLine(SourceReferenceType.ZX_BASIC, line.trim(), thisLineNo)) {
 					return includeDirectiveIfEditorMode(offset, line, 1, true);
 				}
 				else {
@@ -662,7 +655,7 @@ public class GenericPreprocessor extends AbstractTool {
 						return Optional.of(line);
 					}
 				}
-				else if(directive.equals("include")) {
+				else if(directive.equals("include") || directive.equals("#include")) {
 					if(include(line.trim())) {
 						return includeDirectiveIfEditorMode(offset, line, 2, false);
 					}
@@ -672,7 +665,7 @@ public class GenericPreprocessor extends AbstractTool {
 					}
 				}
 				else if(directive.equals("c_line")) {
-					if(cLine(line.trim(), thisLineNo)) {
+					if(sourceLine(SourceReferenceType.Z88DK_C, line.trim(), thisLineNo)) {
 						return includeDirectiveIfEditorMode(offset, line, 1, true);
 					}
 					else {
@@ -1553,7 +1546,7 @@ public class GenericPreprocessor extends AbstractTool {
 			}
 		}
 
-		private boolean cLine(String line, int thisLineNo) {
+		private boolean sourceLine(SourceReferenceType type, String line, int thisLineNo) {
 			var idx = line.indexOf(' ');
 			if(idx == -1) {
 				idx = line.indexOf('\t');
@@ -1561,7 +1554,6 @@ public class GenericPreprocessor extends AbstractTool {
 			if(idx == -1) {
 				return false;
 			}
-			var type = line.substring(0, idx).trim();
 			var cline = line.substring(idx + 1).trim();
 //			var parts =  Arrays.asList(cline.split(",")).stream().map(String::trim).toList();
 			try {
@@ -1575,7 +1567,11 @@ public class GenericPreprocessor extends AbstractTool {
 				
 				var num = Integer.parseInt(cline.substring(0, idx).trim());
 				var filename = stripQuoted(cline.substring(idx + 1).trim());
-				sourceReference.put(thisLineNo + 1, new SourceReference(type, thisLineNo, num, filename));
+				sourceMap.ifPresentOrElse(smap -> {
+					smap.sourceReference().put(thisLineNo + 1, new SourceReference(type, thisLineNo, num, filename));
+				}, () -> {
+					
+				});
 				return true;
 			}
 			catch(Exception nfe) {
