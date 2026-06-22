@@ -20,12 +20,9 @@ import org.eclipse.debug.core.model.IProcess;
 import uk.co.bithatch.bitzx.FileNames;
 import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.IOutputFormat;
-import uk.co.bithatch.bitzx.LanguageSystem;
-import uk.co.bithatch.bitzx.WellKnownOutputFormat;
 
 public interface ILaunchable {
 
-	
 	IDebugTarget createRemoteDebugTarget(ILaunchConfiguration configuration, ILaunch launch,
 			IWritablePreparationContext prepCtx, IProcess eclipseProcess) throws CoreException;
 
@@ -38,12 +35,9 @@ public interface ILaunchable {
 	}
 	
 	default List<? extends IOutputFormat> getLaunchFormats(IFile file, Predicate<IOutputFormat> filter) {
-		var lang = LanguageSystem.languageSystem(file);
-		if(lang != null) {
-			var arch = LanguageSystem.architectureOrDefault(file.getProject(), null);
-			if(arch != null) {
-				return arch.supportedFormats().stream().filter(f -> filter.test(f)).toList();
-			}
+		var arch = getArchitecture(file.getProject());
+		if(arch != null) {
+			return arch.supportedFormats().stream().filter(f -> filter.test(f)).toList();
 		}
 		return Collections.emptyList();		
 	}

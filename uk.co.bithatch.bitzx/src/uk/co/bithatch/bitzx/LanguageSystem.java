@@ -15,10 +15,6 @@ public class LanguageSystem {
 
 	public static final String EXTENSION_POINT_ID = "uk.co.bithatch.bitzx.languageSystemProvider";
 
-	public static IArchitecture architectureOrDefault(IProject project, String archName) {
-		return languageSystem(project).architectureOrDefault(project, archName);
-	}
-
 	public static List<? extends IArchitecture> architectures() {
 		return architecturesFor(null);
 	}
