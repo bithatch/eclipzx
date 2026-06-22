@@ -313,18 +313,12 @@ public class GenericPreprocessor extends AbstractTool {
     public void process(Reader rdr, Writer wtr,  Object context) throws IOException {
 		var it = new ReaderIterator(rdr);
 		var pwtr = wtr instanceof PrintWriter pw ? pw : new PrintWriter(wtr, true);
-    	doRun(it, context).forEach(s -> {
-//    		var lines = s.split("\\r?\\n");
-//			for(var i = 0 ; i < lines.length; i++) {
-//				if(lineContinuations.isPresent() && i < lines.length - 1) {
-//					pwtr.println(lines[i] + lineContinuations.get());
-//				}
-//				else {
-//					pwtr.println(lines[i]);
-//				}
-//    		}
-			pwtr.println(s);
-    	});
+		var outIt = doRun(it, context).iterator();
+		while(outIt.hasNext()) {
+			pwtr.write(outIt.next());
+			pwtr.write(it.lineSeparator());
+		}
+		pwtr.flush();
     }
 
 	public Mode mode() {
@@ -372,8 +366,6 @@ public class GenericPreprocessor extends AbstractTool {
 		private AtomicInteger preprocessedLine = new AtomicInteger();
 		private AtomicInteger localCounter = new AtomicInteger();
 		private int bufferedLogicalSourceOffset = -1;
-		
-		private final static byte[] LINESEP = System.lineSeparator().getBytes();
 		
 		private boolean rootMarkerOutput;
 
@@ -883,7 +875,7 @@ public class GenericPreprocessor extends AbstractTool {
 						out.append(Byte.toUnsignedInt(binary[j]));
 					}
 					if(max < binary.length) {
-						out.append(System.lineSeparator());
+						out.append(lineSeparator(stack.peek()));
 					}
 				}
 				return Optional.of(out.toString());
@@ -1210,7 +1202,7 @@ public class GenericPreprocessor extends AbstractTool {
 			for(int i = 0; i < count; i++) {
 				expanded.addAll(block);
 			}
-			return expanded.isEmpty() ? Optional.empty() : Optional.of(String.join(System.lineSeparator(), expanded));
+			return expanded.isEmpty() ? Optional.empty() : Optional.of(String.join(lineSeparator(res), expanded));
 		}
 
 		private Optional<String> reptcDirective(String line, IncludeContext<Object> res) {
@@ -1230,7 +1222,7 @@ public class GenericPreprocessor extends AbstractTool {
 					expanded.add(blockLine.replaceAll("\\b" + Pattern.quote(token) + "\\b", Matcher.quoteReplacement(value)));
 				}
 			}
-			return expanded.isEmpty() ? Optional.empty() : Optional.of(String.join(System.lineSeparator(), expanded));
+			return expanded.isEmpty() ? Optional.empty() : Optional.of(String.join(lineSeparator(res), expanded));
 		}
 
 		private Optional<String> reptiDirective(String line, IncludeContext<Object> res) {
@@ -1250,7 +1242,7 @@ public class GenericPreprocessor extends AbstractTool {
 					expanded.add(blockLine.replaceAll("\\b" + Pattern.quote(token) + "\\b", Matcher.quoteReplacement(value)));
 				}
 			}
-			return expanded.isEmpty() ? Optional.empty() : Optional.of(String.join(System.lineSeparator(), expanded));
+			return expanded.isEmpty() ? Optional.empty() : Optional.of(String.join(lineSeparator(res), expanded));
 		}
 
 		private List<String> readRepeatBlock(IncludeContext<Object> res) {
@@ -1281,10 +1273,21 @@ public class GenericPreprocessor extends AbstractTool {
 		}
 
 		private void consumeSourceLineAccounting(IncludeContext<Object> res, String line) {
-			var inBytes = line.getBytes().length + LINESEP.length;
+			var inBytes = sourceLineLength(line, res);
 			res.originalLength().addAndGet(inBytes);
 			res.originalLines().addAndGet(1);
 			res.lineNumber().addAndGet(1);
+		}
+
+		private int sourceLineLength(String line, IncludeContext<Object> res) {
+			return line.getBytes().length + lineSeparator(res).getBytes().length;
+		}
+
+		private String lineSeparator(IncludeContext<Object> res) {
+			if(res.stream() instanceof ReaderIterator rit) {
+				return rit.lineSeparator();
+			}
+			return System.lineSeparator();
 		}
 
 		private List<String> resolveReptcValues(String source) {
@@ -1413,6 +1416,7 @@ public class GenericPreprocessor extends AbstractTool {
 
 		private Optional<String> includeDirectiveIfEditorMode(int offset, String line, int stackSize, boolean replaceWithSpaces) {
 			if(mode == Mode.EDITOR && stack.size() <= stackSize) {
+				var res = stack.peek();
 				/* In EDITOR mode, we output #include statements and #define, but
 				 * only in the top level (we do still continue pre-processing
 				 * the include itself though)
@@ -1436,7 +1440,7 @@ public class GenericPreprocessor extends AbstractTool {
 					else {
 						sourceMap.ifPresent(sm -> {
 							sm.hiddenOffsets().put(
-									offset, restoreLineContinuations(line));
+									offset, restoreLineContinuations(line, lineSeparator(res)));
 						});
 					}
 					return Optional.of(lineStr);
@@ -1461,7 +1465,7 @@ public class GenericPreprocessor extends AbstractTool {
 			var foffset = offset + newLead.length();
 			if(!lineStr.equals(line)) {
 				sourceMap.ifPresent(sm -> {
-					var lineCont = restoreLineContinuations(line);
+					var lineCont = restoreLineContinuations(line, lineSeparator(stack.peek()));
 					sm.hiddenOffsets().put(
 							foffset, lineCont.substring(Math.min(lineCont.length(), newLead.length())));
 				});
@@ -1469,11 +1473,11 @@ public class GenericPreprocessor extends AbstractTool {
 			return lineStr;
 		}
 
-		private String restoreLineContinuations(String text) {
-			if(lineContinuations.isEmpty() || !text.contains(System.lineSeparator())) {
+		private String restoreLineContinuations(String text, String lineSeparator) {
+			if(lineContinuations.isEmpty() || (!text.contains("\n") && !text.contains("\r"))) {
 				return text;
 			}
-			var lines = text.split("\\r?\\n", -1);
+			var lines = text.split("\\r\\n|\\r|\\n", -1);
 			if(lines.length <= 1) {
 				return text;
 			}
@@ -1482,14 +1486,14 @@ public class GenericPreprocessor extends AbstractTool {
 				b.append(lines[i]);
 				if(i < lines.length - 1) {
 					b.append(lineContinuations.get());
-					b.append(System.lineSeparator());
+					b.append(lineSeparator);
 				}
 			}
 			return b.toString();
 		}
 		
 		private String maybeQueueLines(String text, boolean replaceWithSpaces) {
-	    	var lines = text.split("\\r?\\n", -1);
+	    	var lines = text.split("\\r\\n|\\r|\\n", -1);
 			for(var i = 1 ; i < lines.length; i++) {
 				if(lineContinuations.isPresent() && i < lines.length - 1) {
 					pendingOutput.addLast(lines[i] + (replaceWithSpaces ? ' ' : lineContinuations.get()));
@@ -1656,7 +1660,7 @@ public class GenericPreprocessor extends AbstractTool {
 		private boolean defineMacro(String line, int thisLineNo) {
 			/* NOTE: below is for benefit of boriel that sometimes seems to use _ separators for continuations! */
 			// #define
-			var chars = line.substring(7).replace("_" + System.lineSeparator(), " ").trim().toCharArray();
+			var chars = line.substring(7).replaceAll("_(?:\\r\\n|\\r|\\n)", " ").trim().toCharArray();
 			var notWs = notWs(chars, 0);
 			if(notWs == -1) {
 				return false;
@@ -1774,7 +1778,7 @@ public class GenericPreprocessor extends AbstractTool {
 						
 						var nextSourceOffset = res.originalOffset().get() + res.originalLength().get();
 						var nextSourceLine = sourceIt.next();
-						var inBytes = nextSourceLine.getBytes().length + LINESEP.length;
+						var inBytes = sourceLineLength(nextSourceLine, res);
 						
 						res.originalLength().addAndGet(inBytes);
 						res.originalLines().addAndGet(1);
@@ -1788,7 +1792,8 @@ public class GenericPreprocessor extends AbstractTool {
 							if(buf.length() == 0) {
 								bufferedLogicalSourceOffset = nextSourceOffset;
 							}
-							buf.append(nextSourceLine.substring(0, nextSourceLine.length() - 1) + System.lineSeparator());
+							buf.append(nextSourceLine.substring(0, nextSourceLine.length() - 1));
+							buf.append(lineSeparator(res));
 						}
 						else {
 							if(buf.length() == 0) {
