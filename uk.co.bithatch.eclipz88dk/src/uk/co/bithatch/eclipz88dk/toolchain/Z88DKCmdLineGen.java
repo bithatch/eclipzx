@@ -106,8 +106,9 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 		 * the --c-code-in-asm pass when the input file ends in .c.
 		 * Make expands $< to the real filename before the shell sees it. */
 		String rawInput = (inputResources != null && inputResources.length > 0) ? inputResources[0] : "";
-		final String input = normalizePathSeparators(rawInput);
-		final String normalizedOutput = normalizePathSeparators(output);
+		final String input = rawInput;
+		final String zccInput = zccArgPath(input);
+		final String zccOutput = zccArgPath(output);
 
 		/* Check if this is a Debug configuration */
 		boolean debugCfg = false;
@@ -149,13 +150,13 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 				if (isDebug) {
 					return "$(if $(filter %.c," + input + "),"
 							+ cmd + " --c-code-in-asm " + mergedFlags
-							+ " --assemble-only " + input
+							+ " --assemble-only " + zccInput
 							+ " && " + moveCommand() + " " + moveArg(input + ".asm") + " . &&) "
 							+ cmd + " " + mergedFlags + " -c "
-							+ outputFlag + " " + normalizedOutput + " " + input;
+							+ outputFlag + " " + zccOutput + " " + zccInput;
 				} else {
 					return cmd + " " + mergedFlags + " -c "
-							+ outputFlag + " " + normalizedOutput + " " + input;
+							+ outputFlag + " " + zccOutput + " " + zccInput;
 				}
 			}
 			@Override public String getCommandLinePattern() { return commandLinePattern; }
@@ -163,7 +164,7 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 			@Override public String getFlags() { return mergedFlags + " -c"; }
 			@Override public String getOutputFlag() { return outputFlag; }
 			@Override public String getOutputPrefix() { return outputPrefix; }
-			@Override public String getOutput() { return normalizedOutput; }
+			@Override public String getOutput() { return output; }
 			@Override public String getInputs() { return input; }
 		};
 	}
@@ -391,15 +392,15 @@ public class Z88DKCmdLineGen extends ManagedCommandLineGenerator {
 		return isWindows() ? "$(subst /,\\," + path + ")" : path;
 	}
 
-	private static boolean isWindows() {
-		return System.getProperty("os.name", "").toLowerCase().contains("win");
+	/**
+	 * Normalize path separators for zcc arguments at make-expansion time.
+	 * CDT passes make vars like $</$@ here, so Java-side replacement cannot help.
+	 */
+	private static String zccArgPath(String path) {
+		return isWindows() ? "$(subst /,\\," + path + ")" : path;
 	}
 
-	private static String normalizePathSeparators(String path) {
-		if (path == null || path.isEmpty()) {
-			return path;
-		}
-		char other = File.separatorChar == '/' ? '\\' : '/';
-		return path.replace(other, File.separatorChar);
+	private static boolean isWindows() {
+		return System.getProperty("os.name", "").toLowerCase().contains("win");
 	}
 }
