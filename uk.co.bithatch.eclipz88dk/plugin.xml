@@ -600,6 +600,14 @@
             extensions="c,asm"/>
     </extension>
     
+    <extension point="uk.co.bithatch.emuzx.ui.internallyLaunchable">
+        <internallyLaunchable 
+            id="uk.co.bithatch.zxbasic.ui.launch.internallyLaunchable" 
+            name="C Internally Launchable" 
+            class="uk.co.bithatch.eclipz88dk.launch.CLaunchable"
+            extensions="c,asm"/>
+    </extension>     
+    
     <extension point="org.eclipse.ui.perspectiveExtensions">
         <perspectiveExtension targetID="uk.co.bithatch.eclipzx.ui.codingPerspective">
             <!-- Show the Run/Debug actions -->

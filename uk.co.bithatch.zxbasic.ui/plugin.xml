@@ -533,6 +533,14 @@
             class="uk.co.bithatch.zxbasic.ui.launch.ZXBasicLaunchable" 
             extensions="bas"/>
     </extension>
+    
+    <extension point="uk.co.bithatch.emuzx.ui.internallyLaunchable">
+        <internallyLaunchable 
+            id="uk.co.bithatch.zxbasic.ui.launch.internallyLaunchable" 
+            name="ZXBasic Internally Launchable" 
+            class="uk.co.bithatch.zxbasic.ui.launch.ZXBasicLaunchable" 
+            extensions="bas"/>
+    </extension>     
 
     <extension point="uk.co.bithatch.bitzx.languageSystemProvider">
         <languageSystemProvider id="uk.co.bithatch.zxbasic.ui.langageSystemProvider.zxbasic" name="Boriels ZX Basic" class="uk.co.bithatch.zxbasic.ui.language.BorielZXBasicLanguageSystemProvider"/> 

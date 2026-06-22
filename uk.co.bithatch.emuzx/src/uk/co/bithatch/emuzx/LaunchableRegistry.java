@@ -26,7 +26,8 @@ public class LaunchableRegistry {
 			return Collections.emptyList();
 		else {
 			var tagForClass = tagForClass(clazz);
-			return Arrays.asList(point.getConfigurationElements()).stream()
+			var els = Arrays.asList(point.getConfigurationElements());
+			return els.stream()
 					.filter(c -> c.getName().equals(tagForClass) && c.getAttribute("id") != null)
 					.map(c -> (AbstractLaunchableDescriptor<L>)descriptorForClass(clazz, point, c))
 					.toList();
