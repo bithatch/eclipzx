@@ -70,6 +70,11 @@ public class Z88DKExecutableProvider implements IProjectExecutablesProvider {
 			if (cfg != null) {
 				ICOutputEntry[] cfgOutDirs = cfg.getBuildSetting().getOutputDirectories();
 				for (ICOutputEntry outdir : cfgOutDirs) {
+					
+					if(outdir.getLocation() == null) {
+						continue;
+					}
+					
 					IResource outdirRes = project.getWorkspace().getRoot()
 							.getFolder(outdir.getLocation().makeRelativeTo(rootLoc));
 					if (outdirRes instanceof IFolder fldr) {
