@@ -2,8 +2,12 @@ package uk.co.bithatch.eclipz88dk;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -31,7 +35,6 @@ import uk.co.bithatch.bitzx.IArchitecture;
 import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.IOutputFormat;
 import uk.co.bithatch.bitzx.ISourceAdressMap;
-import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.bitzx.LanguageSystemPreferencesAccess;
 import uk.co.bithatch.bitzx.URIS;
 import uk.co.bithatch.bitzx.WellKnownArchitecture;
@@ -42,7 +45,7 @@ import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile;
 
 public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
-	
+
 	public final static class Z88DKOutputFormat extends AbstractDescribable implements IOutputFormat {
 
 		private String extension;
@@ -63,17 +66,17 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			return IOutputFormat.super.wellKnown();
 		}
 	}
-	
+
 	private final static Properties extensionMap = new Properties();
-	
+
 	static {
-		try(var in = Z88DKLanguageSystemProvider.class.getResourceAsStream("/output-format-extensions.properties")) {
+		try (var in = Z88DKLanguageSystemProvider.class.getResourceAsStream("/output-format-extensions.properties")) {
 			extensionMap.load(in);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to load output format extensions properties", e);
 		}
 	}
-	
+
 	public final static class Z88DKArchitecture extends AbstractDescribable implements IArchitecture {
 
 		private Z88DKConfigurationFile cfg;
@@ -82,41 +85,38 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			super(cfg.name().toUpperCase());
 			this.cfg = cfg;
 		}
-		
+
 		public Z88DKConfigurationFile configuration() {
 			return cfg;
 		}
 
 		@Override
 		public List<? extends IOutputFormat> supportedFormats() {
-			return cfg.subtypes().
-					stream().
-					map(stype -> new Z88DKOutputFormat(stype.toUpperCase(), extensionMap.getProperty(name().toLowerCase() + "." + stype, stype.toLowerCase()))).
-					toList();
+			return cfg.subtypes().stream()
+					.map(stype -> new Z88DKOutputFormat(stype.toUpperCase(),
+							extensionMap.getProperty(name().toLowerCase() + "." + stype, stype.toLowerCase())))
+					.toList();
 		}
 
 		@Override
 		public Optional<WellKnownArchitecture> wellKnown() {
-			if(name().equalsIgnoreCase("ZXN")) {
+			if (name().equalsIgnoreCase("ZXN")) {
 				return Optional.of(WellKnownArchitecture.ZXNEXT);
-			}
-			else if(name().equalsIgnoreCase("ZN")) {
+			} else if (name().equalsIgnoreCase("ZN")) {
 				return Optional.of(WellKnownArchitecture.ZX);
-			}
-			else {
+			} else {
 				return IArchitecture.super.wellKnown();
 			}
 		}
-		
-	}
 
+	}
 
 	public static final String[] EXTENSIONS = new String[] { "c", "asm" };
 	public static final String[] SOURCE_FILE_EXTENSIONS = new String[] { "c", "asm", "h" };
 
 	@Override
 	public List<? extends IArchitecture> architectures(IResource resource) {
-		if(resource == null || hasCNature(resource.getProject())) {
+		if (resource == null || hasCNature(resource.getProject())) {
 
 			var pax = Z88DKPreferencesAccess.get();
 			var sdks = pax.getPathListPreference(null, Z88DKPreferenceConstants.SDK_PATHS);
@@ -140,7 +140,8 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	@Override
 	public List<? extends IArchitecture> architectures(IProject project, String sdkName) {
 		var pax = Z88DKPreferencesAccess.get();
-		var sdk = pax.getSDKByName(sdkName).orElseThrow(() -> new IllegalArgumentException("No such SDK as " + sdkName));
+		var sdk = pax.getSDKByName(sdkName)
+				.orElseThrow(() -> new IllegalArgumentException("No such SDK as " + sdkName));
 		var allArchs = pax.isAllArchitectures(project);
 		var configs = sdk.configurations();
 		var configItems = configs.configurations();
@@ -167,12 +168,11 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		}
 	}
 
-	
 	public static boolean hasCNature(IProject p) {
 		try {
 			return p.hasNature(CProjectNature.C_NATURE_ID);
 		} catch (CoreException e) {
-			//throws exception if the project is not open.
+			// throws exception if the project is not open.
 		}
 		return false;
 	}
@@ -200,8 +200,9 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 
 	@Override
 	public Map<String, String> findDefines(IResource baseFile) {
-		/* TODO get all the defines from project configuration of the files
-		 * projects and all of its referenced projects
+		/*
+		 * TODO get all the defines from project configuration of the files projects and
+		 * all of its referenced projects
 		 */
 		return Collections.emptyMap();
 	}
@@ -210,12 +211,12 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 	public Set<String> findIncludeSourcePaths(IResource baseFile, int depth) {
 		var prj = baseFile.getProject();
 		var sdk = Z88DKPreferencesAccess.get().getSDK(prj).orElse(null);
-		if(sdk != null) {
+		if (sdk != null) {
 			var paths = new java.util.LinkedHashSet<Path>();
-			
+
 			/* Collect include paths from the project itself and referenced projects */
 			collectIncludePathsFromProject(prj, paths);
-			
+
 			/* Collect include paths from referenced projects */
 			var projDesc = CoreModel.getDefault().getProjectDescription(prj, false);
 			if (projDesc != null) {
@@ -240,20 +241,24 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 
 	private void collectIncludePathsFromProject(IProject project, Set<Path> paths) {
 		var projDesc = CoreModel.getDefault().getProjectDescription(project, false);
-		if (projDesc == null) return;
+		if (projDesc == null)
+			return;
 
 		var cfgDesc = projDesc.getActiveConfiguration();
-		if (cfgDesc == null) return;
+		if (cfgDesc == null)
+			return;
 
 		var root = cfgDesc.getRootFolderDescription();
-		if (root == null) return;
+		if (root == null)
+			return;
 
 		var projectLocation = project.getLocation();
 
 		for (var lang : root.getLanguageSettings()) {
 			for (var se : lang.getResolvedSettingEntries(ICSettingEntry.INCLUDE_PATH)) {
 				var value = se.getValue();
-				if (value == null || value.isEmpty()) continue;
+				if (value == null || value.isEmpty())
+					continue;
 
 				var file = new File(value);
 				if (!file.isAbsolute() && projectLocation != null) {
@@ -269,7 +274,8 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 
 	@Override
 	public Optional<String> findRuntimeDir(IResource baseFile) {
-		return Z88DKPreferencesAccess.get().getSDK(baseFile.getProject()).map(sdk -> new File(sdk.location(), "lib").getAbsolutePath());
+		return Z88DKPreferencesAccess.get().getSDK(baseFile.getProject())
+				.map(sdk -> new File(sdk.location(), "lib").getAbsolutePath());
 	}
 
 	@Override
@@ -283,17 +289,42 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Set<Path> findImportUris(IResource baseFile, int depth) {
 		var set = new LinkedHashSet<Path>(ILanguageSystemProvider.super.findImportUris(baseFile, depth));
-		if(baseFile.getName().toLowerCase().endsWith(".c.asm")) {
+		if (baseFile.getName().toLowerCase().endsWith(".c.asm")) {
+
+			for(var libroot : runtimePaths(baseFile)) {
+			
+				if(Files.exists(libroot)) {
+					try {
+						Files.walkFileTree(libroot, new SimpleFileVisitor<Path>() {
+							@Override
+							public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+								if(file.getFileName().toString().toLowerCase().endsWith(".asm")) {
+									set.add(file);
+								}
+								return super.visitFile(file, attrs);
+							}
+							
+						});
+					} catch (IOException ioe) {
+						throw new UncheckedIOException(ioe);
+					}
+				}
+			}
+			
+			// TODO still needed?
 			Z88DKPreferencesAccess.get().getSDK(baseFile.getProject()).ifPresent(sdk -> {
-				set.add(sdk.location().toPath().resolve("lib").resolve("z80_crt0.hdr"));
+				var sdkhome = sdk.location().toPath();
+				set.add(sdkhome.resolve("lib").resolve("z80_crt0.hdr"));
 			});
 		}
-		for(var path : findIncludeSourcePaths(baseFile, depth).stream().map(p -> {
-			return LanguageSystemPreferencesAccess.resolveWorkspaceRelative(baseFile.getProject(), p).toUri().toString();
+		Set<String> ipaths = findIncludeSourcePaths(baseFile, depth);
+		for (var path : ipaths.stream().map(p -> {
+			return LanguageSystemPreferencesAccess.resolveWorkspaceRelative(baseFile.getProject(), p).toUri()
+					.toString();
 		}).collect(Collectors.toSet())) {
 			var dir = URIS.toPath(path);
 			try {
@@ -303,5 +334,34 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			}
 		}
 		return set;
+	}
+
+	public Set<Path> runtimePaths(IResource baseFile) {
+		return Z88DKPreferencesAccess.get().getSDK(baseFile.getProject()).map(sdk -> {
+			
+			/* TODO other architectures */
+			/* TODO get only from current clib */
+			
+			var sdkhome = sdk.location().toPath();
+			Set<Path> paths = new LinkedHashSet<Path>();
+			
+			/* Common */
+			paths.add(sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("stdio")/* .resolve("z80") */);
+			
+			/* Basic ZX */
+			paths.addAll(Set.of(
+					sdkhome.resolve("libsrc").resolve("target").resolve("zx"),
+					sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("arch").resolve("zx")));
+
+			/* ZX Next */
+			var arch = Z88DKPreferencesAccess.get().getArchitecture(baseFile.getProject());
+			if(arch.name().equalsIgnoreCase("zxn")) {
+				paths.addAll(Set.of(
+					sdkhome.resolve("libsrc").resolve("target").resolve("zxn"),
+					sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("arch").resolve("zxn")));
+			}
+			
+			return paths;
+		}).orElse(Collections.emptySet());
 	}
 }

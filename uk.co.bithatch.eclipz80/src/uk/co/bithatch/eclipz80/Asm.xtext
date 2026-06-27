@@ -797,7 +797,7 @@ AsmCall:
 ;
 
 AsmInclude:
-    ( 'INCLUDE' |'#include' ) importURI=FileSpec
+    ( 'INCLUDE' |'#include' ) importURI=IncludeFileSpec
 ;
 
 AsmIncBin:
@@ -824,7 +824,19 @@ StringLiteral:
     value=STRING;
 
 FileSpec returns ecore::EString:
-    STRING | INCLUDE;
+    STRING;
+
+IncludeFileSpec returns ecore::EString:
+    STRING | AngleFileSpec;
+
+AngleFileSpec returns ecore::EString:
+    '<' AngleIncludePath '>';
+
+AngleIncludePath returns ecore::EString:
+    AngleIncludeSegment (('/'|'\\') AngleIncludeSegment)*;
+
+AngleIncludeSegment returns ecore::EString:
+    '..' | '.' | ID (('.'|'-') ID)*;
     
 // ─────────────── TERMINALS ───────────────
 terminal NUMERIC_LABEL:
@@ -850,8 +862,6 @@ terminal ML_COMMENT: "/'" -> "'/";
 terminal STRING: ( '"' ( '\\' . | !('\\' | '"') )* '"' ) | 
                  ( '\'' ( '\\' . | !('\\' | '\'') )* '\'' );
 
-terminal INCLUDE: ( '<' ( '\\' . | !('\\' | '>') )* '>' );
-
 terminal FLOAT returns ecore::EDouble:
     ('0'..'9')* '.' ('0'..'9')* (('e' | 'E') ('+' | '-')? ('0'..'9')+)?;
     
@@ -859,13 +869,6 @@ terminal FLOAT returns ecore::EDouble:
 terminal INT returns ecore::EInt: ('0'..'9')+;
 
 @Override
-//terminal ID: '$'
-//            |
-//            ( ('@')? ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' )* ('$')?
-//            | 
-//            ('@') ('0'..'9')+ ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' )* ('$')?)
-//            ;
-
 terminal ID: '$'
             |
             ('A'..'Z' | 'a'..'z' | '_') ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' )* ('$')?

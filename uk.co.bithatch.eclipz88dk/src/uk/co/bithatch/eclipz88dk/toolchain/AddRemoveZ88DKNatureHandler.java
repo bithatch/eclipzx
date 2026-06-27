@@ -13,6 +13,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import uk.co.bithatch.eclipz88dk.wizard.CdtProjectCreator;
+
 /**
  * Command handler that toggles the Z88DK nature on the selected project(s).
  * Used by the "Configure → Enable/Disable Z88DK Nature" context menu.
@@ -59,11 +61,7 @@ public class AddRemoveZ88DKNatureHandler extends AbstractHandler {
 			}
 		}
 
-		// Add the nature
-		String[] newNatures = new String[natures.length + 1];
-		System.arraycopy(natures, 0, newNatures, 0, natures.length);
-		newNatures[natures.length] = Z88DKNature.NATURE_ID;
-		description.setNatureIds(newNatures);
-		project.setDescription(description, null);
+		// Enable full Z88DK support, including required CDT natures.
+		CdtProjectCreator.enableZ88DKFeatures(project);
 	}
 }

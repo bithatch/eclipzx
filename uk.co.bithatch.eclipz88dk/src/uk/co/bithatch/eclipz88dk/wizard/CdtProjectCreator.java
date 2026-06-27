@@ -17,22 +17,29 @@ import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.model.LanguageManager;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
+import org.eclipse.cdt.core.settings.model.ICOutputEntry;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.core.settings.model.ICProjectDescriptionManager;
+import org.eclipse.cdt.core.settings.model.ICSourceEntry;
 import org.eclipse.cdt.core.settings.model.extension.CConfigurationData;
+import org.eclipse.cdt.core.settings.model.COutputEntry;
+import org.eclipse.cdt.core.settings.model.CSourceEntry;
 import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.IManagedProject;
 import org.eclipse.cdt.managedbuilder.core.IProjectType;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.core.ManagedCProjectNature;
 import java.net.URI;
+import java.util.LinkedHashSet;
 
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -42,6 +49,8 @@ import uk.co.bithatch.eclipz88dk.toolchain.Z88DKCleanBuilder;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKNature;
 
 public final class CdtProjectCreator {
+
+	private static final ILog LOG = ILog.of(CdtProjectCreator.class);
 
 	public enum CdtType {
 		EXECUTABLE("uk.co.bithatch.eclipz88dk.executable", "uk.co.bithatch.eclipz88dk.debug.exe",
@@ -105,6 +114,8 @@ public final class CdtProjectCreator {
 
 	private static final String TOOLCHAIN_ID = "uk.co.bithatch.eclipz88dk.toolChain";
 	private static final String LSP_ID = "uk.co.bithatch.eclipz88dk.languageSettingsProvider";
+	private static final String BINARY_PARSER_EXT_POINT = "org.eclipse.cdt.core.BinaryParser";
+	private static final String BINARY_PARSER_ID = "uk.co.bithatch.eclipz88dk.Z88DK";
 	private static final String LANG_ID = "uk.co.bithatch.eclipz88dk.language.c";
 	private static final String CTSRC_ID = "org.eclipse.cdt.core.cSource";
 	private static final String CTHDR_ID = "org.eclipse.cdt.core.cHeader";
@@ -119,14 +130,18 @@ public final class CdtProjectCreator {
 	 * call setProjectDescription.
 	 */
 	public static void enableZ88DKFeatures(IProject project) throws CoreException {
-		addNatureIfMissing(project);
+		ensureRequiredNatures(project);
 		addContentTypeMappings(project);
 		addCleanBuilder(project);
 
 		ICProjectDescription pd = CoreModel.getDefault().getProjectDescription(project, true);
 		if (pd != null) {
+			preferDebugActiveConfiguration(pd);
+			ensureSourceAndOutputEntries(pd, project);
+			ensureBinaryParser(pd);
 			addLanguageSettingsProvider(pd, project);
 			CoreModel.getDefault().setProjectDescription(project, pd);
+			syncDefaultToActiveConfiguration(project);
 		}
 
 		ICProject cproj = CoreModel.getDefault().create(project);
@@ -136,19 +151,23 @@ public final class CdtProjectCreator {
 	}
 
 	/**
-	 * Add the Z88DK nature to the project if not already present.
+	 * Ensure all required natures for managed CDT + Z88DK projects are present
+	 * while preserving any additional existing natures.
 	 */
-	private static void addNatureIfMissing(IProject project) throws CoreException {
+	private static void ensureRequiredNatures(IProject project) throws CoreException {
 		IProjectDescription desc = project.getDescription();
-		String[] natures = desc.getNatureIds();
-		for (String n : natures) {
-			if (Z88DKNature.NATURE_ID.equals(n)) return;
+		var existing = new LinkedHashSet<>(Arrays.asList(desc.getNatureIds()));
+		boolean changed = false;
+
+		changed |= existing.add(CProjectNature.C_NATURE_ID);
+		changed |= existing.add(ManagedCProjectNature.MNG_NATURE_ID);
+		changed |= existing.add(ScannerConfigNature.NATURE_ID);
+		changed |= existing.add(Z88DKNature.NATURE_ID);
+
+		if (changed) {
+			desc.setNatureIds(existing.toArray(new String[0]));
+			project.setDescription(desc, null);
 		}
-		String[] newNatures = new String[natures.length + 1];
-		System.arraycopy(natures, 0, newNatures, 0, natures.length);
-		newNatures[natures.length] = Z88DKNature.NATURE_ID;
-		desc.setNatureIds(newNatures);
-		project.setDescription(desc, null);
 	}
 
 	/**
@@ -223,10 +242,13 @@ public final class CdtProjectCreator {
 		addContentTypeMappings(project);
 
 		addLanguageSettingsProvider(pd, project);
+		ensureSourceAndOutputEntries(pd, project);
+		ensureBinaryParser(pd);
 
 		// Persist to .cproject
 		CoreModel.getDefault().setProjectDescription(project, pd);
 		ManagedBuildManager.saveBuildInfo(project, true);
+		syncDefaultToActiveConfiguration(project);
 
 		ICProject cproj = CoreModel.getDefault().create(project); // project -> ICProject
 		if (cproj != null) {
@@ -303,8 +325,9 @@ public final class CdtProjectCreator {
 		// Make Debug active
 		if (projDebugCfg != null) {
 			ICConfigurationDescription active = projDesc.getConfigurationById(projDebugCfg.getConfigurationData().getId());
-			if (active != null)
+			if (active != null) {
 				projDesc.setActiveConfiguration(active);
+			}
 		}
 
 		// Ensure MBS builders are present
@@ -343,10 +366,7 @@ public final class CdtProjectCreator {
 	}
 
 	private static void addCdtNatures(IProject project, IProgressMonitor pm) throws CoreException {
-		IProjectDescription d = project.getDescription();
-		d.setNatureIds(new String[] { CProjectNature.C_NATURE_ID, ManagedCProjectNature.MNG_NATURE_ID,
-				ScannerConfigNature.NATURE_ID, Z88DKNature.NATURE_ID });
-		project.setDescription(d, pm);
+		ensureRequiredNatures(project);
 	}
 
 	private static void addLanguageSettingsProvider(ICProjectDescription pd, IProject project) throws CoreException {
@@ -372,6 +392,68 @@ public final class CdtProjectCreator {
 		// immediately
 //		org.eclipse.cdt.core.CCorePlugin.getIndexManager().reindex((ICProject) pd.getProject());
 
+	}
+
+	private static void ensureBinaryParser(ICProjectDescription pd) throws CoreException {
+		for (ICConfigurationDescription cfg : pd.getConfigurations()) {
+			boolean present = false;
+			for (var ext : cfg.get(BINARY_PARSER_EXT_POINT)) {
+				if (BINARY_PARSER_ID.equals(ext.getID())) {
+					present = true;
+					break;
+				}
+			}
+			if (!present) {
+				cfg.create(BINARY_PARSER_EXT_POINT, BINARY_PARSER_ID);
+			}
+		}
+	}
+
+	private static void ensureSourceAndOutputEntries(ICProjectDescription pd, IProject project) throws CoreException {
+		for (ICConfigurationDescription cfg : pd.getConfigurations()) {
+			ICSourceEntry[] sourceEntries = cfg.getSourceEntries();
+			if (sourceEntries == null || sourceEntries.length == 0) {
+				cfg.setSourceEntries(new ICSourceEntry[] {
+						new CSourceEntry(project.getFullPath(), null, 0)
+				});
+			}
+
+			var buildSetting = cfg.getBuildSetting();
+			if (buildSetting != null) {
+				ICOutputEntry[] outputEntries = buildSetting.getOutputDirectories();
+				if (outputEntries == null || outputEntries.length == 0) {
+					buildSetting.setOutputDirectories(new ICOutputEntry[] {
+							new COutputEntry(project.getFullPath().append(cfg.getName()), null, 0)
+					});
+				}
+			}
+		}
+	}
+
+	private static void preferDebugActiveConfiguration(ICProjectDescription pd) {
+		for (ICConfigurationDescription cfg : pd.getConfigurations()) {
+			if ("Debug".equalsIgnoreCase(cfg.getName())) {
+				pd.setActiveConfiguration(cfg);
+				break;
+			}
+		}
+	}
+
+	private static void syncDefaultToActiveConfiguration(IProject project) {
+		try {
+			ICProjectDescription pd = CoreModel.getDefault().getProjectDescription(project, false);
+			if (pd == null) return;
+			ICConfigurationDescription active = pd.getActiveConfiguration();
+			if (active == null) return;
+			IConfiguration mbsCfg = ManagedBuildManager.getConfigurationForDescription(active);
+			if (mbsCfg == null) return;
+			IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(project);
+			if (bi != null) {
+				bi.setDefaultConfiguration(mbsCfg);
+			}
+		} catch (RuntimeException re) {
+			LOG.warn("Could not sync default managed-build configuration for project " + project.getName(), re);
+		}
 	}
 
 	@Deprecated

@@ -22,13 +22,24 @@ public class AsmGlobalScopeProvider extends ImportUriGlobalScopeProvider {
 	@Override
 	public LinkedHashSet<URI> getImportedUris(Resource resource) {
 		return cache.get(AsmGlobalScopeProvider.class.getSimpleName(), resource, () -> {
-			LinkedHashSet<URI> impUris = new LinkedHashSet<>(super.getImportedUris(resource));
-			if (includeSource != null) {
-				impUris.addAll(includeSource.importUris(resource));
-			}
-			
-			return impUris;
+			return doGetImportUris(resource);
+		});
+
+		// TEMP
+//		return doGetImportUris(resource);
+		
+	}
+
+	public LinkedHashSet<URI> doGetImportUris(Resource resource) {
+		LinkedHashSet<URI> impUris = new LinkedHashSet<>(super.getImportedUris(resource));
+		if (includeSource != null) {
+			impUris.addAll(includeSource.importUris(resource));
+		}
+		System.out.println("ZZZZZ All imports ...");
+		impUris.forEach(uri -> {
+			System.out.println("     Imp uri: " +uri);
 		});
 		
+		return impUris;
 	}
 }

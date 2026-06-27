@@ -3,6 +3,7 @@ package uk.co.bithatch.eclipz88dk;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.settings.model.CProjectDescriptionEvent;
 import org.eclipse.cdt.core.settings.model.ICProjectDescriptionListener;
+import org.eclipse.cdt.debug.core.executables.ExecutablesManager;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.jobs.Job;
@@ -41,6 +42,8 @@ public class Activator extends AbstractUIPlugin {
 		CoreModel.getDefault().getProjectDescriptionManager().addCProjectDescriptionListener(descListener,
 				CProjectDescriptionEvent.APPLIED /* CProjectDescriptionEvent.APPLIED *//* | CProjectDescriptionEvent.CREATED */);
 		PreferenceInitializer.checkForZCCCFG(Z88DKPreferencesAccess.get());
+		
+		ExecutablesManager.getExecutablesManager();
 	}
 
 	private final ICProjectDescriptionListener descListener = event -> {

@@ -17,7 +17,20 @@
         </handler>
         <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.editor.OpenGeneratedFileHandler" commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
             <activeWhen>
-                <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                <or>
+                    <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                    <with variable="selection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IFile">
+                                <and>
+                                    <test property="org.eclipse.core.resources.extension" value="bas" />
+                                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+                                </and>
+                            </adapt>
+                        </iterate>
+                    </with>
+                </or>
             </activeWhen>
         </handler>
         <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler" commandId="org.eclipse.xtext.ui.editor.FindReferences">
@@ -126,6 +139,23 @@
             <command commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand" id="uk.co.bithatch.zxbasic.Basic.OpenGeneratedCode" style="push">
                 <visibleWhen checkEnabled="false">
                     <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
+                </visibleWhen>
+            </command>
+        </menuContribution>
+        <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.open">
+            <command commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand" id="uk.co.bithatch.zxbasic.Basic.OpenGeneratedCode.ProjectExplorer" style="push">
+                <visibleWhen checkEnabled="false">
+                    <with variable="activeMenuSelection">
+                        <count value="1" />
+                        <iterate>
+                            <adapt type="org.eclipse.core.resources.IFile">
+                                <and>
+                                    <test property="org.eclipse.core.resources.extension" value="bas" />
+                                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.zxbasic.ZXBasicNature" />
+                                </and>
+                            </adapt>
+                        </iterate>
+                    </with>
                 </visibleWhen>
             </command>
         </menuContribution>

@@ -416,7 +416,7 @@
             <filter name="projectNature" value="uk.co.bithatch.eclipz80.ui.AsmNature" />
         </page>
 	</extension>
-	<extension point="org.eclipse.ui.menus">
+	<!--<extension point="org.eclipse.ui.menus">
 		<menuContribution locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
 			<command
 				commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand"
@@ -436,7 +436,7 @@
 				<reference definitionId="uk.co.bithatch.eclipz80.Asm.Editor.opened" />
 			</activeWhen>
 		</handler>
-	</extension>
+	</extension>-->
 	<!-- Quick Outline -->
 	<extension
 		point="org.eclipse.ui.handlers">

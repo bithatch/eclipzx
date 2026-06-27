@@ -61,4 +61,11 @@ public final class Z88DKSDK implements ISDK {
 	public File z88dkGdb() {
 		return new File(new File(location, "bin"), "z88dk-gdb");
 	}
+
+	/**
+	 * Returns the path to the z80nm binary in this SDK.
+	 */
+	public File z80nm() {
+		return new File(new File(location, "bin"), "z88dk-z80nm");
+	}
 }

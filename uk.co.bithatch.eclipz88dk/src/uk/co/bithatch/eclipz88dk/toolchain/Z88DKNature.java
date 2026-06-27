@@ -32,21 +32,26 @@ public class Z88DKNature implements IProjectNature {
 		/* Add the clean builder */
 		IProjectDescription desc = project.getDescription();
 		ICommand[] commands = desc.getBuildSpec();
+		boolean hasCleanBuilder = false;
 
 		for (ICommand cmd : commands) {
-			if (cmd.getBuilderName().equals(Z88DKCleanBuilder.BUILDER_ID))
-				return; // already added
+			if (cmd.getBuilderName().equals(Z88DKCleanBuilder.BUILDER_ID)) {
+				hasCleanBuilder = true;
+				break;
+			}
 		}
 
-		ICommand newCommand = desc.newCommand();
-		newCommand.setBuilderName(Z88DKCleanBuilder.BUILDER_ID);
+		if (!hasCleanBuilder) {
+			ICommand newCommand = desc.newCommand();
+			newCommand.setBuilderName(Z88DKCleanBuilder.BUILDER_ID);
 
-		ICommand[] newCommands = new ICommand[commands.length + 1];
-		System.arraycopy(commands, 0, newCommands, 0, commands.length);
-		newCommands[commands.length] = newCommand;
+			ICommand[] newCommands = new ICommand[commands.length + 1];
+			System.arraycopy(commands, 0, newCommands, 0, commands.length);
+			newCommands[commands.length] = newCommand;
 
-		desc.setBuildSpec(newCommands);
-		project.setDescription(desc, null);
+			desc.setBuildSpec(newCommands);
+			project.setDescription(desc, null);
+		}
 
 		/* Enable Z88DK features (content types, language settings, etc.) */
 		try {
