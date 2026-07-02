@@ -484,41 +484,24 @@
     </extension>
 
     <extension point="org.eclipse.ui.preferencePages">
-        <page category="org.eclipse.cdt.ui.preferences.CPluginPreferencePage"
-              class="uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencePage" 
-              id="uk.co.bithatch.eclipz88dk.preferences" name="Z88DK">
-            <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Z88DK" />
-        </page>
-        <page category="uk.co.bithatch.eclipz88dk.preferences" 
+        <page category="uk.co.bithatch.eclipz88dk.preferences.compiler" 
               class="uk.co.bithatch.eclipz88dk.preferences.SDKPreferencePage" 
               id="uk.co.bithatch.eclipz88dk.preferences.sdks" 
-              name="Z88DK Homes">
+              name="SDKs">
             <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_SDKs" />
         </page>
-        <page category="uk.co.bithatch.eclipz88dk.preferences" 
-              class="uk.co.bithatch.eclipz88dk.preferences.CompilerPreferencePage" 
+        <page class="uk.co.bithatch.eclipz88dk.preferences.CompilerPreferencePage" 
               id="uk.co.bithatch.eclipz88dk.preferences.compiler" 
-              name="Compiler">
+              name="C (Z88DK)">
             <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Compiler" />
+            <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Z88DK" />
         </page>
     </extension>
     
     <extension point="org.eclipse.ui.propertyPages">
     
-        <page category="org.eclipse.cdt.managedbuilder.ui.properties.Page_head_build"
-              class="uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencePage" 
-              id="uk.co.bithatch.eclipz88dk.properties" name="Z88DK">
+        <page class="uk.co.bithatch.eclipz88dk.preferences.CompilerPreferencePage" id="uk.co.bithatch.eclipz88dk.compiler" name="C (Z88DK)">
             <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Z88DK" />
-            <enabledWhen>
-                <adapt type="org.eclipse.core.resources.IProject">
-                    <test property="org.eclipse.core.resources.projectNature" value="uk.co.bithatch.eclipz88dk.Z88DKNature" />
-                </adapt>
-            </enabledWhen>
-        </page>
-        
-        <page category="uk.co.bithatch.eclipz88dk.properties"  
-                class="uk.co.bithatch.eclipz88dk.preferences.CompilerPreferencePage" 
-                id="uk.co.bithatch.eclipz88dk.properties.compiler" name="Compiler">
             <keywordReference id="uk.co.bithatch.eclipz88dk.keyword_Compiler" />
             <enabledWhen>
                 <adapt type="org.eclipse.core.resources.IProject">
@@ -571,7 +554,7 @@
             categoryId="uk.co.bithatch.eclipz88dk.Z88DKNature.category"
             description="Open the generated Assembly File"
             id="uk.co.bithatch.eclipz88dk.OpenGeneratedFileCommand"
-            name="Open Generated File">
+            name="Open Generated Assembly">
           </command>
     </extension>
     

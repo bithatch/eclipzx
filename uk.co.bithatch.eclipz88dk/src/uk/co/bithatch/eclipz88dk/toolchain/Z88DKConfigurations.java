@@ -10,16 +10,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.eclipse.core.runtime.ILog;
+
 public class Z88DKConfigurations {
+	
+	private final static ILog LOG = ILog.of(Z88DKConfigurations.class);
 	
 	private Map<String, Z88DKConfigurationFile> configurations = new HashMap<>();
 
+
+	public Z88DKConfigurations() {
+	}
+	
 	public Z88DKConfigurations(Path dir) {
 		try {
 			for(var file : Files.list(dir).filter(f -> f.getFileName().toString().toLowerCase().endsWith(".cfg")).toList()) {
 				var pf = file.getFileName().toString();
 				var pl = pf.substring(0, pf.length() - 4);
-				configurations.put(pl.toLowerCase(), new Z88DKConfigurationFile(file));
+				try {
+					configurations.put(pl.toLowerCase(), new Z88DKConfigurationFile(file));
+				}
+				catch(Exception e) {
+					LOG.error("Failed to load SDK.", e);
+				}
 			}
 		}
 		catch(IOException ioe) {

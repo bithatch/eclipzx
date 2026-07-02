@@ -1,7 +1,9 @@
 package uk.co.bithatch.eclipz88dk.preferences;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -22,6 +24,8 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 	public final static class Defaults {
 		private final static Z88DKPreferencesAccess DEFAULT = new Z88DKPreferencesAccess();
 	}
+	
+	private final static Map<File, Z88DKSDK> sdkCache = new HashMap<>(); 
 
 	protected Z88DKPreferencesAccess() {
 		super(Activator.PLUGIN_ID, Z88DKLanguageSystemProvider.class);
@@ -112,7 +116,7 @@ public class Z88DKPreferencesAccess extends LanguageSystemPreferencesAccess {
 
 	public List<Z88DKSDK> getAllSDKs() {
 		return getAllSDKPaths().stream().map(f ->
-    		Z88DKSDK.fromLocation(f)
+    		sdkCache.computeIfAbsent(f, (k) -> Z88DKSDK.fromLocation(k))
     	).toList();
 	}
 

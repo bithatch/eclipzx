@@ -12,7 +12,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 
-import uk.co.bithatch.bitzx.ILanguageSystemProvider;
 import uk.co.bithatch.bitzx.LanguageSystem;
 import uk.co.bithatch.eclipzpp.PPIncludeSource;
 

@@ -746,11 +746,11 @@ AsmDMAWR6Directive:
 ;
 
 AsmExternDirective:
-    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=AsmLabelDef (',' name+=AsmLabelDef)*
+    {Extern} ( 'EXTERN'|'XREF'|'LIB') name+=AsmLabel (',' name+=AsmLabel)*
 ;
 
 AsmPublicDirective:
-    {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=AsmLabel (',' name+=AsmLabel)*
+    {Public} ( 'PUBLIC'|'XDEF'|'XLIB') name+=AsmLabelDef (',' name+=AsmLabelDef)*
 ;
 
 AsmLocalDirective:
@@ -758,6 +758,7 @@ AsmLocalDirective:
 ;
 
 AsmGlobalDirective:
+    /* TODO Global is both and AsmLabel and an AsmLabelDef (depending on if it exists as a label AsmLabelDef already). How do we do this? */
     {Global} ( 'GLOBAL') name+=AsmLabel (',' name+=AsmLabel)*
 ;
 

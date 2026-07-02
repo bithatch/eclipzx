@@ -8,6 +8,8 @@ import uk.co.bithatch.eclipzoxo.views.KeyboardView;
 
 public class ZXCodingPerspective implements IPerspectiveFactory {
 
+    private static final String MINIMAP_INSTANCE = IPageLayout.ID_MINIMAP_VIEW + ":initial";
+
 	@Override
     public void createInitialLayout(IPageLayout layout) {
         var editorArea = layout.getEditorArea();
@@ -22,19 +24,23 @@ public class ZXCodingPerspective implements IPerspectiveFactory {
         var leftSplit = layout.createFolder("leftSplit", IPageLayout.BOTTOM, 0.65f, "left");
         leftSplit.addView(IPageLayout.ID_OUTLINE);
         
+        // Keep all right-side views in one column to avoid conflicting right anchors.
+        var right = layout.createFolder("right", IPageLayout.RIGHT, 0.75f, editorArea);
+        right.addPlaceholder(IPageLayout.ID_MINIMAP_VIEW);
+        right.addView(MINIMAP_INSTANCE);
+        right.addPlaceholder(IPageLayout.ID_MINIMAP_VIEW + ":*");
+
         // Bottom folder: tabbed layout for multiple views
         var bottomFolder = layout.createFolder("bottom", IPageLayout.BOTTOM, 0.65f, editorArea);
         bottomFolder.addView(IPageLayout.ID_PROBLEM_VIEW);
         bottomFolder.addView(IPageLayout.ID_TASK_LIST);
         bottomFolder.addView(EmulatorView.ID);
 
-        // Horizontal split inside the bottom folder (simulated via stacking)
-        var bottomSplit = layout.createFolder("bottomRightSplit", IPageLayout.RIGHT, 0.75f, "bottom");
-        bottomSplit.addView(KeyboardView.ID);
-        
+        // Split the right column vertically: minimap above, keyboard below.
+        var rightBottom = layout.createFolder("rightBottom", IPageLayout.BOTTOM, 0.70f, "right");
+        rightBottom.addView(KeyboardView.ID);
 
-        // Bottom folder: tabbed layout for multiple views
-        var rightFolder = layout.createFolder("right", IPageLayout.RIGHT, 0.75f, editorArea);
-        rightFolder.addView(IPageLayout.ID_MINIMAP_VIEW);
+        layout.addShowViewShortcut(IPageLayout.ID_MINIMAP_VIEW);
+        layout.getViewLayout(MINIMAP_INSTANCE).setMoveable(true);
     }
 }

@@ -79,7 +79,10 @@ public class Z88DKLinkerCmdLineGen extends ManagedCommandLineGenerator {
 
 		/* Architecture and clib */
 		merged.add("+" + pax.getArchitecture(project).name().toLowerCase());
-		merged.add("-clib=" + pax.getCLibrary(project));
+		var clibName = pax.getCLibrary(project);
+		if(!"default".equals(clibName)) {
+			merged.add("-clib=" + clibName);
+		}
 
 		/* Add library paths/libs from referenced projects */
 		Z88DKCmdLineGen.addSettingsFromReferences(project, merged);

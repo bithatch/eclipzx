@@ -20,6 +20,9 @@ public class SDKListEditor extends ListEditor {
 		getList().setEnabled(enabled);
 		getAddButton().setEnabled(enabled);
 		getRemoveButton().setEnabled(enabled);
+		
+		getUpButton().setVisible(false);
+		getDownButton().setVisible(false);
 	}
 
 	@Override

@@ -92,7 +92,7 @@ public class Z88DKNewProjectWizard extends AbstractZ88DKProjectWizard<Z88DKNewPr
 						file.create(new ByteArrayInputStream("""
 								#include <stdio.h>
 
-								int main()
+								int main(void)
 								{
 								    printf("Hello World!\\n");
 								    return 0;

@@ -15,7 +15,8 @@
                 <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />
             </activeWhen>
         </handler>
-        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.editor.OpenGeneratedFileHandler" commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
+        <handler class="uk.co.bithatch.zxbasic.ui.BasicExecutableExtensionFactory:uk.co.bithatch.zxbasic.ui.editor.OpenGeneratedFileHandler" 
+                    commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
             <activeWhen>
                 <or>
                     <reference definitionId="uk.co.bithatch.zxbasic.Basic.Editor.opened" />

@@ -99,7 +99,7 @@ public class AsmLabelProvider extends/* PPLabelProvider*/ DefaultEObjectLabelPro
 	}
 	
 	String text(Extern extern) {
-		return String.join(", ", extern.getName().stream().map(e -> e.getName()).toList());
+		return String.join(", ", extern.getName().stream().map(e -> e.getRef().getName()).toList());
 	}
 
 	String text(Push ns) {
@@ -136,7 +136,7 @@ public class AsmLabelProvider extends/* PPLabelProvider*/ DefaultEObjectLabelPro
 			var it = fallback.eResource().getAllContents();
 			while(it.hasNext()) {
 				var nxt = it.next();
-				if(nxt instanceof Public pub && pub.getName().stream().map(e -> e.getRef().getName()).toList().contains(symlab)) {
+				if(nxt instanceof Public pub && pub.getName().stream().map(e -> e.getName()).toList().contains(symlab)) {
 					return PPUiActivator.getDefault().getImageRegistry().getDescriptor(PPUiActivator.PUBLIC_PATH);					
 				}
 				else if(nxt instanceof Global glob && glob.getName().stream().map(e -> e.getRef().getName()).toList().contains(symlab)) {

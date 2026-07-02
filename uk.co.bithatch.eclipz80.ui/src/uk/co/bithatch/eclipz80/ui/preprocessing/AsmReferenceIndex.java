@@ -18,7 +18,10 @@ public class AsmReferenceIndex extends PPReferenceIndex {
 
 	@Override
 	public List<String> definitions() {
-		return Stream.concat(AsmStdlib.get().definitions().stream(), super.definitions().stream()).toList();
+		return Stream.concat(
+			AsmStdlib.get().definitions().stream(), 
+			super.definitions().stream()
+		).toList();
 	}
 
 }

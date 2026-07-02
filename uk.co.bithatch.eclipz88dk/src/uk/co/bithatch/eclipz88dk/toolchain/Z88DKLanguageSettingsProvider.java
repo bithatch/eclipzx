@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IResource;
 
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferenceConstants;
 import uk.co.bithatch.eclipz88dk.preferences.Z88DKPreferencesAccess;
+import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile.CLibraryAttribute;
 import uk.co.bithatch.eclipz88dk.toolchain.Z88DKConfigurationFile.Key;
 
 public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableProvider implements ILanguageSettingsEditableProvider {
@@ -62,12 +63,21 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 			});
 			
 			/* CLIB options */
-			var entry = config.cLibraryFor(pax.getCLibrary(project));
+			var clib = pax.getCLibrary(project);
+			var entry = config.cLibraryFor(clib);
+			config.compilerPaths(clib).forEach(path -> {
+				entries.add( CDataUtil.createCIncludePathEntry(path.toString(), ICSettingEntry.READONLY | ICSettingEntry.BUILTIN));
+			});;
+			
 			if (entry.isPresent()) {
 				for (var opt : entry.get().options()) {
 					addOptions(sdk, entries, opt);
 				}
 			}
+			
+			config.allDefines(clib).forEach((k,v) -> {
+				entries.add(CDataUtil.createCMacroEntry(k, v, ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
+			});;;
 
 			/* Z88DK built-in macros */
 			BUILTIN_MACROS.forEach((name, value) -> {
@@ -79,28 +89,29 @@ public class Z88DKLanguageSettingsProvider extends LanguageSettingsSerializableP
 		return Collections.emptyList();
 	}
 
+	@Deprecated
 	protected void addOptions(Z88DKSDK sdk, ArrayList<ICLanguageSettingEntry> entries, String opt) {
-		if (opt.startsWith("-D")) {
-			var mtext = opt.substring(2);
-			var idx = mtext.indexOf('=');
-			var name = idx == -1 ? mtext : mtext.substring(0, idx);
-			var value = idx == -1 ? "" : mtext.substring(idx + 1);
-			entries.add( CDataUtil.createCMacroEntry(name, value, ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
-		}
+//		if (opt.startsWith("-D")) {
+//			var mtext = opt.substring(2);
+//			var idx = mtext.indexOf('=');
+//			var name = idx == -1 ? mtext : mtext.substring(0, idx);
+//			var value = idx == -1 ? "" : mtext.substring(idx + 1);
+//			entries.add( CDataUtil.createCMacroEntry(name, value, ICSettingEntry.BUILTIN | ICSettingEntry.READONLY));
+//		}
 
-		if (opt.startsWith("-isystem")) {
-			var path = opt.substring(8).replace("DESTDIR", sdk.location().getAbsolutePath());
-			entries.add( CDataUtil.createCIncludePathEntry(path, ICSettingEntry.READONLY | ICSettingEntry.BUILTIN));
-		}
+//		if (opt.startsWith("-isystem")) {
+//			var path = opt.substring(8).replace("DESTDIR", sdk.location().getAbsolutePath());
+//			entries.add( CDataUtil.createCIncludePathEntry(path, ICSettingEntry.READONLY | ICSettingEntry.BUILTIN));
+//		}
 
 		if (opt.startsWith("-L")) {
 			var path = opt.substring(2).replace("DESTDIR", sdk.location().getAbsolutePath());
 			entries.add(CDataUtil.createCLibraryPathEntry(path, ICSettingEntry.READONLY | ICSettingEntry.BUILTIN));
 		}
 
-		if (opt.startsWith("-l")) {
-			var name = opt.substring(2);
-			entries.add(CDataUtil.createCLibraryFileEntry(name, ICSettingEntry.READONLY | ICSettingEntry.BUILTIN));
+		if (opt.startsWith("-l") && !opt.equals("-l")) {
+			var name = opt.substring(2) + ".lib";
+			entries.add(CDataUtil.createCLibraryFileEntry(sdk.location().toPath().resolve("lib").resolve("clibs").resolve(name).toString(), ICSettingEntry.READONLY | ICSettingEntry.BUILTIN));
 		}
 
 		if (opt.startsWith("-crt0=")) {

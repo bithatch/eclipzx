@@ -6,10 +6,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import org.eclipse.core.runtime.ILog;
+
 import uk.co.bithatch.bitzx.ISDK;
 
 
 public final class Z88DKSDK implements ISDK {
+	private final static ILog LOG = ILog.of(Z88DKSDK.class);
 	
 	private final String name;
 	private final File location;
@@ -50,7 +53,13 @@ public final class Z88DKSDK implements ISDK {
 	
 	public Z88DKConfigurations configurations() {
 		if(configurations == null) {
-			configurations = new Z88DKConfigurations(location.toPath().resolve("lib").resolve("config"));
+			try {
+				configurations = new Z88DKConfigurations(location.toPath().resolve("lib").resolve("config"));
+			}
+			catch(Exception e) {
+				LOG.error("Cannot load any configurations, does an SDK exist at all at " + location + "?");
+				configurations = new Z88DKConfigurations();
+			}
 		}
 		return configurations;
 	}

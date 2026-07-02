@@ -299,16 +299,20 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 			
 				if(Files.exists(libroot)) {
 					try {
-						Files.walkFileTree(libroot, new SimpleFileVisitor<Path>() {
-							@Override
-							public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-								if(file.getFileName().toString().toLowerCase().endsWith(".asm")) {
-									set.add(file);
-								}
-								return super.visitFile(file, attrs);
-							}
-							
-						});
+//						Files.walkFileTree(libroot, new SimpleFileVisitor<Path>() {
+//							@Override
+//							public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+//								if(file.getFileName().toString().toLowerCase().endsWith(".asm")) {
+//									set.add(file);
+//								}
+//								return super.visitFile(file, attrs);
+//							}
+//						});
+						
+						try(var str = Files.newDirectoryStream(libroot, this::isInclude)) {
+							str.forEach(set::add);
+						}
+						
 					} catch (IOException ioe) {
 						throw new UncheckedIOException(ioe);
 					}
@@ -335,31 +339,55 @@ public class Z88DKLanguageSystemProvider implements ILanguageSystemProvider {
 		}
 		return set;
 	}
+	
+	private boolean isInclude(Path file) {
+		var fnamee = file.getFileName().toString().toLowerCase();
+		return fnamee.endsWith(".asm") || fnamee.endsWith(".inc");		
+	}
 
 	public Set<Path> runtimePaths(IResource baseFile) {
-		return Z88DKPreferencesAccess.get().getSDK(baseFile.getProject()).map(sdk -> {
+		var pax = Z88DKPreferencesAccess.get();
+		return pax.getSDK(baseFile.getProject()).map(sdk -> {
 			
-			/* TODO other architectures */
-			/* TODO get only from current clib */
+			var clib = pax.getCLibrary(baseFile.getProject());
+			var platform = pax.getArchitecture(baseFile.getProject()).name();
 			
-			var sdkhome = sdk.location().toPath();
 			Set<Path> paths = new LinkedHashSet<Path>();
 			
-			/* Common */
-			paths.add(sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("stdio")/* .resolve("z80") */);
-			
-			/* Basic ZX */
-			paths.addAll(Set.of(
-					sdkhome.resolve("libsrc").resolve("target").resolve("zx"),
-					sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("arch").resolve("zx")));
-
-			/* ZX Next */
-			var arch = Z88DKPreferencesAccess.get().getArchitecture(baseFile.getProject());
-			if(arch.name().equalsIgnoreCase("zxn")) {
-				paths.addAll(Set.of(
-					sdkhome.resolve("libsrc").resolve("target").resolve("zxn"),
-					sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("arch").resolve("zxn")));
+			Set<Path> includesForLibrary = sdk.configurations().get(platform.toLowerCase()).assemblerPaths(clib);
+			System.out.println("ZZZZ includesForLibrary " + clib + " (" + baseFile + ")");
+			for(var path : includesForLibrary) {
+				System.out.println("   " + path);
 			}
+			paths.addAll(includesForLibrary);
+			
+//			/* Common */
+//			paths.add(sdkhome.resolve("libsrc").resolve("stdio")/* .resolve("z80") */);
+////			paths.add(sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("stdio")/* .resolve("z80") */);
+//			
+//			/* Basic ZX */
+//			paths.addAll(Set.of(
+//					sdkhome.resolve("libsrc").resolve("target").resolve("zx")
+//					,
+//					sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("arch").resolve("zx")
+//				)
+//			);
+//
+//			/* ZX Next */
+//			var arch = pax.getArchitecture(baseFile.getProject());
+//			if(arch.name().equalsIgnoreCase("zxn")) {
+//				paths.addAll(Set.of(
+//					sdkhome.resolve("libsrc").resolve("target").resolve("zxn")
+//					,
+//					sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("arch").resolve("zxn")
+//					)
+//				);
+//			}
+//
+//			
+//			/* other */
+//			paths.add(sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("arch").resolve("ts2068"));
+//			paths.add(sdkhome.resolve("libsrc").resolve("_DEVELOPMENT").resolve("env"));
 			
 			return paths;
 		}).orElse(Collections.emptySet());
